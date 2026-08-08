@@ -4,6 +4,8 @@
 - Version: `0.3.0`
 - Date: 2026-08-08
 - DOI (software deposit, this version): `10.5281/zenodo.21850966`
+- DOI (all versions): `10.5281/zenodo.21850965`
+- Published: 2026-08-08 (Zenodo, https://zenodo.org/record/21850966)
 - Lean version: `leanprover/lean4:v4.30.0`
 - mathlib revision: `v4.30.0`
 

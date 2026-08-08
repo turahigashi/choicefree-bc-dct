@@ -4,6 +4,8 @@ Version: 0.3.0
 
 DOI (this version): [10.5281/zenodo.21850966](https://doi.org/10.5281/zenodo.21850966)
 
+DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
+
 This is a clean public import-closure Lean artifact for the paper:
 
 **A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory**

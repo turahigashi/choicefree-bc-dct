@@ -3,8 +3,9 @@ import Mathdemo.BishopSec3Presented
 /-!
 # Bishop and Cheng's Definition 1.1, verbatim
 
-This file transcribes Definition 1.1 of the source (`ronbun2793`, Section 1) as a
-Lean structure, field for field, and relates it to the interface
+This file transcribes Definition 1.1 of the source — E. Bishop and H. Cheng,
+*Constructive Measure Theory* (Memoirs AMS 116, 1972), Section 1 — as a Lean
+structure, field for field, and relates it to the interface
 `BishopSec1P.IntSpaceC` that the development actually uses.
 
 The source reads:
