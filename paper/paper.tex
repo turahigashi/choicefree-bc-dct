@@ -10,6 +10,7 @@
 \newtheorem{lemma}[theorem]{Lemma}
 \newtheorem{proposition}[theorem]{Proposition}
 \newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{fact}[theorem]{Fact}
 \theoremstyle{definition}
 \newtheorem{definition}[theorem]{Definition}
 \theoremstyle{remark}
@@ -17,22 +18,18 @@
 \newcommand{\doi}[1]{\href{https://doi.org/#1}{\texttt{#1}}}
 \title{A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory}
 \author{Toshihisa Urahigashi}
-\date{Draft of 2026-08-04\\Artifact version \CFBDCTVersion}
+\date{Draft of 2026-08-09\\Artifact version \CFBDCTVersion}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Bishop and Cheng prove the dominated convergence theorem of their integral-first constructive measure theory through the theory of \emph{profiles}: a profile is a monotone functional on a family of continuous ramp functions, and the key result is that all but countably many levels of a profile are points of continuity.  Applied to an integrable function $h$ through $\lambda(f)=I(f\circ h)$, this yields the integrability of the level sets $\{h\ge t\}$ for admissible $t$, and hence the uniform estimate on which dominated convergence rests.  The step ``choose a level outside a countable exceptional set'' is exactly where the choice-free version of the theory is known to be obstructed: Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model, so no proof of the profile theorem without choice is to be expected in unrestricted generality.
-
-This paper reports a Lean~4 formalization of that route in which the scalars are \emph{presented} reals---regular sequences of rationals with Bishop equality---rather than an abstract real-number interface.  Over presented reals, Bishop's nested-interval construction produces a real apart from every member of a given sequence \emph{as data}, so the exceptional levels are not avoided by a choice principle but enumerated explicitly and then stepped around by an explicit construction.  The resulting theorem is a dominated convergence theorem in which convergence in measure and domination on a full set, with the full set allowed to depend on the index, imply convergence of the integrals.  All statements are parameterized by an explicitly quantified integration-space structure.
-
-The formal development exposes a data-carrying Type-valued kernel, including a full-set route whose indexed domination carriers are explicit data, automatic wrappers that construct dyadic smooth-level data internally, and a Prop-facing Bishop--Cheng theorem~4.15 interface with full-set domination.  The public Lean declarations audited by the artifact have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}; we therefore state explicitly what the choice-free claim is relative to.  The artifact also packages an independently reproduced Rocq \texttt{Print Assumptions} audit for S\'em\'eria's CoRN declarations \texttt{CvMeasure}, \texttt{DominatedMeasureCvZero}, and \texttt{DominatedConvergence}; this paper therefore does not claim priority over the CoRN formalization of Bishop--Cheng dominated convergence.
+Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, all but countably many of whose levels are points of continuity.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed: Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.  This paper reports a Lean~4 formalization of the profile route to Bishop--Cheng dominated convergence: convergence in measure, together with domination on full sets that may depend on the index, implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, not for an abstract constructive real-number object.  The method is to enumerate the exceptional levels as an explicit sequence and to step around them by Bishop's nested-interval construction, whose case split is decided from rational approximation data and returned as data.  The named public declarations carry kernel-checked axiom output confined to \texttt{[propext, Quot.sound]}, with a static source audit and checksums.  The artifact also packages an independently reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's CoRN declarations, and this paper claims no priority over the CoRN formalization of Bishop--Cheng dominated convergence.  A concluding measurement shows the formalization's cost per source statement peaking, by an order of magnitude, exactly at the known obstruction.
 \end{abstract}
 
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
 
 \bigskip
-\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  Part~II (Sections~\ref{sec:formalization}--\ref{sec:reproducibility}) concerns the formalization: the shape of the public interface, the relation of the result to the known no-go theorems, the comparison with earlier formalizations, and the audit, limitations, and reproduction procedure.  Appendix~\ref{sec:appendix-map} tabulates the correspondence between the mathematical objects of Part~I and the Lean declarations of Part~II.
+\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  Part~II (Sections~\ref{sec:formalization}--\ref{sec:reproducibility}) concerns the formalization: the shape of the public interface, the relation of the result to the known no-go theorems, the comparison with earlier formalizations, the audit, a measurement of where the cost of the formalization concentrates, and the limitations and reproduction procedure.  Appendix~\ref{sec:appendix-map} tabulates the correspondence between the numbering of this paper and that of the source, and between the mathematical objects of Part~I and the Lean declarations of Part~II.  Appendix~\ref{sec:appendix-b} states, as ordinary mathematics and without Lean vocabulary, the constructions that the formalization had to supply beyond what the source provides, together with a classification of which parts are routine, which are known, and which were the actual difficulties.  Part~I suffices for the mathematical content; Appendix~\ref{sec:appendix-b} is addressed to a reader who wants to know what the formalization concretely consisted of.
 
 \part{The mathematics}
 
@@ -41,7 +38,7 @@ The formal development exposes a data-carrying Type-valued kernel, including a f
 
 Dominated convergence is a basic passage from convergence of functions to convergence of their integrals.  In the integral-first constructive measure theory of Bishop and Cheng, the proof is not simply a translation of the classical almost-everywhere argument.  It proceeds through profiles of integrable functions, integrability of level sets away from an explicit exceptional sequence, and a uniform estimate on the complement of a suitable integrable set.
 
-The reason is worth stating at once, because the whole paper turns on it.  Classically, one proves that a monotone function $\mathbb{R}\to\mathbb{R}$ has at most countably many discontinuities, and one then picks a level $t$ at which the distribution function $t\mapsto\mu(\{|h|>t\})$ is continuous.  Both halves of that argument are problematic constructively.  Bishop and Cheng replace the first half by the theory of profiles, which produces not an abstract countable set of bad levels but an \emph{explicit sequence} of them.  The second half---picking a level different from every member of an explicitly given sequence---then becomes a genuine construction rather than a triviality, and it is precisely the step at which choice-free constructive measure theory is known to encounter an obstruction: in an unrestricted constructive setting, the relevant profile theorem entails an uncountability principle that fails in an intuitionistic sheaf model~\cite{spitters-2006-dagstuhl}.
+The reason is worth stating at once, because the whole paper turns on it.  Classically, one proves that a monotone function $\mathbb{R}\to\mathbb{R}$ has at most countably many discontinuities, and one then picks a level $t$ at which the distribution function $t\mapsto\mu(\{|h|>t\})$ is continuous.  Both halves of that argument are problematic constructively.  Bishop and Cheng replace the first half by the theory of profiles, which returns not an abstract countable set of bad levels but an \emph{explicit sequence} of them.  The second half---picking a level different from every member of an explicitly given sequence---then becomes a genuine construction rather than a triviality, and it is precisely the step at which choice-free constructive measure theory is known to encounter an obstruction: in an unrestricted constructive setting, the relevant profile theorem entails an uncountability principle that fails in an intuitionistic sheaf model~\cite{spitters-2006-dagstuhl}.
 
 This paper studies what can nevertheless be formalized when the real numbers are supplied with presentations.  A presented real is not merely an element of an abstract ordered field.  It carries rational approximation data and a modulus, and the strict-order cotransitivity required by Bishop's nested-interval construction is returned as data.  The formalization uses that representation to build a point apart from every member of a given sequence, applies the construction to the exceptional levels of a profile, and then follows the Bishop--Cheng route to dominated convergence.
 
@@ -52,16 +49,17 @@ The contributions of the artifact are as follows.
 \item It gives an explicit Lean~4 theorem surface for a profile-based Bishop--Cheng dominated-convergence route over regular-sequence presented reals and an explicitly quantified integration-space structure.
 \item It gives a Lean implementation of the countable-avoidance step via Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are constructed inside the audited dependency closure.
 \item It separates a proof-relevant Type-valued kernel, automatic wrappers that synthesize smooth-level data, and a conventional Prop-facing theorem.  The Type-valued kernel includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs.  This makes the computational content visible without requiring every caller to supply the low-level data explicitly.
-\item It provides reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, and explicit qualifications concerning predicativity, the integration-space interface, concrete models, and priority.
+\item It provides reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, explicit qualifications concerning predicativity, the integration-space interface, concrete models, and priority, and a stratified measurement of where the cost of the formalization falls (Section~\ref{sec:cost}).
 \end{enumerate}
 
 \section{The setting}
 \label{sec:setting}
 
 \subsection{Presented reals}
-The scalar field is represented by presented real numbers: regular rational approximation sequences equipped with Bishop equality as the working equality relation~\cite{bishop-1967,bishop-bridges-1985}.  A presented real is thus a sequence $(x_n)$ of rationals together with the regularity condition $|x_m-x_n|\le m^{-1}+n^{-1}$, and two presented reals are equal when the corresponding difference is eventually small; the development does not identify approximation sequences by definitional equality.  Analytic statements are formulated so that they respect the Bishop equivalence relation.
+\label{sec:presented}
+The scalar field is represented by presented real numbers: regular rational approximation sequences equipped with Bishop equality as the working equality relation~\cite{bishop-1967,bishop-bridges-1985}.  A presented real is thus a sequence $(x_n)$ of rationals together with the regularity condition $|x_m-x_n|\le m^{-1}+n^{-1}$, and two presented reals are equal when the corresponding difference is eventually small.  (This section follows the $1/n$ convention of Chapter~2 of Bishop's \emph{Foundations of Constructive Analysis}; the implementation and Appendix~\ref{sec:appendix-b} use the equivalent regularity condition with the dyadic gauge $2^{-k}$, and the two are translated by an explicit reindexing---Section~\ref{sec:cost-layerA}.)  The development does not identify approximation sequences by definitional equality.  This is a transcription of the source's own position rather than an implementation convenience: the notes to that chapter state that a real number \emph{is} the regular sequence, and not an equivalence class of regular sequences, arguing that the equivalence-class reading would be inaccurate or meaningless.  Analytic statements are formulated so that they respect the Bishop equivalence relation.
 
-Two consequences matter later.  First, every real carries its own modulus by construction.  Second, given a strict inequality $a<b$ and a third presented real $c$, the required cotransitivity branch can be \emph{decided from rational approximation data and returned as data}: from sufficiently good rational approximations one can tell which of $a<c$, $c<b$ holds, and one may return that information rather than only the proposition ``$a<c$ or $c<b$''.  It is this data form of cotransitivity that makes Bishop's nested-interval construction (Lemma~\ref{lem:avoid} below) a construction rather than an appeal to a choice principle.
+Two consequences matter later.  First, every real carries its own modulus by construction.  Second, given a strict inequality $a<b$ and a third presented real $c$, the required cotransitivity branch can be \emph{decided from rational approximation data and returned as data}: from sufficiently good rational approximations one can tell which of $a<c$, $c<b$ holds, and one may return that information rather than only the proposition ``$a<c$ or $c<b$''.  It is this data form of cotransitivity that makes Bishop's nested-interval construction (Lemma~\ref{lem:avoid} below) a construction rather than an appeal to a choice principle; the mechanism by which the branch is decided is written out in Appendix~\ref{sec:b-order}.
 
 \subsection{Integration spaces}
 \label{sec:intspace}
@@ -69,7 +67,7 @@ The measure-theoretic layer follows a Bishop--Cheng style route~\cite{bishop-che
 
 All results below are proved relative to an explicitly quantified structure, an \emph{integration space} in the following working sense.
 
-\begin{definition}[Integration space, working form]
+\begin{definition}[Integration space, working form; cf.\ the source's Definition~1.1]
 \label{def:intspace}
 An integration space is a triple $(X,L,I)$ consisting of a type $X$, a class $L$ of partial functions on $X$ with values in the presented reals, and a functional $I:L\to\mathbb{R}$, such that:
 \begin{enumerate}[label=(A\arabic*)]
@@ -79,29 +77,30 @@ An integration space is a triple $(X,L,I)$ consisting of a type $X$, a class $L$
 \item $I$ is positive: $I(f)\ge 0$ whenever $f\in L$ is pointwise nonnegative on its domain;
 \item the two truncation limits hold for every $f\in L$:
 \[
-I(f \wedge n) \longrightarrow I(f), \qquad I(|f| \wedge \varepsilon_n) \longrightarrow 0 ;
+I(\min\{f,n\}) \longrightarrow I(f), \qquad I(\min\{|f|,n^{-1}\}) \longrightarrow 0 \qquad (n\ge1);
 \]
+(the implementation phrases the small truncation with the dyadic gauge $2^{-n}$; the difference of index domains is absorbed by the gauge translation of Section~\ref{sec:cost-layerA});
 \item \emph{(constructive continuity)} if $f\in L$, if $(f_n)$ is a sequence of pointwise nonnegative members of $L$, if $\sum_n I(f_n)$ converges, and if $\sum_n I(f_n)<I(f)$, then there is a point $x$ lying in the domain of $f$ and of every $f_n$ such that $\sum_n f_n(x)$ converges and $\sum_n f_n(x)<f(x)$.
 \end{enumerate}
 \end{definition}
 
-Axiom (A6) is Bishop and Cheng's property~(2), the constructive analogue of the continuity condition for a Daniell integral, stated in the positive form which produces a point at which a series of nonnegative functions stays below a given function.  The two limits in (A5) are the same pair of limits that Spitters isolates in his definition of an integral $f$-algebra~\cite{spitters-2006-dagstuhl}.
+Axiom (A6) is Bishop and Cheng's property~(2), the constructive analogue of the continuity condition for a Daniell integral, stated in the positive form which returns a point at which a series of nonnegative functions stays below a given function.  The two limits in (A5) are the same pair of limits that Spitters isolates in his definition of an integral $f$-algebra~\cite{spitters-2006-dagstuhl}.
 
 \begin{remark}[Fidelity caveat; it bounds every claim below]
 \label{rem:fidelity}
-Definition~\ref{def:intspace} is \emph{not} a verbatim rendering of Bishop and Cheng's Definition~1.1~\cite{bishop-cheng-1972}, and the difference runs in both directions.
+Definition~\ref{def:intspace} is \emph{not} a verbatim rendering of Bishop and Cheng's Definition~1.1~\cite{bishop-cheng-1972}, and the difference runs in both directions.  Here and below, ``clauses (1)--(4)'' refer to the four clauses of the source's Definition~1.1---(1) closure under linear combination, absolute value, and $\min\{f,1\}$, together with linearity of $I$; (2) series continuity, yielding a point; (3) normalization $I(p)=1$; (4) the two truncation limits---while (A1)--(A6) refer to Definition~\ref{def:intspace}.
 
-In two respects it is weaker.  Their definition requires in addition that $X$ be inhabited and that there exist $p\in L$ with $I(p)=1$; neither requirement appears above.  Definition~\ref{def:intspace} is therefore satisfied by a degenerate zero-integral model, which was until now the only concrete example shipped with the artifact (Section~\ref{sec:additions}).  A second, \emph{normalized} example is now supplied: point evaluation at a fixed point (\path{Mathdemo.DiracIntegrationSpace}), for which the constant function $1$ lies in $L$ with $I(1)=1$, so that clause~(3) holds.  Both of its clause-(4) limits are proved, so the model is unconditional.  For point evaluation they reduce to statements about the truncations of a single real: $\min\{c,n\}\to c$ holds with a constant modulus once $n$ passes an Archimedean bound for $c$, and $\min\{|c|,2^{-n}\}\to0$ holds because the truncation is squeezed between $0$ and $2^{-n}$.  The Archimedean bound is the witness $2^{\mathrm{mulArchBound}(c)}$ of \path{exists_nat_geC} written out explicitly, since that lemma is a \texttt{Prop}-valued existential and cannot supply a modulus, which is data.  The single extra argument of the adapter is also available here, because truncation does not change a domain.
+In two respects Definition~\ref{def:intspace} is weaker.  The source requires in addition that $X$ be inhabited and that there exist $p\in L$ with $I(p)=1$; neither requirement appears above.  Definition~\ref{def:intspace} is therefore satisfied by a degenerate zero-integral model, which was until now the only concrete example shipped with the artifact (Section~\ref{sec:additions}).  A second, \emph{normalized} example is now supplied: point evaluation at a fixed point (\path{Mathdemo.DiracIntegrationSpace}), for which the constant function $1$ lies in $L$ with $I(1)=1$, so that clause~(3) holds.  Both of its clause-(4) limits are proved, so the model is unconditional.  For point evaluation they reduce to statements about the truncations of a single real: $\min\{c,n\}\to c$ holds with a constant modulus once $n$ passes an Archimedean bound for $c$, and $\min\{|c|,2^{-n}\}\to0$ holds because the truncation is squeezed between $0$ and $2^{-n}$.  The Archimedean bound is the witness $2^{\mathrm{mulArchBound}(c)}$ of \path{exists_nat_geC} written out explicitly, since that lemma is a \texttt{Prop}-valued existential and cannot supply a modulus, which is data.  The single extra argument of the adapter is also available here, because truncation does not change a domain.
 
-In one respect it is stronger, and this deserves to be stated explicitly.  Bishop and Cheng's clause~(1) asks only that $\min\{f,1\}\in L$, and the constants recoverable from it are positive: their own remark derives $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$.  The closure clause of (A2) above, as formalized, quantifies over an arbitrary constant $\alpha$, negative ones included.  That is a genuine strengthening, and it is not vacuous: in Bishop and Cheng's own canonical model $(X,C(X),\mu)$ of their Definition~7.1---$X$ locally compact, $C(X)$ the continuous functions of compact support, $\mu$ a positive measure---one has $\min\{f,\alpha\}=\alpha$ off the support of $f$, so for $\alpha<0$ and non-compact $X$ the truncation leaves $C(X)$.  Definition~\ref{def:intspace} and Bishop and Cheng's Definition~1.1 are therefore not ordered by logical strength.
+In one respect Definition~\ref{def:intspace} is stronger, and this deserves to be stated explicitly.  Clause~(1) asks only that $\min\{f,1\}\in L$, and the constants recoverable from it are positive: the source's own remark derives $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$.  The closure clause of (A2) above, as formalized, quantifies over an arbitrary constant $\alpha$, negative ones included.  That is a genuine strengthening, and it is not vacuous: in Bishop and Cheng's own canonical model $(X,C(X),\mu)$ of their Definition~7.1---$X$ locally compact, $C(X)$ the continuous functions of compact support, $\mu$ a positive measure---one has $\min\{f,\alpha\}=\alpha$ off the support of $f$, so for $\alpha<0$ and non-compact $X$ the truncation leaves $C(X)$ (Appendix~\ref{sec:b-truncation}).  Definition~\ref{def:intspace} and Bishop and Cheng's Definition~1.1 are therefore not ordered by logical strength.
 
 The strengthening is, however, never used.  Every consumer of constant truncation in the development already carries the hypothesis $\alpha\ge0$---the declaration \path{IntegrableRepC3.cutConstVal} takes it as an explicit argument---and the only instantiations occurring in the proof of Theorem~\ref{thm:prop-dct} are $\alpha=n$ (\path{cutNat}) and $\alpha=\varepsilon_n$ (\path{cutSmall}), both nonnegative.
 
-Restricting the closure clause to $\alpha\ge0$ is, however, probably not by itself the right repair.  The recovery route the source itself supplies is $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$, which requires $\alpha^{-1}$ and hence a witness that $\alpha$ is apart from $0$; the case $\alpha=0$ is recovered separately, since $\min\{f,0\}=(f-|f|)/2$ follows from clause~(1) and closure under $|\cdot|$.  Constructively one cannot decide between $\alpha=0$ and $\alpha>0$, and we have found no uniform construction from $\alpha\ge0$---that is, from $\neg(\alpha<0)$---alone.  The correct form of the clause therefore appears to be truncation at constants \emph{carrying a positivity witness}, or at $0$: exactly the two constants the development truncates at.  We emphasize that we have not proved that $\alpha\ge0$ is insufficient; the claim is only that the source's route needs a witness and that no other constructive route is evident to us.
+Restricting the closure clause to $\alpha\ge0$ is, however, probably not by itself the right repair.  The recovery route the source itself supplies is $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$, which requires $\alpha^{-1}$ and hence a witness that $\alpha$ is apart from $0$; the case $\alpha=0$ is recovered separately, since $\min\{f,0\}=(f-|f|)/2$ follows from clause~(1) and closure under $|\cdot|$ by a lattice identity that needs no case analysis (Appendix~\ref{sec:b-truncation}).  Constructively one cannot decide between $\alpha=0$ and $\alpha>0$, and we have found no uniform construction from $\alpha\ge0$---that is, from $\neg(\alpha<0)$---alone.  The correct form of the clause therefore appears to be truncation at constants \emph{carrying a positivity witness}, or at $0$: exactly the two constants the development truncates at.  We emphasize that we have not proved that $\alpha\ge0$ is insufficient; the claim is only that the source's route needs a witness and that no other constructive route is evident to us.
 
 The adapter is supplied.  The module \path{Mathdemo.SourceIntegrationSpaceDef11} contains a field-for-field transcription \path{IntegrationSpaceDef11} of Definition~1.1 together with an adapter \path{toIntSpaceC} into Definition~\ref{def:intspace}: \emph{thirteen of the fourteen fields are supplied from Definition~1.1, and the single explicit extra argument is truncation at an arbitrary constant}.  The answer to ``how far does Definition~1.1 take one'' is thus ``all the way except for one clause'', and that clause is the incomparability just described.  The intermediate steps follow the source: clause~(1), stated there as the single assertion $\alpha f+\beta g\in L$, yields closure under addition and under scalar multiplication and the additivity and homogeneity of $I$ (each through the equality of $F(X)$); and clause~(2) yields Corollary~1.3 at $k=1$ (\path{pos_witness}) and from it \path{I_nonneg}.  Every one of these declarations reports \path{[propext, Quot.sound]}.
 
-Two further differences follow.  First, Definition~\ref{def:intspace} carries \path{I_nonneg} as a field, but need not: it is derivable from clause~(2), by the derivation the source performs in Lemma~1.2, Corollary~1.3, and the sentence following Corollary~1.3, and that derivation is now machine-checked.  Second, and this is \emph{not} a difference: clause~(2) is rendered with a point-producing structure rather than a \texttt{Prop}-valued $\exists$, and the limits of clause~(4) with an explicit modulus rather than an $\varepsilon$-$\delta$ statement.  That is faithfulness rather than strengthening, since Bishop's $\exists$ asserts under the BHK reading that the object can be produced, and a Bishop limit always carries a modulus; the \texttt{Prop}-valued reading would be the weaker one.
+Two further differences complete the list, making five in all.  First, Definition~\ref{def:intspace} carries \path{I_nonneg} as a field, but need not: it is derivable from clause~(2), by the derivation the source performs in Lemma~1.2, Corollary~1.3, and the sentence following Corollary~1.3, and that derivation is now machine-checked (Appendix~\ref{sec:b-truncation}).  Second, and this is \emph{not} a difference: clause~(2) is rendered with a point-returning structure rather than a \texttt{Prop}-valued $\exists$, and the limits of clause~(4) with an explicit modulus rather than an $\varepsilon$-$\delta$ statement.  That is faithfulness rather than strengthening, since Bishop's $\exists$ asserts under the BHK reading that the object can be constructed, and a Bishop limit always carries a modulus; the \texttt{Prop}-valued reading would be the weaker one.
 
 The full field list is machine-readable in the artifact, so a reader can check exactly which hypotheses the theorems consume.
 \end{remark}
@@ -111,19 +110,19 @@ The full field list is machine-readable in the artifact, so a reader can check e
 
 This section collects the notions used in the statement of the theorem.  All of them are Bishop and Cheng's~\cite{bishop-cheng-1972}; we recall them because the theorem cannot be read without them.
 
-\begin{definition}[Full set; Bishop--Cheng Definition~1.9]
+\begin{definition}[Full set; the source's Definition~1.9]
 \label{def:full}
 A subset $A\subseteq X$ is a \emph{full set} if it contains a countable intersection of domains of integrable functions.
 \end{definition}
 
-\begin{definition}[Complemented set; Bishop--Cheng Definition~2.1]
+\begin{definition}[Complemented set; the source's Definitions~2.1, 2.2(d)(e), 2.3]
 \label{def:complemented}
 A \emph{complemented set} is an ordered pair $A\equiv(A^1,A^2)$ of subsets of $X$ such that $x\in A^1$ and $y\in A^2$ imply $x\ne y$.  We write $x\in A$ for $x\in A^1$ and $x\in -A$ for $x\in A^2$, and put $-A\equiv (A^2,A^1)$ and $A-B\equiv A\wedge(-B)$.  A complemented set is \emph{integrable} when its characteristic function is, and its \emph{measure} $\mu(A)$ is the integral of that characteristic function.
 \end{definition}
 
 Complemented sets carry their own witnesses of non-membership; this is what replaces the classical complement, for which one has no constructive access.
 
-\begin{definition}[Convergence in measure; Bishop--Cheng Definition~4.11]
+\begin{definition}[Convergence in measure; the source's Definition~4.11]
 \label{def:convmeasure}
 A sequence $(f_n)$ of measurable functions \emph{converges in measure} to a function $f$ defined on a full set $D(f)$ if for every integrable set $A$ and every $\varepsilon>0$ there is $N$ such that for every $n\ge N$ there is an integrable set $B$ with
 \[
@@ -133,14 +132,14 @@ B^1\subseteq A^1\cap D(f)\cap D(f_n),\qquad \mu(A-B)<\varepsilon,\qquad |f(x)-f_
 
 Note that the good set $B$, its integrability, the small-complement estimate, and the pointwise closeness all appear in the statement; nothing is left to an external library convention.
 
-\begin{definition}[Full-set domination]
+\begin{definition}[Domination on full sets; the source's \S1 convention with the quantifiers displayed]
 \label{def:domination}
-A sequence $(f_n)$ of integrable functions is \emph{dominated on full sets} by an integrable $g$ if for every $n$ there is a full set $F_n$ such that $|f_n(x)|\le g(x)$ for every $x\in F_n$ at which the relevant values are defined.  The full set is allowed to depend on $n$.
+In \S1 of the memoir, Bishop and Cheng adopt the notational convention that, for arbitrary $f,g\in F(X)$, the inequality $f\le g$ means that $f\le g$ holds \emph{on some full set}.  The domination hypothesis $|f_n|\le g$ of their Theorem~4.15 is therefore already a full-set inequality on the source's own reading, and since the inequalities for different $n$ are separate statements, the full set may depend on $n$.  The present definition displays that quantification.  A sequence $(f_n)$ of integrable functions is \emph{dominated on full sets} by an integrable $g$ if for every $n$ there is a full set $F_n$ such that $|f_n(x)|\le g(x)$ for every $x\in F_n$ at which the relevant values are defined.  The full set is allowed to depend on $n$.
 \end{definition}
 
 Finally, the notion at the heart of the proof.
 
-\begin{definition}[Profile; Bishop--Cheng Definition~3.1]
+\begin{definition}[Profile; the source's Definition~3.1]
 \label{def:profile}
 Let $[a,b]\subset\mathbb{R}$ be a compact proper interval and let $C[a,b]$ be the continuous functions on it.  Let $F\subseteq C[a,b]$ satisfy
 \begin{enumerate}[label=(\alph*)]
@@ -151,9 +150,9 @@ Let $[a,b]\subset\mathbb{R}$ be a compact proper interval and let $C[a,b]$ be th
 Let $\lambda:F\to\mathbb{R}$ be non-decreasing, i.e.\ $\lambda(f)\le\lambda(g)$ whenever $f\le g$ pointwise on $[a,b]$.  Then $(F,\lambda)$ is a \emph{profile} on $[a,b]$.
 \end{definition}
 
-The example to keep in mind is $\lambda(f)=\int_a^b f(x)\,dx$.  A profile is thus a monotone functional on a supply of ramp functions, and condition~(c) says that the supply is rich enough to separate any two levels.
+The example to keep in mind is $\lambda(f)=\int_a^b f(x)\,dx$; this sentence is the source's own.  A profile is thus a monotone functional on a supply of ramp functions, and condition~(c) says that the supply is rich enough to separate any two levels.  (The formalization states the definition in a coded form in which condition~(c) returns the separating function; Appendix~\ref{sec:b-coded}.)
 
-\begin{definition}[Smooth level]
+\begin{definition}[Smooth level; introduced in the source inside the text of its Theorem~3.5]
 \label{def:smooth}
 A point $t\in[a,b]$ is \emph{smooth} for the profile $(F,\lambda)$ if there is a number $\overline{\lambda}(t)$ such that for every $\varepsilon>0$ there is $\delta>0$ with the property that
 \[
@@ -167,7 +166,7 @@ For the model example $\lambda(f)=\int f$, smoothness at $t$ says that ramps whi
 \section{The theorem}
 \label{sec:main-result}
 
-\begin{theorem}[Dominated convergence]
+\begin{theorem}[Dominated convergence; the source's Theorem~4.15]
 \label{thm:prop-dct}
 Let $(X,L,I)$ be an integration space in the sense of Definition~\ref{def:intspace}.  Let $f$ and $f_n$ $(n\in\mathbb{N})$ be integrable functions on $X$, and assume:
 \begin{enumerate}[label=(\roman*)]
@@ -181,14 +180,16 @@ Then
 \]
 \end{theorem}
 
+On numbering: this paper numbers items by section, so the statement above is Theorem~\ref{thm:prop-dct}, and it is the same assertion as Theorem~4.15 of the memoir (the differences in how the hypotheses are phrased are discussed in Remark~\ref{rem:weaker} and Section~\ref{sec:proof}); that both numbers happen to begin with ``4'' carries no meaning.  Appendix~\ref{sec:numbering} tabulates the correspondence between the numbering of this paper and that of the source.  In the sequel, ``Theorem~\ref{thm:prop-dct}'' refers to this paper's numbering and ``Theorem~4.15'' to the source's.
+
 \begin{remark}[Scope visible in the statement]
 \label{rem:scope}
 The limit $f$ is itself assumed integrable; the theorem does not derive the integrability of an otherwise merely measurable limit.  The result is also relative to the structure $(X,L,I)$ and to presented reals.  These are mathematical hypotheses of the theorem, not axioms hidden from Lean's dependency report.
 \end{remark}
 
-\begin{remark}[Where the hypotheses are weaker than usual]
+\begin{remark}[The mode of the hypotheses]
 \label{rem:weaker}
-Two features of the hypotheses are worth flagging for comparison with other formulations.  First, the mode of convergence assumed is convergence in measure, not pointwise convergence.  Second, the domination hypothesis is a full-set hypothesis, and the full set is allowed to vary with the index $n$; a single global pointwise bound is not required.  Section~\ref{sec:domination-comparison} compares this with the corresponding CoRN hypothesis.
+Two features of the hypotheses are worth flagging for comparison with other formulations.  First, the mode of convergence assumed is convergence in measure, not pointwise convergence.  Second, the domination hypothesis is a full-set hypothesis, and the full set is allowed to vary with the index $n$; a single global pointwise bound is not required.  The second feature is \emph{not} a weakening introduced by this paper: it renders explicit what the source's \S1 convention already means under Theorem~4.15 (Definition~\ref{def:domination}).  Likewise, the difference between the error majorant $H=|g|+|f|$ used in the proof below and the source's $2g$ is not a difference of hypotheses but a difference of proof route: obtaining $2g$ would require the separate derivation $|f|\le g$, which is not imposed (Section~\ref{sec:proof}).  Section~\ref{sec:domination-comparison} compares the hypothesis with the corresponding CoRN hypothesis.
 \end{remark}
 
 \section{Profiles, level sets, and countable avoidance}
@@ -196,14 +197,14 @@ Two features of the hypotheses are worth flagging for comparison with other form
 
 The proof of Theorem~\ref{thm:prop-dct} rests on three results.  The first two are Bishop and Cheng's; the third is the constructive content of the step that the classical proof takes for granted.
 
-\begin{theorem}[Smoothness away from an explicit sequence; Bishop--Cheng Theorem~3.5]
+\begin{theorem}[Smoothness away from an explicit sequence; the source's Theorem~3.5]
 \label{thm:3-5}
 Let $(F,\lambda)$ be a profile on $[a,b]$.  Then all but countably many points of $[a,b]$ are smooth in the sense of Definition~\ref{def:smooth}.
 \end{theorem}
 
-The proof is what matters here.  Bishop and Cheng choose an increasing sequence $\{n(k)\}$ of positive integers with $(n(k)+1)k^{-1}>\lambda(1)-\lambda(0)$, collect the finitely many points $\{t^k_1,\dots,t^k_{n(k)}\}$ excluded at stage $k$, and set $T=\{t^k_j\}$.  Every $t$ distinct from every member of $T$ is then shown to be smooth, with $\overline{\lambda}(t)$ constructed explicitly.  Thus the conclusion is not that a certain set ``is countable'' with an existentially hidden enumeration: the exceptional levels arrive as an \emph{explicit sequence}.
+The proof is what matters here.  Bishop and Cheng choose an increasing sequence $\{n(k)\}$ of positive integers with $(n(k)+1)k^{-1}>\lambda(1)-\lambda(0)$, collect the finitely many points $\{t^k_1,\dots,t^k_{n(k)}\}$ excluded at stage $k$, and set $T=\{t^k_j\}$.  Every $t$ distinct from every member of $T$ is then shown to be smooth, with $\overline{\lambda}(t)$ constructed explicitly.  Thus the conclusion is not that a certain set ``is countable'' with an existentially hidden enumeration: the exceptional levels arrive as an \emph{explicit sequence}, constructed by the source's own proof.  The formalization's contribution at this point is packaging rather than strengthening: it flattens the proof-internal data into a first-class $\mathbb{N}$-indexed sequence that later constructions consume directly (Appendix~\ref{sec:b-exception}).
 
-\begin{theorem}[Integrability of level sets; Bishop--Cheng Theorem~3.6]
+\begin{theorem}[Integrability of level sets; the source's Theorem~3.6]
 \label{thm:3-6}
 Let $(X,L,I)$ be an integration space and $h$ an integrable function.  Then for all but countably many $t>0$ the complemented sets
 \[
@@ -217,7 +218,7 @@ The bridge between the two theorems is the profile built from $h$.  For $0<u<v$ 
 \[
 f_{u,v}\circ h \;=\; \min\{(v-u)^{-1}(h-\min\{h,u\}),\,1\}.
 \]
-Restricting to $[a,b]$ gives a profile in the sense of Definition~\ref{def:profile}, and $\overline{\lambda}(t)$ is the common measure of $A$ and $B$.  So the distribution function of $h$ appears as a profile, its jump levels appear as the explicit sequence $T$, and integrability of a level set is available exactly at levels away from $T$.
+Restricting to $[a,b]$ gives a profile in the sense of Definition~\ref{def:profile}, and $\overline{\lambda}(t)$ is the common measure of $A$ and $B$.  So the distribution function of $h$ appears as a profile, its jump levels appear as the explicit sequence $T$, and integrability of a level set is available exactly at levels away from $T$.  (Constructively, the two pairs $A$ and $B$ are built independently: since $\le$ is the negation of $<$, neither pair is the complement of the other, and the classical one-line passage from $A$ to $B$ is not available; Appendix~\ref{sec:b-mirror}.)
 
 This is where a constructive proof must do work that the classical proof does not.
 
@@ -226,16 +227,19 @@ This is where a constructive proof must do work that the classical proof does no
 Let $a<b$ be presented reals and let $(q_n)$ be a sequence of presented reals.  Then one can construct $t$ with $a<t<b$ and $t$ apart from $q_n$ for every $n$.
 \end{lemma}
 
-The construction is the familiar one: shrink a nested sequence of closed intervals inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.
+The construction is the familiar one: shrink a nested sequence of closed intervals inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.  A complete proof, including the reason why the classical midpoint bisection is not available and the margin that replaces it, is given in Appendix~\ref{sec:b-avoidance}.
 
-Applying Lemma~\ref{lem:avoid} to the exceptional sequence $T$ of Theorem~\ref{thm:3-5} produces an admissible level, and hence, by Theorem~\ref{thm:3-6}, integrable level sets at that level.  The following consequence is the form in which the profile theory enters the convergence argument.
+Applying Lemma~\ref{lem:avoid} to the exceptional sequence $T$ of Theorem~\ref{thm:3-5} constructs an admissible level, and hence, by Theorem~\ref{thm:3-6}, integrable level sets at that level.  The following consequence is the form in which the profile theory enters the convergence argument.
 
 \begin{proposition}[Uniform complement estimate]
 \label{prop:uniform-complement}
-Let $H$ be a nonnegative integrable function and let a positive tolerance be given.  Then there are an integrable set $A$, an index bound, and a positive measure threshold such that every sufficiently late member of a sequence of error functions dominated by $H$ has small integral outside each sufficiently large integrable subset of $A$.
+Let $H$ be a nonnegative integrable function and let $(e_n)$ be a sequence of nonnegative integrable functions such that for each $n$ there is a full set on which $e_n\le H$ (in the application to Theorem~\ref{thm:prop-dct}, $e_n=|f_n-f|$ and $H=|g|+|f|$).  Then for every $\varepsilon>0$ one can construct an integrable set $A$, an index bound $N$, and a measure threshold $\delta>0$ such that for every $n\ge N$ and every integrable complemented set $C$,
+\[
+\mu(A-C)<\delta \quad\Longrightarrow\quad I\bigl(e_n-\chi_C\,e_n\bigr)<\varepsilon .
+\]
 \end{proposition}
 
-Proposition~\ref{prop:uniform-complement} is what makes the ``outside a good set'' half of the classical proof work without an almost-everywhere argument: the smallness of the integral off $A$ is obtained from the measure of a level set of $H$ at an admissible level, and admissibility is supplied by Lemma~\ref{lem:avoid}.
+Proposition~\ref{prop:uniform-complement} corresponds to the hypotheses of the source's Lemma~4.14 together with the construction inside its Theorem~4.13, under the equivalent reparameterization $B:=-C$: the source's smallness condition $\mu(A\wedge B)<\delta$ is the condition $\mu(A-C)<\delta$ above, since $A-C=A\wedge(-C)$.  It is what makes the ``outside a good set'' half of the classical proof work without an almost-everywhere argument: the smallness of the integral off $A$ is obtained from the measure of a level set of $H$ at an admissible level, and admissibility is supplied by Lemma~\ref{lem:avoid}.  The triple $(A,N,\delta)$ is returned as data because the sequel consumes it (Appendix~\ref{sec:b-uniform}).
 
 \section{Proof of Theorem~\ref{thm:prop-dct}}
 \label{sec:proof}
@@ -264,7 +268,7 @@ H=|g|+|f|.
 \]
 The appearance of $|f|$ is why the verified error majorant is not advertised simply as $2g$: obtaining $2g$ would require the separate hypothesis $|f|\le g$, which we do not impose on the caller.
 
-\item From $H$, construct the dyadic smooth-level data needed by the profile argument.  Internally, Theorem~\ref{thm:3-5} produces a concrete exception sequence; Lemma~\ref{lem:avoid} produces a presented real apart from that sequence, and hence an admissible level at which the relevant upper and lower level sets are integrable by Theorem~\ref{thm:3-6}.
+\item From $H$, construct the dyadic smooth-level data needed by the profile argument.  Internally, Theorem~\ref{thm:3-5} returns a concrete exception sequence; Lemma~\ref{lem:avoid} constructs a presented real apart from that sequence, and hence an admissible level at which the relevant upper and lower level sets are integrable by Theorem~\ref{thm:3-6}.
 
 \item The profile estimates at these levels yield Proposition~\ref{prop:uniform-complement}: for a prescribed positive tolerance, there are an integrable set $A$, an index bound, and a positive measure threshold such that every sufficiently late error function has small integral outside each sufficiently large integrable subset of $A$.
 
@@ -282,7 +286,7 @@ gives the conclusion of Theorem~\ref{thm:prop-dct}. \qed
 \section{The Lean development}
 \label{sec:formalization}
 
-The development is carried out in Lean~4~\cite{lean4-2021}.  The carrier of the presented reals is a concrete type,
+The development is carried out in Lean~4~\cite{lean4-2021}, toolchain \texttt{v4.30.0}.  The carrier of the presented reals is a concrete type,
 \[
 \texttt{BishopCReal.CReal} \;=\; \texttt{RegularSeq},
 \]
@@ -310,21 +314,20 @@ exported under the paper-facing alias
 Its hypothesis (i) is \path{ConvergeInMeasureC}, which unfolds exactly to Definition~\ref{def:convmeasure}; its hypothesis (ii) is \path{DominatedOnFullC}, which unfolds to Definition~\ref{def:domination}; and its conclusion is \path{RepSeriesTendstoEpsPropC}, the ordinary epsilon formulation displayed in Theorem~\ref{thm:prop-dct}.
 
 \subsection{Three-layer public interface}
+\label{sec:layers}
 The public API has three layers:
 \[
 \begin{array}{c}
-\text{Type-valued convergence and profile data}\\
+\text{Layer I: Type-valued convergence and profile data, data-carrying DCT kernel}\\
 \Downarrow\\
-\text{data-carrying DCT kernel}\\
+\text{Layer II: automatic dyadic smooth-level construction}\\
 \Downarrow\\
-\text{automatic dyadic smooth-level construction}\\
-\Downarrow\\
-\text{Prop-facing full-set DCT.}
+\text{Layer III: Prop-facing full-set DCT.}
 \end{array}
 \]
-The distinction between the layers is the distinction between a proof that merely asserts convergence and a proof that returns the modulus.  In Lean, a statement in \texttt{Prop} is proof-irrelevant, so nothing computational can be extracted from it; a statement in \texttt{Type} is proof-relevant, and its inhabitants are data that later constructions may consume.  A mathematician may read Layer~C as the theorem and Layers~A--B as the same theorem with the witnesses kept.
+(The Roman numerals name API layers; the letters A--E of Section~\ref{sec:cost} name cost strata, a different partition.)  The distinction between the layers is the distinction between a proof that merely asserts convergence and a proof that returns the modulus.  In Lean, a statement in \texttt{Prop} is proof-irrelevant, so nothing computational can be extracted from it; a statement in \texttt{Type} is proof-relevant, and its inhabitants are data that later constructions may consume.  A mathematician may read Layer~III as the theorem and Layers~I--II as the same theorem with the witnesses kept.  More precisely, the Type-valued surface is a data refinement rather than an equivalent restatement: it demands and returns witnesses, and it is not derivable inside Lean from the Prop-facing theorem.  ``Returns data'' means that a proof-relevant term exists; efficient program extraction is not claimed, and the fact that some public aliases are marked \texttt{noncomputable} is not evidence of choice either way (Section~\ref{sec:audit}).
 
-\paragraph{Layer A: Type-valued data-carrying kernel.}
+\paragraph{Layer I: Type-valued data-carrying kernel.}
 The declarations
 \begin{quote}\small\raggedright
 \path{ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC}\par
@@ -338,10 +341,10 @@ The declarations
 \end{quote}
 consume explicit proof-relevant data: convergence moduli, good-set data, integrability witnesses, point-evaluation witnesses, profile/majorant data, smooth-level data, and Type-valued convergence output.  In the full-set route, the carrier may depend on the sequence index.  A Type-valued convergence interface is not claimed to be novel, since CoRN's \texttt{CvMeasure} is also Type-valued.
 
-\paragraph{Layer B: automatic Type-valued wrappers.}
+\paragraph{Layer II: automatic Type-valued wrappers.}
 The public declarations ending in \texttt{\_autoC} internally construct the dyadic smooth-level data by \path{BishopSec3P.lemma43DyadicSmoothDataC_construct}.  They therefore avoid exposing an external \texttt{Lemma43DyadicSmoothDataC} argument.  This includes \path{dominated_convergence_from_pointwise_majorant_on_full_data_autoC} and the variant combining explicit domination full sets with explicit convergence good sets; the two indexed set families remain distinct.
 
-\paragraph{Layer C: Prop-facing theorem.}
+\paragraph{Layer III: Prop-facing theorem.}
 The declaration \path{ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC} accepts Prop-valued \path{ConvergeInMeasureC} and an existential integrable majorant satisfying \path{DominatedOnFullC}.  It concludes Prop-valued epsilon convergence of the integral sequence.  Existential witnesses from convergence and full-set domination are opened only inside Prop proof goals, not assembled into the selector required by the Type-valued full-set route.  Consequently the final theorem does not manufacture a global Type-valued choice function.  A separate Type-valued interface accepts precisely such data as \path{DominatedOnFullDataC}: for each index it contains a carrier, a proof that the carrier is full, and the domination proof on that carrier.  It then returns \path{RepSeriesTendsto}, retaining the convergence modulus.
 
 \subsection{Formal counterparts of Section~\ref{sec:profile-theory}}
@@ -353,11 +356,11 @@ Theorem~\ref{thm:3-5} and the partition data underlying it are exported as
 \[
 \texttt{ChoiceFreeMeasureDCT.profile\_level\_sets\_integrable\_apartC},
 \]
-which packages the conclusion that apart level thresholds give integrable upper and lower level sets with the expected profile measure.  The word \emph{apart} in that name is the load-bearing one: the thresholds are required to be apart from the explicit exception sequence produced by Theorem~\ref{thm:3-5}, and such thresholds are obtained by Lemma~\ref{lem:avoid}.  Proposition~\ref{prop:uniform-complement} is exposed as
+which packages the conclusion that apart level thresholds give integrable upper and lower level sets with the expected profile measure.  The word \emph{apart} in that name is the load-bearing one: the thresholds are required to be apart from the explicit exception sequence returned by Theorem~\ref{thm:3-5}, and such thresholds are obtained by Lemma~\ref{lem:avoid}.  Proposition~\ref{prop:uniform-complement} is exposed as
 \[
 \texttt{ChoiceFreeMeasureDCT.uniform\_complement\_from\_profile\_levelsC},
 \]
-implemented by \texttt{BishopSec3P.lemma43UniformComplementData\_of\_majorantC}.  Lemma~\ref{lem:avoid} is formalized as \path{thm36B1_exists_apart_in_interval} and \path{thm36B1_apart_data}: the data-valued nested-interval step, the interval sequence, monotonicity of the endpoints, width shrinkage, Cauchy data for the left endpoints, and the limiting apart point; and \path{lemma_4_3_A_n_apart_data} supplies the resulting admissible threshold to Proposition~\ref{prop:uniform-complement}.  Step~(4) of the proof in Section~\ref{sec:proof} is \path{lemma_4_14_local_two_epsilonC}, and step~(5) is \path{integral_diff_lt_of_abs_error_integral_ltC}.
+implemented by \texttt{BishopSec3P.lemma43UniformComplementData\_of\_majorantC}; the variant whose domination hypothesis is itself a full-set hypothesis, as in the statement of Proposition~\ref{prop:uniform-complement}, is \path{lemma43UniformComplementData_of_majorantOnFullDataC}.  Lemma~\ref{lem:avoid} is formalized as \path{thm36B1_exists_apart_in_interval} and \path{thm36B1_apart_data}: the data-valued nested-interval step, the interval sequence, monotonicity of the endpoints, width shrinkage, Cauchy data for the left endpoints, and the limiting apart point; and \path{lemma_4_3_A_n_apart_data} supplies the resulting admissible threshold to Proposition~\ref{prop:uniform-complement}.  Step~(4) of the proof in Section~\ref{sec:proof} is \path{lemma_4_14_local_two_epsilonC}, and step~(5) is \path{integral_diff_lt_of_abs_error_integral_ltC}.
 
 \subsection{Artifact additions in this development line}
 \label{sec:additions}
@@ -365,10 +368,12 @@ This development line separates the public L1 error-convergence endpoint from th
 
 The artifact further includes CReal-native support for the countable-avoidance construction used in the smooth-level interface.  The formalized support constructs the data-valued nested interval step, the resulting interval sequence, left/right monotonicity, interval-width shrink, Cauchy data for the left endpoints, the limiting apart point, and the dyadic smooth-level data constructor.
 
-\path{Mathdemo.ChoiceFreeDCTExamples} gives abstract application examples showing that both the explicit-smooth and automatic public aliases can be invoked as theorem inputs in proof terms.  The file \path{Mathdemo.ChoiceFreeDCTConcreteExamples} adds a nonempty concrete zero-integral example on \(\mathrm{PUnit}\).  It constructs the required good-set convergence and domination data and invokes the automatic corrected good-set wrapper.  This concrete example is intentionally degenerate---it is admissible precisely because Definition~\ref{def:intspace} imposes no normalization axiom (Remark~\ref{rem:fidelity}).  The file \path{Mathdemo.DiracIntegrationSpace} adds the normalized point-evaluation model, in which every clause of Definition~1.1 is discharged with no hypotheses, and which therefore also yields a model of Definition~\ref{def:intspace} through the adapter.  It is a nondegenerate concrete model, although a simple one: the underlying functional is evaluation at a single point.
+\path{Mathdemo.ChoiceFreeDCTExamples} gives abstract application examples showing that both the explicit-smooth and automatic public aliases can be invoked as theorem inputs in proof terms.  The file \path{Mathdemo.ChoiceFreeDCTConcreteExamples} adds a nonempty concrete zero-integral example on \(\mathrm{PUnit}\).  It constructs the required good-set convergence and domination data and invokes the automatic corrected good-set wrapper.  This concrete example is intentionally degenerate---it is admissible precisely because Definition~\ref{def:intspace} imposes no normalization axiom (Remark~\ref{rem:fidelity}).  The file \path{Mathdemo.DiracIntegrationSpace} adds the normalized point-evaluation model, in which every clause of Definition~1.1 is discharged with no hypotheses, and which therefore also yields a model of Definition~\ref{def:intspace} through the adapter.  It is a nondegenerate concrete model, although a simple one: the underlying functional is evaluation at a single point.  These two are the only concrete models supplied; a nontrivial multi-point measure model is not among them (Section~\ref{sec:limitations}).  Finally, the module \path{Mathdemo.MathematicalInterface} restates the public surface in the vocabulary of Part~I, as a reading layer for a mathematician.
 
 \section{Relation to the no-go results}
 \label{sec:nogo}
+
+The constructive content of this section is written out, from the side of the constructions, in Appendix~\ref{sec:b-exception}.  The core of the answer is a \emph{confluence} of two conditions: (i)~the input to the avoidance step is at hand as data---the explicit family that the source's own proof constructs---rather than a ``countable set'' hidden behind a proposition; and (ii)~the avoidance construction for that sequence (nested intervals) can be carried out over the order data of presented reals.  The explicit-sequence form by itself does not evade the obstruction: over an abstract real-number object, a general principle taking an explicit sequence and returning a real apart from all of its terms would itself be a sequence-avoidance principle of exactly the kind the no-go results concern.  What makes the avoidance possible is the restriction of the object, (ii); condition (i) is the formal precondition that makes it applicable.
 
 The route formalized here passes through the profile theorem, and the profile theorem is precisely where the choice-free programme is known to be obstructed.  A choice-free claim for this route must therefore specify the real-number object and mathematical interface relative to which it is made.
 
@@ -381,9 +386,9 @@ determined by a sequence $(q_n)$ of reals, and for $f = \mathrm{id}$, a smooth p
 The present formalization neither refutes these results nor settles the open problem.  It is compatible with them, and the mechanism is worth stating precisely, because it is the content of the word ``presented'' in the title.
 
 \begin{enumerate}[label=(\roman*)]
-\item \textbf{The reals are presented.}  A real is a regular sequence of rationals, so it carries its own modulus.  Given \(a<b\) and \(c\), the cotransitivity split needed by the construction is returned as data from rational approximations.  Bishop's nested-interval argument (Lemma~\ref{lem:avoid}) is therefore available as a \emph{construction}, not as a choice principle.  The artifact formalizes it and audits it with the same axiom output as the rest of the development.
+\item \textbf{The reals are presented.}  A real is a regular sequence of rationals, so it carries its own modulus.  Given \(a<b\) and \(c\), the cotransitivity split needed by the construction is returned as data from rational approximations.  Bishop's nested-interval argument (Lemma~\ref{lem:avoid}) is therefore available as a \emph{construction}, not as a choice principle.  The artifact formalizes it and audits it with the same axiom output as the rest of the development.  The mechanism by which the branch is returned as data---the one-point certificate and strong gauge extraction---is written out in Appendix~\ref{sec:b-onepoint}.
 
-\item \textbf{The uncountability step is discharged, not avoided.}  Theorem~\ref{thm:3-5} as formalized does not assert that the set of non-smooth levels ``is countable'' with an existentially hidden enumeration; it produces an \emph{explicit exception sequence} and concludes smoothness at every level apart from it.  The countable-avoidance construction of~(i) is then applied to that exception sequence to obtain an admissible level threshold.  In short, the development pays exactly the price that Spitters identifies, and pays it constructively over presented reals.
+\item \textbf{The uncountability step is discharged, not avoided.}  Theorem~\ref{thm:3-5} as formalized does not assert that the set of non-smooth levels ``is countable'' with an existentially hidden enumeration; it returns an \emph{explicit exception sequence} and concludes smoothness at every level apart from it.  The countable-avoidance construction of~(i) is then applied to that exception sequence to obtain an admissible level threshold.  In short, the development pays exactly the price that Spitters identifies, and pays it constructively over presented reals.
 
 \item \textbf{Completeness is used only in representation-carrying form.}  Limits are constructed from an explicitly supplied modulus and are never extracted from a bare Cauchy property.  This is precisely the distinction that Lubarsky attributes to Richman, and it is why his independence result does not bear on the development.
 
@@ -394,18 +399,26 @@ The present formalization neither refutes these results nor settles the open pro
 \label{sec:related}
 
 \subsection*{Bishop--Cheng measure theory and its reconstructions}
-Bishop and Cheng's memoir \emph{Constructive Measure Theory} is the mathematical source for the measure-theoretic route formalized here~\cite{bishop-cheng-1972}; the surrounding constructive analysis is that of~\cite{bishop-1967,bishop-bridges-1985}, and the integral-first tradition it belongs to goes back to Daniell~\cite{daniell-1918}.  Chan's recent monograph develops constructive probability theory on the same basis and contains an extended treatment of integration and measure~\cite{chan-2021}.  Coquand and Palmgren give a pointfree, measure-algebraic account~\cite{coquand-palmgren-2002}.  Petrakis and Zeuner have reconstructed Bishop--Cheng measure theory predicatively, replacing the impredicative $L^1$-completion by explicitly indexed families of partial functions~\cite{petrakis-2021,petrakis-zeuner-2024}; their development also avoids countable choice.  The present work does not claim a predicative reconstruction: it uses Lean's impredicative \texttt{Prop}, and its contribution is orthogonal to theirs.
+Bishop and Cheng's memoir \emph{Constructive Measure Theory} is the mathematical source for the measure-theoretic route formalized here~\cite{bishop-cheng-1972}; the surrounding constructive analysis is that of~\cite{bishop-1967,bishop-bridges-1985}, and the integral-first tradition it belongs to goes back to Daniell~\cite{daniell-1918}.  Chan's recent monograph develops constructive probability theory on the same basis and contains an extended treatment of integration and measure~\cite{chan-2021}.  Coquand and Palmgren give a pointfree, measure-algebraic account~\cite{coquand-palmgren-2002}.
+
+Petrakis and Zeuner have reconstructed Bishop--Cheng measure theory predicatively, replacing the impredicative $L^1$-completion by explicitly indexed families of partial functions~\cite{petrakis-2021,petrakis-zeuner-2024}; their development also avoids countable choice.  The present work does not claim a predicative reconstruction: it uses Lean's impredicative \texttt{Prop}, and set-, order- and fullness-like predicates live in \texttt{Prop} throughout the development.
+
+That disclaimer is compatible with a more precise description of the relationship, which is complementary rather than merely disjoint.  First, the Type-valued face of the principal theorem chain passes its existential content---moduli, domination carriers, fullness witnesses, integrability representations---as data in the predicative Type universes, and contains no step that extracts a witness from a \texttt{Prop}-valued existential.  The negative half of this is certified mechanically by the choice-free audit: in Lean, unconditional extraction of data from a \texttt{Prop}-valued existential requires \texttt{Classical.choice} (Section~\ref{sec:audit}), so an axiom output confined to \texttt{[propext, Quot.sound]} proves the absence of choice-based extraction throughout the audited closure.  The positive classification---that every passage from propositions to data proceeds by explicit supply of data or by decidable search---comes from source inspection, and its principal instance is written out in Appendix~\ref{sec:b-onepoint}.  Second, integrable functions are handled as representation data from the outset and never pass through the impredicative $L^1$-completion; this runs in the same direction as Petrakis and Zeuner's central device of replacing the completion by explicitly indexed families---and it was they who carried that device out, as theorems, inside a predicative foundation.
+
+The two contributions therefore divide the two known obstacles of the memoir between them: predicativity is removed by Petrakis and Zeuner at the level of the theory, while freedom from choice is established here, at the level of machine-checked proofs, for a Lean development over presented reals (for the machine-checked precedent in Coq, see the CoRN comparison below).  Determining, inside Lean, which fragments of the present development admit a predicative reading is left as future work, alongside their open problem (Section~\ref{sec:nogo}).
 
 \subsection*{Integration in proof assistants}
 Sacerdoti Coen and Tassi formalized a constructive proof of Lebesgue's dominated convergence theorem in Matita~\cite{sacerdoti-coen-tassi-2008}.  Boldo, Cl\'ement and Leclerc formalized the Bochner integral in Coq~\cite{boldo-clement-leclerc-2022}.  On the classical side, Lean's \texttt{mathlib} contains a dominated convergence theorem for the Bochner integral over a measure space~\cite{mathlib-2020,mathlib-dct}; that development is classical and is not comparable to the present one at the level of hypotheses.  The closest prior formalization of the Bishop--Cheng route itself is S\'em\'eria's, discussed below.
 
 \subsection*{Constructive reals in proof assistants}
-Geuvers and Niqui axiomatized the constructive reals used in CoRN and proved the axiomatization categorical~\cite{geuvers-niqui-2002}.  Booij's locators give a systematic account of the extra structure needed to make constructive real analysis extensional and computationally usable~\cite{booij-2021}.  S\'em\'eria's work discusses Cauchy-data constructive reals, setoid equality, and the distinction between the constructive and classical real-number layers in Coq's constructive-real infrastructure~\cite{semeria-2020-reals}.  That paper is cited here for constructive-real infrastructure, not as a source for the dominated-convergence theorem.
+Geuvers and Niqui axiomatized the constructive reals used in CoRN and proved the axiomatization categorical~\cite{geuvers-niqui-2002}.  S\'em\'eria's JFLA paper discusses Cauchy-data constructive reals, setoid equality, and the distinction between the constructive and classical real-number layers in Coq's constructive-real infrastructure~\cite{semeria-2020-reals}; it is cited here for that infrastructure, not as a source for the dominated-convergence theorem.
+
+Booij's locators~\cite{booij-2021} approach the same proposition/data axis from the opposite side of the representation divide.  There the reals are the extensional Dedekind reals of univalent type theory, carrying no presentation, and computational content is carried per real as additional structure: a \emph{locator}, which replaces the disjunction in the locatedness clause $\forall q<r.\,(q<x)\lor(x<r)$ by an untruncated sum.  His Theorem~3.9.7---a real has a locator if and only if it has a signed-digit representation, if and only if it has a rational Cauchy representation with modulus---is the dictionary between the two sides; read through it, the presented reals used here live on the locator-carrying side.  The exact correspondence---the same decidable-search engine, the same normal form as the one-point certificate, dual answers to the same extensionality obstruction, and the same strategy of replacing choice principles by carried structure---is set out in Appendix~\ref{sec:b-booij}.  Among proof-assistant neighbours his theory thus occupies a third coordinate, the extensional side with carried structure, distinct both from CoRN's setoid representations and from the raw presentations used here.
 
 \subsection*{The closest prior formalization: CoRN}
 The closest prior proof-assistant formalization identified for Bishop--Cheng dominated convergence is S\'em\'eria's Coq/Rocq development in CoRN~\cite{corn-cmtmeasurablefunctions}.  The audited community-repository snapshot is \href{https://github.com/rocq-community/corn/tree/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}{CoRN commit \texttt{ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}}.  At that commit, the pinned source file \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTMeasurableFunctions.v}{\texttt{CMTMeasurableFunctions.v}} contains \texttt{CvMeasure}, Bishop's Lemma~4.14-style declaration \path{DominatedMeasureCvZero}, and \texttt{DominatedConvergence}.  The reproduced Rocq 9.0.1 audit packaged with this artifact reports all three declarations as \texttt{Closed under the global context}.  For each declaration, \texttt{Print Assumptions} listed no global axioms in its dependency closure.  This describes the declarations' global axiom footprint; it does not make the theorems free of mathematical hypotheses.  Their statements remain parameterized by the explicitly quantified \texttt{IntegrationSpace} and \texttt{ConstructiveReals} structures, whose fields specify the mathematical setting in which the results are proved.  The same reading applies symmetrically to the Lean audit reported here, whose statements are parameterized by the integration space of Definition~\ref{def:intspace}.
 
-CoRN also makes the countable-avoidance step explicit and data-valued.  In the pinned \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTprofile.v}{\texttt{CMTprofile.v}}, \texttt{CRuncountable} and its diagonal variants return a real in a prescribed interval apart from every member of a supplied sequence.  The three-index variant feeds the jump-point enumeration used to prove integrability of level sets away from an explicit exception sequence.  Its proof covers the supplied sequence by open intervals of controlled total measure in a concrete real-line integration space and extracts a point from the positive-measure remainder.  The present Lean development instead implements Bishop's nested-interval construction (Lemma~\ref{lem:avoid}) over fixed regular-sequence presentations.  Thus both developments discharge the same countable-avoidance obligation by explicit constructions, but by different routes.
+CoRN also makes the countable-avoidance step explicit and data-valued.  In the pinned \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTprofile.v}{\texttt{CMTprofile.v}}, \texttt{CRuncountable} and its diagonal variants return a real in a prescribed interval apart from every member of a supplied sequence.  The three-index variant feeds the jump-point enumeration used to prove integrability of level sets away from an explicit exception sequence.  Its proof covers the supplied sequence by open intervals of controlled total measure in a concrete real-line integration space and extracts a point from the positive-measure remainder.  The present Lean development instead implements Bishop's nested-interval construction (Lemma~\ref{lem:avoid}) over fixed regular-sequence presentations.  Thus both developments discharge the same countable-avoidance obligation by explicit constructions, but by different routes.  The two routes also differ in the depth of their prerequisites: the covering argument runs inside a concrete real-line integration space, at a stage where the measure apparatus is already constructed, whereas the nested-interval construction uses only the order structure and rational approximations of the presentations, before any measure theory is in place.  The same obligation is discharged at different depths of the respective developments; the contrast is a difference of position, not a ranking.
 
 \subsection{Comparison of domination assumptions}
 \label{sec:domination-comparison}
@@ -415,13 +428,14 @@ Concretely, CoRN's public \texttt{DominatedConvergence} assumes global pointwise
 \[
 \texttt{forall n, partialFuncLe (Xabs (fn n)) g}.
 \]
-The Lean artifact exposes the full-set hypothesis in two forms.  The Prop-facing theorem assumes that for each \(n\), domination holds on a full set, which may depend on the index (Definition~\ref{def:domination}).  The Type-valued theorem takes those carriers, fullness proofs, and bounds as the explicit selector \path{DominatedOnFullDataC} and preserves a convergence modulus in its conclusion.  The formal bridge \path{DominatedOnFullDataC.ofGlobal} packages every global pointwise domination family as full-set data; no converse is asserted.  Thus, relative to the domination clause alone, full-set domination is a weaker hypothesis, while the Type-valued presentation asks the caller to supply more reusable proof-relevant data than the Prop presentation.
+The Lean artifact exposes the full-set hypothesis in two forms.  The Prop-facing theorem assumes that for each \(n\), domination holds on a full set, which may depend on the index (Definition~\ref{def:domination}).  The Type-valued theorem takes those carriers, fullness proofs, and bounds as the explicit selector \path{DominatedOnFullDataC} and preserves a convergence modulus in its conclusion.  The formal bridge \path{DominatedOnFullDataC.ofGlobal} packages every global pointwise domination family as full-set data; no converse is asserted.  Thus, relative to the domination clause of CoRN's public theorem surface alone, full-set domination is a weaker hypothesis, while the Type-valued presentation asks the caller to supply more reusable proof-relevant data than the Prop presentation.  (By Bishop and Cheng's own notational convention the domination hypothesis of their Theorem~4.15 is also a full-set condition---Remark~\ref{rem:weaker}; the comparison in this paragraph is with the CoRN declaration, not with the source.)
 
 We do not claim a formal strict generalization of the CoRN theorem, because the ambient real-number and integration-space interfaces differ.  CoRN's \texttt{CR\_cv} and the Lean Type-valued full-set conclusion are both data-valued, but the two complete theorem statements are not ordered solely by logical strength.  Across the Lean pointwise-majorant wrappers, the verified error majorant is \(g+|f|\) or \(|g|+|f|\), depending on the route, not \(2g\), unless a separate proof of \(|f|\le g\) is supplied.
 
 A summary comparison:
 
 \begin{center}\small
+\setlength{\tabcolsep}{4pt}
 \begin{tabular}{lll}
 \hline
 Aspect & This development & CoRN \\
@@ -437,7 +451,9 @@ Comparison caveat & not strictly ordered & not strictly ordered \\
 \end{tabular}
 \end{center}
 
-Accordingly, the present work does not claim to be the first proof-assistant formalization, the first constructive formalization, or the first choice-free formalization of Bishop--Cheng dominated convergence.  Its contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
+The apparent asymmetry of the audit outputs---\texttt{[propext, Quot.sound]} on the Lean side against \texttt{Closed under the global context} on the Rocq side---should not be read as a comparison of axiom counts.  As Carneiro's axiomatization of Lean records~\cite{carneiro-2019}, Lean builds quotient types into the kernel, with definitional computation rules and the axiom \texttt{Quot.sound}, and derives function extensionality from quotients together with propositional extensionality; Coq does not support quotient types, and its ecosystem compensates with setoids.  At least one of the two Lean axioms thus pays, as an axiom, for what the Coq side obtains from setoid machinery and quantified interfaces.  The shape of the audit output reflects a difference in foundational design, not a difference in mathematical strength.
+
+Accordingly, the present work does not claim to be the first proof-assistant formalization, the first constructive formalization, or the first choice-free formalization of Bishop--Cheng dominated convergence.  To our knowledge, within Lean 4, this is the first choice-free formalization of the Bishop--Cheng dominated convergence theorem (mathlib's dominated convergence theorem is classical).  This statement is not based on a systematic literature search; the main contribution is not priority.  The contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
 
 \section{Choice-free audit}
 \label{sec:audit}
@@ -456,21 +472,113 @@ The audit is deliberately not based on a single text search.
 \begin{enumerate}[label=(\arabic*)]
 \item \textbf{Kernel dependency output.}  Dedicated Lean files invoke \texttt{\#print axioms} on the public aliases and the implementation declarations used by them.  The reported axiom names are confined to the set \(\{\texttt{propext},\texttt{Quot.sound}\}\), and the principal public DCT declarations report both.  In particular, the fact that an alias is marked \texttt{noncomputable} is not treated as evidence for or against choice; the criterion is the dependency output of its elaborated term.
 
-\item \textbf{Transitive source-closure scan.}  \path{tools/static_no_choice_audit.py} computes the import closure of six public roots, strips Lean comments, and rejects forbidden selector and placeholder tokens in the resulting source.  The current recorded run traverses 509 Lean files.  This complements the declaration-level check by detecting suspicious source in the public closure even when it is not reached by one selected theorem.
+\item \textbf{Transitive source-closure scan.}  \path{tools/static_no_choice_audit.py} computes the import closure of six public roots, strips Lean comments, and rejects forbidden selector and placeholder tokens in the resulting source.  The recorded 2026-08-05 run traverses 512 Lean files and passes (\texttt{closure\_files: 512}, \texttt{STATIC AUDIT PASSED}).  Because the audit roots include the aggregation module \path{Mathdemo}, this closure covers the three modules added in the present revision: the mathematical reading interface \path{Mathdemo.MathematicalInterface}, the Definition~1.1 transcription \path{Mathdemo.SourceIntegrationSpaceDef11}, and the point-evaluation model \path{Mathdemo.DiracIntegrationSpace}.  The scan complements the declaration-level check by detecting suspicious source in the public closure even when it is not reached by one selected theorem.
 
 \item \textbf{Integrity and cross-system provenance.}  Root checksums cover the tracked artifact, while a separate checksum file protects the reproduced CoRN audit package.  The CoRN commands pin both the source commit and Rocq version.  Thus the Lean claim and the prior-work comparison can be reproduced independently rather than inferred from prose in this paper.
 \end{enumerate}
 
 The checks answer different questions.  A source scan cannot replace kernel dependency analysis, because the presence of an imported classical declaration does not show that a proof term uses it.  Conversely, a short list of printed axioms does not by itself establish that the intended source tree, versions, and audit inputs were the ones inspected.  The artifact therefore reports both kinds of evidence and protects their inputs with checksums.
 
+\begin{remark}[What the axiom footprint means mathematically]
+\label{rem:footprint}
+The audit output---the axioms \texttt{propext} and \texttt{Quot.sound}---can be read against Carneiro's axiomatization of Lean's type theory~\cite{carneiro-2019}.  Every theorem of this development is a theorem of a dependent type theory with inductive types, a hierarchy of universes, and a definitionally proof-irrelevant impredicative universe of propositions, extended by exactly two axioms: propositional extensionality (propositions that imply each other are equal) and the soundness axiom of quotient types.  Function extensionality is derivable from these two, so in a mathematician's vocabulary the axioms used amount to: extensionality of propositions, existence of quotients, and, as a consequence, extensionality of functions.  In Lean the law of excluded middle is a \emph{theorem} derived from \texttt{Classical.choice}, not an independent axiom; not using choice therefore entails that excluded middle is not used as an axiom either.
+
+Set-theoretically, in the model underlying Carneiro's soundness theorem---universes interpreted as $V_{\kappa_n}$ for inaccessible cardinals $\kappa_n$, propositions as the two-valued proof-irrelevant universe $\{\varnothing,\{\bullet\}\}$---the only interpretation clause that references a global choice function is the clause for \texttt{Classical.choice}.  The interpretation of the theorems audited here therefore does not depend on the selection of a choice function, and their consistency is relative to ZFC together with finitely many inaccessible cardinals.  Carneiro's published result is stated for each finite $n$: the fragment with $n$ universes is interpreted relative to ZFC plus $n$ inaccessibles.  A fixed finite development such as this artifact uses only finitely many universe levels, so a concrete finite bound on its universe usage is to be expected; we have not computed one here.
+
+What is \emph{not} claimed: this reading does not establish that the theorems of the development hold in ZF.  Carneiro's soundness proof is itself carried out in classical set theory with choice (ZFC with inaccessibles); what is established is the object-level absence of choice and the independence of the interpretation from the choice function.  The ambient type theory also has an impredicative \texttt{Prop} and definitional proof irrelevance with uniqueness of identity proofs built in, so it differs both from Bishop's informal practice and from homotopy type theory with univalence, with which UIP is incompatible.  The constructive content of the development---moduli, explicit exception sequences, witnesses as data---is carried by the design of the development over presented reals, not by the axiom system.
+
+This remark is complementary to Section~\ref{sec:nogo}, and the final observation is a heuristic picture rather than a theorem.  Section~\ref{sec:nogo} explains why the general and abstract forms of the statements are not provable in the choice-free setting (in Spitters' sheaf model, sequence avoidance fails); the present remark says inside which axiom system the theorems proved here do hold.  A statement of this fragment must survive both Carneiro's classical two-valued model, in which the reals are uncountable and the general forms are true, and the non-classical models on the no-go side.  The pincer of the two model families makes the shape of the theorem---presented reals, coded profiles, explicit exception sequences---look forced rather than stylistic.  We emphasize that no published result establishes that Spitters' model interprets Lean's full type theory (impredicative \texttt{Prop}, definitional proof irrelevance, quotients), which is why this paragraph is offered as a picture and not as a proof.
+\end{remark}
+
+\section{The cost profile of the formalization}
+\label{sec:cost}
+
+This section reports measurements of the artifact itself.  They are not mathematical claims, but they are a kind of primary observation that a formalization paper can report, and the distribution they reveal meshes exactly with Section~\ref{sec:nogo}.  Throughout this section, ``source \S$n$'' refers to the section numbering of Bishop and Cheng's memoir.
+
+\subsection{Measurement method and its limits}
+\label{sec:cost-method}
+The Lean declaration counts below are the number of source lines matching the regular expression
+\begin{center}
+\verb!^(private )?(noncomputable )?(theorem|def|lemma|structure|abbrev|instance) !
+\end{center}
+that is: from the beginning of a line, optionally the prefixes \texttt{private} and \texttt{noncomputable} in that order, then one of the six keywords followed by a space.  The pattern is displayed because the prefixes matter materially: counting only lines that begin immediately with a keyword yields $7{,}381$ declarations, about $17\%$ fewer than the $8{,}926$ obtained with the pattern above.  What the naive count misses are prefixed declarations, declarations carrying other modifiers, and declarations not starting at the beginning of a line.  On the source side, the statement counts are the number of numbered items (definitions, lemmas, corollaries, theorems) from Definition~1.1 through Theorem~4.15, the range the artifact formalizes: $49$ statements.
+
+The ratios below are coarse indicators, not precise quantities.  In particular, the per-statement costs of Section~\ref{sec:cost-per-statement} attribute declarations to source statements by declaration \emph{name}, a heuristic that misses declarations serving a statement under another name.  The numbers are used only for order-of-magnitude comparison.
+
+\subsection{Cost by stratum}
+\label{sec:cost-strata}
+
+\begin{center}\small
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{p{0.36\textwidth}rrrr}
+\hline
+Stratum & Lines & Decl. & Source stmts & Per stmt \\
+\hline
+A\quad presented reals and their foundations & 102{,}747 & 5{,}468\ (62\%) & \textbf{0} & --- \\
+B\quad source \S1 integration spaces, \S2 complemented sets, $L^1$ & 14{,}252 & 633 & 28 & $\approx 23$ \\
+C\quad source \S3 profiles & 34{,}936 & 1{,}630 & \textbf{6} & $\boldsymbol{\approx 272}$ \\
+D\quad source \S4 measurable functions through Theorem~4.15 & 22{,}074 & 1{,}058 & 15 & $\approx 71$ \\
+E\quad public surface, audits, examples & 2{,}975 & 98 & --- & --- \\
+\hline
+Total & 176{,}984 & 8{,}887 & 49 & --- \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent The artifact as a whole comprises $512$ files, $177{,}461$ lines, and $8{,}926$ declarations; the table covers about $99.7\%$ of it by line count.  Stratum E includes the mathematical reading interface, the Definition~1.1 transcription, and the point-evaluation model added in this revision ($711$ lines and $46$ declarations of its total); all figures are taken from the same 2026-08-05 run as the audit of Section~\ref{sec:audit} and the build of Section~\ref{sec:limitations}.
+
+Three readings.
+
+\emph{(1) Of the $8{,}887$ classified declarations, $62\%$ correspond to no line of the source.}  Stratum A is the construction of the presented reals, their rational layer, and the management of representations; Bishop and Cheng \emph{presuppose} all of it.  In a mathematical text it is the single sentence ``we work over the constructive reals''.  Writing this stratum out corresponds to writing out not the memoir but a different book, Chapter~2 of Bishop's \emph{Foundations of Constructive Analysis}.  The majority of the formal text is thus not a difference from the source but a difference of \emph{reference target}; Section~\ref{sec:cost-layerA} decomposes it against the reference.
+
+\emph{(2) The measure-theoretic part costs about $68$ declarations per source statement.}  Strata B, C, and D together contain $3{,}321$ declarations against $49$ source statements, a ratio of about $68$.  For the substantive part outside stratum E, this is the development's de Bruijn factor in the declarations-per-statement sense; the tradition of measuring formal-to-informal ratios goes back to Wiedijk's de Bruijn factor~\cite{wiedijk-2000}.
+
+\emph{(3) The coefficient is not uniform: it jumps by an order of magnitude exactly at the profiles.}  Stratum B costs about $23$ per statement and stratum D about $71$, but stratum C---source \S3, the profile theory---costs about $272$: roughly $12$ times stratum B and $3.8$ times stratum D.
+
+\subsection{Cost per statement}
+\label{sec:cost-per-statement}
+Attributing declarations to the principal source statements by name gives the following.
+
+\begin{center}\small
+\begin{tabular}{lr}
+\hline
+Source statement & Lean declarations \\
+\hline
+Lemma 3.3 & 127 \\
+Lemma 3.4 (partition) & 397 \\
+Theorem 3.5 (smoothness) & 90 \\
+\textbf{Theorem 3.6 (level sets)} & \textbf{495} \\
+Lemma 4.3 & 60 \\
+Lemma 4.14 & 36 \\
+Theorem 4.15 (dominated convergence itself) & 95 \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent The headline Theorem~4.15 costs $95$ declarations, because everything it needs has been prepared beneath it.  Theorem~3.6 alone costs $495$.
+
+\subsection{The cost maximum coincides with the known obstruction}
+\label{sec:cost-obstruction}
+Source \S3 houses the definition of profiles, their partition lemmas, the smoothness theorem, and the integrability of level sets---and, as Section~\ref{sec:nogo} recalled, it is exactly the profile theorem at which the choice-free programme is obstructed.  The coincidence is unlikely to be an accident.  The source's \S3 is short because it performs the operation ``choose a level avoiding countably many exceptions'' in a single subordinate clause, once, silently.  Carrying that operation out constructively over presented reals costs $495$ declarations for Theorem~3.6 alone.  In this development, then, the per-statement cost acts as a pointer to where implicit non-constructive principles were being used: formalization does not remove the obstruction, but it localizes it quantitatively.
+
+This is one observation about one development, not a general law.  Asserting in general that cost maxima coincide with implicit choice principles would require the same measurement on other formalizations; all that is claimed here is that the coincidence holds in this one.
+
+\subsection{What the cost consists of}
+\label{sec:cost-layerA}
+The formal-to-informal difference is not uniform overhead; at least three kinds are mixed.  First, notational overhead: rewritings that a person performs in one line, placed as explicit lemmas.  This part is genuinely redundant.  Second, material the source presupposes: stratum A, which by reading (1) is not a difference from the source but a difference of reference target.  Third, constructive content that the source suppresses: moduli of convergence, domain management for partial functions, apartness data.  Where Bishop and Cheng write ``the series converges'', the formalization must carry the rate.  Only the third kind is mathematically interesting, and separating the three cleanly remains open; the numbers above mix them.  The second kind, however, can be decomposed against the reference itself.
+
+Compared clause by clause with Chapter~2 of \emph{Foundations of Constructive Analysis}, stratum A consists of a transcription of that chapter---regular sequences and Bishop equality without quotienting, the standard bound, the index-shifted arithmetic operations and their laws, the one-point positivity condition of its Definition~3 and the tail form of its Lemma~2, the two orders, and limits with moduli---together with five kinds of newly paid cost: (i)~the construction of the rational layer itself, as a decidable ordered field, which is the reference of the reference; (ii)~the substitution of the dyadic gauge $2^{-k}$ for the $1/n$ gauge, translated in both directions by the reindexing $x'_k:=x_{2^k}$ (inverse $k(n):=\lceil\log_2 n\rceil$), with every margin constant redesigned under the new gauge; (iii)~the discharge, at every operation and predicate, of respect for Bishop equality---the source disposes of this in a single remark, that the map from a real to its $n$-th rational approximation ``is not a function''; (iv)~the carrying and recovery of existential witnesses---the source declares once that in all its existence proofs the witness is understood to have been extracted, and that for positivity ``the $n$ was implicitly there all along''; Appendix~\ref{sec:b-onepoint} is the machine-checked statement that this looseness is harmless without choice; and (v)~an explicit modulus for every convergence statement.  In one sentence: \emph{most of the foundational stratum is the cost of discharging, at every point of use, conventions that Bishop declared once in prose---witnesses count as extracted, representation-level operations are not functions, a real is not an equivalence class.}
+
+The comparison with S\'em\'eria closes the accounting.  His CoRN development quantifies over an abstract \texttt{ConstructiveReals} interface whose implementations and theory live in the Coq standard library---the subject of his JFLA paper~\cite{semeria-2020-reals}---so the counterpart of stratum A sits \emph{outside} his artifact, while \texttt{Print Assumptions} still descends into it and reports no axioms.  Bishop and Cheng refer to \emph{Foundations}; S\'em\'eria refers to the standard library; the present development carries its own stratum A.  The $62\%$ is the measured cost of internalizing the reference.  (These three are all on the representation side of the divide; the fourth coordinate, reaching the same proposition/data tension from the extensional side, is Booij's locator theory---Appendix~\ref{sec:b-booij}.)
+
 \section{Limitations and validation boundary}
 \label{sec:limitations}
 
 The result should be read with the following limitations in view.
 \begin{enumerate}[label=(\arabic*)]
-\item \textbf{Integration-space fidelity.}  Definition~\ref{def:intspace} is an explicit and inspectable interface, but it is not claimed to be a field-for-field transcription of Bishop and Cheng's Definition~1.1, and it is not a weakening of it either.  It lacks their normalization and inhabitedness requirements, and it strengthens their closure clause by admitting truncation at an arbitrary constant, which their canonical locally compact model does not satisfy for negative constants.  As explained in Remark~\ref{rem:fidelity}, the strengthening is not used by any proof, and the adapter is now supplied: \path{Mathdemo.SourceIntegrationSpaceDef11} transcribes Definition~1.1 field for field and derives thirteen of the fourteen fields of Definition~\ref{def:intspace} from it, leaving truncation at an arbitrary constant as the single explicit extra argument.  Two limitations remain.  First, discharging that argument requires rewriting the closure clause itself, which would require re-verifying the audited closure.  Second, the correct rewriting is probably not ``restrict to nonnegative constants'' but ``truncate at constants carrying a positivity witness, or at $0$'' (Remark~\ref{rem:fidelity}).  We note also that the field \path{I_nonneg} of Definition~\ref{def:intspace} is derivable from the continuity clause, so that carrying it as a field is unnecessary.
+\item \textbf{Integration-space fidelity.}  Definition~\ref{def:intspace} is an explicit and inspectable interface, but it is not claimed to be a field-for-field transcription of Bishop and Cheng's Definition~1.1, and it is not a weakening of it either.  It lacks their normalization and inhabitedness requirements, and it strengthens their closure clause by admitting truncation at an arbitrary constant, which their canonical locally compact model does not satisfy for negative constants.  As explained in Remark~\ref{rem:fidelity}, the strengthening is not used by any proof, and the adapter is supplied: \path{Mathdemo.SourceIntegrationSpaceDef11} transcribes Definition~1.1 field for field and derives thirteen of the fourteen fields of Definition~\ref{def:intspace} from it, leaving truncation at an arbitrary constant as the single explicit extra argument.  Two limitations remain.  First, discharging that argument requires rewriting the closure clause itself, which would require re-verifying the audited closure.  Second, the correct rewriting is probably not ``restrict to nonnegative constants'' but ``truncate at constants carrying a positivity witness, or at $0$'' (Remark~\ref{rem:fidelity}).  We note also that the field \path{I_nonneg} of Definition~\ref{def:intspace} is derivable from the continuity clause, a derivation now machine-checked, so that carrying it as a field is unnecessary.
 
-\item \textbf{Concrete semantics.}  The shipped concrete example has carrier \texttt{PUnit} and the zero integral.  It verifies that the public wrapper can be applied end to end, but it does not demonstrate a nontrivial measure model.  Constructing such a model is separate from checking the relative theorem proved here.
+\item \textbf{Concrete semantics.}  Two concrete examples are shipped: the degenerate zero-integral model on \texttt{PUnit}, which verifies that the public wrapper can be applied end to end, and the normalized point-evaluation model \path{Mathdemo.DiracIntegrationSpace} (Remark~\ref{rem:fidelity}), which is nondegenerate but evaluates at a single point.  A nontrivial multi-point measure model is not among them.  Constructing one is separate from checking the relative theorem proved here.
 
 \item \textbf{Hypothesis on the limit.}  The public theorem assumes that the limit $f$ is already an integrable representative.  It proves convergence of the integrals under that hypothesis; it does not derive integrability of a merely measurable limit.
 
@@ -478,14 +586,18 @@ The result should be read with the following limitations in view.
 
 \item \textbf{Comparison and priority.}  S\'em\'eria's CoRN development already contains a Bishop--Cheng dominated-convergence theorem, and the two theorem surfaces live over different real-number and integration-space interfaces.  No claim of priority or strict formal generalization is made.
 
-\item \textbf{Implementation maturity.}  The artifact is a public import closure, not a minimal library.  Its 509-file audited closure retains historically generated \path{CRat_iter*} stages.  The three modules added for the mathematical interface, for the transcription of Definition~1.1, and for the point-evaluation model bring the repository to 512 files; the recorded audit figures quoted here and in Section~\ref{sec:reproducibility} predate them and are refreshed by re-running the full build audit.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.
+\item \textbf{Implementation maturity.}  The artifact is a public import closure, not a minimal library.  Its 512-file audited closure retains historically generated \path{CRat_iter*} stages.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.
 \end{enumerate}
 
-The development line records a successful 2026-07-12 build of all 2856 jobs in the target
+A complete \path{./build_audit.sh} run from the release tree finished on 2026-08-05 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The target
 \begin{quote}\small
-\path{Mathdemo.CheckSec3PortAxioms}.
+\path{Mathdemo.CheckSec3PortAxioms}
 \end{quote}
-The inspected DCT declarations reported \texttt{[propext, Quot.sound]}.  The explicit full-set Type-valued module was added after that run and was checked by focused Lean elaboration of the module and public alias file; its new declarations report the same axiom set.  This draft remains version \CFBDCTVersion; the exact commit selected for a tagged release is to receive a complete \path{./build_audit.sh} run before release.
+built all $2856$ jobs, the same job count as the recorded 2026-07-12 run; the inspected DCT declarations reported \texttt{[propext, Quot.sound]}, and the static audit traversed its 512-file closure within the same run.
+
+The unchanged job count has a reason, and it delimits the scope of the build audit.  The three modules added in this revision---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, and \path{Mathdemo.DiracIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built among those $2856$ jobs.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, succeeds with all $2869$ jobs, and each of their declarations reports \texttt{[propext, Quot.sound]}.  This second check is not currently part of \path{build_audit.sh}; a reader who wants to reproduce it must run the command separately (Section~\ref{sec:reproducibility}).
+
+The artifact is tagged \texttt{v\CFBDCTVersion} (2026-08-08).  The requirement that the tagged release receive a complete \path{./build_audit.sh} run is met by the rerun from the release tree just described.  The software deposit~\cite{artifact} carries the Lean code and the audit apparatus only; the paper source is not part of the deposit.
 
 \section*{Use of AI-assisted tools}
 Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
@@ -514,7 +626,7 @@ sha256sum -c SHA256SUMS
 \end{quote}
 These checks do not rebuild Lean but verify the public source closure and the integrity of the shipped evidence.
 
-\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.
+\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.  The axiom check for the three modules added in this revision is reproduced by additionally running \texttt{lake build Mathdemo} ($2869$ jobs), the second of the two audit routes described in Section~\ref{sec:limitations}.
 \end{enumerate}
 
 Local reruns are written to:
@@ -526,16 +638,47 @@ The shipped reference logs are kept stable so that checksum verification remains
 
 \section{Conclusion}
 
-The artifact demonstrates a complete profile-based route from convergence in measure and full-set domination to convergence of integrals over presented reals, relative to the explicit integration-space interface of Definition~\ref{def:intspace}.  Its central constructive step is not the suppression of the exceptional levels produced by profile theory, but their explicit enumeration followed by a presented-real countable-avoidance construction.  That distinction explains both how the formal proof proceeds and why it does not contradict the known obstruction for unrestricted constructive real-number objects.
+The artifact demonstrates a complete profile-based route from convergence in measure and full-set domination to convergence of integrals over presented reals, relative to the explicit integration-space interface of Definition~\ref{def:intspace}.  Its central constructive step is not the suppression of the exceptional levels returned by profile theory, but their explicit enumeration followed by a presented-real countable-avoidance construction.  That distinction explains both how the formal proof proceeds and why it does not contradict the known obstruction for unrestricted constructive real-number objects.
 
-The result is exposed through proof-relevant global and full-set interfaces, automatically synthesized wrappers, and a Prop-facing interface, and the final public declarations are accompanied by kernel dependency output, a transitive source audit, checksums, and a pinned reproduction of the closest CoRN prior work.  The limitations are equally explicit: the limit is assumed integrable, a normalized concrete model is now available unconditionally, although it is the simple one given by evaluation at a point, the integration-space interface is incomparable with Bishop--Cheng Definition~1.1 although a verbatim transcription and an adapter are now supplied and the difference is localized to one clause, and the development is not predicative.  These boundaries leave clear next tasks while making the present theorem and its audit independently inspectable.
+The result is exposed through proof-relevant global and full-set interfaces, automatically synthesized wrappers, and a Prop-facing interface, and the final public declarations are accompanied by kernel dependency output, a transitive source audit, checksums, and a pinned reproduction of the closest CoRN prior work.  The limitations are equally explicit: the limit is assumed integrable; the shipped concrete models stop at evaluation at a point, and no nontrivial multi-point model is constructed (the earlier absence of any normalized model is itself resolved, unconditionally, by the point-evaluation model); the integration-space interface is incomparable with Bishop--Cheng's Definition~1.1, although a verbatim transcription and an adapter are supplied and the difference is localized to a single clause; and the development is not predicative.  These boundaries leave clear next tasks while making the present theorem, its audit, and now also its cost distribution independently inspectable.
 
 \appendix
 
 \section{From the mathematics to the Lean declarations}
 \label{sec:appendix-map}
 
-The following tables let a reader move between Part~I and the artifact.  They are the only place in which the correspondence is asserted; the statements in Part~I are self-contained mathematics, and the declarations in Part~II are self-contained Lean.
+The tables in this appendix let a reader move between Part~I, the source, and the artifact.  They are the only place in which the correspondence is asserted; the statements in Part~I are self-contained mathematics, and the declarations in Part~II are self-contained Lean.
+
+\subsection{Numbering: this paper and the source}
+\label{sec:numbering}
+
+This paper numbers items by section, so its numbers do not coincide with those of Bishop and Cheng's memoir; since both schemes contain items numbered ``3.$\,x$'' and ``4.$\,x$'', the correspondence is collected here.  The headings in Part~I also carry the source numbers.
+
+\begin{center}\small
+\begin{tabular}{p{0.16\textwidth}p{0.24\textwidth}p{0.17\textwidth}p{0.33\textwidth}}
+\hline
+This paper & Content & Source & Note \\
+\hline
+Definition~\ref{def:intspace} & integration space (working form) & Definition~1.1 & incomparable, not a weakening (Remark~\ref{rem:fidelity}; Appendix~\ref{sec:b-truncation}) \\
+Definition~\ref{def:full} & full set & Definition~1.9 & verbatim \\
+Definition~\ref{def:complemented} & complemented set & Definitions~2.1, 2.2(d)(e), 2.3 & core verbatim; merges $-A$, $A-B$, integrability, measure \\
+Definition~\ref{def:convmeasure} & convergence in measure & Definition~4.11 & verbatim \\
+Definition~\ref{def:domination} & domination on full sets & \S1 notational convention & the convention with the quantifiers displayed; index-dependent full sets already licensed by it---not a weakening \\
+Definition~\ref{def:profile} & profile & Definition~3.1 & stated by the formalization in coded form (Appendix~\ref{sec:b-coded}) \\
+Definition~\ref{def:smooth} & smooth level & --- & introduced in the source inside the text of its Theorem~3.5 \\
+Theorem~\ref{thm:prop-dct} & dominated convergence & Theorem~4.15 & same assertion; hypotheses phrased differently (Remark~\ref{rem:weaker}, Section~\ref{sec:proof}) \\
+Theorem~\ref{thm:3-5} & smoothness away from an explicit sequence & Theorem~3.5 & stated so as to return the explicit family that the source's own proof constructs---not a strengthening (Appendix~\ref{sec:b-exception}) \\
+Theorem~\ref{thm:3-6} & integrability of level sets & Theorem~3.6 & $A$ pair and $B$ pair constructed independently (Appendix~\ref{sec:b-mirror}) \\
+Lemma~\ref{lem:avoid} & countable avoidance & --- & not a separate stage in the source; contained in the transition from its Theorem~3.5 to its Theorem~3.6 (Appendix~\ref{sec:b-avoidance}) \\
+Proposition~\ref{prop:uniform-complement} & uniform complement estimate & hypotheses of Lemma~4.14 $+$ construction of Theorem~4.13 & returns $(A,N,\delta)$ as data; reparameterization $B:=-C$ (Appendix~\ref{sec:b-uniform}) \\
+Proof step (4), Section~\ref{sec:proof} & two-part estimate & Lemma~4.14 & matches down to the phrasing \\
+Appendix~\ref{sec:appendix-b} & Lemma~1.2, Corollary~1.3, Definition~7.1, and others & same numbers & the appendix retraces the source's arguments and cites the source's numbers directly \\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{From mathematical objects to Lean declarations}
+\label{sec:objmap}
 
 \begin{center}\small
 \begin{tabular}{ll}
@@ -555,7 +698,8 @@ Axiom of Definition~\ref{def:intspace} & \texttt{IntSpaceC} field \\
 \medskip
 
 \begin{center}\small
-\begin{tabular}{lll}
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{@{}p{0.20\textwidth}p{0.37\textwidth}p{0.38\textwidth}@{}}
 \hline
 Mathematical object & Public alias & Implementation \\
 \hline
@@ -567,6 +711,7 @@ Theorem~\ref{thm:3-6} & \path{profile_level_sets_integrable_apartC} & --- \\
 Lemma~\ref{lem:avoid} & --- & \path{thm36B1_exists_apart_in_interval} \\
  & & \path{thm36B1_apart_data} \\
 Proposition~\ref{prop:uniform-complement} & \path{uniform_complement_from_profile_levelsC} & \path{lemma43UniformComplementData_of_majorantC} \\
+ & & \path{lemma43UniformComplementData_of_majorantOnFullDataC} \\
 Proof step~(2) & --- & \path{lemma43DyadicSmoothDataC_construct} \\
 Proof step~(2), threshold & --- & \path{lemma_4_3_A_n_apart_data} \\
 Proof step~(4) & --- & \path{lemma_4_14_local_two_epsilonC} \\
@@ -576,6 +721,482 @@ Proof step~(5) & --- & \path{integral_diff_lt_of_abs_error_integral_ltC} \\
 \end{center}
 
 \noindent Public aliases are in the namespace \path{ChoiceFreeMeasureDCT}; implementation declarations are in \path{BishopSec1P} or \path{BishopSec3P}.  The complete list of public aliases, including the Type-valued kernel and the automatic wrappers of Section~\ref{sec:formalization}, is in \path{ChoiceFreeMeasureDCTPublic.lean}.
+
+\section{Constructions specific to the formalization, and their mathematical status}
+\label{sec:appendix-b}
+
+In the spirit of the blueprint genre, but in the reverse direction: these sections state, as ordinary mathematics, what the formal development had to construct.  The appendix has two purposes.  The first is to write down, without Lean vocabulary, the constructions that the development did \emph{not} receive from Bishop and Cheng but had to build in the course of the formalization.  The second is to make explicit which parts of that work are routine, which are known, and which were the actual difficulties (Appendix~\ref{sec:b-triage}).  Part~I suffices for the mathematical content; this appendix discloses, in mathematical language, what the formalization concretely consisted of.
+
+Throughout the appendix, presented reals are taken in the dyadic-gauge form used by the implementation: regularity reads $|x_m-x_n|\le 2^{-m}+2^{-n}$.  Section~\ref{sec:presented} stated the $1/n$ form of the source; the two are translated by an explicit reindexing, and the translation is part of the cost accounted in Section~\ref{sec:cost-layerA}.
+
+\subsection{The proof flow against the source}
+\label{sec:b-map}
+
+The conclusion first: the outline of the formal proof coincides with the source's.  The number of stages and their order are the same, and the differences concentrate in how each stage is \emph{stated}.  The single exception is countable avoidance, which in the source is not a separate stage at all: it lives inside the two transition sentences between its Theorem~3.5 and Theorem~3.6 (``all but countably many points $t$ of $(a,b)$ are smooth''; ``let $t$ be smooth'').  Constructively that transition cannot be executed as written, and the development had to erect it as a theorem of its own (Appendix~\ref{sec:b-avoidance}).
+
+The dependency structure of the proof, with the status of each stage relative to the source, is the following; arrows indicate constructed data or a theorem application, as in Section~\ref{sec:proof}.
+\begin{itemize}[leftmargin=2em]
+\item Clauses (1)--(4) of Definition~1.1 $\Rightarrow$ Lemma~1.2 $\Rightarrow$ Corollary~1.3 at $k=1$ $\Rightarrow$ positivity of $I$.  Status: as in the source; that positivity is derivable, so that carrying it as an axiom is unnecessary, is an observation of this revision (Appendix~\ref{sec:b-truncation}).
+\item Coded profile and the partition data of Lemma~3.4 $\Rightarrow$ Theorem~3.5 (smoothness) together with the explicit exception sequence.  Status: statements as in the source; the coded form and the sequence-returning form are formalization-specific (Appendices~\ref{sec:b-coded}, \ref{sec:b-exception}).
+\item Presented-real order with cotransitivity as data $\Rightarrow$ countable avoidance by a two-point cut with a margin.  Status: the statement is Bishop's; the two-point cut is where the construction departs from the classical bisection (Appendices~\ref{sec:b-order}, \ref{sec:b-avoidance}).
+\item Avoidance applied to the exception sequence $\Rightarrow$ apart thresholds $\Rightarrow$ Theorem~3.6: the $A$ pair and the $B$ pair constructed independently, with the measure equality; the signed double series over a fixed shell enumeration is consumed here (Appendices~\ref{sec:b-mirror}, \ref{sec:b-series}).
+\item Dyadic levels $\alpha_n\in(2^{-(n+1)},2^{-n})$ as data (source Lemma~4.3) $\Rightarrow$ uniform complement estimate returning $(A,N,\delta)$ (source: hypotheses of Lemma~4.14 and the construction inside Theorem~4.13) $\Rightarrow$ two-part estimate (Lemma~4.14) $\Rightarrow$ Theorem~\ref{thm:prop-dct} $=$ source Theorem~4.15, with full-set domination and the majorant $H=|g|+|f|$ (Appendix~\ref{sec:b-uniform}).
+\end{itemize}
+
+The differences concentrate at four places.
+
+\emph{(a) From existence to data.}  Where the source writes ``there exists'', the development frequently writes a function returning the object: clauses (2) and (4) of Definition~1.1, the level sequence of Lemma~4.3, the triple $(A,N,\delta)$ in the hypotheses of Lemma~4.14.  This is not a strengthening but the BHK reading of Bishop's $\exists$ (Appendix~\ref{sec:b-onepoint}).
+
+\emph{(b) From ``countably many'' to an explicit sequence.}  Theorem~3.5's ``all but countably many'' cannot be handed to the avoidance construction as stated; only the form that returns an explicit sequence can be (Appendix~\ref{sec:b-exception}).
+
+\emph{(c) From a one-point bisection to a two-point cut.}  Inside the avoidance, the classical bisection at a midpoint is undecidable.  A margin is introduced, the interval is cut at two points, and the middle is discarded (Appendix~\ref{sec:b-avoidance}).
+
+\emph{(d) The $B$ pair does not follow from the $A$ pair.}  Where the source dismisses the $B$ side as essentially similar, the fact that $\le$ is $\neg<$ forces an independent construction, with the monotonicity and the usable implications reversed (Appendix~\ref{sec:b-mirror}).
+
+None of the four is a claim that the source's mathematics is wrong.  The source is correct within constructive mathematics, and its omissions are the usual ``essentially similar'' economies of print.  The four points say what is missing if one tries to execute the text directly as a construction, and the sections below supply exactly that.
+
+\subsection{The order on presented reals as data}
+\label{sec:b-order}
+
+\begin{definition}[Presented real, dyadic form]
+\label{def:b-real}
+A \emph{presented real} is a sequence $x=(x_n)_{n\ge0}$ of rationals such that
+\[
+|x_m-x_n|\;\le\;2^{-m}+2^{-n}\qquad(\forall m,n)
+\]
+(a \emph{regular sequence}).  Two presented reals $x,y$ are \emph{equal} ($x\approx y$) if
+\[
+\forall k\;\exists N\;\forall n\ge N:\quad |x_n-y_n|\le 2^{-k}.
+\]
+A real is the regular sequence itself; no equivalence classes are taken.  Below, $\mathbb{R}$ denotes the presented reals in this sense.
+\end{definition}
+
+\begin{definition}[Order, and its data form]
+\label{def:b-order}
+$x<y$ means that there exist $k,N$ with
+\[
+\forall n\ge N:\quad y_n-x_n\;>\;2^{-k}
+\]
+(the development takes the gauge $2^{-(k+1)}$; nothing below depends on that choice).  $x\le y$ means $\neg\,(y<x)$, and $x$ and $y$ are \emph{apart} when $0<|x-y|$.
+
+\emph{Data form:} evidence for $x<y$ is a pair $(k,N)$ together with the proof of its property.  ``To have $x<y$ as data'' means holding this pair, as distinguished from the mere truth of $x<y$.  The distinction runs through the entire appendix.
+\end{definition}
+
+\begin{fact}[Cotransitivity---the constructive pivot]
+\label{fact:b-cotrans}
+Suppose $x<y$ is held \emph{as data}.  Then for every $z\in\mathbb{R}$ one can \emph{decide} which of
+\[
+x<z\qquad\text{or}\qquad z<y
+\]
+holds, obtaining evidence for the decided side.
+
+\emph{Reason.}  The evidence $(k,N)$ gives $y_n-x_n>2^{-k}$ for $n\ge N$.  Put $m:=k+3$ and fix any $n\ge\max(N,m)$; compare the rational $z_n$ with $\tfrac{x_n+y_n}{2}$.  Rational comparison is decidable, and the comparison selects one of the two cases.  The gap from the midpoint to either endpoint exceeds $2^{-(k+1)}$; subtracting the regular-sequence error $2\cdot2^{-n}\le2^{-(k+2)}$ still leaves the positive margin $2^{-(k+2)}$, so the selected side actually holds. \qed
+\end{fact}
+
+The essential point is that \emph{a gap is needed}.  If $x<y$ were not held---if $x$ and $y$ might touch---the decision could not be made: for presented reals, the one-point dichotomy ``$z\le m$ or $m\le z$'' is undecidable.
+
+\subsection{Countable avoidance by a two-point cut with a margin}
+\label{sec:b-avoidance}
+
+This is the most characteristic construction of the development.  The goal is the following theorem, which is exactly the assertion of Bishop's classical nested-interval method---the \emph{statement} is known.  Carrying it out as a construction over presented reals, however, cannot use the classical bisection.
+
+\begin{theorem}[Countable avoidance; $=$ Lemma~\ref{lem:avoid}]
+\label{thm:b-avoid}
+Suppose $a<b$ is held as data, and let $(s_j)_{j\ge0}$ be an arbitrary sequence of presented reals.  Then one can \emph{construct} $t\in(a,b)$ apart from every $s_j$:
+\[
+a<t<b,\qquad 0<|t-s_j|\quad(\forall j).
+\]
+No choice principle is used.
+\end{theorem}
+
+\emph{Why the classical bisection fails.}  Classically one takes the midpoint $m=\tfrac{l+r}{2}$ of the current interval $[l,r]$ and keeps the right half if $s_j\le m$, the left half otherwise.  But as noted after Fact~\ref{fact:b-cotrans}, the position of $s_j$ relative to the \emph{single} point $m$ cannot be decided, so this branch cannot be constructed.
+
+\emph{The resolution: cut at two points and discard the middle.}  With two points separated by a gap, Fact~\ref{fact:b-cotrans} applies as it stands.
+
+\begin{definition}[Margin and cut points]
+\label{def:b-margin}
+For $d\in\mathbb{R}$ set the \emph{margin}
+\[
+\sigma(d)\;:=\;\tfrac14\,d
+\]
+(the development implements it by halving twice).  What is required of $\sigma$ is exactly two properties: $0<\sigma(w)$ and $2\sigma(w)<w$; the choice $\sigma(w)=\tfrac14 w$ is merely the simplest that satisfies them.  For an interval $[l,r]$ with $l<r$ and width $w:=r-l$, the \emph{cut points} are
+\[
+q_L\;:=\;l+\sigma(w),\qquad q_R\;:=\;r-\sigma(w).
+\]
+\end{definition}
+
+\begin{lemma}
+\label{lem:b-cutpoints}
+If $l<r$ is held as data, then
+\[
+l\;<\;q_L\;<\;q_R\;<\;r,\qquad q_R-q_L=\tfrac12\,w ,
+\]
+and in particular $q_L<q_R$ is held as data.
+
+\emph{Proof.}  From $w>0$ we get $\sigma(w)=\tfrac14w>0$, hence $l<l+\sigma(w)=q_L$ and symmetrically $q_R<r$.  Moreover
+\[
+q_R-q_L=(r-\sigma(w))-(l+\sigma(w))=w-2\sigma(w)=w-\tfrac12w=\tfrac12w>0 . \qquad\qed
+\]
+\end{lemma}
+
+\begin{definition}[Interval data]
+\label{def:b-intervaldata}
+Fix $a<b$ and the sequence $(s_j)$.  \emph{Interval data at stage $n$} is a pair $(l,r)$ of presented reals satisfying, with evidence, the four conditions:
+(i) $l<r$; (ii) $a<l$ and $r<b$; (iii) $r-l\le (b-a)\,2^{-n}$; (iv) for every $j<n$: $s_j<l$ or $r<s_j$.
+Condition (iv) is read ``$s_j$ is \emph{avoided}''.
+\end{definition}
+
+\begin{lemma}[One step]
+\label{lem:b-onestep}
+From interval data $I=(l,r)$ at stage $n$ one can \emph{construct} interval data $J=(l',r')$ at stage $n+1$ with $l\le l'$ and $r'\le r$.
+
+\emph{Proof.}  Let $w:=r-l$ and take $q_L,q_R$ as in Definition~\ref{def:b-margin}.  By Lemma~\ref{lem:b-cutpoints}, $q_L<q_R$ is held as data.  Apply Fact~\ref{fact:b-cotrans} to this pair and $z:=s_n$, and distinguish the two cases it returns.
+
+\emph{Case 1: $q_L<s_n$.}  Put $J:=(l,\,q_L)$.  (i) $l<q_L$ is Lemma~\ref{lem:b-cutpoints}.  (ii) $a<l$ by hypothesis, and $q_L<r<b$.  (iii) The width is
+\[
+q_L-l=\sigma(w)=\tfrac14w\;\le\;\tfrac14\,(b-a)2^{-n}\;\le\;(b-a)2^{-(n+1)} .
+\]
+(iv) For $j<n$, avoidance is preserved because $J\subseteq I$ ($s_j<l=l'$ or $r'\le r<s_j$).  For $j=n$, the case hypothesis $q_L<s_n$, i.e.\ $r'<s_n$, is precisely the avoidance.
+
+\emph{Case 2: $s_n<q_R$.}  Put $J:=(q_R,\,r)$.  Conditions (i)--(iii) follow symmetrically, the width being $r-q_R=\sigma(w)$.  Condition (iv) for $j<n$ is as before, and for $j=n$ the case hypothesis $s_n<q_R=l'$ is the avoidance. \qed
+\end{lemma}
+
+\begin{remark}[Discarding the middle]
+\label{rem:b-middle}
+The surviving interval has $\tfrac14$ of the original width, smaller than the $\tfrac12$ of the classical bisection.  This is not a benefit of faster convergence; it is the consequence of being forced to \emph{abandon the central half}.  The classical argument exhausts the interval by the two-way split ``left or right''; constructively that split is undecidable, and only after surrendering the region between the two cut points does a decidable two-way split appear.  This operation---replacing an undecidable dichotomy by a decidable one purchased with a margin---recurs throughout the development (Appendix~\ref{sec:b-onepoint}).
+\end{remark}
+
+\begin{proof}[Proof of Theorem~\ref{thm:b-avoid}]
+For the initial interval, apply the cut of Definition~\ref{def:b-margin} to $(a,b)$ itself:
+\[
+I_0\;:=\;\bigl(a+\sigma(b-a),\ b-\sigma(b-a)\bigr)
+\]
+(the artifact makes the same choice).  By Lemma~\ref{lem:b-cutpoints}, $a<\text{left endpoint}<\text{right endpoint}<b$, and the width is $\tfrac12(b-a)\le (b-a)\cdot2^{0}$, so condition (iii) holds at $n=0$; condition (iv) at $n=0$ is vacuous.  Iterating Lemma~\ref{lem:b-onestep} yields interval data $I_n=(l_n,r_n)$ for every $n$.  By construction $(l_n)$ is nondecreasing, $(r_n)$ is nonincreasing, and
+\[
+0\;<\;r_n-l_n\;\le\;(b-a)\,2^{-n}\;\longrightarrow\;0 .
+\]
+For $m\ge n$ we have $l_n\le l_m\le r_m\le r_n$, hence $|l_m-l_n|\le (b-a)2^{-n}$: the left endpoints form a Cauchy sequence with an \emph{explicit modulus}.  The coefficient $b-a$ is itself a presented real; taking a rational Archimedean bound $b-a\le K$, accuracy $2^{-k}$ is reached from index $n\ge k+\lceil\log_2 K\rceil$ on, a numerical modulus.  Completeness of the presented reals (taking a diagonal sequence) constructs the limit $t:=\lim_n l_n$, with $l_n\le t\le r_n$ for all $n$.
+
+From $a<l_0\le t$ and $t\le r_0<b$ we get $a<t<b$ (composing a strict with a weak inequality is the standard transitivity lemma, itself a consequence of cotransitivity).  For each $j$, condition (iv) of $I_{j+1}$ gives $s_j<l_{j+1}$ or $r_{j+1}<s_j$; combined with $l_{j+1}\le t\le r_{j+1}$ this yields $s_j<t$ or $t<s_j$, that is, $0<|t-s_j|$.
+\end{proof}
+
+\subsection{Coded profiles}
+\label{sec:b-coded}
+
+Definition~\ref{def:profile} presents a profile as a pair: a family $F$ of ramp functions and a monotone functional $\lambda$ on it.  Constructively, the problem is that being handed an element of $F$ ``as a function'' does not let one extract the witnesses of its behaviour that the proofs need.
+
+\begin{definition}[Coded profile]
+\label{def:b-coded}
+A \emph{coded profile} on $[a,b]$ consists of: a type $C$ of \emph{codes} with an interpretation $\mathrm{ev}:C\times[a,b]\to\mathbb{R}$ and a subfamily $F\subseteq C$; boundedness, $0\le \mathrm{ev}(f,x)\le1$ for $f\in F$ and $a\le x\le b$; codes for the two constants, with $\mathrm{ev}(0,\cdot)\equiv0$ and $\mathrm{ev}(1,\cdot)\equiv1$; \emph{separation}: given $a\le u$, $0<v-u$ as data, and $v\le b$, one can \emph{construct} a code $f\in F$ whose interpretation is $0$ on $[a,u]$ and $1$ on $[v,b]$; and a value functional $\lambda:C\to\mathbb{R}$, monotone along pointwise comparison of interpretations.
+\end{definition}
+
+The decisive point is that the separation clause reads ``one can construct''---it \emph{returns} a code.  If $F$ were an extensional set of functions, obtaining an actual separating function from its mere existence would require a choice principle; making codes first-class objects and defining $\lambda$ on codes removes that extraction from the outset.  Where the source silently ``takes a ramp function'', the development holds a function that returns a code.  The same shape---carry presentations, define functionals on presentations, never extract witnesses from extensional objects---is reusable at completions, at simple-function representations, and in the passage from measures to integrals.
+
+\subsection{The explicit exception sequence}
+\label{sec:b-exception}
+
+\begin{theorem}[Explicit-sequence form of the smoothness theorem]
+\label{thm:b-exception}
+For an integrable $h$ and an interval $(a,b)$, one constructs an \emph{explicit sequence} $T=(T_n)_{n\ge0}$ of presented reals such that every $t\in(a,b)$ apart from every $T_n$ is a smooth level for the profile attached to $h$.
+\end{theorem}
+
+Only in this form can Theorem~\ref{thm:b-avoid} be applied, with $(s_j):=T$.  Two clarifications keep the claim exact.  First, stating ``the exceptions are countable'' as ``the exceptions are \emph{this sequence}'' is \emph{not} a mathematical strengthening of the source: the source's proof of its Theorem~3.5 itself constructs the finite stagewise families $\{t^k_1,\dots,t^k_{n(k)}\}$ and their union $T$.  The work of the formalization is flattening the proof-internal data into a first-class $\mathbb{N}$-indexed sequence, fixed as an interface that the avoidance theorem consumes directly.  Second, the reason this does not collide with the no-go results is the confluence stated in Section~\ref{sec:nogo}, not the explicit-sequence form alone: over an abstract real-number object, a principle ``from an explicit sequence, return a real apart from all its terms'' would itself fall under the no-go; the avoidance construction of Appendix~\ref{sec:b-avoidance} runs over presented-real order data, and that restriction is what carries the argument.
+
+\subsection{The truncation clause of Definition~1.1}
+\label{sec:b-truncation}
+
+The truncation demanded by clause~(1) of the source's Definition~1.1 is $\min\{f,1\}\in L$ \emph{only}; the source's own remark recovers positive-integer truncation via $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$.  The following four statements delimit what can and cannot be recovered.
+
+\begin{proposition}[Positive constants]
+\label{prop:b-poscut}
+If $0<\alpha$ is held as data, then clause~(1) yields $\min\{f,\alpha\}\in L$: indeed
+\(
+\min\{f,\alpha\}=\alpha\cdot\min\{\alpha^{-1}f,1\},
+\)
+and the right-hand side lies in $L$ by $\min\{\cdot,1\}$ and closure under scalars.  Constructing $\alpha^{-1}$ requires evidence that $\alpha$ is apart from $0$---exactly ``$0<\alpha$ as data'' in the sense of Definition~\ref{def:b-order}.
+\end{proposition}
+
+\begin{proposition}[$\alpha=0$]
+\label{prop:b-zerocut}
+Clause~(1) yields $\min\{f,0\}\in L$: indeed
+\(
+\min\{f,0\}=\tfrac12(f-|f|),
+\)
+and the right-hand side lies in $L$ by $|\cdot|$ and linear combination.  The verification goes through the lattice identity $\min\{a,b\}=\tfrac12(a+b-|a-b|)$, valid on presented reals \emph{without case analysis}, at $b=0$; a case split on the sign of $f(x)$ is not decidable, so the identity is the constructively correct route.
+\end{proposition}
+
+\begin{remark}[$0\le\alpha$ does not suffice]
+\label{rem:b-nonneg}
+Proposition~\ref{prop:b-poscut} consumes a positivity witness and Proposition~\ref{prop:b-zerocut} exact zero; the split between the two cases is undecidable, so no uniform construction from $\neg(\alpha<0)$ alone is obtained here.  Its impossibility is \emph{not} proved (that would require a model separation); the claim is only that the source's route needs the witness, and that no other constructive route is evident.  The correct clause thus appears to be truncation at constants carrying a positivity witness, or at $0$---the two constants the development in fact truncates at.
+\end{remark}
+
+\begin{proposition}[Negative constants fail in the non-compact canonical model]
+\label{prop:b-negcut}
+For $\alpha<0$, closure under $\min\{\cdot,\alpha\}$ fails in the non-compact instances of the source's own canonical model.  In the model $(X,C(X),\mu)$ of its Definition~7.1---$X$ locally compact, $C(X)$ the continuous functions of compact support, $\mu$ a positive measure---one has $\min\{f,\alpha\}=\alpha\ne0$ off the support of $f$, so for non-compact $X$ the truncation has no compact support and leaves $C(X)$. \qed
+
+Consequently Definition~\ref{def:intspace}, which demands truncation at arbitrary constants, and the source's Definition~1.1 are incomparable in logical strength.
+\end{proposition}
+
+\begin{proposition}[Positivity of $I$ is derivable]
+\label{prop:b-inonneg}
+Clause~(2) implies: if $g\in L$ is nonnegative everywhere on its domain, then $I(g)\ge0$.
+
+\emph{Proof.}  First, Corollary~1.3 of the source at $k=1$: if $I(g)>0$ then $g(x)>0$ at some point $x$ of its domain.  Apply clause~(2) to the sequence $z_n:=0\cdot g$ (each $z_n\in L$ with the domain of $g$, pointwise nonnegative, $\sum_n I(z_n)=0<I(g)$); it returns a point $x$ with $\sum_n z_n(x)=0<g(x)$.  Now suppose $I(g)<0$.  Then $I(-g)=-I(g)>0$ and $-g\in L$, so $-g(x)>0$ at some point, i.e.\ $g(x)<0$, contradicting $g\ge0$.  Since $I(g)\ge0$ abbreviates $\neg(I(g)<0)$, this is a constructively valid conclusion. \qed
+
+Hence the positivity axiom (A4) of Definition~\ref{def:intspace} need not be carried as a field; the derivation is machine-checked in this revision.
+\end{proposition}
+
+\subsection{The two limits of the point-evaluation model}
+\label{sec:b-dirac}
+
+Fix a point $x_0$, let $L$ be the partial functions defined at $x_0$, and let $I(f):=f(x_0)$.  Clauses (1)--(3) are immediate---the constant $1$ lies in $L$ with $I(1)=1$, so the model is normalized---and clause~(4) reduces to two statements about the single real $c:=f(x_0)$.
+
+\begin{theorem}
+\label{thm:b-dirac}
+For every $c\in\mathbb{R}$, with explicit moduli:
+(a) $\min\{c,n\}\to c$; indeed with $N:=2^{m(c)}$, where $m(c)$ is the exponent of an Archimedean bound for $c$, every $n\ge N$ gives $\min\{c,n\}\approx c$---the modulus is \emph{constant}, and the convergence is exact from a finite stage on.
+(b) $\min\{|c|,2^{-n}\}\to0$; for gauge $k$, every $n\ge k+2$ gives
+\(
+|\min\{|c|,2^{-n}\}|\le2^{-n}\le2^{-(k+2)}<2^{-(k+1)} .
+\)
+
+\emph{Proof.}  (a) Choose a natural number $N\ge c$ (the Archimedean property, in the explicit form $N=2^{m}$); for $n\ge N$ we have $c\le N\le n$, hence $\min\{c,n\}=c$.  (b) $0\le\min\{|c|,2^{-n}\}\le 2^{-n}$, and $2^{-n}\le2^{-(k+2)}<2^{-(k+1)}$ for $n\ge k+2$. \qed
+\end{theorem}
+
+\begin{remark}[Where the proposition/data gap does actual work]
+\label{rem:b-propdata}
+For the Archimedean bound in (a), the development already possessed the \emph{proposition} ``there exists $N\in\mathbb{N}$ with $c\le N$''.  A modulus, however, is data, and cannot be extracted from that proposition; the witness $2^{m(c)}$ inside the existing proof had to be written out as a function.  ``The existence was known, but a witness was needed'' is a concrete work item that prose mathematics does not register; the same phenomenon reappears at the uniform complement estimate (Appendix~\ref{sec:b-uniform}).
+\end{remark}
+
+\subsection{The $A$ pair and the $B$ pair: two complemented sets at one level, neither yielding the other}
+\label{sec:b-mirror}
+
+The source's Theorem~3.6 asserts that at a level $t$ \emph{two} complemented sets,
+\[
+A=\bigl(\{h\ge t\},\ \{h<t\}\bigr),\qquad B=\bigl(\{h>t\},\ \{h\le t\}\bigr),
+\]
+are integrable with the same measure.  Classically the two are nearly the same object, each obtained from the other by taking complements.  Constructively they are not.
+
+\begin{definition}[The four sets]
+\label{def:b-foursets}
+The value of an integrable $h$ at a point $x$ is given as data: the absolute convergence at $x$ of a series representing $h$, together with the sum $s(x)$.  On that basis,
+\[
+A^1:=\{x: t\le s(x)\},\quad A^2:=\{x: s(x)<t\},\quad B^1:=\{x: t<s(x)\},\quad B^2:=\{x: s(x)\le t\},
+\]
+each set including the condition that the value exists.
+\end{definition}
+
+That $A$ is complemented---elements of $A^1$ and $A^2$ are distinct---follows because $t\le s$ and $s<t$ are incompatible: $t\le s$ \emph{is} $\neg(s<t)$ by definition, so the incompatibility is definitional and requires no comparison of $s$ with $t$.  Similarly for $B$.
+
+\begin{remark}[Why $B$ is not a corollary of $A$]
+\label{rem:b-nocorollary}
+Classically $\{h>t\}$ is the complement of $\{h\le t\}$, and the integrability of $B$ follows from that of $A$.  Constructively $\le$ is the \emph{negation} of $<$, and $\{h\ge t\}$ and $\{h>t\}$ are not each other's negations; passing between them is a double-negation elimination.  The classical complement route is therefore closed; and on the data route, the public data of the $A$ pair does not directly yield the data of the $B$ pair either.  The $B$ pair was accordingly constructed independently.  (Formal non-derivability---that no construction could exist---is not claimed.)
+\end{remark}
+
+\begin{remark}[Why the mirror is not a copy: approximation from opposite sides]
+\label{rem:b-mirrorwhy}
+The ramp used to approximate the characteristic functions is
+\[
+\mathrm{ramp}_{u,v}(y)\;=\;\max\Bigl(\min\bigl((v-u)^{-1}(y-u),\;1\bigr),\;0\Bigr)
+\]
+($0$ for $y\le u$, linear on $[u,v]$, $1$ for $y\ge v$; the reciprocal $(v-u)^{-1}$ is constructed from the positivity evidence of $u<v$).  The two pairs use it in opposite directions.
+
+For the $A$ pair, the \emph{upper} end is fixed at $v=t$ and the lower end $u_n=t-\mathrm{gap}_n$ rises to $t$ from below.  The resulting ramps form a \emph{decreasing} sequence whose limit realizes $\chi_{\{h\ge t\}}$, and the directly usable implication is
+\[
+\mathrm{ramp}_{u_n,t}(y)<1\ \Longrightarrow\ y<t .
+\]
+
+For the $B$ pair, the \emph{lower} end is fixed at $u=t$ and the upper end $v_n=t+\mathrm{gap}_n$ descends to $t$ from above.  The ramps form an \emph{increasing} sequence whose limit realizes $\chi_{\{h>t\}}$, and what is usable is the \emph{positive} evidence
+\[
+\mathrm{ramp}_{t,v_n}(y)>0\ \Longrightarrow\ y>t ,
+\]
+not the implication used on the $A$ side.
+
+The two constructions thus approximate the characteristic function from opposite sides; the monotonicity of the ramp sequences is reversed, and the directly usable implications are different statements.  This is why carrying out the $B$ pair is not a renaming exercise: the chain---about $55$ lemmas in the artifact---is laid out a second time with the monotonicity inverted, while the generic components, the signed double series and shell enumeration of Appendix~\ref{sec:b-series}, are reused unchanged.  On either side, the \emph{strong} (narrow) set is reached by the direct implication and the \emph{weak} (wide) set is supplied as its complemented partner; the strong side is $\{h<t\}$ for $A$ and $\{h>t\}$ for $B$, and that is where the two constructions trade places.
+\end{remark}
+
+\subsection{Signed double series and the shell enumeration}
+\label{sec:b-series}
+
+Countable additivity arguments use totals of doubly indexed families $(A_{ij})$ both as iterated sums and as sums along a single enumeration.  Classically, absolute convergence licenses free rearrangement; constructively, one must \emph{fix} an enumeration before asserting anything.
+
+\begin{definition}[Shell enumeration]
+\label{def:b-shell}
+Decompose each $m\in\mathbb{N}$ uniquely as $m=N^2+t$ with $0\le t\le 2N$, and set
+\[
+\mathrm{cell}(m):=\begin{cases}(N,\,t)&(t\le N)\\(t-N-1,\,N)&(t>N).\end{cases}
+\]
+Then $\mathrm{cell}:\mathbb{N}\to\mathbb{N}\times\mathbb{N}$ is a bijection tracing, for $N=0,1,2,\dots$, the L-shaped shells $\{(i,j):\max(i,j)=N\}$.
+\end{definition}
+
+\begin{theorem}[Signed double series along a fixed enumeration]
+\label{thm:b-fubini}
+Suppose given \emph{as data}: (i) for each $i$, the absolute row sum $R_i:=\sum_j |A_{ij}|$ with modulus; (ii) the sum $\sum_i R_i$; (iii) the flattened sum $\Sigma_{\mathrm{flat}}:=\sum_k A_{\mathrm{cell}(k)}$.  Then the iterated sum $\Sigma_{\mathrm{iter}}:=\sum_i\bigl(\sum_j A_{ij}\bigr)$ can be constructed, and
+\(
+\Sigma_{\mathrm{flat}}=\Sigma_{\mathrm{iter}} .
+\)
+
+\emph{Proof shape.}  Split $A_{ij}=A^+_{ij}-A^-_{ij}$ with $A^+:=\max(A,0)$ and $A^-:=-\min(A,0)$.  Since $0\le A^{\pm}_{ij}\le|A_{ij}|$, the comparison test transfers the summability data of (i)--(iii) to both halves; for nonnegative families the shell sum and the iterated sum agree by monotonicity of partial sums and squeezing; subtracting the two nonnegative results returns the signed case. \qed
+\end{theorem}
+
+Three features carry the constructive content: the conclusion is an equality \emph{for one fixed bijection}, not a rearrangement license; absolute convergence enters as modulus-carrying data, not as a bare assertion; and the sign decomposition meshes with the comparison test because $\max$ and $\min$ are controlled by absolute values.
+
+\subsection{The uniform complement estimate as data}
+\label{sec:b-uniform}
+
+The statement is Proposition~\ref{prop:uniform-complement}; this subsection records why its conclusion is data and how the set $A$ is built.
+
+\emph{Why data.}  Classically ``$\forall\varepsilon\,\exists A,N,\delta$'' would suffice.  Here the sequel takes the set $A$ in hand and performs the next construction on it, so an existence statement is not enough: the one-line ``take such an $A$'' becomes a function returning the triple $(A,N,\delta)$.  This is the same phenomenon as Remark~\ref{rem:b-propdata}.
+
+\emph{How $A$ is built.}  In each dyadic window $(2^{-(n+1)},\,2^{-n})$, choose a level $\alpha_n$ at which the profile of the majorant $H$ is smooth---this is where the explicit exception sequence (Appendix~\ref{sec:b-exception}) and the avoidance construction (Appendix~\ref{sec:b-avoidance}) are consumed.  Apply the level-set theorem at each $\alpha_n$ to obtain integrable
+\(
+A_n=(\{H\ge\alpha_n\},\{H<\alpha_n\})
+\)
+with its measure.  Integrability of $H$ controls $\mu(A_n)$, and for $n$ large the integral of $H$ off $A_n$ is small; the full-set bounds $e_n\le H$ transfer the estimate to the errors \emph{uniformly in $n$}.
+
+In order of application, the chain is: explicit exception sequence (Appendix~\ref{sec:b-exception}) $\to$ countable avoidance applied to it (Appendix~\ref{sec:b-avoidance}) $\to$ integrable level sets at apart thresholds (Appendix~\ref{sec:b-mirror}) $\to$ dyadic level selection $\to$ uniform complement estimate (this subsection) $\to$ Theorem~\ref{thm:prop-dct}.  If the first link were not constructive, everything downstream would degrade to existence statements.
+
+\subsection{Routine, known, and difficult: a classification}
+\label{sec:b-triage}
+
+What was received, and what is routine:
+
+\begin{center}\small
+\begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
+\hline
+Item & Status & Ground \\
+\hline
+The four clauses of Definition~1.1; Lemma~1.2; Corollary~1.3; the arcs of Theorems~3.5, 3.6, 4.15 & known (source) & taken from Bishop--Cheng as stated \\
+$\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$ & known (source) & the source's own remark after Definition~1.1 \\
+The \emph{idea} of countable avoidance by nested intervals & known (Bishop, standard) & statement and strategy classical \\
+$\min\{f,0\}=\tfrac12(f-|f|)$; derivability of the positivity of $I$ & routine to known & elementary; that the positivity field is unnecessary is an observation of this revision \\
+Respect lemmas for Bishop equality; reading $\exists$ as data; convergence with moduli & formalization routine & not new mathematics, but obligatory \\
+\hline
+\end{tabular}
+\end{center}
+
+The difficulties:
+
+\begin{center}\small
+\begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
+\hline
+Item & Status & Ground \\
+\hline
+Two-point cut with a margin (Appendix~\ref{sec:b-avoidance}) & difficulty & a one-point bisection is undecidable; a margin makes cotransitivity applicable, at the price of discarding the middle \\
+Coded profiles (Appendix~\ref{sec:b-coded}) & difficulty, reusable & no witness extraction from extensional objects; the separation clause \emph{returns} a code \\
+Explicit exception sequence (Appendix~\ref{sec:b-exception}) & difficulty & ``all but countably many'' must become ``away from this sequence'' before avoidance applies \\
+Mirror of the $A$ pair and the $B$ pair (Appendix~\ref{sec:b-mirror}) & difficulty & $\le$ is $\neg<$, so $B$ is not a corollary of $A$; approximation from opposite sides reverses monotonicity and usable implications \\
+Signed double series with shell enumeration (Appendix~\ref{sec:b-series}) & difficulty, reusable & an equality for a fixed bijection instead of a rearrangement license; absolute convergence as modulus-carrying data \\
+Uniform complement estimate as data (Appendix~\ref{sec:b-uniform}) & difficulty & the triple $(A,N,\delta)$ must be returned, not asserted \\
+One-point certificates and strong gauge extraction (Appendix~\ref{sec:b-onepoint}) & known (Bishop) $+$ difficulty, reusable & the one-point diagonal condition and its tail equivalence are Definition~3 and Lemma~2 of \emph{Foundations}, Chapter~2; the difficulty is executing the round trip, under the proposition/data distinction, without choice \\
+\hline
+\end{tabular}
+\end{center}
+
+The observations recorded by this development:
+
+\begin{center}\small
+\begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
+\hline
+Item & Status & Ground \\
+\hline
+Analysis of the truncation clause (Appendix~\ref{sec:b-truncation}) & new observation of this revision & positivity witness needed; the canonical model refutes negative constants; incomparability \\
+Localization of the interface difference to one clause (the adapter) & new result of this revision & thirteen of the fourteen fields follow from Definition~1.1 \\
+The proposition/data gap surfacing as work (Remark~\ref{rem:b-propdata}) & methodological observation & an existential proposition does not yield a modulus \\
+The stratified cost distribution (Section~\ref{sec:cost}) & observation of this development & the profile stratum alone jumps an order of magnitude, coinciding with the obstruction \\
+\hline
+\end{tabular}
+\end{center}
+
+The rows labelled ``difficulty'' are difficulties of the \emph{formalization}, not claims of mathematical novelty.  The constructions of Appendices~\ref{sec:b-avoidance}, \ref{sec:b-coded}, and \ref{sec:b-exception} rewrite, into constructively executable form, operations that the source's proofs perform implicitly; none is a new theorem.  What is new is that carrying them out determined \emph{what is needed} to perform them---margins, codes, explicit sequences, positivity witnesses, one-point certificates.  Those five items are what this appendix hopes to communicate to a mathematician.
+
+\subsection{One-point certificates and strong gauge extraction: a choice-free round trip between propositions and data}
+\label{sec:b-onepoint}
+
+Section~\ref{sec:nogo}(i) said that the cotransitivity branch is returned as data from rational approximations; Section~\ref{sec:related} said that every passage from propositions to data in the audited chain proceeds by explicit supply of data or by decidable search.  This subsection writes out the decidable search.  As Section~\ref{sec:audit} noted, unconditional extraction of data from an existential proposition is, in Lean, the territory of the choice axiom.  Nevertheless, for the \emph{strong order} on presented reals, one can pass between proposition and data without choice.  This is a kind of statement for which classical published mathematics has no place---a conversion theorem between propositions and constructions---and which the formalization forced into statement form; type-theoretic literature does have statements of the same kind (Appendix~\ref{sec:b-booij}).
+
+The one-point condition itself is not an invention of this development.  Definition~3 in Chapter~2 of Bishop's \emph{Foundations} \emph{defines} positivity of a real by exactly a one-point diagonal condition, $x_n>n^{-1}$ for some $n$, and its Lemma~2 supplies the equivalence with the tail form; the margin $2N^{-1}$ appearing there corresponds to the $2\varepsilon_n$ below, which is the dyadic-gauge version.  What this subsection adds is the reading of that equivalence under the proposition/data distinction, and the verification that the round trip is executable, mechanically and without choice.
+
+\begin{definition}[Tail positivity, in two forms]
+\label{def:b-tail}
+Write $\varepsilon_k:=2^{-k}$.  For a regular sequence $x=(x_n)$ (so $|x_n-x_m|\le\varepsilon_n+\varepsilon_m$), distinguish two forms of \emph{tail positivity}:
+the \emph{propositional form}, that there exist $k$ and $N$ such that $\varepsilon_k<x_n$ for all $n\ge N$; and
+the \emph{data form}, the triple $(k,N,\text{proof})$ itself.
+The strong order $0<x$ of Definition~\ref{def:b-order} coincides by definition with tail positivity of $x$.  The propositional form contains a universal quantifier inside the existential---each instance is a decidable rational comparison, but there are infinitely many---so it cannot be searched as it stands.
+\end{definition}
+
+\begin{definition}[Strong one-point certificate: the diagonal gauge]
+\label{def:b-certificate}
+For a regular sequence $x$ put
+\[
+W_x(n)\;:\Longleftrightarrow\;2\varepsilon_n<x_n .
+\]
+This is decidable by a single rational comparison.  The point is that the threshold $2\varepsilon_n$ is tied to the gauge of the inspected index $n$ itself: the certificate is \emph{diagonal}.
+\end{definition}
+
+\begin{lemma}[Self-propagation of the certificate]
+\label{lem:b-propagate}
+If $W_x(n)$ holds, then $\varepsilon_{n+1}<x_M$ for every $M\ge n+2$; hence $(k,N):=(n+1,\,n+2)$ is tail-positivity data.
+
+\emph{Proof.}  For $M\ge n+2$ we have $\varepsilon_M\le\varepsilon_{n+2}$.  Regularity gives $x_M\ge x_n-(\varepsilon_n+\varepsilon_M)$, and the hypothesis gives $x_n>2\varepsilon_n$, so
+\[
+x_M\;>\;2\varepsilon_n-\varepsilon_n-\varepsilon_M\;=\;\varepsilon_n-\varepsilon_M\;\ge\;\varepsilon_n-\varepsilon_{n+2}\;=\;3\varepsilon_{n+2}\;>\;\varepsilon_{n+1}. \qquad\qed
+\]
+\end{lemma}
+
+The margin $2\varepsilon_n$ is engineered so that after regularity consumes its maximal budget $\varepsilon_n+\varepsilon_M$, one finer gauge $\varepsilon_{n+1}$ still survives.  It is the one-point version of the same idea as the $\sigma$-margin of Appendix~\ref{sec:b-avoidance}: \emph{pay a margin in advance to make a comparison decidable}.
+
+\begin{lemma}[Tails contain late certificates]
+\label{lem:b-late}
+If $x$ has tail positivity in the propositional form, with witnesses $k,N$, then $\exists n\,W_x(n)$.  Indeed $n_0:=N+k+2$ gives $2\varepsilon_{n_0}\le 2\varepsilon_{k+1}=\varepsilon_k<x_{n_0}$. \qed
+\end{lemma}
+
+This inference goes from a proposition to a proposition, so opening the existential inside it is legitimate---under the BHK reading and in Lean alike.  What has changed is essential: an existential whose body contains a universal has been replaced by the existential of a \emph{decidable one-point predicate}.  Lemmas~\ref{lem:b-propagate} and~\ref{lem:b-late} are the dyadic-gauge version of Lemma~2 of \emph{Foundations}, Chapter~2.
+
+\begin{proposition}[Choice-free round trip]
+\label{prop:b-roundtrip}
+For a presented real $x$, the propositional form of $0<x$ and the tail-positivity data are interconvertible without any choice principle.
+
+\emph{Proof.}  Data to proposition is forgetting.  For the converse: by Lemma~\ref{lem:b-late}, pass from the propositional form to the existential of the decidable predicate $W_x$.  Test $W_x(0),W_x(1),W_x(2),\dots$ in order and return the first success---a \emph{minimization search}.  Termination is guaranteed by the existential; the search itself is well-founded recursion over a decidable predicate and requires no choice.  (In Lean it is minimization through the accessibility predicate, whose elimination into data for this purpose is part of the calculus and, as Carneiro's axiomatization records, independent of the choice axiom; the axiom output of all constructions of this subsection lies within $\{\texttt{propext},\texttt{Quot.sound}\}$ and is covered by the audit of Section~\ref{sec:audit}.)  The certificate so found is converted to tail data by Lemma~\ref{lem:b-propagate}. \qed
+\end{proposition}
+
+One reading deserves record.  \emph{Foundations} states that an element of $\mathbb{R}^+$ is properly a pair---a sequence together with a witness---and then declares that it will take ``the position that the $n$ was implicitly there all along'', adopting the loose usage.  Proposition~\ref{prop:b-roundtrip} is the machine-checked statement that this looseness is harmless without choice: the witness said to exist implicitly can always be recomputed, on the spot, whenever it is needed.
+
+\begin{remark}[Consequences, the dual certificate, and the limitation]
+\label{rem:b-consequences}
+(i) \emph{Cotransitivity as data.}  Once evidence for $a<b$ is at hand---a witness index and its slack---comparison with any $c$ is decided by a single rational comparison at that index; this is the mechanism behind the branch of Appendix~\ref{sec:b-avoidance}, and behind Section~\ref{sec:nogo}(i).
+
+(ii) \emph{Reciprocals.}  The reciprocal of a presented real is a partial function taking positivity data as an argument.  Abstract constructive real-number interfaces \emph{posit} the reciprocal, with its positivity witness, as an axiomatic field; the presented side first computes the witness by the round trip and then builds the reciprocal.  This is the smallest unit of the ``abstract versus presented'' difference of Section~\ref{sec:domination-comparison}.
+
+(iii) \emph{The dual: an upper one-point certificate.}  The same one-point-plus-regularity budget works upward: from the zeroth approximation alone,
+\[
+|x_n|\;\le\;|x_0|+\varepsilon_n+\varepsilon_0\;\le\;|x_0|+2\qquad(\text{all } n).
+\]
+This is the faithful dyadic version of the standard bound $K_x$ of \emph{Foundations} (the least integer exceeding $|x_1|+2$; the source indexes its sequences from $1$, so $x_1$ is the first approximation there, consistent with the gauge translation $x'_0:=x_{2^0}=x_1$), and it is why the Archimedean modulus in Appendix~\ref{sec:b-dirac} is constant.  The positivity certificate from below and the boundedness certificate from above are two directions of one mechanism: regularity propagates one-point information to the whole sequence.
+
+(iv) \emph{Limitation.}  The round trip exists only on the strong-order (apartness) side.  The weak order $\le$ is \emph{defined} as $\neg<$ and has no one-point certificate; this is the root of the fact that the weak sides of the pairs in Appendix~\ref{sec:b-mirror} are handled only through negation.  Finally, none of this is a new theorem in the classical sense: in classical mathematics the proposition/data distinction collapses, and a conversion theorem between the two has no place in the traditional literature.  What is worth reporting is that in a setting where the distinction does not collapse, the round trip holds without choice, and that this fact is machine-checked.
+\end{remark}
+
+\subsection{A dictionary with Booij's locators}
+\label{sec:b-booij}
+
+The correspondence described here is conceptual; no locator type occurs in the artifact.  Section and theorem numbers refer to Booij~\cite{booij-2021} in its arXiv version.
+
+\emph{(i) The dictionary.}  Booij works in Martin-L\"of type theory with propositional truncation $\lVert\cdot\rVert$, function extensionality, and propositional extensionality, and enforces the property/structure distinction down to the verbs (``there exists'' against ``has'', ``one can find'', ``one can construct'').  Lean's \texttt{Prop}/Type split is the counterpart of the $\lVert\cdot\rVert$ discipline; his decidable propositions correspond to decidability data; and his search engine---Escard\'o's theorem as presented in his Theorem~3.5.1, that for a decidable predicate on $\mathbb{N}$ the truncated existence yields the untruncated witness pair, constructed as the \emph{least} witness (his \S3.4--3.6)---corresponds to the minimization search of Proposition~\ref{prop:b-roundtrip}.  The ambient foundations differ (his is compatible with univalence; Lean has definitional proof irrelevance with UIP, Remark~\ref{rem:footprint}), but Booij notes that univalence is not needed for this range, so the dictionary is sound across the foundations.
+
+\emph{(ii) Locators and their normal form.}  A locator for a real $x$ is
+\(
+\ell:\Pi(q,r:\mathbb{Q}).\,q<r\to(q<x)+(x<r)
+\)
+(his Definition~3.1.1): locatedness with the disjunction replaced by an untruncated sum; one real may have many locators.  His Lemma~3.4.2 shows a locator equivalent to a \emph{decidable predicate} (``locates right'') together with two propositional soundness clauses.  That is the same normal form as the one-point certificate: Definition~\ref{def:b-certificate} is a decidable predicate, and Lemmas~\ref{lem:b-propagate}--\ref{lem:b-late} are its soundness; structure of this kind \emph{is} a decidable predicate paired with propositional soundness.
+
+\emph{(iii) The same engine, asymmetric costs.}  His central technique is to reason about locator structure through propositions and to construct unique answers by bounded search (his \S3.4--3.5), obtaining rational bounds (Lemma~3.6.1) and Archimedean structure $x<y\to\Sigma(q:\mathbb{Q}).\,x<q<y$ (Lemma~3.7.2); Proposition~\ref{prop:b-roundtrip} is the same principle applied to positivity.  The costs, however, are asymmetric: from a presentation, bounds can simply be read off (Remark~\ref{rem:b-consequences}(iii): the first approximation and a constant modulus suffice), whereas a locator hides the sequence, so that even a bound needs a search over an enumeration of $\mathbb{Q}$---Booij marks the fact ``perhaps surprisingly''.  This is the plainest exhibition of what carrying representations buys.
+
+\emph{(iv) Where presented reals sit.}  His Theorem~3.9.7: a real has a locator iff it has a signed-digit representation, iff there is a rational Cauchy sequence converging to it with modulus, iff it is a Cauchy real.  Presented reals carry modulus-bearing rational sequences by definition, so through this dictionary every object of the present development lives on the locator-carrying side.  Indeed a presented real carries a canonical locator on paper: given $q<r$, pick $n$ with $2\varepsilon_n<r-q$ and compare $x_n$ with the midpoint $(q+r)/2$; the regularity margin decides $(q<x)+(x<r)$.  His Theorem~3.10.4 states that, \emph{presupposing the property} of being a Dedekind cut, a single locator suffices for the remaining structure (boundedness and roundedness in structural form) to follow---the same architecture as Remark~\ref{rem:b-consequences}, where one certificate plus regularity yields bounds, comparisons, and moduli.
+
+\emph{(v) The same taboo, dual disciplines.}  His Lemmas~3.10.1 and~3.10.3: a global assignment of locators to \emph{all} Dedekind reals defines, through the observation ``does the locator of $x$ locate right at $0<1$'', a strongly nonconstant map $\mathbb{R}_{\mathbf{D}}\to\mathbf{2}$, and the constructive taboo WLPO follows.  The same phenomenon has an appearance here: the least witness returned by the minimization search depends on the presentation and does \emph{not} respect Bishop equality---two presentations of one real may return different least witnesses---and collapsing the witness to the Bishop-equality quotient corresponds exactly to truncating the locator to a property on his side.  The two responses are dual.  Booij keeps locators outside the definition of the real-number type, as structure carried alongside it, so that extensionality is preserved (his Theorem~3.10.5 and Corollary~3.9.8 analyse where the truncation may be placed: digit representations for all Dedekind reals are equivalent to the coincidence of the Cauchy and Dedekind reals, which is not constructively provable).  The present development never takes the quotient, so the collapsing operation never arises, and it pays instead the discipline of using extracted witnesses only inside Bishop-equality-invariant conclusions (the respect obligations of Section~\ref{sec:cost-layerA}).  These are dual answers, on the extensional side and on the presented side, to one and the same obstruction.
+
+\emph{(vi) The strategy, at both ends.}  Booij obtains the exact intermediate value theorem---for which Bridges--Richman-style constructive analysis ordinarily consumes dependent choice---without choice principles, by carrying locators (his Theorem~4.3.5); and his Theorem~4.2.1 shows the Riemann integral preserves locators when a uniform-continuity modulus is carried as data, with locators for the endpoints and a structure lifting the function to locators also among the hypotheses.  The present development does the corresponding thing at the other end, in the measure theory that Richman singled out as a principal obstacle (Section~\ref{sec:nogo}): the Bishop--Cheng dominated convergence theorem, which ordinarily consumes countable choice, is confined to $\{\texttt{propext},\texttt{Quot.sound}\}$ by presenting the reals and carrying witnesses.  The two are instances, at the elementary-analysis end and at the measure-theory end, of one strategy: \emph{replace invocations of choice by carried structure}.  His open problem---whether pointwise continuous functions lifting to locators must carry structural continuity---does not arise in the present design, where continuity and convergence moduli are data from the start; that is a consequence of the difference in starting points, not a superiority of either.
 
 \begin{thebibliography}{99}
 \raggedright
@@ -655,6 +1276,7 @@ Auke B. Booij.
 \newblock Extensional constructive real analysis via locators.
 \newblock \emph{Mathematical Structures in Computer Science}, 31(1):64--88, 2021.
 \newblock DOI: \doi{10.1017/S0960129520000171}.
+\newblock Also \href{https://arxiv.org/abs/1805.06781}{\texttt{arXiv:1805.06781}}; the section and theorem numbers cited in this paper follow the arXiv version.
 
 \bibitem{geuvers-niqui-2002}
 Herman Geuvers and Milad Niqui.
@@ -689,6 +1311,17 @@ Leonardo de Moura and Sebastian Ullrich.
 \newblock DOI:
 \href{https://doi.org/10.1007/978-3-030-79876-5_37}{\texttt{10.1007/978-3-030-79876-5\_37}}.
 
+\bibitem{carneiro-2019}
+Mario Carneiro.
+\newblock \emph{The Type Theory of Lean}.
+\newblock Master's thesis, Carnegie Mellon University, 2019.
+
+\bibitem{wiedijk-2000}
+Freek Wiedijk.
+\newblock The de Bruijn factor.
+\newblock Note, 2000.
+\newblock \href{https://www.cs.ru.nl/~freek/factor/}{\texttt{cs.ru.nl/\textasciitilde freek/factor}}.
+
 \bibitem{mathlib-2020}
 The mathlib Community.
 \newblock The Lean mathematical library.
@@ -711,8 +1344,8 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.
-\newblock \href{https://github.com/turahigashi/choicefree-bc-dct/tree/37592955f1a3b4fa40b878a3d5bc2a3db0f21be3}{Audited theorem snapshot at commit \texttt{37592955f1a3b4fa40b878a3d5bc2a3db0f21be3}}.
+\newblock Version \CFBDCTVersion, tagged 2026-08-08.  Software deposit, Zenodo.
+\newblock Version DOI: \doi{10.5281/zenodo.21850966}; concept DOI: \doi{10.5281/zenodo.21850965}.
 
 \end{thebibliography}
 
