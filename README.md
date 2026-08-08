@@ -255,7 +255,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the real author metadata for this public development branch. No DOI is listed because no DOI has been assigned.
+`CITATION.cff` contains the author and DOI metadata for this release (software deposit DOI `10.5281/zenodo.21850966`; concept DOI `10.5281/zenodo.21850965`).
 
 ## Note on Lean warnings
 
