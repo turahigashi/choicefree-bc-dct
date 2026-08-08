@@ -1,0 +1,19 @@
+=== CoRN/Rocq Print Assumptions audit ===
+audit_date_utc=2026-07-11T16:09:15Z
+corn_commit=ada7c0b497ff15dd67cf7932c6f20e143a2aee2f
+rocq_version=9.0.1
+command=docker exec corn-audit-rocq90 sh -lc cd /home/rocq/corn; coqc -R . CoRN CoRNAxiomAudit.v
+Constant CoRN.reals.stdlib.CMTMeasurableFunctions.CvMeasure
+Constant CoRN.reals.stdlib.CMTMeasurableFunctions.DominatedMeasureCvZero
+Constant CoRN.reals.stdlib.CMTMeasurableFunctions.DominatedConvergence
+check_guarded: true
+check_positive: true
+check_universes: true
+definitional uip: false
+=== CvMeasure ===
+Closed under the global context
+=== DominatedMeasureCvZero ===
+Closed under the global context
+=== DominatedConvergence ===
+Closed under the global context
+COQC_EXIT=0

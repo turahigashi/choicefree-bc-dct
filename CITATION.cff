@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: "If you use this artifact, please cite the accompanying paper and this software artifact."
+title: "choicefree-bc-dct: a Lean artifact for choice-free Bishop--Cheng dominated convergence"
+type: software
+authors:
+  - family-names: Urahigashi
+    given-names: Toshihisa
+version: "0.3.0"
+date-released: "2026-08-08"
+doi: "10.5281/zenodo.21850966"
+license: MIT
+repository-code: "https://github.com/turahigashi/choicefree-bc-dct"

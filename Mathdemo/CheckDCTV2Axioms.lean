@@ -1,0 +1,129 @@
+import ChoiceFreeMeasureDCTPublic
+import Mathdemo.ChoiceFreeDCTExamples
+import Mathdemo.ChoiceFreeDCTConcreteExamples
+
+/-!
+# Additional DCT API audit
+
+This module checks the separated L1 and integral convergence endpoints added
+for the public DCT interface.
+-/
+
+#check BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_measure_convergeC
+#check BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_convergeC
+#check BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_converge_autoNonnegC
+
+#check ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
+#check ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
+#check ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC
+#check ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergence_autoC
+#check ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergence_autoC
+#check ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profile_autoC
+#check ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profile_autoC
+#check ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profile_autoC
+
+#check BishopSec1P.IntegrableSet1C.mem_s1_of_indicator_oneC
+#check BishopSec3P.Lemma415GoodSetClosePackC
+#check BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC
+#check BishopSec3P.lemma415_goodSetData_to_convergeInMeasureC
+#check BishopSec3P.lemma415_absError_convergeInMeasureToZeroData_goodSetC
+#check BishopSec3P.goalB_pointwise_majorant_goodSet_convergence_dataC
+
+#print axioms BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_measure_convergeC
+#print axioms BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_convergeC
+#print axioms BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_converge_autoNonnegC
+
+#print axioms ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
+#print axioms ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
+#print axioms ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC
+#print axioms ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergence_autoC
+#print axioms ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergence_autoC
+#print axioms ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profile_autoC
+#print axioms ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profile_autoC
+#print axioms ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profile_autoC
+
+#print axioms BishopSec1P.IntegrableSet1C.mem_s1_of_indicator_oneC
+#print axioms BishopSec3P.Lemma415GoodSetClosePackC
+#print axioms BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC
+#print axioms BishopSec3P.lemma415_goodSetData_to_convergeInMeasureC
+#print axioms BishopSec3P.lemma415_absError_convergeInMeasureToZeroData_goodSetC
+#print axioms BishopSec3P.goalB_pointwise_majorant_goodSet_convergence_dataC
+
+-- CReal countable-avoidance support for dyadic smooth levels.
+#check BishopSec3P.thm36B1_leftCutC
+#check BishopSec3P.thm36B1_rightCutC
+#check BishopSec3P.thm36B1_bptRC_one_subC
+#check BishopSec3P.thm36B1_sigma_posC
+#check BishopSec3P.thm36B1_left_lt_leftCutC
+#check BishopSec3P.thm36B1_rightCut_lt_rightC
+#check BishopSec3P.thm36B1_leftCut_lt_rightCutC
+#check BishopSec3P.Thm36B1IntervalC
+#check BishopSec3P.thm36B1_preserve_avoidedC
+#check BishopSec3P.thm36B1_interval_baseC
+#check BishopSec3P.thm36B1_interval_stepC
+#check BishopSec3P.thm36B1_intervalSeqC
+#check BishopSec3P.thm36B1_intervalSeq_step_nestedC
+#check BishopSec3P.thm36B1_intervalSeq_nestedC
+#check BishopSec3P.thm36B1_leftSeqC
+#check BishopSec3P.thm36B1_rightSeqC
+#check BishopSec3P.thm36B1_leftSeq_monoC
+#check BishopSec3P.thm36B1_rightSeq_antitoneC
+#check BishopSec3P.thm36B1_leftSeqCauchyDataC
+#check BishopSec3P.thm36B1_leftLimitReprC
+#check BishopSec3P.thm36B1_limit_apartC
+#check BishopSec3P.thm36B1_apartPointDataC
+#check BishopSec3P.thm36B_smoothPointDataC_construct
+#check BishopSec3P.lemma43DyadicSmoothDataC_construct
+
+#print axioms BishopSec3P.thm36B1_bptRC_one_subC
+#print axioms BishopSec3P.thm36B1_sigma_posC
+#print axioms BishopSec3P.thm36B1_left_lt_leftCutC
+#print axioms BishopSec3P.thm36B1_rightCut_lt_rightC
+#print axioms BishopSec3P.thm36B1_leftCut_lt_rightCutC
+#print axioms BishopSec3P.Thm36B1IntervalC
+#print axioms BishopSec3P.thm36B1_preserve_avoidedC
+#print axioms BishopSec3P.thm36B1_interval_baseC
+#print axioms BishopSec3P.thm36B1_interval_stepC
+#print axioms BishopSec3P.thm36B1_intervalSeqC
+#print axioms BishopSec3P.thm36B1_intervalSeq_step_nestedC
+#print axioms BishopSec3P.thm36B1_intervalSeq_nestedC
+#print axioms BishopSec3P.thm36B1_leftSeq_monoC
+#print axioms BishopSec3P.thm36B1_rightSeq_antitoneC
+#print axioms BishopSec3P.thm36B1_leftSeqCauchyDataC
+#print axioms BishopSec3P.thm36B1_leftLimitReprC
+#print axioms BishopSec3P.thm36B1_limit_apartC
+#print axioms BishopSec3P.thm36B1_apartPointDataC
+#print axioms BishopSec3P.thm36B_smoothPointDataC_construct
+#print axioms BishopSec3P.lemma43DyadicSmoothDataC_construct
+
+-- Abstract application examples for the public API.
+#check ChoiceFreeMeasureDCT.abstract_good_set_dct_applicationC
+#check ChoiceFreeMeasureDCT.abstract_l1_error_endpoint_applicationC
+#check ChoiceFreeMeasureDCT.abstract_good_set_dct_application_autoC
+#check ChoiceFreeMeasureDCT.abstract_l1_error_endpoint_application_autoC
+
+#print axioms ChoiceFreeMeasureDCT.abstract_good_set_dct_applicationC
+#print axioms ChoiceFreeMeasureDCT.abstract_l1_error_endpoint_applicationC
+#print axioms ChoiceFreeMeasureDCT.abstract_good_set_dct_application_autoC
+#print axioms ChoiceFreeMeasureDCT.abstract_l1_error_endpoint_application_autoC
+
+-- Nonempty concrete zero-integral application example.
+#check ChoiceFreeMeasureDCT.zeroIntSpaceC
+#check ChoiceFreeMeasureDCT.zeroRepC
+#check ChoiceFreeMeasureDCT.zeroRep_goodSetConvergeC
+#check ChoiceFreeMeasureDCT.zeroRep_boundC
+#check ChoiceFreeMeasureDCT.zeroRep_nonnegC
+#check ChoiceFreeMeasureDCT.punit_zero_dct_application_autoC
+
+#print axioms ChoiceFreeMeasureDCT.zeroRep_goodSetConvergeC
+#print axioms ChoiceFreeMeasureDCT.zeroRep_boundC
+#print axioms ChoiceFreeMeasureDCT.punit_zero_dct_application_autoC
+
+-- CReal interval sandwich and width-control support.
+#check BishopSec3P.thm36B1_leftSeq_le_rightSeqC
+#check BishopSec3P.thm36B1_leftSeq_absSub_le_widthC
+#check BishopSec3P.thm36B1_leftSeq_absSub_le_widthScaleC
+
+#print axioms BishopSec3P.thm36B1_leftSeq_le_rightSeqC
+#print axioms BishopSec3P.thm36B1_leftSeq_absSub_le_widthC
+#print axioms BishopSec3P.thm36B1_leftSeq_absSub_le_widthScaleC

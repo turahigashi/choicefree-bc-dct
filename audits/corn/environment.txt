@@ -1,0 +1,74 @@
+CoRN/Rocq assumptions audit environment
+audit_date_utc=2026-07-11T16:09:15Z
+
+Host OS:
+Linux toshi-ThinkPad-W530 6.8.0-124-generic #124~22.04.1-Ubuntu SMP PREEMPT_DYNAMIC Tue May 26 21:05:19 UTC  x86_64 x86_64 x86_64 GNU/Linux
+PRETTY_NAME="Ubuntu 22.04.3 LTS"
+NAME="Ubuntu"
+VERSION_ID="22.04"
+VERSION="22.04.3 LTS (Jammy Jellyfish)"
+VERSION_CODENAME=jammy
+ID=ubuntu
+ID_LIKE=debian
+HOME_URL="https://www.ubuntu.com/"
+SUPPORT_URL="https://help.ubuntu.com/"
+BUG_REPORT_URL="https://bugs.launchpad.net/ubuntu/"
+PRIVACY_POLICY_URL="https://www.ubuntu.com/legal/terms-and-policies/privacy-policy"
+UBUNTU_CODENAME=jammy
+
+Docker:
+Docker version 29.1.3, build 29.1.3-0ubuntu3~22.04.2
+image_tag=rocq/rocq-prover:9.0 repo_digest=rocq/rocq-prover@sha256:787ea5569c9bf40e03a2255224365cb2fb0ae4a446fc60565dd61b1656d1699d image_id=sha256:ad8a5539cb4d81739d4248f1115e7d752718a67059bceb3181e18c770cfb5b7a created=2026-03-30T14:59:32.367699737Z
+
+Rocq / OCaml / OPAM inside container:
+The Rocq Prover, version 9.0.1
+compiled with OCaml 4.14.2
+The Rocq Prover, version 9.0.1
+compiled with OCaml 4.14.2
+4.14.2
+2.3.0
+4.14.2+flambda
+
+Relevant OPAM packages inside container:
+coq                  9.0.1          Compatibility metapackage for Coq after the Rocq renaming
+coq-bignums          9.0.0+rocq9.0  Compatibility wrapper for rocq-bignums
+coq-core             9.0.1          Compatibility binaries for Coq after the Rocq renaming
+coq-elpi             3.3.1          Compatibility metapackage for Elpi extension language after the Rocq renaming
+coq-math-classes     9.0.0          A library of abstract interfaces for mathematical structures in Coq
+coq-stdlib           9.0.0          Compatibility metapackage for Coq Stdlib library after the Rocq renaming
+coqide-server        9.0.1          pinned to version 9.0.1
+dune                 3.17.2         pinned to version 3.17.2
+dune-configurator    3.18.2         Helper library for gathering system configuration
+elpi                 3.6.2          ELPI - Embeddable λProlog Interpreter
+num                  1.5-1          pinned to version 1.5-1
+ocaml                4.14.2         The OCaml compiler (virtual package)
+ocaml-compiler-libs  v0.12.4        OCaml compiler libraries repackaged
+ocaml-config         2              OCaml Switch Configuration
+ocaml-option-flambda 1              Set OCaml to be compiled with flambda activated
+ocaml-variants       4.14.2+options Official release of OCaml 4.14.2
+ocamlfind            1.9.6          pinned to version 1.9.6
+opam-depext          1.2.3          Install OS distribution packages
+rocq-bignums         9.0.0+rocq9.0  Bignums, the Rocq library of arbitrarily large numbers
+rocq-core            9.0.1          pinned to version 9.0.1
+rocq-elpi            3.3.1          Elpi extension language for Coq
+rocq-runtime         9.0.1          pinned to version 9.0.1
+rocq-stdlib          9.0.0          pinned to version 9.0.0
+zarith               1.14           pinned to version 1.14
+
+Git:
+git version 2.34.1
+
+CoRN checkout:
+origin	https://github.com/rocq-community/corn.git (fetch)
+origin	https://github.com/rocq-community/corn.git (push)
+branch=master
+commit=ada7c0b497ff15dd67cf7932c6f20e143a2aee2f
+commit ada7c0b497ff15dd67cf7932c6f20e143a2aee2f
+Merge: 7042c72d 479b7aed
+Author:     Xia Li-yao <Lysxia@users.noreply.github.com>
+AuthorDate: Sat Apr 4 09:15:50 2026 +0200
+Commit:     GitHub <noreply@github.com>
+CommitDate: Sat Apr 4 09:15:50 2026 +0200
+
+    Drop compat with 8.18 (#223)
+git_status_short:

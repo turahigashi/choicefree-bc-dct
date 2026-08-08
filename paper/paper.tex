@@ -1,0 +1,719 @@
+\def\CFBDCTVersion{0.3.0}
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\hypersetup{hidelinks}
+\setlength{\emergencystretch}{3em}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+\newcommand{\doi}[1]{\href{https://doi.org/#1}{\texttt{#1}}}
+\title{A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory}
+\author{Toshihisa Urahigashi}
+\date{Draft of 2026-08-04\\Artifact version \CFBDCTVersion}
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Bishop and Cheng prove the dominated convergence theorem of their integral-first constructive measure theory through the theory of \emph{profiles}: a profile is a monotone functional on a family of continuous ramp functions, and the key result is that all but countably many levels of a profile are points of continuity.  Applied to an integrable function $h$ through $\lambda(f)=I(f\circ h)$, this yields the integrability of the level sets $\{h\ge t\}$ for admissible $t$, and hence the uniform estimate on which dominated convergence rests.  The step ``choose a level outside a countable exceptional set'' is exactly where the choice-free version of the theory is known to be obstructed: Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model, so no proof of the profile theorem without choice is to be expected in unrestricted generality.
+
+This paper reports a Lean~4 formalization of that route in which the scalars are \emph{presented} reals---regular sequences of rationals with Bishop equality---rather than an abstract real-number interface.  Over presented reals, Bishop's nested-interval construction produces a real apart from every member of a given sequence \emph{as data}, so the exceptional levels are not avoided by a choice principle but enumerated explicitly and then stepped around by an explicit construction.  The resulting theorem is a dominated convergence theorem in which convergence in measure and domination on a full set, with the full set allowed to depend on the index, imply convergence of the integrals.  All statements are parameterized by an explicitly quantified integration-space structure.
+
+The formal development exposes a data-carrying Type-valued kernel, including a full-set route whose indexed domination carriers are explicit data, automatic wrappers that construct dyadic smooth-level data internally, and a Prop-facing Bishop--Cheng theorem~4.15 interface with full-set domination.  The public Lean declarations audited by the artifact have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}; we therefore state explicitly what the choice-free claim is relative to.  The artifact also packages an independently reproduced Rocq \texttt{Print Assumptions} audit for S\'em\'eria's CoRN declarations \texttt{CvMeasure}, \texttt{DominatedMeasureCvZero}, and \texttt{DominatedConvergence}; this paper therefore does not claim priority over the CoRN formalization of Bishop--Cheng dominated convergence.
+\end{abstract}
+
+\noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
+
+\bigskip
+\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  Part~II (Sections~\ref{sec:formalization}--\ref{sec:reproducibility}) concerns the formalization: the shape of the public interface, the relation of the result to the known no-go theorems, the comparison with earlier formalizations, and the audit, limitations, and reproduction procedure.  Appendix~\ref{sec:appendix-map} tabulates the correspondence between the mathematical objects of Part~I and the Lean declarations of Part~II.
+
+\part{The mathematics}
+
+\section{Introduction}
+\label{sec:intro}
+
+Dominated convergence is a basic passage from convergence of functions to convergence of their integrals.  In the integral-first constructive measure theory of Bishop and Cheng, the proof is not simply a translation of the classical almost-everywhere argument.  It proceeds through profiles of integrable functions, integrability of level sets away from an explicit exceptional sequence, and a uniform estimate on the complement of a suitable integrable set.
+
+The reason is worth stating at once, because the whole paper turns on it.  Classically, one proves that a monotone function $\mathbb{R}\to\mathbb{R}$ has at most countably many discontinuities, and one then picks a level $t$ at which the distribution function $t\mapsto\mu(\{|h|>t\})$ is continuous.  Both halves of that argument are problematic constructively.  Bishop and Cheng replace the first half by the theory of profiles, which produces not an abstract countable set of bad levels but an \emph{explicit sequence} of them.  The second half---picking a level different from every member of an explicitly given sequence---then becomes a genuine construction rather than a triviality, and it is precisely the step at which choice-free constructive measure theory is known to encounter an obstruction: in an unrestricted constructive setting, the relevant profile theorem entails an uncountability principle that fails in an intuitionistic sheaf model~\cite{spitters-2006-dagstuhl}.
+
+This paper studies what can nevertheless be formalized when the real numbers are supplied with presentations.  A presented real is not merely an element of an abstract ordered field.  It carries rational approximation data and a modulus, and the strict-order cotransitivity required by Bishop's nested-interval construction is returned as data.  The formalization uses that representation to build a point apart from every member of a given sequence, applies the construction to the exceptional levels of a profile, and then follows the Bishop--Cheng route to dominated convergence.
+
+Here and below, \emph{choice-free} has a deliberately audit-oriented meaning.  It means that the named public Lean declarations, including their transitive proof-term dependencies, do not use \texttt{Classical.choice}, \texttt{Classical.choose}, \texttt{sorryAx}, or a comparable selector axiom.  It does not mean that the theorems have no hypotheses, that every imported module is constructive, or that the profile theorem has been proved for every possible constructive real-number object.
+
+The contributions of the artifact are as follows.
+\begin{enumerate}[label=(\arabic*)]
+\item It gives an explicit Lean~4 theorem surface for a profile-based Bishop--Cheng dominated-convergence route over regular-sequence presented reals and an explicitly quantified integration-space structure.
+\item It gives a Lean implementation of the countable-avoidance step via Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are constructed inside the audited dependency closure.
+\item It separates a proof-relevant Type-valued kernel, automatic wrappers that synthesize smooth-level data, and a conventional Prop-facing theorem.  The Type-valued kernel includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs.  This makes the computational content visible without requiring every caller to supply the low-level data explicitly.
+\item It provides reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, and explicit qualifications concerning predicativity, the integration-space interface, concrete models, and priority.
+\end{enumerate}
+
+\section{The setting}
+\label{sec:setting}
+
+\subsection{Presented reals}
+The scalar field is represented by presented real numbers: regular rational approximation sequences equipped with Bishop equality as the working equality relation~\cite{bishop-1967,bishop-bridges-1985}.  A presented real is thus a sequence $(x_n)$ of rationals together with the regularity condition $|x_m-x_n|\le m^{-1}+n^{-1}$, and two presented reals are equal when the corresponding difference is eventually small; the development does not identify approximation sequences by definitional equality.  Analytic statements are formulated so that they respect the Bishop equivalence relation.
+
+Two consequences matter later.  First, every real carries its own modulus by construction.  Second, given a strict inequality $a<b$ and a third presented real $c$, the required cotransitivity branch can be \emph{decided from rational approximation data and returned as data}: from sufficiently good rational approximations one can tell which of $a<c$, $c<b$ holds, and one may return that information rather than only the proposition ``$a<c$ or $c<b$''.  It is this data form of cotransitivity that makes Bishop's nested-interval construction (Lemma~\ref{lem:avoid} below) a construction rather than an appeal to a choice principle.
+
+\subsection{Integration spaces}
+\label{sec:intspace}
+The measure-theoretic layer follows a Bishop--Cheng style route~\cite{bishop-cheng-1972}.  We work with \emph{partial} functions: an element of the ambient function class is a pair consisting of a map into the presented reals and a domain, and the sum of two partial functions is defined on the intersection of their domains.
+
+All results below are proved relative to an explicitly quantified structure, an \emph{integration space} in the following working sense.
+
+\begin{definition}[Integration space, working form]
+\label{def:intspace}
+An integration space is a triple $(X,L,I)$ consisting of a type $X$, a class $L$ of partial functions on $X$ with values in the presented reals, and a functional $I:L\to\mathbb{R}$, such that:
+\begin{enumerate}[label=(A\arabic*)]
+\item $L$ and $I$ respect Bishop equality of partial functions;
+\item $L$ is closed under addition, multiplication by a scalar, absolute value, and truncation by a constant, i.e.\ $f+g$, $\alpha f$, $|f|$ and $\min\{f,\alpha\}$ lie in $L$ whenever $f,g\in L$ and $\alpha\in\mathbb{R}$;
+\item $I$ is linear: $I(f+g)=I(f)+I(g)$ and $I(\alpha f)=\alpha I(f)$;
+\item $I$ is positive: $I(f)\ge 0$ whenever $f\in L$ is pointwise nonnegative on its domain;
+\item the two truncation limits hold for every $f\in L$:
+\[
+I(f \wedge n) \longrightarrow I(f), \qquad I(|f| \wedge \varepsilon_n) \longrightarrow 0 ;
+\]
+\item \emph{(constructive continuity)} if $f\in L$, if $(f_n)$ is a sequence of pointwise nonnegative members of $L$, if $\sum_n I(f_n)$ converges, and if $\sum_n I(f_n)<I(f)$, then there is a point $x$ lying in the domain of $f$ and of every $f_n$ such that $\sum_n f_n(x)$ converges and $\sum_n f_n(x)<f(x)$.
+\end{enumerate}
+\end{definition}
+
+Axiom (A6) is Bishop and Cheng's property~(2), the constructive analogue of the continuity condition for a Daniell integral, stated in the positive form which produces a point at which a series of nonnegative functions stays below a given function.  The two limits in (A5) are the same pair of limits that Spitters isolates in his definition of an integral $f$-algebra~\cite{spitters-2006-dagstuhl}.
+
+\begin{remark}[Fidelity caveat; it bounds every claim below]
+\label{rem:fidelity}
+Definition~\ref{def:intspace} is \emph{not} a verbatim rendering of Bishop and Cheng's Definition~1.1~\cite{bishop-cheng-1972}, and the difference runs in both directions.
+
+In two respects it is weaker.  Their definition requires in addition that $X$ be inhabited and that there exist $p\in L$ with $I(p)=1$; neither requirement appears above.  Definition~\ref{def:intspace} is therefore satisfied by a degenerate zero-integral model, which was until now the only concrete example shipped with the artifact (Section~\ref{sec:additions}).  A second, \emph{normalized} example is now supplied: point evaluation at a fixed point (\path{Mathdemo.DiracIntegrationSpace}), for which the constant function $1$ lies in $L$ with $I(1)=1$, so that clause~(3) holds.  Both of its clause-(4) limits are proved, so the model is unconditional.  For point evaluation they reduce to statements about the truncations of a single real: $\min\{c,n\}\to c$ holds with a constant modulus once $n$ passes an Archimedean bound for $c$, and $\min\{|c|,2^{-n}\}\to0$ holds because the truncation is squeezed between $0$ and $2^{-n}$.  The Archimedean bound is the witness $2^{\mathrm{mulArchBound}(c)}$ of \path{exists_nat_geC} written out explicitly, since that lemma is a \texttt{Prop}-valued existential and cannot supply a modulus, which is data.  The single extra argument of the adapter is also available here, because truncation does not change a domain.
+
+In one respect it is stronger, and this deserves to be stated explicitly.  Bishop and Cheng's clause~(1) asks only that $\min\{f,1\}\in L$, and the constants recoverable from it are positive: their own remark derives $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$.  The closure clause of (A2) above, as formalized, quantifies over an arbitrary constant $\alpha$, negative ones included.  That is a genuine strengthening, and it is not vacuous: in Bishop and Cheng's own canonical model $(X,C(X),\mu)$ of their Definition~7.1---$X$ locally compact, $C(X)$ the continuous functions of compact support, $\mu$ a positive measure---one has $\min\{f,\alpha\}=\alpha$ off the support of $f$, so for $\alpha<0$ and non-compact $X$ the truncation leaves $C(X)$.  Definition~\ref{def:intspace} and Bishop and Cheng's Definition~1.1 are therefore not ordered by logical strength.
+
+The strengthening is, however, never used.  Every consumer of constant truncation in the development already carries the hypothesis $\alpha\ge0$---the declaration \path{IntegrableRepC3.cutConstVal} takes it as an explicit argument---and the only instantiations occurring in the proof of Theorem~\ref{thm:prop-dct} are $\alpha=n$ (\path{cutNat}) and $\alpha=\varepsilon_n$ (\path{cutSmall}), both nonnegative.
+
+Restricting the closure clause to $\alpha\ge0$ is, however, probably not by itself the right repair.  The recovery route the source itself supplies is $\min\{f,n\}=n\cdot\min\{n^{-1}f,1\}$, which requires $\alpha^{-1}$ and hence a witness that $\alpha$ is apart from $0$; the case $\alpha=0$ is recovered separately, since $\min\{f,0\}=(f-|f|)/2$ follows from clause~(1) and closure under $|\cdot|$.  Constructively one cannot decide between $\alpha=0$ and $\alpha>0$, and we have found no uniform construction from $\alpha\ge0$---that is, from $\neg(\alpha<0)$---alone.  The correct form of the clause therefore appears to be truncation at constants \emph{carrying a positivity witness}, or at $0$: exactly the two constants the development truncates at.  We emphasize that we have not proved that $\alpha\ge0$ is insufficient; the claim is only that the source's route needs a witness and that no other constructive route is evident to us.
+
+The adapter is supplied.  The module \path{Mathdemo.SourceIntegrationSpaceDef11} contains a field-for-field transcription \path{IntegrationSpaceDef11} of Definition~1.1 together with an adapter \path{toIntSpaceC} into Definition~\ref{def:intspace}: \emph{thirteen of the fourteen fields are supplied from Definition~1.1, and the single explicit extra argument is truncation at an arbitrary constant}.  The answer to ``how far does Definition~1.1 take one'' is thus ``all the way except for one clause'', and that clause is the incomparability just described.  The intermediate steps follow the source: clause~(1), stated there as the single assertion $\alpha f+\beta g\in L$, yields closure under addition and under scalar multiplication and the additivity and homogeneity of $I$ (each through the equality of $F(X)$); and clause~(2) yields Corollary~1.3 at $k=1$ (\path{pos_witness}) and from it \path{I_nonneg}.  Every one of these declarations reports \path{[propext, Quot.sound]}.
+
+Two further differences follow.  First, Definition~\ref{def:intspace} carries \path{I_nonneg} as a field, but need not: it is derivable from clause~(2), by the derivation the source performs in Lemma~1.2, Corollary~1.3, and the sentence following Corollary~1.3, and that derivation is now machine-checked.  Second, and this is \emph{not} a difference: clause~(2) is rendered with a point-producing structure rather than a \texttt{Prop}-valued $\exists$, and the limits of clause~(4) with an explicit modulus rather than an $\varepsilon$-$\delta$ statement.  That is faithfulness rather than strengthening, since Bishop's $\exists$ asserts under the BHK reading that the object can be produced, and a Bishop limit always carries a modulus; the \texttt{Prop}-valued reading would be the weaker one.
+
+The full field list is machine-readable in the artifact, so a reader can check exactly which hypotheses the theorems consume.
+\end{remark}
+
+\section{Integrable sets, full sets, profiles}
+\label{sec:definitions}
+
+This section collects the notions used in the statement of the theorem.  All of them are Bishop and Cheng's~\cite{bishop-cheng-1972}; we recall them because the theorem cannot be read without them.
+
+\begin{definition}[Full set; Bishop--Cheng Definition~1.9]
+\label{def:full}
+A subset $A\subseteq X$ is a \emph{full set} if it contains a countable intersection of domains of integrable functions.
+\end{definition}
+
+\begin{definition}[Complemented set; Bishop--Cheng Definition~2.1]
+\label{def:complemented}
+A \emph{complemented set} is an ordered pair $A\equiv(A^1,A^2)$ of subsets of $X$ such that $x\in A^1$ and $y\in A^2$ imply $x\ne y$.  We write $x\in A$ for $x\in A^1$ and $x\in -A$ for $x\in A^2$, and put $-A\equiv (A^2,A^1)$ and $A-B\equiv A\wedge(-B)$.  A complemented set is \emph{integrable} when its characteristic function is, and its \emph{measure} $\mu(A)$ is the integral of that characteristic function.
+\end{definition}
+
+Complemented sets carry their own witnesses of non-membership; this is what replaces the classical complement, for which one has no constructive access.
+
+\begin{definition}[Convergence in measure; Bishop--Cheng Definition~4.11]
+\label{def:convmeasure}
+A sequence $(f_n)$ of measurable functions \emph{converges in measure} to a function $f$ defined on a full set $D(f)$ if for every integrable set $A$ and every $\varepsilon>0$ there is $N$ such that for every $n\ge N$ there is an integrable set $B$ with
+\[
+B^1\subseteq A^1\cap D(f)\cap D(f_n),\qquad \mu(A-B)<\varepsilon,\qquad |f(x)-f_n(x)|<\varepsilon \ \text{ for all } x\in B .
+\]
+\end{definition}
+
+Note that the good set $B$, its integrability, the small-complement estimate, and the pointwise closeness all appear in the statement; nothing is left to an external library convention.
+
+\begin{definition}[Full-set domination]
+\label{def:domination}
+A sequence $(f_n)$ of integrable functions is \emph{dominated on full sets} by an integrable $g$ if for every $n$ there is a full set $F_n$ such that $|f_n(x)|\le g(x)$ for every $x\in F_n$ at which the relevant values are defined.  The full set is allowed to depend on $n$.
+\end{definition}
+
+Finally, the notion at the heart of the proof.
+
+\begin{definition}[Profile; Bishop--Cheng Definition~3.1]
+\label{def:profile}
+Let $[a,b]\subset\mathbb{R}$ be a compact proper interval and let $C[a,b]$ be the continuous functions on it.  Let $F\subseteq C[a,b]$ satisfy
+\begin{enumerate}[label=(\alph*)]
+\item $0\le f\le 1$ for every $f\in F$;
+\item the constant functions $0$ and $1$ belong to $F$;
+\item if $a\le u<v\le b$ then some $f\in F$ satisfies $f(t)=0$ for $t\le u$ and $f(t)=1$ for $t\ge v$.
+\end{enumerate}
+Let $\lambda:F\to\mathbb{R}$ be non-decreasing, i.e.\ $\lambda(f)\le\lambda(g)$ whenever $f\le g$ pointwise on $[a,b]$.  Then $(F,\lambda)$ is a \emph{profile} on $[a,b]$.
+\end{definition}
+
+The example to keep in mind is $\lambda(f)=\int_a^b f(x)\,dx$.  A profile is thus a monotone functional on a supply of ramp functions, and condition~(c) says that the supply is rich enough to separate any two levels.
+
+\begin{definition}[Smooth level]
+\label{def:smooth}
+A point $t\in[a,b]$ is \emph{smooth} for the profile $(F,\lambda)$ if there is a number $\overline{\lambda}(t)$ such that for every $\varepsilon>0$ there is $\delta>0$ with the property that
+\[
+|\lambda(f)-\overline{\lambda}(t)|<\varepsilon
+\]
+for every $f\in F$ with $f(x)=1$ for all $x\ge t+\delta$ and $f(x)=0$ for all $x\le t-\delta$.
+\end{definition}
+
+For the model example $\lambda(f)=\int f$, smoothness at $t$ says that ramps which turn on inside a small window around $t$ all have nearly the same integral: the profile does not jump at $t$.  Smoothness is therefore the constructive substitute for continuity of a monotone function at $t$, and $\overline{\lambda}(t)$ is the common value.
+
+\section{The theorem}
+\label{sec:main-result}
+
+\begin{theorem}[Dominated convergence]
+\label{thm:prop-dct}
+Let $(X,L,I)$ be an integration space in the sense of Definition~\ref{def:intspace}.  Let $f$ and $f_n$ $(n\in\mathbb{N})$ be integrable functions on $X$, and assume:
+\begin{enumerate}[label=(\roman*)]
+\item $f_n\to f$ in measure, in the sense of Definition~\ref{def:convmeasure}; and
+\item there is an integrable $g$ dominating $(f_n)$ on full sets, in the sense of Definition~\ref{def:domination}.
+\end{enumerate}
+Then
+\[
+  \forall \varepsilon>0\;\exists N\;\forall n\geq N,
+  \qquad |I(f_n)-I(f)|<\varepsilon.
+\]
+\end{theorem}
+
+\begin{remark}[Scope visible in the statement]
+\label{rem:scope}
+The limit $f$ is itself assumed integrable; the theorem does not derive the integrability of an otherwise merely measurable limit.  The result is also relative to the structure $(X,L,I)$ and to presented reals.  These are mathematical hypotheses of the theorem, not axioms hidden from Lean's dependency report.
+\end{remark}
+
+\begin{remark}[Where the hypotheses are weaker than usual]
+\label{rem:weaker}
+Two features of the hypotheses are worth flagging for comparison with other formulations.  First, the mode of convergence assumed is convergence in measure, not pointwise convergence.  Second, the domination hypothesis is a full-set hypothesis, and the full set is allowed to vary with the index $n$; a single global pointwise bound is not required.  Section~\ref{sec:domination-comparison} compares this with the corresponding CoRN hypothesis.
+\end{remark}
+
+\section{Profiles, level sets, and countable avoidance}
+\label{sec:profile-theory}
+
+The proof of Theorem~\ref{thm:prop-dct} rests on three results.  The first two are Bishop and Cheng's; the third is the constructive content of the step that the classical proof takes for granted.
+
+\begin{theorem}[Smoothness away from an explicit sequence; Bishop--Cheng Theorem~3.5]
+\label{thm:3-5}
+Let $(F,\lambda)$ be a profile on $[a,b]$.  Then all but countably many points of $[a,b]$ are smooth in the sense of Definition~\ref{def:smooth}.
+\end{theorem}
+
+The proof is what matters here.  Bishop and Cheng choose an increasing sequence $\{n(k)\}$ of positive integers with $(n(k)+1)k^{-1}>\lambda(1)-\lambda(0)$, collect the finitely many points $\{t^k_1,\dots,t^k_{n(k)}\}$ excluded at stage $k$, and set $T=\{t^k_j\}$.  Every $t$ distinct from every member of $T$ is then shown to be smooth, with $\overline{\lambda}(t)$ constructed explicitly.  Thus the conclusion is not that a certain set ``is countable'' with an existentially hidden enumeration: the exceptional levels arrive as an \emph{explicit sequence}.
+
+\begin{theorem}[Integrability of level sets; Bishop--Cheng Theorem~3.6]
+\label{thm:3-6}
+Let $(X,L,I)$ be an integration space and $h$ an integrable function.  Then for all but countably many $t>0$ the complemented sets
+\[
+A\equiv(\{x:h(x)\ge t\},\ \{x:h(x)<t\}),\qquad
+B\equiv(\{x:h(x)>t\},\ \{x:h(x)\le t\})
+\]
+are integrable and have the same measure.
+\end{theorem}
+
+The bridge between the two theorems is the profile built from $h$.  For $0<u<v$ let $f_{u,v}$ be the ramp which is $0$ below $u$, rises linearly on $[u,v]$, and is $1$ above $v$, and set $\lambda_0(f_{u,v})=I(f_{u,v}\circ h)$; the composite is integrable because
+\[
+f_{u,v}\circ h \;=\; \min\{(v-u)^{-1}(h-\min\{h,u\}),\,1\}.
+\]
+Restricting to $[a,b]$ gives a profile in the sense of Definition~\ref{def:profile}, and $\overline{\lambda}(t)$ is the common measure of $A$ and $B$.  So the distribution function of $h$ appears as a profile, its jump levels appear as the explicit sequence $T$, and integrability of a level set is available exactly at levels away from $T$.
+
+This is where a constructive proof must do work that the classical proof does not.
+
+\begin{lemma}[Countable avoidance by nested intervals; Bishop]
+\label{lem:avoid}
+Let $a<b$ be presented reals and let $(q_n)$ be a sequence of presented reals.  Then one can construct $t$ with $a<t<b$ and $t$ apart from $q_n$ for every $n$.
+\end{lemma}
+
+The construction is the familiar one: shrink a nested sequence of closed intervals inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.
+
+Applying Lemma~\ref{lem:avoid} to the exceptional sequence $T$ of Theorem~\ref{thm:3-5} produces an admissible level, and hence, by Theorem~\ref{thm:3-6}, integrable level sets at that level.  The following consequence is the form in which the profile theory enters the convergence argument.
+
+\begin{proposition}[Uniform complement estimate]
+\label{prop:uniform-complement}
+Let $H$ be a nonnegative integrable function and let a positive tolerance be given.  Then there are an integrable set $A$, an index bound, and a positive measure threshold such that every sufficiently late member of a sequence of error functions dominated by $H$ has small integral outside each sufficiently large integrable subset of $A$.
+\end{proposition}
+
+Proposition~\ref{prop:uniform-complement} is what makes the ``outside a good set'' half of the classical proof work without an almost-everywhere argument: the smallness of the integral off $A$ is obtained from the measure of a level set of $H$ at an admissible level, and admissibility is supplied by Lemma~\ref{lem:avoid}.
+
+\section{Proof of Theorem~\ref{thm:prop-dct}}
+\label{sec:proof}
+
+The proof follows the decomposition below.  The arrows indicate constructed data or a theorem application, rather than an informal implication between black-box library results.
+\[
+\begin{array}{c}
+\text{profile partition data and an explicit exception sequence}\\
+\Downarrow\quad\text{presented-real countable avoidance}\\
+\text{an apart threshold and integrable level sets}\\
+\Downarrow\quad\text{profile estimates}\\
+\text{a uniform small-complement integral bound}\\[2mm]
+\text{convergence in measure}+\text{full-set domination}\\
+\Downarrow\quad\text{good-set/complement decomposition}\\
+I(|f_n-f|)\longrightarrow 0\\
+\Downarrow\quad |I(f_n)-I(f)|\leq I(|f_n-f|)\\
+I(f_n)\longrightarrow I(f).
+\end{array}
+\]
+
+More concretely, the proof performs the following steps.
+\begin{enumerate}[label=(\arabic*)]
+\item For each $n$, form the absolute-error function $e_n=|f_n-f|$.  From the full-set domination of $f_n$ by $g$, derive a full-set bound of $e_n$ by the nonnegative integrable function
+\[
+H=|g|+|f|.
+\]
+The appearance of $|f|$ is why the verified error majorant is not advertised simply as $2g$: obtaining $2g$ would require the separate hypothesis $|f|\le g$, which we do not impose on the caller.
+
+\item From $H$, construct the dyadic smooth-level data needed by the profile argument.  Internally, Theorem~\ref{thm:3-5} produces a concrete exception sequence; Lemma~\ref{lem:avoid} produces a presented real apart from that sequence, and hence an admissible level at which the relevant upper and lower level sets are integrable by Theorem~\ref{thm:3-6}.
+
+\item The profile estimates at these levels yield Proposition~\ref{prop:uniform-complement}: for a prescribed positive tolerance, there are an integrable set $A$, an index bound, and a positive measure threshold such that every sufficiently late error function has small integral outside each sufficiently large integrable subset of $A$.
+
+\item Convergence in measure (Definition~\ref{def:convmeasure}) is invoked at the minimum of the profile threshold and a good-set bound.  It supplies, for each sufficiently large $n$, an integrable good set $C\subseteq A$ on which $f_n$ is close to $f$ and whose complement in $A$ has small integral.  One then estimates $I(e_n)$ by its contribution on $C$ plus its contribution outside $C$; this is the two-part estimate corresponding to Bishop and Cheng's Lemma~4.14.
+
+\item Finally, the constructive triangle inequality
+\[
+|I(f_n)-I(f)|\leq I(|f_n-f|)
+\]
+gives the conclusion of Theorem~\ref{thm:prop-dct}. \qed
+\end{enumerate}
+
+\part{The formalization and its audit}
+
+\section{The Lean development}
+\label{sec:formalization}
+
+The development is carried out in Lean~4~\cite{lean4-2021}.  The carrier of the presented reals is a concrete type,
+\[
+\texttt{BishopCReal.CReal} \;=\; \texttt{RegularSeq},
+\]
+not a typeclass interface for an abstract constructive real-number structure; the rational layer is itself a quotient constructed inside the development, and the occurrence of \texttt{Quot.sound} in the audit output originates there.  The data form of cotransitivity discussed in Section~\ref{sec:setting} is the declaration
+\[
+\texttt{lt\_cotrans\_data} : \texttt{lt}\ a\ b \to \forall c,\ \texttt{PSum}\ (\texttt{lt}\ a\ c)\ (\texttt{lt}\ c\ b),
+\]
+which returns the branch rather than only its Prop-valued disjunction.
+
+Integration spaces in the sense of Definition~\ref{def:intspace} are the structure \texttt{BishopSec1P.IntSpaceC X}, whose fields are
+\begin{quote}\small\raggedright
+\texttt{L}, \texttt{I}, \texttt{L\_resp}, \texttt{I\_resp}, \texttt{add\_mem}, \texttt{smul\_mem}, \texttt{abs\_mem}, \texttt{cutConst\_mem},
+\texttt{I\_add}, \texttt{I\_smul}, \texttt{cutNat\_tendsto}, \texttt{cutSmall\_tendsto}, \texttt{I\_nonneg}, \texttt{continuity},
+\end{quote}
+corresponding to the axioms (A1)--(A6) as tabulated in Appendix~\ref{sec:appendix-map}.  Integrable representatives, integrable complemented sets, relative integrals, profiles, and convergence in measure are represented by explicit structures or by Prop-facing predicates whose existential witnesses are opened only inside Prop goals.  The final dominated-convergence statement is reached through an explicit majorant/profile route rather than by invoking a measurable-selection principle.
+
+Theorem~\ref{thm:prop-dct} is the implementation theorem
+\begin{quote}\small\centering
+\path{BishopSec3P.bishop_cheng_thm_4_15_propC},
+\end{quote}
+exported under the paper-facing alias
+\begin{quote}\small\centering
+\path{ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC}.
+\end{quote}
+Its hypothesis (i) is \path{ConvergeInMeasureC}, which unfolds exactly to Definition~\ref{def:convmeasure}; its hypothesis (ii) is \path{DominatedOnFullC}, which unfolds to Definition~\ref{def:domination}; and its conclusion is \path{RepSeriesTendstoEpsPropC}, the ordinary epsilon formulation displayed in Theorem~\ref{thm:prop-dct}.
+
+\subsection{Three-layer public interface}
+The public API has three layers:
+\[
+\begin{array}{c}
+\text{Type-valued convergence and profile data}\\
+\Downarrow\\
+\text{data-carrying DCT kernel}\\
+\Downarrow\\
+\text{automatic dyadic smooth-level construction}\\
+\Downarrow\\
+\text{Prop-facing full-set DCT.}
+\end{array}
+\]
+The distinction between the layers is the distinction between a proof that merely asserts convergence and a proof that returns the modulus.  In Lean, a statement in \texttt{Prop} is proof-irrelevant, so nothing computational can be extracted from it; a statement in \texttt{Type} is proof-relevant, and its inhabitants are data that later constructions may consume.  A mathematician may read Layer~C as the theorem and Layers~A--B as the same theorem with the witnesses kept.
+
+\paragraph{Layer A: Type-valued data-carrying kernel.}
+The declarations
+\begin{quote}\small\raggedright
+\path{ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC}\par
+\path{ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC}\par
+\path{ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profileC}\par
+\path{ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profileC}\par
+\path{ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC}\par
+\path{ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_on_full_dataC}\par
+\path{ChoiceFreeMeasureDCT.integral_convergence_from_majorant_on_full_dataC}\par
+\path{ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_dataC}
+\end{quote}
+consume explicit proof-relevant data: convergence moduli, good-set data, integrability witnesses, point-evaluation witnesses, profile/majorant data, smooth-level data, and Type-valued convergence output.  In the full-set route, the carrier may depend on the sequence index.  A Type-valued convergence interface is not claimed to be novel, since CoRN's \texttt{CvMeasure} is also Type-valued.
+
+\paragraph{Layer B: automatic Type-valued wrappers.}
+The public declarations ending in \texttt{\_autoC} internally construct the dyadic smooth-level data by \path{BishopSec3P.lemma43DyadicSmoothDataC_construct}.  They therefore avoid exposing an external \texttt{Lemma43DyadicSmoothDataC} argument.  This includes \path{dominated_convergence_from_pointwise_majorant_on_full_data_autoC} and the variant combining explicit domination full sets with explicit convergence good sets; the two indexed set families remain distinct.
+
+\paragraph{Layer C: Prop-facing theorem.}
+The declaration \path{ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC} accepts Prop-valued \path{ConvergeInMeasureC} and an existential integrable majorant satisfying \path{DominatedOnFullC}.  It concludes Prop-valued epsilon convergence of the integral sequence.  Existential witnesses from convergence and full-set domination are opened only inside Prop proof goals, not assembled into the selector required by the Type-valued full-set route.  Consequently the final theorem does not manufacture a global Type-valued choice function.  A separate Type-valued interface accepts precisely such data as \path{DominatedOnFullDataC}: for each index it contains a carrier, a proof that the carrier is full, and the domination proof on that carrier.  It then returns \path{RepSeriesTendsto}, retaining the convergence modulus.
+
+\subsection{Formal counterparts of Section~\ref{sec:profile-theory}}
+Theorem~\ref{thm:3-5} and the partition data underlying it are exported as
+\[
+\texttt{ChoiceFreeMeasureDCT.profile\_partition\_dataC}
+\]
+(implementation \texttt{BishopSec3P.lemma\_3\_4DataC}), and Theorem~\ref{thm:3-6} as
+\[
+\texttt{ChoiceFreeMeasureDCT.profile\_level\_sets\_integrable\_apartC},
+\]
+which packages the conclusion that apart level thresholds give integrable upper and lower level sets with the expected profile measure.  The word \emph{apart} in that name is the load-bearing one: the thresholds are required to be apart from the explicit exception sequence produced by Theorem~\ref{thm:3-5}, and such thresholds are obtained by Lemma~\ref{lem:avoid}.  Proposition~\ref{prop:uniform-complement} is exposed as
+\[
+\texttt{ChoiceFreeMeasureDCT.uniform\_complement\_from\_profile\_levelsC},
+\]
+implemented by \texttt{BishopSec3P.lemma43UniformComplementData\_of\_majorantC}.  Lemma~\ref{lem:avoid} is formalized as \path{thm36B1_exists_apart_in_interval} and \path{thm36B1_apart_data}: the data-valued nested-interval step, the interval sequence, monotonicity of the endpoints, width shrinkage, Cauchy data for the left endpoints, and the limiting apart point; and \path{lemma_4_3_A_n_apart_data} supplies the resulting admissible threshold to Proposition~\ref{prop:uniform-complement}.  Step~(4) of the proof in Section~\ref{sec:proof} is \path{lemma_4_14_local_two_epsilonC}, and step~(5) is \path{integral_diff_lt_of_abs_error_integral_ltC}.
+
+\subsection{Artifact additions in this development line}
+\label{sec:additions}
+This development line separates the public L1 error-convergence endpoint from the final integral-convergence endpoint.  It adds the explicit full-set Type-valued route described above and a good-set convergence wrapper: the convergence data carries the good set, its integrability, membership in the ambient set, Type-valued point-evaluation witnesses, small complement measure, and the pointwise error estimate restricted to the good set.
+
+The artifact further includes CReal-native support for the countable-avoidance construction used in the smooth-level interface.  The formalized support constructs the data-valued nested interval step, the resulting interval sequence, left/right monotonicity, interval-width shrink, Cauchy data for the left endpoints, the limiting apart point, and the dyadic smooth-level data constructor.
+
+\path{Mathdemo.ChoiceFreeDCTExamples} gives abstract application examples showing that both the explicit-smooth and automatic public aliases can be invoked as theorem inputs in proof terms.  The file \path{Mathdemo.ChoiceFreeDCTConcreteExamples} adds a nonempty concrete zero-integral example on \(\mathrm{PUnit}\).  It constructs the required good-set convergence and domination data and invokes the automatic corrected good-set wrapper.  This concrete example is intentionally degenerate---it is admissible precisely because Definition~\ref{def:intspace} imposes no normalization axiom (Remark~\ref{rem:fidelity}).  The file \path{Mathdemo.DiracIntegrationSpace} adds the normalized point-evaluation model, in which every clause of Definition~1.1 is discharged with no hypotheses, and which therefore also yields a model of Definition~\ref{def:intspace} through the adapter.  It is a nondegenerate concrete model, although a simple one: the underlying functional is evaluation at a single point.
+
+\section{Relation to the no-go results}
+\label{sec:nogo}
+
+The route formalized here passes through the profile theorem, and the profile theorem is precisely where the choice-free programme is known to be obstructed.  A choice-free claim for this route must therefore specify the real-number object and mathematical interface relative to which it is made.
+
+Richman argued that measure theory and the spectral theorem are the main obstacles to developing constructive mathematics without countable choice~\cite{richman-2001}, and gave a choice-free treatment of the fundamental theorem of algebra as a model case~\cite{richman-2000-fta}; the weak choice principles that remain in play are analysed in~\cite{bridges-richman-schuster-2000}.  Spitters took up Richman's challenge for integration theory~\cite{spitters-2006-dagstuhl}.  In the choice-free version he observes that the profile theorem---the positive form of the classical fact that an increasing function on the reals has at most countably many discontinuities---\emph{implies the uncountability of the reals}: for the integration space
+\[
+I(f) \;=\; \sum_{n} 2^{-n} f(q_n)
+\]
+determined by a sequence $(q_n)$ of reals, and for $f = \mathrm{id}$, a smooth point of the profile of $f$ must be apart from every $q_n$.  He then exhibits a sheaf model over $\mathbb{R}$, built from a dense $45^\circ$ lattice of linear functions $x \mapsto \pm x + r$, in which the statement ``for every sequence of reals there is a real apart from all of them'' fails, and concludes that a proof of the profile theorem without choice is not to be expected; his development consequently obtains the approximation results it needs from a pointfree Stone representation theorem instead of from Bishop and Cheng's approximation theorem.  Petrakis and Zeuner record the same obstruction and list the recovery of a choice-free profile theorem inside predicative Bishop--Cheng measure theory as an open problem~\cite[\S11]{petrakis-zeuner-2024}.  One level down, Lubarsky shows that intuitionistic set theory without choice does not prove that the constructive Cauchy reals are Cauchy complete, and records Richman's observation that what is actually provable is the completeness of \emph{sequence--modulus pairs} rather than of the reals themselves~\cite{lubarsky-2007}.
+
+The present formalization neither refutes these results nor settles the open problem.  It is compatible with them, and the mechanism is worth stating precisely, because it is the content of the word ``presented'' in the title.
+
+\begin{enumerate}[label=(\roman*)]
+\item \textbf{The reals are presented.}  A real is a regular sequence of rationals, so it carries its own modulus.  Given \(a<b\) and \(c\), the cotransitivity split needed by the construction is returned as data from rational approximations.  Bishop's nested-interval argument (Lemma~\ref{lem:avoid}) is therefore available as a \emph{construction}, not as a choice principle.  The artifact formalizes it and audits it with the same axiom output as the rest of the development.
+
+\item \textbf{The uncountability step is discharged, not avoided.}  Theorem~\ref{thm:3-5} as formalized does not assert that the set of non-smooth levels ``is countable'' with an existentially hidden enumeration; it produces an \emph{explicit exception sequence} and concludes smoothness at every level apart from it.  The countable-avoidance construction of~(i) is then applied to that exception sequence to obtain an admissible level threshold.  In short, the development pays exactly the price that Spitters identifies, and pays it constructively over presented reals.
+
+\item \textbf{Completeness is used only in representation-carrying form.}  Limits are constructed from an explicitly supplied modulus and are never extracted from a bare Cauchy property.  This is precisely the distinction that Lubarsky attributes to Richman, and it is why his independence result does not bear on the development.
+
+\item \textbf{Scope of the claim.}  Both Spitters and Lubarsky note that, in the relevant models, the Cauchy reals and the Dedekind reals need not coincide and the Cauchy reals may be a proper subset of the Dedekind reals~\cite[\S2]{spitters-2006-dagstuhl},~\cite[\S7]{lubarsky-2007}.  We do not undertake here a model-theoretic analysis of which real-number object the counterexample family inhabits.  Our claim is the correspondingly modest one: \emph{over presented reals, and for the explicitly quantified integration-space interface of Definition~\ref{def:intspace}, the Bishop--Cheng profile route can be carried out in Lean's type theory with no appeal to Lean's \texttt{Classical.choice}}.  This is not a claim that the profile theorem is provable without choice over an arbitrary constructive real-number object; it is not a predicative result; and it is not a solution to the open problem of~\cite{petrakis-zeuner-2024}.
+\end{enumerate}
+
+\section{Related work}
+\label{sec:related}
+
+\subsection*{Bishop--Cheng measure theory and its reconstructions}
+Bishop and Cheng's memoir \emph{Constructive Measure Theory} is the mathematical source for the measure-theoretic route formalized here~\cite{bishop-cheng-1972}; the surrounding constructive analysis is that of~\cite{bishop-1967,bishop-bridges-1985}, and the integral-first tradition it belongs to goes back to Daniell~\cite{daniell-1918}.  Chan's recent monograph develops constructive probability theory on the same basis and contains an extended treatment of integration and measure~\cite{chan-2021}.  Coquand and Palmgren give a pointfree, measure-algebraic account~\cite{coquand-palmgren-2002}.  Petrakis and Zeuner have reconstructed Bishop--Cheng measure theory predicatively, replacing the impredicative $L^1$-completion by explicitly indexed families of partial functions~\cite{petrakis-2021,petrakis-zeuner-2024}; their development also avoids countable choice.  The present work does not claim a predicative reconstruction: it uses Lean's impredicative \texttt{Prop}, and its contribution is orthogonal to theirs.
+
+\subsection*{Integration in proof assistants}
+Sacerdoti Coen and Tassi formalized a constructive proof of Lebesgue's dominated convergence theorem in Matita~\cite{sacerdoti-coen-tassi-2008}.  Boldo, Cl\'ement and Leclerc formalized the Bochner integral in Coq~\cite{boldo-clement-leclerc-2022}.  On the classical side, Lean's \texttt{mathlib} contains a dominated convergence theorem for the Bochner integral over a measure space~\cite{mathlib-2020,mathlib-dct}; that development is classical and is not comparable to the present one at the level of hypotheses.  The closest prior formalization of the Bishop--Cheng route itself is S\'em\'eria's, discussed below.
+
+\subsection*{Constructive reals in proof assistants}
+Geuvers and Niqui axiomatized the constructive reals used in CoRN and proved the axiomatization categorical~\cite{geuvers-niqui-2002}.  Booij's locators give a systematic account of the extra structure needed to make constructive real analysis extensional and computationally usable~\cite{booij-2021}.  S\'em\'eria's work discusses Cauchy-data constructive reals, setoid equality, and the distinction between the constructive and classical real-number layers in Coq's constructive-real infrastructure~\cite{semeria-2020-reals}.  That paper is cited here for constructive-real infrastructure, not as a source for the dominated-convergence theorem.
+
+\subsection*{The closest prior formalization: CoRN}
+The closest prior proof-assistant formalization identified for Bishop--Cheng dominated convergence is S\'em\'eria's Coq/Rocq development in CoRN~\cite{corn-cmtmeasurablefunctions}.  The audited community-repository snapshot is \href{https://github.com/rocq-community/corn/tree/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}{CoRN commit \texttt{ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}}.  At that commit, the pinned source file \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTMeasurableFunctions.v}{\texttt{CMTMeasurableFunctions.v}} contains \texttt{CvMeasure}, Bishop's Lemma~4.14-style declaration \path{DominatedMeasureCvZero}, and \texttt{DominatedConvergence}.  The reproduced Rocq 9.0.1 audit packaged with this artifact reports all three declarations as \texttt{Closed under the global context}.  For each declaration, \texttt{Print Assumptions} listed no global axioms in its dependency closure.  This describes the declarations' global axiom footprint; it does not make the theorems free of mathematical hypotheses.  Their statements remain parameterized by the explicitly quantified \texttt{IntegrationSpace} and \texttt{ConstructiveReals} structures, whose fields specify the mathematical setting in which the results are proved.  The same reading applies symmetrically to the Lean audit reported here, whose statements are parameterized by the integration space of Definition~\ref{def:intspace}.
+
+CoRN also makes the countable-avoidance step explicit and data-valued.  In the pinned \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTprofile.v}{\texttt{CMTprofile.v}}, \texttt{CRuncountable} and its diagonal variants return a real in a prescribed interval apart from every member of a supplied sequence.  The three-index variant feeds the jump-point enumeration used to prove integrability of level sets away from an explicit exception sequence.  Its proof covers the supplied sequence by open intervals of controlled total measure in a concrete real-line integration space and extracts a point from the positive-measure remainder.  The present Lean development instead implements Bishop's nested-interval construction (Lemma~\ref{lem:avoid}) over fixed regular-sequence presentations.  Thus both developments discharge the same countable-avoidance obligation by explicit constructions, but by different routes.
+
+\subsection{Comparison of domination assumptions}
+\label{sec:domination-comparison}
+The theorem interfaces also differ materially.  Both final DCT routes assume convergence in measure, not pointwise convergence.  CoRN's \texttt{CvMeasure} hypothesis is Type-valued, and \texttt{partialFuncLe} states domination on the intersection of the partial-function domains.  The Lean artifact exposes both a Type-valued full-set route, with an explicit indexed selector of full carriers, and a Prop-facing full-set theorem.  CoRN quantifies over an abstract \texttt{ConstructiveReals} implementation, whereas Lean fixes regular-sequence presented reals; CoRN's \texttt{IntegrationSpace} also contains a distinguished integrable unit of integral one, whereas Definition~\ref{def:intspace} has no normalization field and admits the degenerate model described in Remark~\ref{rem:fidelity}.  These differences are not ordered by logical strength, and neither complete theorem surface is claimed to be a formal generalization of the other.
+
+Concretely, CoRN's public \texttt{DominatedConvergence} assumes global pointwise domination:
+\[
+\texttt{forall n, partialFuncLe (Xabs (fn n)) g}.
+\]
+The Lean artifact exposes the full-set hypothesis in two forms.  The Prop-facing theorem assumes that for each \(n\), domination holds on a full set, which may depend on the index (Definition~\ref{def:domination}).  The Type-valued theorem takes those carriers, fullness proofs, and bounds as the explicit selector \path{DominatedOnFullDataC} and preserves a convergence modulus in its conclusion.  The formal bridge \path{DominatedOnFullDataC.ofGlobal} packages every global pointwise domination family as full-set data; no converse is asserted.  Thus, relative to the domination clause alone, full-set domination is a weaker hypothesis, while the Type-valued presentation asks the caller to supply more reusable proof-relevant data than the Prop presentation.
+
+We do not claim a formal strict generalization of the CoRN theorem, because the ambient real-number and integration-space interfaces differ.  CoRN's \texttt{CR\_cv} and the Lean Type-valued full-set conclusion are both data-valued, but the two complete theorem statements are not ordered solely by logical strength.  Across the Lean pointwise-majorant wrappers, the verified error majorant is \(g+|f|\) or \(|g|+|f|\), depending on the route, not \(2g\), unless a separate proof of \(|f|\le g\) is supplied.
+
+A summary comparison:
+
+\begin{center}\small
+\begin{tabular}{lll}
+\hline
+Aspect & This development & CoRN \\
+\hline
+Reals & presented regular sequences & abstract \texttt{ConstructiveReals} \\
+Integration space & Definition~\ref{def:intspace}, no normalization & abstract \texttt{IntegrationSpace}, unit of integral $1$ \\
+Convergence API & Type layers $+$ Prop surface & Type-valued \texttt{CvMeasure} \\
+Domination & per-index full set & global pointwise \\
+Countable avoidance & nested intervals over presentations & interval cover of controlled measure \\
+Audit output & \texttt{[propext, Quot.sound]} & \texttt{Closed under the global context} \\
+Comparison caveat & not strictly ordered & not strictly ordered \\
+\hline
+\end{tabular}
+\end{center}
+
+Accordingly, the present work does not claim to be the first proof-assistant formalization, the first constructive formalization, or the first choice-free formalization of Bishop--Cheng dominated convergence.  Its contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
+
+\section{Choice-free audit}
+\label{sec:audit}
+
+The development declares \texttt{mathlib}~\cite{mathlib-2020} as a dependency, and \texttt{mathlib} modules do occur in the transitive import closure of the public roots.  Importing is not the same as depending on a result: Lean's \texttt{\#print axioms} follows the dependencies actually used by a declaration rather than every axiom made available by its imports.  The real-number and measure-theoretic layers used above are constructed inside the artifact; in particular, the audited declarations do not consume \texttt{mathlib}'s \texttt{Real} or \texttt{MeasureTheory} hierarchy.  This source-level separation, together with the declaration-level audit, explains why the reported axiom output is compatible with the presence of \texttt{mathlib} in the import closure.
+
+The artifact is not claiming that every historical development file ever produced during the project was choice-free.  Its claim is restricted to the public theorem aliases, the named implementation declarations, and the public transitive import closure in \path{choicefree-bc-dct}.  The build script prints axioms for the public declarations and runs a static audit after stripping Lean comments.  \texttt{Quot.sound} is expected from the presented rational quotient layer; quotient extraction and classical selector axioms are not expected in the audited declarations.
+
+\paragraph{What the claim is relative to.}
+Collecting the qualifications made above, the audited statement is: for every type \(X\) and every integration space $S$ on $X$ in the sense of Definition~\ref{def:intspace}, the named public declarations hold, and their proof terms use no axioms beyond \texttt{propext} and \texttt{Quot.sound}.  The quantified structure \(S\) plays the same role that \texttt{IntegrationSpace} plays in CoRN, and the reals are the concrete presented reals of Section~\ref{sec:setting} rather than an abstract real-number interface.  The countable-avoidance step required by the profile route is discharged inside this audit, not assumed (Section~\ref{sec:nogo}).  What is \emph{not} claimed is that Definition~\ref{def:intspace} is itself a verbatim rendering of Bishop and Cheng's Definition~1.1 (a verbatim transcription is supplied separately, together with an adapter needing one further clause), nor a concrete model richer than evaluation at a point, nor a predicative development, nor any statement about real-number objects other than the presented reals.
+
+The CoRN assumptions audit and the Lean axiom audit are different mechanisms in different proof assistants.  The CoRN audit reports \texttt{Closed under the global context} for the inspected declarations.  The Lean audit reports \texttt{[propext, Quot.sound]} for the named public declarations.  Both statements are relative to the explicit theorem interfaces being audited.
+
+\subsection*{Three complementary checks}
+The audit is deliberately not based on a single text search.
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{Kernel dependency output.}  Dedicated Lean files invoke \texttt{\#print axioms} on the public aliases and the implementation declarations used by them.  The reported axiom names are confined to the set \(\{\texttt{propext},\texttt{Quot.sound}\}\), and the principal public DCT declarations report both.  In particular, the fact that an alias is marked \texttt{noncomputable} is not treated as evidence for or against choice; the criterion is the dependency output of its elaborated term.
+
+\item \textbf{Transitive source-closure scan.}  \path{tools/static_no_choice_audit.py} computes the import closure of six public roots, strips Lean comments, and rejects forbidden selector and placeholder tokens in the resulting source.  The current recorded run traverses 509 Lean files.  This complements the declaration-level check by detecting suspicious source in the public closure even when it is not reached by one selected theorem.
+
+\item \textbf{Integrity and cross-system provenance.}  Root checksums cover the tracked artifact, while a separate checksum file protects the reproduced CoRN audit package.  The CoRN commands pin both the source commit and Rocq version.  Thus the Lean claim and the prior-work comparison can be reproduced independently rather than inferred from prose in this paper.
+\end{enumerate}
+
+The checks answer different questions.  A source scan cannot replace kernel dependency analysis, because the presence of an imported classical declaration does not show that a proof term uses it.  Conversely, a short list of printed axioms does not by itself establish that the intended source tree, versions, and audit inputs were the ones inspected.  The artifact therefore reports both kinds of evidence and protects their inputs with checksums.
+
+\section{Limitations and validation boundary}
+\label{sec:limitations}
+
+The result should be read with the following limitations in view.
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{Integration-space fidelity.}  Definition~\ref{def:intspace} is an explicit and inspectable interface, but it is not claimed to be a field-for-field transcription of Bishop and Cheng's Definition~1.1, and it is not a weakening of it either.  It lacks their normalization and inhabitedness requirements, and it strengthens their closure clause by admitting truncation at an arbitrary constant, which their canonical locally compact model does not satisfy for negative constants.  As explained in Remark~\ref{rem:fidelity}, the strengthening is not used by any proof, and the adapter is now supplied: \path{Mathdemo.SourceIntegrationSpaceDef11} transcribes Definition~1.1 field for field and derives thirteen of the fourteen fields of Definition~\ref{def:intspace} from it, leaving truncation at an arbitrary constant as the single explicit extra argument.  Two limitations remain.  First, discharging that argument requires rewriting the closure clause itself, which would require re-verifying the audited closure.  Second, the correct rewriting is probably not ``restrict to nonnegative constants'' but ``truncate at constants carrying a positivity witness, or at $0$'' (Remark~\ref{rem:fidelity}).  We note also that the field \path{I_nonneg} of Definition~\ref{def:intspace} is derivable from the continuity clause, so that carrying it as a field is unnecessary.
+
+\item \textbf{Concrete semantics.}  The shipped concrete example has carrier \texttt{PUnit} and the zero integral.  It verifies that the public wrapper can be applied end to end, but it does not demonstrate a nontrivial measure model.  Constructing such a model is separate from checking the relative theorem proved here.
+
+\item \textbf{Hypothesis on the limit.}  The public theorem assumes that the limit $f$ is already an integrable representative.  It proves convergence of the integrals under that hypothesis; it does not derive integrability of a merely measurable limit.
+
+\item \textbf{Logical and real-number scope.}  The development uses Lean's impredicative \texttt{Prop} and regular-sequence presented reals.  It is neither a predicative reconstruction nor a theorem over arbitrary constructive real-number objects, and it does not overturn the model-theoretic no-go results discussed in Section~\ref{sec:nogo}.
+
+\item \textbf{Comparison and priority.}  S\'em\'eria's CoRN development already contains a Bishop--Cheng dominated-convergence theorem, and the two theorem surfaces live over different real-number and integration-space interfaces.  No claim of priority or strict formal generalization is made.
+
+\item \textbf{Implementation maturity.}  The artifact is a public import closure, not a minimal library.  Its 509-file audited closure retains historically generated \path{CRat_iter*} stages.  The three modules added for the mathematical interface, for the transcription of Definition~1.1, and for the point-evaluation model bring the repository to 512 files; the recorded audit figures quoted here and in Section~\ref{sec:reproducibility} predate them and are refreshed by re-running the full build audit.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.
+\end{enumerate}
+
+The development line records a successful 2026-07-12 build of all 2856 jobs in the target
+\begin{quote}\small
+\path{Mathdemo.CheckSec3PortAxioms}.
+\end{quote}
+The inspected DCT declarations reported \texttt{[propext, Quot.sound]}.  The explicit full-set Type-valued module was added after that run and was checked by focused Lean elaboration of the module and public alias file; its new declarations report the same axiom set.  This draft remains version \CFBDCTVersion; the exact commit selected for a tagged release is to receive a complete \path{./build_audit.sh} run before release.
+
+\section*{Use of AI-assisted tools}
+Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
+
+\section{Artifact interface and reproducibility}
+\label{sec:reproducibility}
+
+The paper cites the public aliases in \path{ChoiceFreeMeasureDCTPublic.lean}.  The supplementary file \path{SupplementChoiceFreeMeasureDCT.lean} checks and prints axioms for both the aliases and their implementation declarations.  The artifact is~\cite{artifact}.
+
+A reader can inspect the result at three levels.
+\begin{enumerate}[label=(\arabic*)]
+\item \textbf{Public surface.}  Begin with the following two files:
+\begin{quote}\small\raggedright
+\path{ChoiceFreeMeasureDCTPublic.lean}\par
+\path{Mathdemo/ChoiceFreeDCTExamples.lean}.
+\end{quote}
+They display the callable interfaces without requiring navigation through the internal iteration history.
+
+\item \textbf{Short checks.}  Run the static audit, the root checksum command, and then the independent checksum command inside \path{audits/corn/}:
+\begin{quote}
+\begin{verbatim}
+python3 tools/static_no_choice_audit.py
+sha256sum -c SHA256SUMS
+(cd audits/corn && sha256sum -c SHA256SUMS)
+\end{verbatim}
+\end{quote}
+These checks do not rebuild Lean but verify the public source closure and the integrity of the shipped evidence.
+
+\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.
+\end{enumerate}
+
+Local reruns are written to:
+\begin{quote}\small\raggedright
+\path{logs/build_audit.rerun.txt}\par
+\path{logs/static_audit.rerun.txt}.
+\end{quote}
+The shipped reference logs are kept stable so that checksum verification remains meaningful after rerunning the audit.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
+
+\section{Conclusion}
+
+The artifact demonstrates a complete profile-based route from convergence in measure and full-set domination to convergence of integrals over presented reals, relative to the explicit integration-space interface of Definition~\ref{def:intspace}.  Its central constructive step is not the suppression of the exceptional levels produced by profile theory, but their explicit enumeration followed by a presented-real countable-avoidance construction.  That distinction explains both how the formal proof proceeds and why it does not contradict the known obstruction for unrestricted constructive real-number objects.
+
+The result is exposed through proof-relevant global and full-set interfaces, automatically synthesized wrappers, and a Prop-facing interface, and the final public declarations are accompanied by kernel dependency output, a transitive source audit, checksums, and a pinned reproduction of the closest CoRN prior work.  The limitations are equally explicit: the limit is assumed integrable, a normalized concrete model is now available unconditionally, although it is the simple one given by evaluation at a point, the integration-space interface is incomparable with Bishop--Cheng Definition~1.1 although a verbatim transcription and an adapter are now supplied and the difference is localized to one clause, and the development is not predicative.  These boundaries leave clear next tasks while making the present theorem and its audit independently inspectable.
+
+\appendix
+
+\section{From the mathematics to the Lean declarations}
+\label{sec:appendix-map}
+
+The following tables let a reader move between Part~I and the artifact.  They are the only place in which the correspondence is asserted; the statements in Part~I are self-contained mathematics, and the declarations in Part~II are self-contained Lean.
+
+\begin{center}\small
+\begin{tabular}{ll}
+\hline
+Axiom of Definition~\ref{def:intspace} & \texttt{IntSpaceC} field \\
+\hline
+(A1) respect for Bishop equality & \texttt{L\_resp}, \texttt{I\_resp} \\
+(A2) closure of $L$ & \texttt{add\_mem}, \texttt{smul\_mem}, \texttt{abs\_mem}, \texttt{cutConst\_mem} \\
+(A3) linearity of $I$ & \texttt{I\_add}, \texttt{I\_smul} \\
+(A4) positivity of $I$ & \texttt{I\_nonneg} \\
+(A5) truncation limits & \texttt{cutNat\_tendsto}, \texttt{cutSmall\_tendsto} \\
+(A6) constructive continuity & \texttt{continuity} \\
+\hline
+\end{tabular}
+\end{center}
+
+\medskip
+
+\begin{center}\small
+\begin{tabular}{lll}
+\hline
+Mathematical object & Public alias & Implementation \\
+\hline
+Definition~\ref{def:convmeasure} & --- & \path{ConvergeInMeasureC} \\
+Definition~\ref{def:domination} & --- & \path{DominatedOnFullC} \\
+Theorem~\ref{thm:prop-dct} & \path{bishop_cheng_dominated_convergence_propC} & \path{bishop_cheng_thm_4_15_propC} \\
+Theorem~\ref{thm:3-5} & \path{profile_partition_dataC} & \path{lemma_3_4DataC} \\
+Theorem~\ref{thm:3-6} & \path{profile_level_sets_integrable_apartC} & --- \\
+Lemma~\ref{lem:avoid} & --- & \path{thm36B1_exists_apart_in_interval} \\
+ & & \path{thm36B1_apart_data} \\
+Proposition~\ref{prop:uniform-complement} & \path{uniform_complement_from_profile_levelsC} & \path{lemma43UniformComplementData_of_majorantC} \\
+Proof step~(2) & --- & \path{lemma43DyadicSmoothDataC_construct} \\
+Proof step~(2), threshold & --- & \path{lemma_4_3_A_n_apart_data} \\
+Proof step~(4) & --- & \path{lemma_4_14_local_two_epsilonC} \\
+Proof step~(5) & --- & \path{integral_diff_lt_of_abs_error_integral_ltC} \\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Public aliases are in the namespace \path{ChoiceFreeMeasureDCT}; implementation declarations are in \path{BishopSec1P} or \path{BishopSec3P}.  The complete list of public aliases, including the Type-valued kernel and the automatic wrappers of Section~\ref{sec:formalization}, is in \path{ChoiceFreeMeasureDCTPublic.lean}.
+
+\begin{thebibliography}{99}
+\raggedright
+
+\bibitem{bishop-1967}
+Errett Bishop.
+\newblock \emph{Foundations of Constructive Analysis}.
+\newblock McGraw-Hill, New York, 1967.
+
+\bibitem{bishop-cheng-1972}
+Errett Bishop and Henry Cheng.
+\newblock \emph{Constructive Measure Theory}.
+\newblock Memoirs of the American Mathematical Society, no.~116, American Mathematical Society, Providence, 1972.
+
+\bibitem{bishop-bridges-1985}
+Errett Bishop and Douglas Bridges.
+\newblock \emph{Constructive Analysis}.
+\newblock Grundlehren der mathematischen Wissenschaften 279, Springer, 1985.
+
+\bibitem{daniell-1918}
+Percy J. Daniell.
+\newblock A general form of integral.
+\newblock \emph{Annals of Mathematics}, 2nd ser., 19(4):279--294, 1918.
+
+\bibitem{chan-2021}
+Yuen-Kwok Chan.
+\newblock \emph{Foundations of Constructive Probability Theory}.
+\newblock Encyclopedia of Mathematics and its Applications, Cambridge University Press, 2021.
+\newblock Chapter~4, ``Integration and measure''.
+
+\bibitem{richman-2000-fta}
+Fred Richman.
+\newblock The fundamental theorem of algebra: a constructive development without choice.
+\newblock \emph{Pacific Journal of Mathematics}, 196(1):213--230, 2000.
+
+\bibitem{bridges-richman-schuster-2000}
+Douglas Bridges, Fred Richman, and Peter Schuster.
+\newblock A weak countable choice principle.
+\newblock \emph{Proceedings of the American Mathematical Society}, 128(9):2749--2752, 2000.
+
+\bibitem{richman-2001}
+Fred Richman.
+\newblock Constructive mathematics without choice.
+\newblock In P. Schuster, U. Berger, and H. Osswald (eds.), \emph{Reuniting the Antipodes---Constructive and Nonstandard Views of the Continuum}, pp.~199--205, Kluwer, 2001.
+
+\bibitem{lubarsky-2007}
+Robert S. Lubarsky.
+\newblock On the Cauchy completeness of the constructive Cauchy reals.
+\newblock \emph{Electronic Notes in Theoretical Computer Science}, 167:225--254, 2007.
+\newblock DOI: \doi{10.1016/j.entcs.2006.09.012}.
+
+\bibitem{spitters-2006-dagstuhl}
+Bas Spitters.
+\newblock Constructive algebraic integration theory without choice.
+\newblock In T. Coquand, H. Lombardi, and M.-F. Roy (eds.), \emph{Mathematics, Algorithms, Proofs}, Dagstuhl Seminar Proceedings 05021, pp.~1--13, 2006.
+\newblock DOI: \doi{10.4230/DagSemProc.05021.9}.
+
+\bibitem{coquand-palmgren-2002}
+Thierry Coquand and Erik Palmgren.
+\newblock Metric Boolean algebras and constructive measure theory.
+\newblock \emph{Archive for Mathematical Logic}, 41:687--704, 2002.
+\newblock DOI: \doi{10.1007/s001530100123}.
+
+\bibitem{petrakis-2021}
+Iosif Petrakis.
+\newblock Predicative Bishop--Cheng measure theory.
+\newblock Overview/lecture abstract, LMU M\"unchen, 2021.
+
+\bibitem{petrakis-zeuner-2024}
+Iosif Petrakis and Max Zeuner.
+\newblock Pre-measure spaces and pre-integration spaces in predicative Bishop--Cheng measure theory.
+\newblock \emph{Logical Methods in Computer Science}, 20(4):2:1--2:33, 2024.
+\newblock DOI: \doi{10.46298/lmcs-20(4:2)2024}.
+
+\bibitem{booij-2021}
+Auke B. Booij.
+\newblock Extensional constructive real analysis via locators.
+\newblock \emph{Mathematical Structures in Computer Science}, 31(1):64--88, 2021.
+\newblock DOI: \doi{10.1017/S0960129520000171}.
+
+\bibitem{geuvers-niqui-2002}
+Herman Geuvers and Milad Niqui.
+\newblock Constructive reals in Coq: axioms and categoricity.
+\newblock In \emph{Types for Proofs and Programs (TYPES 2000)}, LNCS 2277, pp.~79--95, Springer, 2002.
+\newblock DOI:
+\href{https://doi.org/10.1007/3-540-45842-5_6}{\texttt{10.1007/3-540-45842-5\_6}}.
+
+\bibitem{semeria-2020-reals}
+Vincent S\'em\'eria.
+\newblock Nombres r\'eels dans Coq.
+\newblock In \emph{Actes des 31es Journ\'ees Francophones des Langages Applicatifs (JFLA 2020)}, pp.~104--111, 2020.
+\newblock \href{https://inria.hal.science/hal-02427360}{HAL record \texttt{hal-02427360}};
+\href{https://inria.hal.science/hal-02427360v1/document}{archived paper PDF}.
+
+\bibitem{sacerdoti-coen-tassi-2008}
+Claudio Sacerdoti Coen and Enrico Tassi.
+\newblock A constructive and formal proof of Lebesgue's dominated convergence theorem in the interactive theorem prover Matita.
+\newblock \emph{Journal of Formalized Reasoning}, 1(1):51--89, 2008.
+\newblock DOI: \doi{10.6092/issn.1972-5787/1334}.
+
+\bibitem{boldo-clement-leclerc-2022}
+Sylvie Boldo, Fran\c{c}ois Cl\'ement, and Vincent Leclerc.
+\newblock A Coq formalization of the Bochner integral.
+\newblock Inria Research Report RR-9456;
+\href{https://arxiv.org/abs/2201.03242}{\texttt{arXiv:2201.03242v2}}, 2022.
+
+\bibitem{lean4-2021}
+Leonardo de Moura and Sebastian Ullrich.
+\newblock The Lean~4 theorem prover and programming language.
+\newblock In \emph{Automated Deduction (CADE~28)}, LNCS 12699, pp.~625--635, Springer, 2021.
+\newblock DOI:
+\href{https://doi.org/10.1007/978-3-030-79876-5_37}{\texttt{10.1007/978-3-030-79876-5\_37}}.
+
+\bibitem{mathlib-2020}
+The mathlib Community.
+\newblock The Lean mathematical library.
+\newblock In \emph{Certified Programs and Proofs (CPP 2020)}, pp.~367--381, ACM, 2020.
+\newblock DOI: \doi{10.1145/3372885.3373824}.
+
+\bibitem{mathlib-dct}
+The mathlib Community.
+\newblock \texttt{Mathlib.MeasureTheory.Integral.DominatedConvergence}.
+\newblock \href{https://github.com/leanprover-community/mathlib4/blob/c5ea00351c28e24afc9f0f84379aa41082b1188f/Mathlib/MeasureTheory/Integral/DominatedConvergence.lean}{Source at the artifact's pinned \texttt{mathlib} revision
+\texttt{c5ea00351c28e24afc9f0f84379aa41082b1188f}}; accessed 2026-07-09.
+
+\bibitem{corn-cmtmeasurablefunctions}
+Vincent S\'em\'eria and the CoRN contributors.
+\newblock Bishop--Cheng constructive measure theory declarations in CoRN.
+\newblock \href{https://github.com/rocq-community/corn/tree/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}{Audited CoRN repository snapshot}, commit \texttt{ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}.
+\newblock \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTMeasurableFunctions.v}{Audited source file \texttt{CMTMeasurableFunctions.v}}.
+\newblock \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTprofile.v}{Profile and countable-avoidance source \texttt{CMTprofile.v}}.
+
+\bibitem{artifact}
+Toshihisa Urahigashi.
+\newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
+\newblock Version \CFBDCTVersion.
+\newblock \href{https://github.com/turahigashi/choicefree-bc-dct/tree/37592955f1a3b4fa40b878a3d5bc2a3db0f21be3}{Audited theorem snapshot at commit \texttt{37592955f1a3b4fa40b878a3d5bc2a3db0f21be3}}.
+
+\end{thebibliography}
+
+\end{document}

@@ -1,0 +1,36 @@
+import Mathdemo.BishopChengTheorem415Prop
+
+/-!
+# Audit checks for the propositional Bishop--Cheng theorem 4.15 route
+
+This file is intentionally isolated from the public roots until the focused
+Prop route is fully compiled and audited.
+-/
+
+#check BishopSec1P.RepSeriesTendstoEpsPropC
+#check BishopSec1P.RepLeOnFullC
+#check BishopSec1P.RepAbsLeOnFullC
+#check BishopSec1P.DominatedOnFullC
+
+#check BishopSec3P.lemma43ComplementIntegral_le_of_le_funWithAbsOnFullC
+#check BishopSec3P.Lemma414UniformComplementPropC
+#check BishopSec3P.lemma43UniformComplementProp_of_majorantWithAbsOnFull_halfPowC
+#check BishopSec3P.lemma43UniformComplementProp_of_majorantWithAbsOnFullC
+#check BishopSec3P.absError_le_absMajorant_add_absLimit_onFullC
+#check BishopSec3P.bishop_cheng_l1_error_tends_zero_propC_with_majorant
+#check BishopSec3P.integral_diff_lt_of_abs_error_integral_ltC
+#check BishopSec3P.regularSeqLtProp_abs_sub_of_repCloseAtGauge_succC
+#check BishopSec3P.repSeriesTendsto_to_epsPropC
+#check BishopSec3P.bishop_cheng_thm_4_15_propC_with_majorant
+#check BishopSec3P.bishop_cheng_thm_4_15_propC
+
+#print axioms BishopSec3P.lemma43ComplementIntegral_le_of_le_funWithAbsOnFullC
+#print axioms BishopSec3P.lemma43UniformComplementProp_of_majorantWithAbsOnFull_halfPowC
+#print axioms BishopSec3P.lemma43UniformComplementProp_of_majorantWithAbsOnFullC
+#print axioms BishopSec3P.absError_le_absMajorant_add_absLimit_onFullC
+#print axioms BishopSec3P.bishop_cheng_l1_error_tends_zero_propC_with_majorant
+#print axioms BishopSec3P.integral_diff_lt_of_abs_error_integral_ltC
+#print axioms BishopSec3P.regularSeqLtProp_abs_sub_of_repCloseAtGauge_succC
+#print axioms BishopSec3P.repSeriesTendsto_to_epsPropC
+#print axioms BishopSec3P.bishop_cheng_thm_4_15_propC_with_majorant
+#print axioms BishopSec3P.bishop_cheng_thm_4_15_propC
