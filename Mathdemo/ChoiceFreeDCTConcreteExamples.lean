@@ -58,8 +58,8 @@ def zeroIntSpaceC (X : Type u) : BishopSec1P.IntSpaceC X where
   abs_mem := by
     intro f hf
     trivial
-  cutConst_mem := by
-    intro a f hf
+  cutPos_mem := by
+    intro a ha f hf
     trivial
   I_add := by
     intro f g hf hg

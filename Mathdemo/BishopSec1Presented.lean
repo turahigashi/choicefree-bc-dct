@@ -383,6 +383,123 @@ structure PointwiseSeriesBelowC {X : Type*}
 
 #print axioms BishopSec1P.PointwiseSeriesBelowC
 
+/-! ### Strong sign witnesses for truncation constants
+
+Bishop and Cheng's Definition 1.1 clause (1) provides truncation at the
+constant `1` only.  The source's own remark recovers `min{f,a}` for a constant
+`a` carrying a positivity witness, via `min{f,a} = a·min{a⁻¹f,1}`, and
+`min{f,0} = (f-|f|)/2` follows from the linear and absolute-value closures of
+clause (1); a constant carrying neither kind of witness admits no such
+reduction (negative constants fail in the standard models).  The following
+definitions package exactly these two admissible cases as data. -/
+
+/-- Scalar nonnegativity of a natural-number cast. -/
+theorem scalar_natCast_nonneg (k : Nat) : BishopC.Le (0 : Scalar) (Nat.cast k) := by
+  induction k with
+  | zero => rw [Nat.cast_zero]; exact BishopC.le_refl 0
+  | succ k ih =>
+      rw [Nat.cast_succ]
+      have h1 : BishopC.Le (0 : Scalar) 1 := scalar_nonneg_of_pos scalarCOFOSeed.one_pos
+      have hsum : BishopC.Le ((0 : Scalar) + 0) ((Nat.cast k : Scalar) + 1) :=
+        BishopC.le_add ih h1
+      simpa using hsum
+
+#print axioms BishopSec1P.scalar_natCast_nonneg
+
+/-- Technical lemma used in the public import closure. -/
+def natCast_succ_posDataC (n : Nat) :
+    PosEventuallyData (constSeq (Nat.cast (n + 1) : Scalar)) where
+  k := 1
+  N := 1
+  tail_pos := by
+    intro m _hm
+    change BishopC.COF.lt (eps 1) (Nat.cast (n + 1) : Scalar)
+    have heps : BishopC.COF.lt (eps 1) (eps 0) := eps_succ_lt_eps 0
+    have hle : BishopC.Le (eps 0) (Nat.cast (n + 1) : Scalar) := by
+      rw [show eps 0 = (1 : Scalar) from rfl, Nat.cast_succ]
+      have h0 : BishopC.Le (0 : Scalar) (Nat.cast n : Scalar) := scalar_natCast_nonneg n
+      have hsum : BishopC.Le ((0 : Scalar) + 1) ((Nat.cast n : Scalar) + 1) :=
+        BishopC.le_add h0 (BishopC.le_refl 1)
+      simpa using hsum
+    exact BishopC.lt_of_lt_of_le heps hle
+
+#print axioms BishopSec1P.natCast_succ_posDataC
+
+/-- Tail-positivity data for a constant sequence dominating the gauge `eps j`. -/
+def constSeq_posDataC (q : Scalar) (j : Nat) (h : BishopC.COF.lt (eps j) q) :
+    PosEventuallyData (constSeq q) where
+  k := j
+  N := 0
+  tail_pos := fun _ _ => h
+
+#print axioms BishopSec1P.constSeq_posDataC
+
+/-- Tail-positivity data for the constant sequence `eps k`. -/
+def epsConst_posDataC (k : Nat) : PosEventuallyData (constSeq (eps k)) :=
+  constSeq_posDataC (eps k) (k + 1) (eps_succ_lt_eps k)
+
+#print axioms BishopSec1P.epsConst_posDataC
+
+/-- Tail-positivity data for the constant `1`. -/
+def one_posDataC : PosEventuallyData CReal.one :=
+  constSeq_posDataC 1 1 (by
+    rw [show (1 : Scalar) = eps 0 from rfl]
+    exact eps_succ_lt_eps 0)
+
+#print axioms BishopSec1P.one_posDataC
+
+/-- Strong sign witness for a truncation constant: either tail-positivity data
+for `a`, or the exact vanishing of `a` up to Bishop equality.  These are the
+two cases in which Bishop and Cheng's Definition 1.1 recovers `min{f,a} ∈ L`
+from clause (1); truncation at an arbitrary constant is strictly stronger than
+the source and fails for negative constants in the standard models. -/
+inductive CutConstWitnessC (a : CReal) : Type where
+  | pos (h : PosEventuallyData a) : CutConstWitnessC a
+  | zero (h : a ≈ CReal.zero) : CutConstWitnessC a
+
+#print axioms BishopSec1P.CutConstWitnessC
+
+/-- A witnessed truncation constant is not negative. -/
+theorem CutConstWitnessC.not_neg {a : CReal} :
+    CutConstWitnessC a → ¬ CReal.ltE a CReal.zero
+  | .pos h => fun hlt => by
+      have hpos : regularSeqLtProp CReal.zero a := by
+        show PosEventually (subSeq a CReal.zero)
+        exact posEventually_respects a (subSeq a CReal.zero)
+          (relEventually_symm _ _ (subSeq_zero_right_eventually a)) h.toProp
+      exact regularSeqLtProp_irrefl a
+        (regularSeqLtProp_trans a CReal.zero a hlt hpos)
+  | .zero h => fun hlt => by
+      have hz : PosEventually zeroSeq := by
+        refine posEventually_respects (subSeq CReal.zero a) zeroSeq ?_ hlt
+        exact relEventually_trans _ _ _
+          (subSeq_respects_eventually CReal.zero CReal.zero a CReal.zero
+            (relEventually_refl CReal.zero) h)
+          (subSeq_self_eventually CReal.zero)
+      exact not_posEventually_zero hz
+
+#print axioms BishopSec1P.CutConstWitnessC.not_neg
+
+/-- The canonical sign witness for a natural-number cast constant:
+exact vanishing for `0`, positivity data for a successor. -/
+def natCastWitnessC : (n : Nat) → CutConstWitnessC (constSeq (Nat.cast n))
+  | 0 => .zero (by rw [Nat.cast_zero]; exact Setoid.refl CReal.zero)
+  | (m + 1) => .pos (natCast_succ_posDataC m)
+
+#print axioms BishopSec1P.natCastWitnessC
+
+/-- The canonical sign witness for the constant `eps k`. -/
+def epsConstWitnessC (k : Nat) : CutConstWitnessC (constSeq (eps k)) :=
+  .pos (epsConst_posDataC k)
+
+#print axioms BishopSec1P.epsConstWitnessC
+
+/-- The canonical sign witness for the constant `1`. -/
+def oneWitnessC : CutConstWitnessC CReal.one :=
+  .pos one_posDataC
+
+#print axioms BishopSec1P.oneWitnessC
+
 structure IntSpaceC (X : Type*) where
   L : Set (BFunC X)
   I : BFunC X → CReal
@@ -391,8 +508,15 @@ structure IntSpaceC (X : Type*) where
   add_mem : ∀ {f g : BFunC X}, f ∈ L → g ∈ L → BFunC.add f g ∈ L
   smul_mem : ∀ (a : CReal) {f : BFunC X}, f ∈ L → BFunC.smul a f ∈ L
   abs_mem : ∀ {f : BFunC X}, f ∈ L → BFunC.absf f ∈ L
-  /-- Technical lemma used in the public import closure. -/
-  cutConst_mem : ∀ (a : CReal) {f : BFunC X}, f ∈ L → BFunC.minC f a ∈ L
+  /-- Truncation at a constant carrying tail-positivity data.  Bishop and
+  Cheng's Definition 1.1 clause (1) provides `min{f,1}`; the source's own
+  remark recovers this field via `min{f,a} = a·min{a⁻¹f,1}`, so the adapter
+  `BishopCheng.IntegrationSpaceDef11.toIntSpaceC` derives it with no extra
+  hypotheses.  Truncation at exactly `0` is *derived* from the other fields
+  (`IntSpaceC.cutZero_mem`); truncation at an arbitrary constant would be
+  strictly stronger than the source and is not part of this interface. -/
+  cutPos_mem : ∀ (a : CReal), PosEventuallyData a →
+    ∀ {f : BFunC X}, f ∈ L → BFunC.minC f a ∈ L
   I_add : ∀ {f g : BFunC X}, f ∈ L → g ∈ L →
     I (BFunC.add f g) ≈ CReal.add (I f) (I g)
   I_smul : ∀ (a : CReal) {f : BFunC X}, f ∈ L →
@@ -550,17 +674,53 @@ theorem negPart_mem {f : BFunC X} (hf : f ∈ S.L) :
 
 #print axioms BishopSec1P.IntSpaceC.negPart_mem
 
+/-- Truncation at a constant that vanishes exactly: `min{f,a} ∈ L` when
+`a ≈ 0`.  Derived from the linear and absolute-value closure fields via
+`min{f,0} = (f - |f|)/2 = -(negPart f)`; no dedicated structure field is
+needed, which is why the interface carries only `cutPos_mem`. -/
+theorem cutZero_mem {a : CReal} (ha : a ≈ CReal.zero) {f : BFunC X}
+    (hf : f ∈ S.L) : BFunC.minC f a ∈ S.L := by
+  have hmem : BFunC.smul (CReal.neg CReal.one) (BFunC.negPart f) ∈ S.L :=
+    S.smul_mem (CReal.neg CReal.one) (S.negPart_mem hf)
+  refine S.L_resp hmem ⟨rfl, ?_⟩
+  intro x _
+  show CReal.mul (CReal.neg CReal.one)
+      (CReal.neg (CReal.min (f.toFun x) CReal.zero)) ≈
+    CReal.min (f.toFun x) a
+  calc
+    CReal.mul (CReal.neg CReal.one)
+        (CReal.neg (CReal.min (f.toFun x) CReal.zero))
+        ≈ CReal.neg (CReal.neg (CReal.min (f.toFun x) CReal.zero)) :=
+          neg_one_mul_equiv (CReal.neg (CReal.min (f.toFun x) CReal.zero))
+    _ ≈ CReal.min (f.toFun x) CReal.zero :=
+          neg_neg_equiv (CReal.min (f.toFun x) CReal.zero)
+    _ ≈ CReal.min (f.toFun x) a :=
+          minSeqWith_respects_eventually cRatScalarMulArch
+            (f.toFun x) (f.toFun x) CReal.zero a
+            (Setoid.refl (f.toFun x)) (Setoid.symm ha)
+
+#print axioms BishopSec1P.IntSpaceC.cutZero_mem
+
+/-- Truncation at any constant carrying a strong sign witness. -/
+theorem cutWitness_mem {a : CReal} (w : CutConstWitnessC a) {f : BFunC X}
+    (hf : f ∈ S.L) : BFunC.minC f a ∈ S.L :=
+  match w with
+  | .pos h => S.cutPos_mem a h hf
+  | .zero h => S.cutZero_mem h hf
+
+#print axioms BishopSec1P.IntSpaceC.cutWitness_mem
+
 /-- Technical lemma used in the public import closure. -/
 theorem cutNat_mem {f : BFunC X} (n : Nat) (hf : f ∈ S.L) :
     BFunC.cutNat n f ∈ S.L :=
-  S.cutConst_mem (constSeq (Nat.cast n)) hf
+  S.cutWitness_mem (natCastWitnessC n) hf
 
 #print axioms BishopSec1P.IntSpaceC.cutNat_mem
 
 /-- Technical lemma used in the public import closure. -/
 theorem cutSmall_mem {f : BFunC X} (n : Nat) (hf : f ∈ S.L) :
     BFunC.cutSmall n f ∈ S.L :=
-  S.cutConst_mem (constSeq (eps n)) (S.abs_mem hf)
+  S.cutPos_mem (constSeq (eps n)) (epsConst_posDataC n) (S.abs_mem hf)
 
 #print axioms BishopSec1P.IntSpaceC.cutSmall_mem
 
@@ -5759,16 +5919,17 @@ def IntegrableRepC3.cutConstDiffFn {X : Type*} {S : IntSpaceC X}
 
 #print axioms BishopSec1P.IntegrableRepC3.cutConstDiffFn
 
-/-- Each truncation telescope difference belongs to the integration space. -/
+/-- Each truncation telescope difference belongs to the integration space.
+The truncation constant must carry a strong sign witness. -/
 theorem IntegrableRepC3.cutConstDiffFn_mem {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) :
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a) :
     ∀ j, r.cutConstDiffFn a j ∈ S.L
-  | 0 => S.cutConst_mem a (S.seqSum_mem r.fn_mem 0)
+  | 0 => S.cutWitness_mem w (S.seqSum_mem r.fn_mem 0)
   | (j + 1) =>
       S.add_mem
-        (S.cutConst_mem a (S.seqSum_mem r.fn_mem (j + 1)))
+        (S.cutWitness_mem w (S.seqSum_mem r.fn_mem (j + 1)))
         (S.smul_mem (CReal.neg CReal.one)
-          (S.cutConst_mem a (S.seqSum_mem r.fn_mem j)))
+          (S.cutWitness_mem w (S.seqSum_mem r.fn_mem j)))
 
 #print axioms BishopSec1P.IntegrableRepC3.cutConstDiffFn_mem
 
@@ -5831,25 +5992,26 @@ theorem IntegrableRepC3.cutConstDiffFn_abs_le {X : Type*} {S : IntSpaceC X}
 #print axioms BishopSec1P.IntegrableRepC3.cutConstDiffFn_abs_le
 
 theorem IntegrableRepC3.I_cutConstDiffFn_le {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) (ha : ¬ CReal.ltE a CReal.zero)
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a)
     (j : Nat) :
     RegularSeqLe
       (S.I (BFunC.absf (r.cutConstDiffFn a j)))
       (S.I (BFunC.absf (r.fn j))) := by
   refine S.I_mono'
-    (S.abs_mem (r.cutConstDiffFn_mem a j))
+    (S.abs_mem (r.cutConstDiffFn_mem a w j))
     (S.abs_mem (r.fn_mem j))
     ?_
   intro x _hcut _hfn
-  simpa [BFunC.absf] using r.cutConstDiffFn_abs_le a ha j x
+  simpa [BFunC.absf] using r.cutConstDiffFn_abs_le a w.not_neg j x
 
 #print axioms BishopSec1P.IntegrableRepC3.I_cutConstDiffFn_le
 
-/-- Integrable representation of `min{Σ fₙ, a}` for `a >= 0`.
+/-- Integrable representation of `min{Σ fₙ, a}` for a constant `a` carrying a
+strong sign witness (positivity data or exact vanishing).
 The function sequence is the three-way merge of the truncation telescope
 differences, the original terms, and their negatives. -/
 def IntegrableRepC3.cutConstVal {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) (ha : ¬ CReal.ltE a CReal.zero) :
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a) :
     IntegrableRepC3 S :=
   let negFn : Nat → BFunC X :=
     fun k => BFunC.smul (CReal.neg CReal.one) (r.fn k)
@@ -5861,7 +6023,7 @@ def IntegrableRepC3.cutConstVal {X : Type*} {S : IntSpaceC X}
     rcases hcases with h0 | h1 | h2
     · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k := ⟨n / 3, by omega⟩
       subst n
-      simpa [mergedFn, bc1_seqMerge3_zero] using r.cutConstDiffFn_mem a k
+      simpa [mergedFn, bc1_seqMerge3_zero] using r.cutConstDiffFn_mem a w k
     · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k + 1 := ⟨n / 3, by omega⟩
       subst n
       simpa [mergedFn, bc1_seqMerge3_one] using r.fn_mem k
@@ -5894,7 +6056,7 @@ def IntegrableRepC3.cutConstVal {X : Type*} {S : IntSpaceC X}
       · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k := ⟨n / 3, by omega⟩
         subst n
         simpa [absCut, absBase, absNeg, bc1_seqMerge3_zero] using
-          S.I_absf_nonneg (r.cutConstDiffFn_mem a k)
+          S.I_absf_nonneg (r.cutConstDiffFn_mem a w k)
       · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k + 1 := ⟨n / 3, by omega⟩
         subst n
         simpa [absCut, absBase, absNeg, bc1_seqMerge3_one] using
@@ -5909,7 +6071,7 @@ def IntegrableRepC3.cutConstVal {X : Type*} {S : IntSpaceC X}
       · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k := ⟨n / 3, by omega⟩
         subst n
         simpa [absCut, absBase, absNeg, bc1_seqMerge3_zero] using
-          r.I_cutConstDiffFn_le a ha k
+          r.I_cutConstDiffFn_le a w k
       · obtain ⟨k, hk⟩ : ∃ k, n = 3 * k + 1 := ⟨n / 3, by omega⟩
         subst n
         simpa [absCut, absBase, absNeg, bc1_seqMerge3_one] using
@@ -6533,9 +6695,9 @@ def IntegrableRepC3.cutConstVal_valueC {X : Type*} {S : IntSpaceC X}
 #print axioms BishopSec1P.IntegrableRepC3.cutConstVal_valueC
 
 def IntegrableRepC3.cutConstVal_signed_valueC {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) (ha : ¬ CReal.ltE a CReal.zero) (x : X)
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a) (x : X)
     (hx : RepSeriesSum (fun n => (r.fn n).toFun x)) :
-    { hs : RepSeriesSum (fun n => ((r.cutConstVal a ha).fn n).toFun x) //
+    { hs : RepSeriesSum (fun n => ((r.cutConstVal a w).fn n).toFun x) //
       relEventually hs.sum (CReal.min hx.sum a) } := by
   obtain ⟨hd, hdeq⟩ := r.cutConstVal_valueC a x hx
   let hneg :
@@ -6544,7 +6706,7 @@ def IntegrableRepC3.cutConstVal_signed_valueC {X : Type*} {S : IntSpaceC X}
     repSeriesSum_congr
       (BishopRegularSeqSeriesSum.repSeriesSum_neg hx)
       (fun k => neg_one_mul_equiv ((r.fn k).toFun x))
-  let hmerged : RepSeriesSum (fun n => ((r.cutConstVal a ha).fn n).toFun x) :=
+  let hmerged : RepSeriesSum (fun n => ((r.cutConstVal a w).fn n).toFun x) :=
     repSeriesSum_congr
       (bc1_seriesSum_merge3 hd hx hneg)
       (fun n => by
@@ -6599,7 +6761,7 @@ theorem natCast_nonnegC (n : Nat) :
 
 def IntegrableRepC3.cutNatVal {X : Type*} {S : IntSpaceC X}
     (r : IntegrableRepC3 S) (n : Nat) : IntegrableRepC3 S :=
-  r.cutConstVal (constSeq (Nat.cast n)) (natCast_nonnegC n)
+  r.cutConstVal (constSeq (Nat.cast n)) (natCastWitnessC n)
 
 #print axioms BishopSec1P.IntegrableRepC3.cutNatVal
 
@@ -6618,7 +6780,7 @@ theorem epsConst_nonnegC (k : Nat) :
 
 def IntegrableRepC3.cutSmallVal {X : Type*} {S : IntSpaceC X}
     (r : IntegrableRepC3 S) (k : Nat) : IntegrableRepC3 S :=
-  r.absVal.cutConstVal (constSeq (eps k)) (epsConst_nonnegC k)
+  r.absVal.cutConstVal (constSeq (eps k)) (epsConstWitnessC k)
 
 #print axioms BishopSec1P.IntegrableRepC3.cutSmallVal
 
@@ -8513,7 +8675,7 @@ theorem IntegrableRepC3.cutNat_tendsto_aux {X : Type*} {S : IntSpaceC X}
     have hxsum : RepSeriesSum (fun q => (r.fn q).toFun x) :=
       seriesSum_of_absC habs
     obtain ⟨hcut0, hcut0eq⟩ :=
-      r.cutConstVal_signed_valueC a (natCast_nonnegC n) x hxsum
+      r.cutConstVal_signed_valueC a (natCastWitnessC n) x hxsum
     let hcut :
         RepSeriesSum (fun q => ((r.cutNatVal n).fn q).toFun x) := by
       simpa [IntegrableRepC3.cutNatVal, a] using hcut0
@@ -8672,7 +8834,7 @@ theorem IntegrableRepC3.cutSmall_tendsto_aux {X : Type*} {S : IntSpaceC X}
       seriesSum_of_absC habs
     obtain ⟨hav, hav_eq⟩ := r.absVal_signed_value x hxsum
     obtain ⟨hcut0, hcut0eq⟩ :=
-      r.absVal.cutConstVal_signed_valueC a (epsConst_nonnegC k) x hav
+      r.absVal.cutConstVal_signed_valueC a (epsConstWitnessC k) x hav
     let hcut :
         RepSeriesSum (fun q => ((r.cutSmallVal k).fn q).toFun x) := by
       simpa [IntegrableRepC3.cutSmallVal, a] using hcut0
@@ -8960,7 +9122,7 @@ theorem IntegrableRepC3.repNonneg_sub_cutNatValC {X : Type*} {S : IntSpaceC X}
   intro x hf
   simpa [IntegrableRepC3.cutNatVal] using
     f.cutConstVal_signed_valueC
-      (constSeq (Nat.cast n)) (natCast_nonnegC n) x hf
+      (constSeq (Nat.cast n)) (natCastWitnessC n) x hf
 
 #print axioms BishopSec1P.IntegrableRepC3.repNonneg_sub_cutNatValC
 
@@ -9602,20 +9764,20 @@ theorem CReal.prop42_telescopeC (φ χ : CReal) (m : Nat → CReal)
 /-- Technical lemma used in the public import closure. -/
 noncomputable def IntegrableRepC3.prop_4_2_term_valueC {X : Type*}
     {S : IntSpaceC X} {A : BishopC.BSet X} (hA : IntegrableSet1C S A)
-    (f : IntegrableRepC3 S) (c a : CReal) (ha : ¬ CReal.ltE a CReal.zero) (x : X)
+    (f : IntegrableRepC3 S) (c a : CReal) (w : CutConstWitnessC a) (x : X)
     (hχ : RepSeriesSum (fun n => (hA.rep.fn n).toFun x))
     (hf : RepSeriesSum (fun n => (f.fn n).toFun x)) :
     { hv : RepSeriesSum
             (fun n =>
-              (((hA.rep.smul c).min2 (f.sub (f.cutConstVal a ha))).fn n).toFun x) //
+              (((hA.rep.smul c).min2 (f.sub (f.cutConstVal a w))).fn n).toFun x) //
         relEventually hv.sum
           (CReal.min (CReal.mul c hχ.sum)
             (CReal.sub hf.sum (CReal.min hf.sum a))) } := by
-  obtain ⟨hg, hgeq⟩ := f.cutConstVal_signed_valueC a ha x hf
+  obtain ⟨hg, hgeq⟩ := f.cutConstVal_signed_valueC a w x hf
   obtain ⟨hm, hmeq⟩ :=
-    IntegrableRepC3.min2_valueC (hA.rep.smul c) (f.sub (f.cutConstVal a ha)) x
+    IntegrableRepC3.min2_valueC (hA.rep.smul c) (f.sub (f.cutConstVal a w)) x
       (smul_seriesSum_valueC3 c (r := hA.rep) (x := x) hχ)
-      (sub_seriesSum_valueC3 (r := f) (r' := f.cutConstVal a ha) (x := x) hf hg)
+      (sub_seriesSum_valueC3 (r := f) (r' := f.cutConstVal a w) (x := x) hf hg)
   refine ⟨hm, ?_⟩
   refine relEventually_trans _ _ _ hmeq ?_
   refine min_congrC (relEventually_refl _) ?_
@@ -9724,7 +9886,7 @@ noncomputable def IntegrableRepC3.prop_4_2_lambda_valueC {X : Type*} {S : IntSpa
   | zero =>
     obtain ⟨hv, hveq⟩ :=
       f.prop_4_2_term_valueC hA (constSeq (Nat.cast (n_k 0))) (constSeq (Nat.cast 0))
-        (natCast_nonnegC 0) x hχ hf
+        (natCastWitnessC 0) x hχ hf
     refine ⟨hv, ?_⟩
     refine relEventually_trans _ _ _ hveq ?_
     refine min_congrC
@@ -9736,7 +9898,7 @@ noncomputable def IntegrableRepC3.prop_4_2_lambda_valueC {X : Type*} {S : IntSpa
   | succ k =>
     obtain ⟨hv, hveq⟩ :=
       f.prop_4_2_term_valueC hA (constSeq (Nat.cast (n_k (k + 1) - n_k k)))
-        (constSeq (Nat.cast (n_k k))) (natCast_nonnegC (n_k k)) x hχ hf
+        (constSeq (Nat.cast (n_k k))) (natCastWitnessC (n_k k)) x hχ hf
     refine ⟨hv, ?_⟩
     refine relEventually_trans _ _ _ hveq ?_
     refine min_congrC
@@ -9786,19 +9948,6 @@ theorem natCast_le_of_leC {a b : Nat} (h : a ≤ b) :
   simpa using hstep
 
 #print axioms BishopSec1P.natCast_le_of_leC
-
-/-- Scalar nonnegativity of a natural-number cast. -/
-theorem scalar_natCast_nonneg (k : Nat) : BishopC.Le (0 : Scalar) (Nat.cast k) := by
-  induction k with
-  | zero => rw [Nat.cast_zero]; exact BishopC.le_refl 0
-  | succ k ih =>
-      rw [Nat.cast_succ]
-      have h1 : BishopC.Le (0 : Scalar) 1 := scalar_nonneg_of_pos scalarCOFOSeed.one_pos
-      have hsum : BishopC.Le ((0 : Scalar) + 0) ((Nat.cast k : Scalar) + 1) :=
-        BishopC.le_add ih h1
-      simpa using hsum
-
-#print axioms BishopSec1P.scalar_natCast_nonneg
 
 /-- The dyadic gauge cancels its natural-number reciprocal at the scalar level:
 `eps m * (2^m) = 1`. -/
@@ -11303,7 +11452,7 @@ theorem relIntegral_le_const_measure_plus_diffC {X : Type*} {S : IntSpaceC X}
     relEventually_trans _ _ _ (repSeriesSum_unique hr (seriesSum_of_absC hflatabs)) hval
   -- Technical note.
   obtain ⟨hgcut, hgcut_eq⟩ :=
-    g.cutConstVal_signed_valueC (constSeq (Nat.cast n)) (natCast_nonnegC n) x gv
+    g.cutConstVal_signed_valueC (constSeq (Nat.cast n)) (natCastWitnessC n) x gv
   -- Technical note.
   let hmodel : RepSeriesSum
       (fun k => (((hC.rep.smul (constSeq (Nat.cast n))).add (g.sub (g.cutNatVal n))).fn k).toFun x) :=
@@ -11422,25 +11571,6 @@ theorem mul_invPos_scale_cancelC (c x : CReal) (h : PosEventuallyData c) :
   exact Setoid.trans hreassoc (Setoid.trans h2 h3)
 
 #print axioms BishopSec1P.mul_invPos_scale_cancelC
-
-/-- Technical lemma used in the public import closure. -/
-def natCast_succ_posDataC (n : Nat) :
-    PosEventuallyData (constSeq (Nat.cast (n + 1) : Scalar)) where
-  k := 1
-  N := 1
-  tail_pos := by
-    intro m _hm
-    change COF.lt (eps 1) (Nat.cast (n + 1) : Scalar)
-    have heps : COF.lt (eps 1) (eps 0) := eps_succ_lt_eps 0
-    have hle : BishopC.Le (eps 0) (Nat.cast (n + 1) : Scalar) := by
-      rw [show eps 0 = (1 : Scalar) from rfl, Nat.cast_succ]
-      have h0 : BishopC.Le (0 : Scalar) (Nat.cast n : Scalar) := scalar_natCast_nonneg n
-      have hsum : BishopC.Le ((0 : Scalar) + 1) ((Nat.cast n : Scalar) + 1) :=
-        BishopC.le_add h0 (BishopC.le_refl 1)
-      simpa using hsum
-    exact BishopC.lt_of_lt_of_le heps hle
-
-#print axioms BishopSec1P.natCast_succ_posDataC
 
 /-- Technical lemma used in the public import closure. -/
 theorem relIntegral_abs_continuous_deltaC {X : Type*} {S : IntSpaceC X}

@@ -23,10 +23,9 @@ truncations of a single real,
   and `2⁻ⁿ`,
 
 and both are proved below.  Composing with the adapter of
-`Mathdemo.SourceIntegrationSpaceDef11` — whose single extra argument, truncation
-at an arbitrary constant, is available here because truncation does not change a
-domain — yields an integration space in the sense of Definition 2.1 as well.
-This is therefore a nondegenerate concrete model, and it is unconditional.
+`Mathdemo.SourceIntegrationSpaceDef11` — which is itself hypothesis-free —
+yields an integration space in the sense of Definition 2.1 as well.  This is
+therefore a nondegenerate concrete model, and it is unconditional.
 -/
 
 namespace BishopCheng
@@ -188,19 +187,19 @@ noncomputable def diracDef11 (x₀ : X) : IntegrationSpaceDef11 X where
     intro f _hf
     exact cutSmall_tendsto_point (f.toFun x₀)
 
-/-- Truncation at an arbitrary constant stays in `L`, because truncation does not
-change the domain.  This is the single extra argument of `toIntSpaceC`, and for
-point evaluation it holds — so the incomparability of Remark 2.2 is invisible in
-this model, exactly as it is in every model whose functions are total at the
-points that matter. -/
+/-- Truncation at an arbitrary constant stays in `L`, because truncation does
+not change the domain.  The adapter no longer needs this (it derives the
+interface's witnessed truncation field from Definition 1.1 itself); it is kept
+as a remark: the incomparability of Remark 2.2 is invisible in this model,
+exactly as it is in every model whose functions are total at the points that
+matter. -/
 theorem diracCutConst (x₀ : X) (a : CReal) {f : BFunC X}
     (hf : f ∈ diracL x₀) : BFunC.minC f a ∈ diracL x₀ := hf
 
 /-- The interface of Definition 2.1 for point evaluation, obtained from
-Definition 1.1 through the adapter. -/
+Definition 1.1 through the (hypothesis-free) adapter. -/
 noncomputable def diracIntSpaceC (x₀ : X) : IntSpaceC X :=
   (diracDef11 x₀).toIntSpaceC
-    (fun a _f hf => diracCutConst x₀ a hf)
 
 #print axioms BishopCheng.natGeBound_spec
 #print axioms BishopCheng.cutNat_tendsto_point

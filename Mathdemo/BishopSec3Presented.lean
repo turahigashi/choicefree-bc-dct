@@ -829,11 +829,9 @@ theorem thm36A1_ramp_value_formulaC (u v y : CReal)
 noncomputable def thm_3_6_ramp_compC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (u v : CReal)
     (hpos : PosEventuallyData (CReal.sub v u))
-    (hu : ¬ CReal.ltE u CReal.zero) : IntegrableRepC3 S :=
+    (wu : CutConstWitnessC u) : IntegrableRepC3 S :=
   (IntegrableRepC3.smul (CReal.invPos (CReal.sub v u) hpos)
-      (h.sub (h.cutConstVal u hu))).cutConstVal CReal.one
-    (fun h1 => regularSeqLtProp_irrefl CReal.zero
-      (regularSeqLtProp_trans CReal.zero CReal.one CReal.zero CReal.one_pos_E h1))
+      (h.sub (h.cutConstVal u wu))).cutConstVal CReal.one oneWitnessC
 
 #print axioms BishopSec3P.thm_3_6_ramp_compC
 
@@ -841,23 +839,20 @@ noncomputable def thm_3_6_ramp_compC {X : Type*} {S : IntSpaceC X}
 noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (u v : CReal)
     (hpos : PosEventuallyData (CReal.sub v u))
-    (hu : ¬ CReal.ltE u CReal.zero)
+    (wu : CutConstWitnessC u)
     (x : X) (hx : RepSeriesSum (fun n => (h.fn n).toFun x)) :
     { hr : RepSeriesSum
-        (fun n => ((thm_3_6_ramp_compC h u v hpos hu).fn n).toFun x) //
+        (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x) //
       relEventually hr.sum (rampFnC u v hx.sum hpos) } := by
   let inv := CReal.invPos (CReal.sub v u) hpos
-  have hone : ¬ CReal.ltE CReal.one CReal.zero := fun h1 =>
-    regularSeqLtProp_irrefl CReal.zero
-      (regularSeqLtProp_trans CReal.zero CReal.one CReal.zero CReal.one_pos_E h1)
   -- Technical note.
-  let hcut := IntegrableRepC3.cutConstVal_signed_valueC h u hu x hx
+  let hcut := IntegrableRepC3.cutConstVal_signed_valueC h u wu x hx
   let hneg : RepSeriesSum
-      (fun n => (((h.cutConstVal u hu).neg).fn n).toFun x) :=
-    neg_seriesSum_valueC3 (r := h.cutConstVal u hu) (x := x) hcut.val
+      (fun n => (((h.cutConstVal u wu).neg).fn n).toFun x) :=
+    neg_seriesSum_valueC3 (r := h.cutConstVal u wu) (x := x) hcut.val
   let hsub : RepSeriesSum
-      (fun n => ((h.sub (h.cutConstVal u hu)).fn n).toFun x) :=
-    add_seriesSum_valueC3 (r := h) (r' := (h.cutConstVal u hu).neg) (x := x) hx hneg
+      (fun n => ((h.sub (h.cutConstVal u wu)).fn n).toFun x) :=
+    add_seriesSum_valueC3 (r := h) (r' := (h.cutConstVal u wu).neg) (x := x) hx hneg
   -- hsub.sum defeq CReal.add hx.sum (CReal.neg hcut.val.sum)
   have hsub_sum : relEventually hsub.sum
       (CReal.add hx.sum (CReal.neg (CReal.min hx.sum u))) := by
@@ -866,8 +861,8 @@ noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
       (CReal.neg (CReal.min hx.sum u)) (relEventually_refl hx.sum)
       (negSeq_respects_eventually hcut.val.sum (CReal.min hx.sum u) hcut.property)
   let hsmul : RepSeriesSum
-      (fun n => ((IntegrableRepC3.smul inv (h.sub (h.cutConstVal u hu))).fn n).toFun x) :=
-    smul_seriesSum_valueC3 inv (r := h.sub (h.cutConstVal u hu)) (x := x) hsub
+      (fun n => ((IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).fn n).toFun x) :=
+    smul_seriesSum_valueC3 inv (r := h.sub (h.cutConstVal u wu)) (x := x) hsub
   -- hsmul.sum defeq CReal.mul inv hsub.sum
   have hsmul_sum : relEventually hsmul.sum
       (CReal.mul inv (CReal.add hx.sum (CReal.neg (CReal.min hx.sum u)))) := by
@@ -877,10 +872,10 @@ noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
       (relEventually_refl inv) hsub_sum
   -- Technical note.
   let hout := IntegrableRepC3.cutConstVal_signed_valueC
-    (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u hu))) CReal.one hone x hsmul
+    (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))) CReal.one oneWitnessC x hsmul
   -- Technical note.
   let hrout : RepSeriesSum
-      (fun n => ((thm_3_6_ramp_compC h u v hpos hu).fn n).toFun x) := hout.val
+      (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x) := hout.val
   refine ⟨hrout, ?_⟩
   show relEventually hout.val.sum (rampFnC u v hx.sum hpos)
   -- Technical note.
@@ -899,12 +894,12 @@ noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
 theorem thm36A1_ramp_comp_valueC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (u v : CReal)
     (hpos : PosEventuallyData (CReal.sub v u))
-    (hu : ¬ CReal.ltE u CReal.zero)
+    (wu : CutConstWitnessC u)
     (x : X) (hx : RepSeriesSum (fun n => (h.fn n).toFun x))
     (hr : RepSeriesSum
-      (fun n => ((thm_3_6_ramp_compC h u v hpos hu).fn n).toFun x)) :
+      (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x)) :
     relEventually hr.sum (rampFnC u v hx.sum hpos) := by
-  let hw := thm36A1_ramp_comp_value_witnessC h u v hpos hu x hx
+  let hw := thm36A1_ramp_comp_value_witnessC h u v hpos wu x hx
   have h1 : hr.sum ≈ hw.val.sum := repSeriesSum_unique hr hw.val
   have h2 : hw.val.sum ≈ rampFnC u v hx.sum hpos := hw.property
   exact Setoid.trans h1 h2
@@ -919,11 +914,11 @@ structure Thm36A2EndpointsC (a b : CReal) where
   beta : CReal
   gamma : CReal
   delta : CReal
-  alpha_nonneg : ¬ CReal.ltE alpha CReal.zero
+  alpha_sign : CutConstWitnessC alpha
   hpos_ba : PosEventuallyData (CReal.sub beta alpha)
   beta_lt_a : regularSeqLtProp beta a
   b_lt_gamma : regularSeqLtProp b gamma
-  gamma_nonneg : ¬ CReal.ltE gamma CReal.zero
+  gamma_sign : CutConstWitnessC gamma
   hpos_dg : PosEventuallyData (CReal.sub delta gamma)
 
 /-- Technical lemma used in the public import closure. -/
@@ -961,18 +956,20 @@ noncomputable def thm36A2_codeUV_dataC {a b : CReal} (E : Thm36A2EndpointsC a b)
   | .zero => E.hpos_dg
   | .ramp _ _ _ hposv _ => hposv
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36A2_codeU_nonnegC {a b : CReal} (ha : PosEventuallyData a)
+/-- Technical lemma used in the public import closure.  The strong sign
+witness for the lower cut point of each code: the endpoint package carries the
+witnesses for `alpha` and `gamma`, and a ramp's lower point `u` inherits
+positivity data from `0 < a ≤ u` through the choice-free Prop-to-data
+bridge. -/
+noncomputable def thm36A2_codeU_signC {a b : CReal} (ha : PosEventuallyData a)
     (E : Thm36A2EndpointsC a b) :
-    (c : Thm36A2CodeC a b) → ¬ CReal.ltE (thm36A2_codeUC E c) CReal.zero
-  | .one => E.alpha_nonneg
-  | .zero => E.gamma_nonneg
-  | .ramp u _ hau _ _ => by
-      intro hu0
-      have hae : regularSeqLtProp CReal.zero a := regularSeqLtProp_zero_of_posData ha
-      have haz : regularSeqLtProp a CReal.zero := regularSeqLtProp_of_le_of_lt hau hu0
-      exact regularSeqLtProp_irrefl CReal.zero
-        (regularSeqLtProp_trans CReal.zero a CReal.zero hae haz)
+    (c : Thm36A2CodeC a b) → CutConstWitnessC (thm36A2_codeUC E c)
+  | .one => E.alpha_sign
+  | .zero => E.gamma_sign
+  | .ramp u _ hau _ _ =>
+      .pos (posEventuallyData_of_pos_zeroC
+        (regularSeqLtProp_of_lt_of_le
+          (regularSeqLtProp_zero_of_posData ha) hau))
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36A2_codeRepFnC {a b : CReal} (E : Thm36A2EndpointsC a b)
@@ -984,7 +981,7 @@ noncomputable def thm36A2_codeRepC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) {a b : CReal} (ha : PosEventuallyData a)
     (E : Thm36A2EndpointsC a b) (c : Thm36A2CodeC a b) : IntegrableRepC3 S :=
   thm_3_6_ramp_compC h (thm36A2_codeUC E c) (thm36A2_codeVC E c)
-    (thm36A2_codeUV_dataC E c) (thm36A2_codeU_nonnegC ha E c)
+    (thm36A2_codeUV_dataC E c) (thm36A2_codeU_signC ha E c)
 
 /-- Technical lemma used in the public import closure. -/
 theorem thm36A2_one_le_zero_falseC (h : RegularSeqLe CReal.one CReal.zero) : False :=
@@ -1065,10 +1062,10 @@ theorem thm36A2_codeRep_integral_monoC {X : Type*} {S : IntSpaceC X}
   have hxsum : RepSeriesSum (fun n => (h.fn n).toFun x) := seriesSum_of_absC hxabs
   have hcval : relEventually hr.sum (thm36A2_codeRepFnC E c hxsum.sum) :=
     thm36A1_ramp_comp_valueC h (thm36A2_codeUC E c) (thm36A2_codeVC E c)
-      (thm36A2_codeUV_dataC E c) (thm36A2_codeU_nonnegC ha E c) x hxsum hr
+      (thm36A2_codeUV_dataC E c) (thm36A2_codeU_signC ha E c) x hxsum hr
   have hdval : relEventually hr'.sum (thm36A2_codeRepFnC E d hxsum.sum) :=
     thm36A1_ramp_comp_valueC h (thm36A2_codeUC E d) (thm36A2_codeVC E d)
-      (thm36A2_codeUV_dataC E d) (thm36A2_codeU_nonnegC ha E d) x hxsum hr'
+      (thm36A2_codeUV_dataC E d) (thm36A2_codeU_signC ha E d) x hxsum hr'
   have hle : RegularSeqLe (thm36A2_codeRepFnC E c hxsum.sum)
       (thm36A2_codeRepFnC E d hxsum.sum) :=
     thm36A2_codeRepFn_le_globalC hab E c d hcd hxsum.sum
@@ -16913,18 +16910,13 @@ noncomputable def thm36A2_endpointsC {a b : CReal}
       beta := beta
       gamma := gamma
       delta := delta
-      alpha_nonneg := by
-        intro h
-        exact regularSeqLtProp_irrefl CReal.zero h
+      alpha_sign := .zero (Setoid.refl CReal.zero)
       hpos_ba :=
         regularSeqLtData_zero_to_posEventuallyC
           (sub_pos_dataC (regularSeqLtData_of_ltPropC h0beta))
       beta_lt_a := hbeta_a
       b_lt_gamma := hbgamma
-      gamma_nonneg := by
-        intro h
-        exact regularSeqLtProp_irrefl CReal.zero
-          (regularSeqLtProp_trans CReal.zero gamma CReal.zero h0gamma h)
+      gamma_sign := .pos (posEventuallyData_of_pos_zeroC h0gamma)
       hpos_dg :=
         regularSeqLtData_zero_to_posEventuallyC
           (sub_pos_dataC (regularSeqLtData_of_ltPropC hgamma_delta)) }
@@ -17230,6 +17222,15 @@ theorem thm36C_levelL_nonnegC (n : Nat) :
     (regularSeqLtProp_trans CReal.zero (thm36C_levelLC h a b hab ha spD n) CReal.zero
       h0level hlt)
 
+/-- Strong sign witness for the left cut level: `0 < a < level_n` upgraded to
+positivity data through the choice-free Prop-to-data bridge. -/
+noncomputable def thm36C_levelL_signC (n : Nat) :
+    CutConstWitnessC (thm36C_levelLC h a b hab ha spD n) :=
+  .pos (posEventuallyData_of_pos_zeroC
+    (regularSeqLtProp_trans CReal.zero a (thm36C_levelLC h a b hab ha spD n)
+      (regularSeqLtProp_zero_of_posData ha)
+      (thm36C_a_lt_levelLC h a b hab ha spD n)))
+
 noncomputable def thm36C_levelL_t_ltDataC (n : Nat) :
     regularSeqLtData (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD) :=
@@ -17254,7 +17255,7 @@ noncomputable def thm36C_rampLC (n : Nat) : IntegrableRepC3 S :=
     (thm36C_levelLC h a b hab ha spD n)
     (thm36C_tC h a b hab ha spD)
     (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
-    (thm36C_levelL_nonnegC h a b hab ha spD n)
+    (thm36C_levelL_signC h a b hab ha spD n)
 
 /-- Code-level left ramp for the canonical 3.6 profile. -/
 noncomputable def thm36C_rampCodeLC (n : Nat) : Thm36A2CodeC a b :=
@@ -17379,6 +17380,15 @@ theorem thm36C_t_nonnegC :
     (regularSeqLtProp_trans CReal.zero (thm36C_tC h a b hab ha spD) CReal.zero
       h0t hlt)
 
+/-- Strong sign witness for the smooth point `t`: `0 < a < t` upgraded to
+positivity data through the choice-free Prop-to-data bridge. -/
+noncomputable def thm36C_t_signC :
+    CutConstWitnessC (thm36C_tC h a b hab ha spD) :=
+  .pos (posEventuallyData_of_pos_zeroC
+    (regularSeqLtProp_trans CReal.zero a (thm36C_tC h a b hab ha spD)
+      (regularSeqLtProp_zero_of_posData ha)
+      (thm36C_a_lt_tC h a b hab ha spD)))
+
 theorem thm36C_levelR_nonnegC (n : Nat) :
     ¬ CReal.ltE (thm36C_levelRC h a b hab ha spD n) CReal.zero := by
   have h0t : regularSeqLtProp CReal.zero (thm36C_tC h a b hab ha spD) :=
@@ -17418,7 +17428,7 @@ noncomputable def thm36C_rampRC (n : Nat) : IntegrableRepC3 S :=
     (thm36C_tC h a b hab ha spD)
     (thm36C_levelRC h a b hab ha spD n)
     (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-    (thm36C_t_nonnegC h a b hab ha spD)
+    (thm36C_t_signC h a b hab ha spD)
 
 /-- Code-level right ramp for the canonical 3.6 profile. -/
 noncomputable def thm36C_rampCodeRC (n : Nat) : Thm36A2CodeC a b :=
@@ -18287,10 +18297,10 @@ theorem IntegrableRepC3_absVal_repNonnegC {X : Type*} {S : IntSpaceC X}
 middle lane, i.e. absolute convergence of the original represented function
 at the same point. -/
 noncomputable def cutConstVal_absSeriesSum_midC {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) (ha : ¬ CReal.ltE a CReal.zero)
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a)
     (x : X)
     (hcut : RepSeriesSum
-      (fun n => absSeq (((r.cutConstVal a ha).fn n).toFun x))) :
+      (fun n => absSeq (((r.cutConstVal a w).fn n).toFun x))) :
     RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) := by
   let negFn : Nat → BFunC X :=
     fun k => BFunC.smul (CReal.neg CReal.one) (r.fn k)
@@ -18804,7 +18814,7 @@ noncomputable def thm36Cb_rampB_value_witnessC
       (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n)
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-      (thm36C_t_nonnegC h a b hab ha spD) x hx
+      (thm36C_t_signC h a b hab ha spD) x hx
 
 /-- Value witness for the B-side signed telescope term. -/
 noncomputable def thm36Cb_signedTermB_value_witnessC
@@ -18983,7 +18993,7 @@ noncomputable def thm36Ca_rampA_value_witnessC
       (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD)
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
-      (thm36C_levelL_nonnegC h a b hab ha spD n) x hx
+      (thm36C_levelL_signC h a b hab ha spD n) x hx
 
 /-- Value witness for the A-side signed telescope term. -/
 noncomputable def thm36Ca_signedTermA_value_witnessC
@@ -19111,7 +19121,7 @@ theorem thm36Ca_rampA_nonneg_on_domainC
         (thm36C_levelLC h a b hab ha spD n)
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_levelL_nonnegC h a b hab ha spD n) x hx hr
+        (thm36C_levelL_signC h a b hab ha spD n) x hx hr
   exact regularSeqNonneg_of_eventual hval
     (regularSeqNonneg_of_zero_le
       (rampFnC_zero_leC (thm36C_levelLC h a b hab ha spD n)
@@ -19555,20 +19565,15 @@ noncomputable def thm36D_hAbsA_of_rampA0AbsC (x : X)
   let up : CReal := thm36C_tC h a b hab ha spD
   let hpos : PosEventuallyData (CReal.sub up lo) :=
     thm36C_levelL_t_posEventuallyDataC h a b hab ha spD 0
-  let hu : ¬ CReal.ltE lo CReal.zero :=
-    thm36C_levelL_nonnegC h a b hab ha spD 0
+  let wu : CutConstWitnessC lo :=
+    thm36C_levelL_signC h a b hab ha spD 0
   let c : CReal := CReal.invPos (CReal.sub up lo) hpos
-  let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo hu)
+  let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo wu)
   let q : IntegrableRepC3 S := IntegrableRepC3.smul c r
-  let hOne : ¬ CReal.ltE CReal.one CReal.zero := by
-    intro hlt
-    exact regularSeqLtProp_irrefl CReal.zero
-      (regularSeqLtProp_trans CReal.zero CReal.one CReal.zero
-        CReal.one_pos_E hlt)
   let hcut : RepSeriesSum
-      (fun n => absSeq (((q.cutConstVal CReal.one hOne).fn n).toFun x)) := by
+      (fun n => absSeq (((q.cutConstVal CReal.one oneWitnessC).fn n).toFun x)) := by
     simpa [thm36C_rampLC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp
-  let hq := cutConstVal_absSeriesSum_midC q CReal.one hOne x hcut
+  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcut
   let hscaled : RepSeriesSum
       (fun n => CReal.abs (CReal.mul c ((r.fn n).toFun x))) := by
     simpa [IntegrableRepC3.smul, BFunC.smul, q, c, r] using hq
@@ -19579,7 +19584,7 @@ noncomputable def thm36D_hAbsA_of_rampA0AbsC (x : X)
     (fun n => (r.fn n).toFun x) hscaled
   simpa [r, IntegrableRepC3.sub] using
     (add_absSeriesSum_leftC
-      (r := h) (r' := (h.cutConstVal lo hu).neg) (x := x) hr)
+      (r := h) (r' := (h.cutConstVal lo wu).neg) (x := x) hr)
 
 /-- From absolute convergence of the A-side L1 limit representative at `x`,
 recover absolute convergence of the original `h` at `x`. -/
@@ -19790,7 +19795,7 @@ theorem thm36Cb_rampB_nonneg_on_domainC
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelRC h a b hab ha spD n)
         (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_t_nonnegC h a b hab ha spD) x hx hr
+        (thm36C_t_signC h a b hab ha spD) x hx hr
   exact regularSeqNonneg_of_eventual hval
     (rampFnC_bound (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) hx.sum
@@ -19808,12 +19813,12 @@ theorem thm36Cb_decrementB_nonneg_on_domainC
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelRC h a b hab ha spD n)
         (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_t_nonnegC h a b hab ha spD) x hx
+        (thm36C_t_signC h a b hab ha spD) x hx
   let Ws := thm36A1_ramp_comp_value_witnessC h
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelRC h a b hab ha spD (n + 1))
         (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD (n + 1))
-        (thm36C_t_nonnegC h a b hab ha spD) x hx
+        (thm36C_t_signC h a b hab ha spD) x hx
   let hsub : RepSeriesSum
       (fun m => (((thm36C_rampRC h a b hab ha spD (n + 1)).sub
           (thm36C_rampRC h a b hab ha spD n)).fn m).toFun x) := by
@@ -20073,20 +20078,15 @@ noncomputable def thm36D_hAbsB_of_rampB0AbsC (x : X)
   let up : CReal := thm36C_levelRC h a b hab ha spD 0
   let hpos : PosEventuallyData (CReal.sub up lo) :=
     thm36C_t_levelR_posEventuallyDataC h a b hab ha spD 0
-  let hu : ¬ CReal.ltE lo CReal.zero :=
-    thm36C_t_nonnegC h a b hab ha spD
+  let wu : CutConstWitnessC lo :=
+    thm36C_t_signC h a b hab ha spD
   let c : CReal := CReal.invPos (CReal.sub up lo) hpos
-  let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo hu)
+  let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo wu)
   let q : IntegrableRepC3 S := IntegrableRepC3.smul c r
-  let hOne : ¬ CReal.ltE CReal.one CReal.zero := by
-    intro hlt
-    exact regularSeqLtProp_irrefl CReal.zero
-      (regularSeqLtProp_trans CReal.zero CReal.one CReal.zero
-        CReal.one_pos_E hlt)
   let hcut : RepSeriesSum
-      (fun n => absSeq (((q.cutConstVal CReal.one hOne).fn n).toFun x)) := by
+      (fun n => absSeq (((q.cutConstVal CReal.one oneWitnessC).fn n).toFun x)) := by
     simpa [thm36C_rampRC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp
-  let hq := cutConstVal_absSeriesSum_midC q CReal.one hOne x hcut
+  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcut
   let hscaled : RepSeriesSum
       (fun n => CReal.abs (CReal.mul c ((r.fn n).toFun x))) := by
     simpa [IntegrableRepC3.smul, BFunC.smul, q, c, r] using hq
@@ -20097,7 +20097,7 @@ noncomputable def thm36D_hAbsB_of_rampB0AbsC (x : X)
     (fun n => (r.fn n).toFun x) hscaled
   simpa [r, IntegrableRepC3.sub] using
     (add_absSeriesSum_leftC
-      (r := h) (r' := (h.cutConstVal lo hu).neg) (x := x) hr)
+      (r := h) (r' := (h.cutConstVal lo wu).neg) (x := x) hr)
 
 /-- From absolute convergence of the B-side L1 limit representative at `x`,
 recover absolute convergence of the original `h` at `x`. -/
@@ -20591,19 +20591,19 @@ noncomputable def lemma43AlphaTendstoZeroC {X : Type*} {S : IntSpaceC X}
     lemma currently only used by Lemma 4.3. -/
 theorem lemma43CutConstVal_integral_monoC {X : Type*} {S : IntSpaceC X}
     (f : IntegrableRepC3 S) {a b : CReal}
-    (ha : ¬ a.ltE CReal.zero) (hb : ¬ b.ltE CReal.zero)
+    (wa : CutConstWitnessC a) (wb : CutConstWitnessC b)
     (hab : RegularSeqLe a b) :
-    RegularSeqLe (f.cutConstVal a ha).integral (f.cutConstVal b hb).integral := by
+    RegularSeqLe (f.cutConstVal a wa).integral (f.cutConstVal b wb).integral := by
   refine prop_1_11C
-    (isFull_interC (isFull_interC (f.cutConstVal a ha).domain_isFull
-      (f.cutConstVal b hb).domain_isFull) f.domain_isFull)
-    (f.cutConstVal a ha) (f.cutConstVal b hb) ?_
+    (isFull_interC (isFull_interC (f.cutConstVal a wa).domain_isFull
+      (f.cutConstVal b wb).domain_isFull) f.domain_isFull)
+    (f.cutConstVal a wa) (f.cutConstVal b wb) ?_
   intro x hx hr hr'
   obtain ⟨⟨_hxa, _hxb⟩, hxf⟩ := hx
   obtain ⟨_, ⟨hfabs⟩⟩ := hxf
   let hf : RepSeriesSum (fun n => (f.fn n).toFun x) := seriesSum_of_absC hfabs
-  obtain ⟨hca, hca_eq⟩ := f.cutConstVal_signed_valueC a ha x hf
-  obtain ⟨hcb, hcb_eq⟩ := f.cutConstVal_signed_valueC b hb x hf
+  obtain ⟨hca, hca_eq⟩ := f.cutConstVal_signed_valueC a wa x hf
+  obtain ⟨hcb, hcb_eq⟩ := f.cutConstVal_signed_valueC b wb x hf
   have hmin : RegularSeqLe (CReal.min hf.sum a) (CReal.min hf.sum b) := by
     apply CReal.le_minC
     · exact regularSeqLe_trans (CReal.min_le_leftC hf.sum a)
@@ -20635,16 +20635,30 @@ noncomputable def lemma43HalfPowNonnegC (n : Nat) :
     (regularSeqLtProp_trans CReal.zero (halfPow n) CReal.zero
       (regularSeqLtProp_zero_halfPow n) hneg)
 
+/-- Strong sign witness for the Lemma 4.3 threshold `alpha n`:
+`0 < 2^{-(n+1)} < alpha n` upgraded to positivity data. -/
+noncomputable def lemma43AlphaSignC {X : Type*} {S : IntSpaceC X}
+    {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h) (n : Nat) :
+    CutConstWitnessC (D.alpha n) :=
+  .pos (posEventuallyData_of_pos_zeroC
+    (regularSeqLtProp_trans CReal.zero (halfPow (n + 1)) (D.alpha n)
+      (regularSeqLtProp_zero_halfPow (n + 1)) (D.alpha_lower n)))
+
+/-- Strong sign witness for `halfPow n`. -/
+noncomputable def lemma43HalfPowSignC (n : Nat) :
+    CutConstWitnessC (halfPow n) :=
+  .pos (posEventuallyData_halfPowC n)
+
 /-- Since `alpha n < 2^{-n}`, the cutoff integral at `alpha n` is bounded by
 the dyadic cutoff integral `I(min(f,2^{-n}))`.  This is the first analytic
 estimate in Lemma 4.3 toward `I(min(f, alpha_n)) -> 0`. -/
 theorem lemma43CutAlphaIntegral_le_cutHalfPowC {X : Type*} {S : IntSpaceC X}
     {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h) (n : Nat) :
     RegularSeqLe
-      (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral
-      (h.cutConstVal (halfPow n) (lemma43HalfPowNonnegC n)).integral :=
+      (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral
+      (h.cutConstVal (halfPow n) (lemma43HalfPowSignC n)).integral :=
   lemma43CutConstVal_integral_monoC h
-    (lemma43AlphaNonnegC D n) (lemma43HalfPowNonnegC n)
+    (lemma43AlphaSignC D n) (lemma43HalfPowSignC n)
     (regularSeqLe_of_ltPropC (D.alpha_upper n))
 
 /-- For nonnegative `h`, the dyadic cutoff `min(h,2^{-n})` is bounded by the
@@ -20652,24 +20666,24 @@ standard small cutoff `min(|h|,2^{-n})`. -/
 theorem lemma43CutHalfPowIntegral_le_cutSmallC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (hnn : RepNonnegC h) (n : Nat) :
     RegularSeqLe
-      (h.cutConstVal (halfPow n) (lemma43HalfPowNonnegC n)).integral
+      (h.cutConstVal (halfPow n) (lemma43HalfPowSignC n)).integral
       (h.cutSmallVal n).integral := by
   refine prop_1_11C
     (isFull_interC (isFull_interC
-      (h.cutConstVal (halfPow n) (lemma43HalfPowNonnegC n)).domain_isFull
+      (h.cutConstVal (halfPow n) (lemma43HalfPowSignC n)).domain_isFull
       (h.cutSmallVal n).domain_isFull) h.domain_isFull)
-    (h.cutConstVal (halfPow n) (lemma43HalfPowNonnegC n))
+    (h.cutConstVal (halfPow n) (lemma43HalfPowSignC n))
     (h.cutSmallVal n) ?_
   intro x hx hr hr'
   obtain ⟨⟨_hxL, _hxR⟩, hxf⟩ := hx
   obtain ⟨_, ⟨hfabs⟩⟩ := hxf
   let hf : RepSeriesSum (fun k => (h.fn k).toFun x) := seriesSum_of_absC hfabs
   obtain ⟨hleft, hleft_eq⟩ :=
-    h.cutConstVal_signed_valueC (halfPow n) (lemma43HalfPowNonnegC n) x hf
+    h.cutConstVal_signed_valueC (halfPow n) (lemma43HalfPowSignC n) x hf
   obtain ⟨habsVal, habsVal_eq⟩ := h.absVal_signed_value x hf
   obtain ⟨hright, hright_eq0⟩ :=
     h.absVal.cutConstVal_signed_valueC
-      (constSeq (eps n)) (epsConst_nonnegC n) x habsVal
+      (constSeq (eps n)) (epsConstWitnessC n) x habsVal
   have hright_eq : hright.sum ≈ CReal.min habsVal.sum (halfPow n) := by
     simpa [halfPow, CReal.epsSeq] using hright_eq0
   have eL : hr.sum ≈ CReal.min hf.sum (halfPow n) :=
@@ -20699,7 +20713,7 @@ theorem lemma43CutAlphaIntegral_le_cutSmallC {X : Type*} {S : IntSpaceC X}
     {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h)
     (hnn : RepNonnegC h) (n : Nat) :
     RegularSeqLe
-      (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral
+      (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral
       (h.cutSmallVal n).integral :=
   regularSeqLe_trans
     (lemma43CutAlphaIntegral_le_cutHalfPowC D n)
@@ -20772,24 +20786,24 @@ theorem lemma43Min_nonnegC {x a : CReal}
   exact regularSeqNonneg_of_zero_le hle
 
 /-- A nonnegative function remains nonnegative after `cutConstVal` by a
-nonnegative cutoff. -/
+sign-witnessed cutoff. -/
 theorem lemma43CutConstVal_nonnegC {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (a : CReal) (ha : RegularSeqNonneg a)
+    (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a)
     (hr : RepNonnegC r) :
-    RepNonnegC (r.cutConstVal a (fun h => ha h)) := by
+    RepNonnegC (r.cutConstVal a w) := by
   intro x hcutAbs hcutSigned
   let hbaseAbs : RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) :=
-    cutConstVal_absSeriesSum_midC r a (fun h => ha h) x hcutAbs
+    cutConstVal_absSeriesSum_midC r a w x hcutAbs
   let hbaseSigned : RepSeriesSum (fun n => (r.fn n).toFun x) :=
     seriesSum_of_absC hbaseAbs
-  let hval := r.cutConstVal_signed_valueC a (fun h => ha h) x hbaseSigned
+  let hval := r.cutConstVal_signed_valueC a w x hbaseSigned
   have huniq : relEventually hcutSigned.sum hval.val.sum :=
     repSeriesSum_unique hcutSigned hval.val
   have hto_min : relEventually hcutSigned.sum (CReal.min hbaseSigned.sum a) :=
     relEventually_trans hcutSigned.sum hval.val.sum (CReal.min hbaseSigned.sum a)
       huniq hval.property
   have hminnn : RegularSeqNonneg (CReal.min hbaseSigned.sum a) :=
-    lemma43Min_nonnegC (hr x hbaseAbs hbaseSigned) ha
+    lemma43Min_nonnegC (hr x hbaseAbs hbaseSigned) w.not_neg
   exact regularSeqNonneg_of_eventual hto_min hminnn
 
 /-- The alpha cutoff integral is absolutely bounded by the dyadic small cutoff
@@ -20798,14 +20812,14 @@ theorem lemma43CutAlphaIntegral_abs_le_cutSmallC {X : Type*} {S : IntSpaceC X}
     {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h)
     (hnn : RepNonnegC h) (n : Nat) :
     RegularSeqLe
-      (CReal.abs ((h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral))
+      (CReal.abs ((h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral))
       (h.cutSmallVal n).integral := by
   let ralpha : IntegrableRepC3 S :=
-    h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)
+    h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)
   have hralpha_nn : RepNonnegC ralpha := by
     simpa [ralpha] using
       lemma43CutConstVal_nonnegC
-        h (D.alpha n) (lemma43AlphaNonnegC D n) hnn
+        h (D.alpha n) (lemma43AlphaSignC D n) hnn
   have hnorm_eq : ralpha.normL1 ≈ ralpha.integral :=
     IntegrableRepC3.normL1_eq_integral_of_nonnegC ralpha hralpha_nn
   have habs_le_norm : RegularSeqLe (CReal.abs ralpha.integral) ralpha.normL1 :=
@@ -20823,7 +20837,7 @@ def lemma43CutAlphaIntegral_tendsto_zeroC {X : Type*} {S : IntSpaceC X}
     {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h)
     (hnn : RepNonnegC h) :
     RepSeriesTendsto
-      (fun n => (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral)
+      (fun n => (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral)
       CReal.zero where
   mod := fun k => (IntegrableRepC3.cutSmall_tendsto_rep h).mod (k + 1)
   close := by
@@ -20853,7 +20867,7 @@ level sets between adjacent dyadic thresholds, plus the analytic cutoff
 convergence `I(min(h, alpha_n)) -> 0`. -/
 noncomputable def lemma43AlphaCutIntegralSeqC {X : Type*} {S : IntSpaceC X}
     {h : IntegrableRepC3 S} (D : Lemma43LevelSetSeqDataC h) : Nat → CReal :=
-  fun n => (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral
+  fun n => (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral
 
 /-- Algebra helper for the Lemma 4.3 sandwich: `x - x ≈ 0`. -/
 theorem lemma43SubSelfZeroC (x : CReal) : relEventually (CReal.sub x x) CReal.zero := by
@@ -21050,12 +21064,12 @@ theorem lemma43ComplementIntegral_le_cutAlphaC {X : Type*} {S : IntSpaceC X}
     (hnn : RepNonnegC h) (n : Nat) :
     RegularSeqLe
       (h.sub (IntegrableRepC3.prop_4_2_chi_f_repC (D.A n) (D.hA n) h)).integral
-      (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral := by
+      (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral := by
   let A := D.A n
   let hA := D.hA n
   let chi := IntegrableRepC3.prop_4_2_chi_f_repC A hA h
   let rL := h.sub chi
-  let rR := h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)
+  let rR := h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)
   change RegularSeqLe rL.integral rR.integral
   refine prop_1_11C
     (isFull_interC (isFull_interC (isFull_interC (isFull_interC
@@ -21092,7 +21106,7 @@ theorem lemma43ComplementIntegral_le_cutAlphaC {X : Type*} {S : IntSpaceC X}
   have hLcanon : hr.sum ≈ CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum) := by
     exact Setoid.trans (repSeriesSum_unique hr hsubModel) hsub_to_canon
   obtain ⟨hcutModel, hcut_eq⟩ :=
-    h.cutConstVal_signed_valueC (D.alpha n) (lemma43AlphaNonnegC D n) x hv
+    h.cutConstVal_signed_valueC (D.alpha n) (lemma43AlphaSignC D n) x hv
   have hRcanon : hr'.sum ≈ CReal.min hv.sum (D.alpha n) := by
     exact Setoid.trans (repSeriesSum_unique hr' hcutModel) hcut_eq
   have hvalid := hA.valid x hAchiabs
@@ -21132,11 +21146,11 @@ theorem lemma43ComplementIntegral_abs_le_cutSmallC {X : Type*} {S : IntSpaceC X}
     regularSeqLe_abs_of_nonneg (regularSeqLe_zero_of_nonneg hcomp_nn)
   have hintegral_le_alpha :
       RegularSeqLe rcomp.integral
-        (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral := by
+        (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral := by
     simpa [rcomp] using lemma43ComplementIntegral_le_cutAlphaC D hnn n
   have halpha_le_small :
       RegularSeqLe
-        (h.cutConstVal (D.alpha n) (lemma43AlphaNonnegC D n)).integral
+        (h.cutConstVal (D.alpha n) (lemma43AlphaSignC D n)).integral
         (h.cutSmallVal n).integral :=
     lemma43CutAlphaIntegral_le_cutSmallC D hnn n
   exact regularSeqLe_trans habs_le_integral

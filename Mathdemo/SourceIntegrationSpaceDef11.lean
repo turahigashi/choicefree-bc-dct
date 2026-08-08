@@ -106,6 +106,71 @@ theorem neg_one_mul_equivC (a : CReal) :
     (negSeq a)
   exact mulSeq_neg_one_left_eventually_neg cRatScalarMulArch a
 
+/-- `c·min{u,v} ≈ min{c·u, c·v}` for a nonnegative multiplier `c`.  The `min`
+mirror of `BishopSec3P.thm36A1_mul_max_zeroC`, through the halfsum identity
+`min{u,v} = ((u+v) - |u-v|)/2`. -/
+theorem mul_min_distribC (c u v : CReal) (hc : ¬ CReal.ltE c CReal.zero) :
+    CReal.mul c (CReal.min u v) ≈ CReal.min (CReal.mul c u) (CReal.mul c v) := by
+  -- The absolute-value atom of the halfsum identity.
+  set T := CReal.abs (CReal.add u (CReal.neg v)) with hT
+  -- `|c·(u-v)| ≈ c·|u-v|` for nonnegative `c`.
+  have habs_c : CReal.abs (CReal.mul c (CReal.add u (CReal.neg v))) ≈
+      CReal.mul c T :=
+    Setoid.trans (CReal.abs_mul c (CReal.add u (CReal.neg v)))
+      (mulSeqConcrete_respects_eventually cRatScalarMulArch
+        (CReal.abs c) c T T (CReal.abs_of_nonneg_E hc) (Setoid.refl T))
+  -- `c·u - c·v ≈ c·(u - v)` by ring.
+  have hprod : CReal.add (CReal.mul c u) (CReal.neg (CReal.mul c v)) ≈
+      CReal.mul c (CReal.add u (CReal.neg v)) := by
+    refine Quotient.exact ?_
+    letI : CommRing CRealQuot := cRealQuotCommRingConcreteWith cRatScalarMulArch
+    change ((mkQuot c) * (mkQuot u)) + (-((mkQuot c) * (mkQuot v)))
+      = (mkQuot c) * ((mkQuot u) + (-(mkQuot v)))
+    ring
+  -- `|c·u - c·v| ≈ c·T`.
+  have habs2 : CReal.abs (CReal.add (CReal.mul c u) (CReal.neg (CReal.mul c v))) ≈
+      CReal.mul c T :=
+    Setoid.trans (absSeq_respects_eventually _ _ hprod) habs_c
+  -- Assemble through the two halfsum identities.
+  refine Setoid.trans
+    (mulSeqConcrete_respects_eventually cRatScalarMulArch c c
+      (CReal.min u v)
+      (CReal.mul CReal.half
+        (CReal.add (CReal.add u v) (CReal.neg T)))
+      (Setoid.refl c) (CReal.min_halfsum u v))
+    (Setoid.trans ?_ (Setoid.symm (CReal.min_halfsum (CReal.mul c u) (CReal.mul c v))))
+  -- goal: c·(½·((u+v)+(−T))) ≈ ½·((c·u+c·v)+(−|c·u+(−(c·v))|))
+  have hring :
+      CReal.mul c (CReal.mul CReal.half
+        (CReal.add (CReal.add u v) (CReal.neg T)))
+      ≈ CReal.mul CReal.half
+        (CReal.add (CReal.add (CReal.mul c u) (CReal.mul c v))
+          (CReal.neg (CReal.mul c T))) := by
+    refine Quotient.exact ?_
+    letI : CommRing CRealQuot := cRealQuotCommRingConcreteWith cRatScalarMulArch
+    change (mkQuot c) * ((mkQuot CReal.half)
+        * (((mkQuot u) + (mkQuot v)) + (-(mkQuot T))))
+      = (mkQuot CReal.half)
+        * ((((mkQuot c) * (mkQuot u)) + ((mkQuot c) * (mkQuot v)))
+            + (-((mkQuot c) * (mkQuot T))))
+    ring
+  have hmid :
+      CReal.mul CReal.half
+        (CReal.add (CReal.add (CReal.mul c u) (CReal.mul c v))
+          (CReal.neg (CReal.mul c T)))
+      ≈ CReal.mul CReal.half
+        (CReal.add (CReal.add (CReal.mul c u) (CReal.mul c v))
+          (CReal.neg (CReal.abs
+            (CReal.add (CReal.mul c u) (CReal.neg (CReal.mul c v)))))) :=
+    mulSeqConcrete_respects_eventually cRatScalarMulArch
+      CReal.half CReal.half _ _ (Setoid.refl CReal.half)
+      (addSeq_respects_eventually _ _ _ _
+        (Setoid.refl (CReal.add (CReal.mul c u) (CReal.mul c v)))
+        (negSeq_respects_eventually _ _ (Setoid.symm habs2)))
+  exact Setoid.trans hring hmid
+
+#print axioms BishopCheng.mul_min_distribC
+
 namespace IntegrationSpaceDef11
 
 variable {X : Type u} (D : IntegrationSpaceDef11 X)
@@ -250,35 +315,66 @@ theorem I_nonneg {f : BFunC X} (hf : f ∈ D.L)
     (regularSeqLtProp_of_left_eventual
       (subSeq_zero_right_eventually (f.toFun x)) hfx)
 
+/-! ## The source's own truncation remark
+
+Clause (1) provides truncation at the constant `1` only.  The source's remark
+recovers `min{f,a}` for a constant `a` carrying a positivity witness by
+`min{f,a} = a·min{a⁻¹f,1}`: the witness is exactly what `a⁻¹` requires, since
+inversion of a presented real is partial and takes `PosEventuallyData` as its
+domain condition.  This is `cutPos_mem` below, and it is precisely the field
+`IntSpaceC.cutPos_mem` of the interface — so the adapter that follows needs no
+hypotheses at all.  (Truncation at exactly `0`, `min{f,0} = (f - |f|)/2`, also
+follows from clause (1); the interface derives it from its other fields as
+`IntSpaceC.cutZero_mem`, so it is not a field and the adapter owes nothing for
+it.  Truncation at an *arbitrary* constant would be strictly stronger than the
+source and fails for a negative constant in the standard models: for
+`L = L¹(ℝ)` and `a < 0`, `min(f,a) ≤ a < 0` everywhere, so `min(f,a) ∉ L`.) -/
+
+/-- **The source's remark, formalized**: truncation at a constant with a
+positivity witness, from clause (1) alone, via `min{f,a} = a·min{a⁻¹f,1}`. -/
+theorem cutPos_mem (a : CReal) (h : PosEventuallyData a) {f : BFunC X}
+    (hf : f ∈ D.L) : BFunC.minC f a ∈ D.L := by
+  have hnn : ¬ CReal.ltE a CReal.zero := (CutConstWitnessC.pos h).not_neg
+  set inv := CReal.invPos a h with hinvdef
+  have hres : BFunC.smul a (BFunC.minC (BFunC.smul inv f) CReal.one) ∈ D.L :=
+    D.smul_mem a (D.cutOne_mem (D.smul_mem inv hf))
+  refine D.L_resp hres ⟨rfl, ?_⟩
+  intro x _
+  show CReal.mul a (CReal.min (CReal.mul inv (f.toFun x)) CReal.one) ≈
+    CReal.min (f.toFun x) a
+  calc
+    CReal.mul a (CReal.min (CReal.mul inv (f.toFun x)) CReal.one)
+        ≈ CReal.min (CReal.mul a (CReal.mul inv (f.toFun x)))
+            (CReal.mul a CReal.one) :=
+          mul_min_distribC a (CReal.mul inv (f.toFun x)) CReal.one hnn
+    _ ≈ CReal.min (f.toFun x) a := by
+          refine minSeqWith_respects_eventually cRatScalarMulArch _ _ _ _
+            ?_ (CReal.mul_one a)
+          calc
+            CReal.mul a (CReal.mul inv (f.toFun x))
+                ≈ CReal.mul (CReal.mul a inv) (f.toFun x) :=
+                  Setoid.symm (CReal.mul_assoc a inv (f.toFun x))
+            _ ≈ CReal.mul CReal.one (f.toFun x) :=
+                  mulSeqConcrete_respects_eventually cRatScalarMulArch
+                    (CReal.mul a inv) CReal.one (f.toFun x) (f.toFun x)
+                    (CReal.mul_invPos_eventually_one a h)
+                    (Setoid.refl (f.toFun x))
+            _ ≈ f.toFun x := one_mul_equivC (f.toFun x)
+
 /-! ## The adapter
 
-Every field of `IntSpaceC` is now available from Definition 1.1 except **one**,
-which is taken as an explicit argument.  Isolating it is the point of the
-statement: it says precisely how far Definition 1.1 goes and what has to be
-added.
+Every field of `IntSpaceC` is available from Definition 1.1, **with no
+hypotheses**: fourteen fields out of fourteen.
 
-Note in particular that `IntSpaceC.I_nonneg` is *not* among the assumptions.  It
-is `I_nonneg` above, derived from clause (2); the interface carries it as a field
-but does not need to.
-
-* `hcut` is the gap, and it is not an artefact of the transcription.  Clause
-  (1) provides truncation at the constant `1` only.  The source's own remark
-  recovers `min{f,n}` for a positive integer `n` by `min{f,n} = n·min{n⁻¹f,1}`,
-  and `min{f,0} = (f - |f|)/2` follows from clause (1) as well; but both routes
-  need the constant to carry a positivity witness, since `n⁻¹` requires `n` to be
-  apart from `0` and a case distinction between `a = 0` and `a > 0` is not
-  available constructively.  `IntSpaceC.cutConst_mem` demands truncation at an
-  *arbitrary* constant, which for a negative constant fails in the standard
-  models: for `L = L¹(ℝ)` and `a < 0`, `min(f,a) ≤ a < 0` everywhere, so
-  `min(f,a) ∉ L`.  The two constants the development actually truncates at are
-  `n` (`cutNat`) and `εₙ` (`cutSmall`), both of which carry such a witness. -/
+Note in particular that `IntSpaceC.I_nonneg` is *not* carried as an
+assumption.  It is `I_nonneg` above, derived from clause (2); the interface
+carries it as a field but does not need to.  Likewise `IntSpaceC.cutPos_mem`
+is `cutPos_mem` above, the source's own remark on truncation at a witnessed
+positive constant. -/
 
 /-- **Adapter**: an integration space in the sense of Bishop and Cheng's
-Definition 1.1 yields the interface used by the development, given the two
-arguments discussed above. -/
-def toIntSpaceC
-    (hcut : ∀ (a : CReal) {f : BFunC X}, f ∈ D.L → BFunC.minC f a ∈ D.L) :
-    IntSpaceC X where
+Definition 1.1 yields the interface used by the development, unconditionally. -/
+def toIntSpaceC : IntSpaceC X where
   L := D.L
   I := D.I
   L_resp := D.L_resp
@@ -286,7 +382,7 @@ def toIntSpaceC
   add_mem := D.add_mem
   smul_mem := D.smul_mem
   abs_mem := D.abs_mem
-  cutConst_mem := hcut
+  cutPos_mem := fun a h {_f} hf => D.cutPos_mem a h hf
   I_add := D.I_add
   I_smul := D.I_smul
   cutNat_tendsto := D.cutNat_tendsto
@@ -302,6 +398,7 @@ end IntegrationSpaceDef11
 #print axioms BishopCheng.IntegrationSpaceDef11.smul_mem
 #print axioms BishopCheng.IntegrationSpaceDef11.I_add
 #print axioms BishopCheng.IntegrationSpaceDef11.I_smul
+#print axioms BishopCheng.IntegrationSpaceDef11.cutPos_mem
 #print axioms BishopCheng.IntegrationSpaceDef11.toIntSpaceC
 
 end BishopCheng

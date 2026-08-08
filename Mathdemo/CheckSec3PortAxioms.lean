@@ -12,7 +12,7 @@ import Mathdemo.BishopSec3Presented
 #print axioms BishopSec3P.thm36A2_codeUC
 #print axioms BishopSec3P.thm36A2_codeVC
 #print axioms BishopSec3P.thm36A2_codeUV_dataC
-#print axioms BishopSec3P.thm36A2_codeU_nonnegC
+#print axioms BishopSec3P.thm36A2_codeU_signC
 #print axioms BishopSec3P.thm36A2_codeRepFnC
 #print axioms BishopSec3P.thm36A2_codeRepC
 #print axioms BishopSec3P.thm36A2_one_le_zero_falseC
