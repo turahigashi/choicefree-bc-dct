@@ -1,8 +1,8 @@
 # choicefree-bc-dct
 
-Version: 0.3.0
+Version: 0.4.0
 
-DOI (this version): [10.5281/zenodo.21850966](https://doi.org/10.5281/zenodo.21850966)
+DOI (this version): [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -12,7 +12,7 @@ This is a clean public import-closure Lean artifact for the paper:
 
 The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 512 Lean files tracked here coincide exactly with the audited import closure of the public roots, so the artifact contains no Lean file outside the dependency closure of its public theorems.
 
-For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a field-for-field transcription of Bishop--Cheng Definition 1.1 together with an adapter to the development interface that isolates their difference in a single hypothesis, and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
+For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a field-for-field transcription of Bishop--Cheng Definition 1.1 together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it (v0.4.0), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
 
 ## Related Coq/CoRN formalization
 
@@ -188,7 +188,7 @@ This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from inva
 
 ### Current-worktree build status
 
-On 2026-08-05 a complete `./build_audit.sh` run finished with `BUILD_AUDIT_EXIT=0`: `lake build Mathdemo.CheckSec3PortAxioms` completed all 2856 build jobs (identical to the 2026-07-12 record) and the static source-closure audit passed with `closure_files: 512`, including the mathematical facade, the Definition 1.1 transcription with its adapter, and the point-evaluation model. The audit was rerun from the `v0.3.0` release tree on 2026-08-08; the shipped logs record that run.
+On 2026-08-09 a complete `./build_audit.sh` run from the repaired tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2857 and 2858 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0. The aggregate build `lake build Mathdemo` succeeded with all 2869 jobs, covering the mathematical facade, the Definition 1.1 transcription with its now hypothesis-free adapter, and the point-evaluation model. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run. The 512 Lean files tracked by the repository coincide exactly with the audited import closure of the public roots: the artifact contains no Lean file outside the dependency closure of its public theorems.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
@@ -255,7 +255,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release (software deposit DOI `10.5281/zenodo.21850966`; concept DOI `10.5281/zenodo.21850965`).
+`CITATION.cff` contains the author and DOI metadata for this release (software deposit DOI `10.5281/zenodo.21854936`; concept DOI `10.5281/zenodo.21850965`).
 
 ## Note on Lean warnings
 

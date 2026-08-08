@@ -1,6 +1,6 @@
 # Dependency closure
 
-Version: 0.3.0. This is a public import-closure artifact, not a fully minimized micro-library. Historical file names that remain in the closure are retained only because stable declarations still depend on them. Unused legacy branches with selector-style finite search have been neutralized where they were not consumed by the audited public declarations.
+Version: 0.4.0. This is a public import-closure artifact, not a fully minimized micro-library. Historical file names that remain in the closure are retained only because stable declarations still depend on them. Unused legacy branches with selector-style finite search have been neutralized where they were not consumed by the audited public declarations.
 
 
 ## Audit roots
