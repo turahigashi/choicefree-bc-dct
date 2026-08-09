@@ -1,4 +1,4 @@
-This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.7.12)  9 AUG 2026 10:03
+This is pdfTeX, Version 3.141592653-2.6-1.40.22 (TeX Live 2022/dev/Debian) (preloaded format=pdflatex 2026.7.12)  9 AUG 2026 10:27
 entering extended mode
  restricted \write18 enabled.
  %&-line parsing enabled.
@@ -431,76 +431,71 @@ athdemo . MathematicalInterface$\OT1/cmr/m/n/10.95 , the Def-i-ni-tion 1.1
  []
 
 [19] [20]
-Underfull \hbox (badness 3250) in paragraph at lines 520--520
+Underfull \hbox (badness 3250) in paragraph at lines 521--521
 []\OT1/cmr/m/n/10 D source \TS1/cmr/m/n/10 §\OT1/cmr/m/n/10 4 mea-sur-able func
 -tions
  []
 
 [21] [22] [23] [24] [25]
-Underfull \hbox (badness 10000) in paragraph at lines 660--660
+Underfull \hbox (badness 10000) in paragraph at lines 661--661
 []\OT1/cmr/m/n/10 Definitions 2.1,
  []
 
 
-Underfull \hbox (badness 2027) in paragraph at lines 666--667
-[]\OT1/cmr/m/n/10 stated so as to re-turn the ex-
+Underfull \hbox (badness 1210) in paragraph at lines 667--668
+[]\OT1/cmr/m/n/10 the for-mal-ized state-ment re-turns
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 669--669
+Underfull \hbox (badness 10000) in paragraph at lines 670--670
 []\OT1/cmr/m/n/10 hypotheses of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 669--669
+Underfull \hbox (badness 10000) in paragraph at lines 670--670
 \OT1/cmr/m/n/10 Lemma 4.14 $+$
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 669--669
+Underfull \hbox (badness 10000) in paragraph at lines 670--670
 \OT1/cmr/m/n/10 con-struc-tion of
  []
 
 
-Underfull \hbox (badness 1748) in paragraph at lines 669--670
+Underfull \hbox (badness 1748) in paragraph at lines 670--671
 []\OT1/cmr/m/n/10 returns $(\OML/cmm/m/it/10 A; N; ^^N\OT1/cmr/m/n/10 )$ as dat
 a; repa-
  []
 
 
-Underfull \hbox (badness 2181) in paragraph at lines 669--670
+Underfull \hbox (badness 2181) in paragraph at lines 670--671
 \OT1/cmr/m/n/10 ram-e-ter-i-za-tion $\OML/cmm/m/it/10 B \OT1/cmr/m/n/10 := \OMS
 /cmsy/m/n/10 ^^@\OML/cmm/m/it/10 C$ \OT1/cmr/m/n/10 (Ap-
  []
 
 
-Underfull \hbox (badness 3635) in paragraph at lines 670--670
+Underfull \hbox (badness 3635) in paragraph at lines 671--671
 []\OT1/cmr/m/n/10 Proof step (4),
  []
 
 
-Overfull \hbox (1.02876pt too wide) in paragraph at lines 654--674
+Overfull \hbox (1.02876pt too wide) in paragraph at lines 655--675
  [] 
  []
 
 [26]
-Underfull \hbox (badness 10000) in paragraph at lines 704--704
+Underfull \hbox (badness 10000) in paragraph at lines 705--705
 []$\OT1/cmtt/m/n/10 bishop _ cheng _ dominated _
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 706--706
+Underfull \hbox (badness 10000) in paragraph at lines 707--707
 []$\OT1/cmtt/m/n/10 profile _ level _ sets _ integrable _
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 709--709
+Underfull \hbox (badness 10000) in paragraph at lines 710--710
 []$\OT1/cmtt/m/n/10 uniform _ complement _ from _ profile _
- []
-
-
-Underfull \hbox (badness 10000) in paragraph at lines 709--710
-[]$\OT1/cmtt/m/n/10 lemma43UniformComplementData _ of _
  []
 
 
@@ -509,94 +504,99 @@ Underfull \hbox (badness 10000) in paragraph at lines 710--711
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 712--712
+Underfull \hbox (badness 10000) in paragraph at lines 711--712
+[]$\OT1/cmtt/m/n/10 lemma43UniformComplementData _ of _
+ []
+
+
+Underfull \hbox (badness 10000) in paragraph at lines 713--713
 []\OT1/cmr/m/n/10 Proof step (2),
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 714--715
+Underfull \hbox (badness 10000) in paragraph at lines 715--716
 []$\OT1/cmtt/m/n/10 integral _ diff _ lt _ of _ abs _ error _
  []
 
 [27] [28] [29] [30] [31] [32] [33]
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 967.
+(hyperref)                removing `math shift' on input line 968.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 967.
+(hyperref)                removing `math shift' on input line 968.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 967.
+(hyperref)                removing `math shift' on input line 968.
 
 
 Package hyperref Warning: Token not allowed in a PDF string (Unicode):
-(hyperref)                removing `math shift' on input line 967.
+(hyperref)                removing `math shift' on input line 968.
 
 [34] [35]
-Underfull \hbox (badness 10000) in paragraph at lines 1065--1065
+Underfull \hbox (badness 10000) in paragraph at lines 1066--1066
 []\OT1/cmr/m/n/10 The four clauses of Def-i-ni-tion 1.1;
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1067--1067
+Underfull \hbox (badness 10000) in paragraph at lines 1068--1068
 []\OT1/cmr/m/n/10 known (Bishop,
  []
 
 
-Overfull \hbox (3.1137pt too wide) in paragraph at lines 1061--1072
+Overfull \hbox (3.1137pt too wide) in paragraph at lines 1062--1073
  [] 
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1081--1081
+Underfull \hbox (badness 10000) in paragraph at lines 1082--1082
 []\OT1/cmr/m/n/10 Two-point cut with a mar-gin (Ap-
  []
 
 
-Overfull \hbox (3.1137pt too wide) in paragraph at lines 1077--1090
+Overfull \hbox (3.1137pt too wide) in paragraph at lines 1078--1091
  [] 
  []
 
 [36]
-Underfull \hbox (badness 1478) in paragraph at lines 1099--1099
+Underfull \hbox (badness 1478) in paragraph at lines 1100--1100
 []\OT1/cmr/m/n/10 Analysis of the trun-ca-tion clause (Ap-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1099--1099
+Underfull \hbox (badness 10000) in paragraph at lines 1100--1100
 []\OT1/cmr/m/n/10 observation
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1099--1099
+Underfull \hbox (badness 10000) in paragraph at lines 1100--1100
 \OT1/cmr/m/n/10 (v0.3.0), re-
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1099--1100
+Underfull \hbox (badness 10000) in paragraph at lines 1100--1101
 \OT1/cmr/m/n/10 in-com-pa-ra-bil-ity of the pre-repair
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1100--1100
+Underfull \hbox (badness 10000) in paragraph at lines 1101--1101
 []\OT1/cmr/m/n/10 new re-sult of
  []
 
 
-Underfull \hbox (badness 10000) in paragraph at lines 1101--1101
+Underfull \hbox (badness 10000) in paragraph at lines 1102--1102
 []\OT1/cmr/m/n/10 methodological
  []
 
 
-Underfull \hbox (badness 1902) in paragraph at lines 1101--1102
+Underfull \hbox (badness 1902) in paragraph at lines 1102--1103
 []\OT1/cmr/m/n/10 an ex-is-ten-tial propo-si-tion does not
  []
 
 
-Overfull \hbox (3.1137pt too wide) in paragraph at lines 1095--1105
+Overfull \hbox (3.1137pt too wide) in paragraph at lines 1096--1106
  [] 
  []
 
@@ -611,7 +611,7 @@ Here is how much of TeX's memory you used:
  27623 multiletter control sequences out of 15000+600000
  485600 words of font info for 90 fonts, out of 8000000 for 9000
  264 hyphenation exceptions out of 8191
- 60i,12n,63p,2016b,557s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 60i,12n,63p,2085b,557s stack positions out of 5000i,500n,10000p,200000b,80000s
  </home/toshi/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1000.600
 pk> </home/toshi/.texlive2021/texmf-var/fonts/pk/ljfour/jknappen/ec/tcrm1095.60
 0pk></usr/share/texlive/texmf-dist/fonts/type1/public/amsfonts/cm/cmbsy10.pfb><
@@ -635,10 +635,10 @@ t/fonts/type1/public/amsfonts/cm/cmsy7.pfb></usr/share/texlive/texmf-dist/fonts
 public/amsfonts/cm/cmti10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public
 /amsfonts/cm/cmtt10.pfb></usr/share/texlive/texmf-dist/fonts/type1/public/amsfo
 nts/symbols/msbm10.pfb>
-Output written on paper.pdf (42 pages, 461695 bytes).
+Output written on paper.pdf (42 pages, 462333 bytes).
 PDF statistics:
- 978 PDF objects out of 1000 (max. 8388607)
- 878 compressed objects within 9 object streams
+ 979 PDF objects out of 1000 (max. 8388607)
+ 879 compressed objects within 9 object streams
  204 named destinations out of 1000 (max. 500000)
  353 words of extra memory for PDF output out of 10000 (max. 10000000)
 
