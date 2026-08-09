@@ -5,7 +5,9 @@ import Mathdemo.BishopSec3Presented
 
 This file transcribes Definition 1.1 of the source — E. Bishop and H. Cheng,
 *Constructive Measure Theory* (Memoirs AMS 116, 1972), Section 1 — as a Lean
-structure, field for field, and relates it to the interface
+structure, clause by clause --- with the ambient notions (partial functions,
+the ambient-total encoding of `I`, the dyadic gauge) in the development's
+encoding --- and relates it to the interface
 `BishopSec1P.IntSpaceC` that the development actually uses.
 
 The source reads:
@@ -44,7 +46,8 @@ open BishopCReal BishopSec1P
 
 universe u
 
-/-- **Bishop and Cheng, Definition 1.1**, transcribed field for field. -/
+/-- **Bishop and Cheng, Definition 1.1**, transcribed clause by clause (ambient
+notions in the development's encoding; see the file header). -/
 structure IntegrationSpaceDef11 (X : Type u) where
   /-- `X` is nonempty.  (Source: "`X` is a nonempty set".) -/
   inhabited : X
