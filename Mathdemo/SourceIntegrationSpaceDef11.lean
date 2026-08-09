@@ -333,7 +333,8 @@ it.  Truncation at an *arbitrary* constant would be strictly stronger than the
 source and fails for a negative constant in the standard models: for
 `L = L¹(ℝ)` and `a < 0`, `min(f,a) ≤ a < 0` everywhere, so `min(f,a) ∉ L`.) -/
 
-/-- **The source's remark, formalized**: truncation at a constant with a
+/-- **The same algebra as the source's positive-integer remark, generalized**:
+truncation at a constant with a
 positivity witness, from clause (1) alone, via `min{f,a} = a·min{a⁻¹f,1}`. -/
 theorem cutPos_mem (a : CReal) (h : PosEventuallyData a) {f : BFunC X}
     (hf : f ∈ D.L) : BFunC.minC f a ∈ D.L := by
