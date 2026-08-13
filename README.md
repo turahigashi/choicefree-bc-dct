@@ -14,6 +14,8 @@ The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean`
 
 For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 57 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it (v0.4.0), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
 
+That facade is a *reading* layer: it states the results in the form a mathematician reads them, which for the dominated convergence theorem is the `Prop`-facing one. It is not the whole of what is formalized. The original route is the Type-valued, data-carrying one — Layer A of [Three-layer DCT interface](#three-layer-dct-interface) below — and the `Prop`-facing statement is derived from it, not the other way round.
+
 ## Related Coq/CoRN formalization
 
 Vincent Séméria previously formalized a substantial portion of Bishop--Cheng
@@ -44,7 +46,7 @@ The Lean public declarations have a separate audit profile: the named public ali
 
 ## What is proved
 
-The public aliases summarize the formalized development:
+The public aliases summarize the formalized development. Throughout this list, the suffix `C` marks a declaration of the **Type-valued, data-carrying** route (Layers A and B of the three-layer interface below); it does not indicate a `Prop`-valued statement. Names containing `prop` are the `Prop`-facing facade of Layer C, which is obtained by applying the Layer A theorem.
 
 - `ChoiceFreeMeasureDCT.profile_partition_dataC`
 - `ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC`
@@ -122,6 +124,8 @@ The declarations ending in `_autoC` internally construct the dyadic smooth-level
 `ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC` accepts Prop-valued `ConvergeInMeasureC` and an existential integrable majorant satisfying `DominatedOnFullC`. Its conclusion is Prop-valued epsilon convergence of the integral sequence.
 
 The proof opens existential witnesses from the convergence and domination hypotheses only within Prop proof goals. It does not assemble those witnesses into a global Type-valued selector. Callers who already have such a selector can instead use `DominatedOnFullDataC` and retain the Type-valued convergence modulus.
+
+This layer is choice-free because its hypotheses **and** its conclusion both live in `Prop`: eliminating a `Prop`-valued existential into a `Prop` goal requires no choice principle. The enabling condition is the conclusion, not the hypotheses — keeping the conclusion in `Type` while weakening the hypotheses to `Prop` would require `Classical.choice`. Layer A remains the original route: the Type-valued statement is not derivable inside Lean from this Prop-facing one without `Classical.choice`.
 
 ## Domination assumptions compared with CoRN
 
