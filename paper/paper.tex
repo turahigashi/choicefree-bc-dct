@@ -48,7 +48,7 @@ The contributions of the artifact are as follows.
 \begin{enumerate}[label=(\arabic*)]
 \item It gives an explicit Lean~4 theorem surface for a profile-based Bishop--Cheng dominated-convergence route over regular-sequence presented reals and an explicitly quantified integration-space structure.
 \item It gives a Lean implementation of the countable-avoidance step via Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are constructed inside the audited dependency closure.
-\item It separates a proof-relevant Type-valued kernel, automatic wrappers that synthesize smooth-level data, and a conventional Prop-facing theorem.  The Type-valued kernel includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs.  This makes the computational content visible without requiring every caller to supply the low-level data explicitly.
+\item It separates a proof-relevant Type-valued route, automatic wrappers that synthesize smooth-level data, and a separately proved Prop-facing theorem.  The Type-valued route includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs.  This makes the computational content visible without requiring every caller to supply the low-level data explicitly.
 \item It provides reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, and explicit qualifications concerning predicativity, the integration-space interface, concrete models, and priority.  The paper separately reports an exploratory historical cost attribution pinned to v0.3.0 (Section~\ref{sec:cost}).
 \end{enumerate}
 
@@ -58,12 +58,12 @@ The contributions of the artifact are as follows.
 \begin{center}\small
 \begin{tabular}{p{0.31\textwidth}|p{0.28\textwidth}|p{0.31\textwidth}}
 \textbf{Claim} & \textbf{Direct evidence} & \textbf{Qualification maintained}\\\hline
-A profile-route Bishop--Cheng dominated convergence theorem over presented reals (Theorem~\ref{thm:prop-dct}) & the Prop-facing public declaration and its Type-valued kernel (Section~\ref{sec:formalization}) & no priority over the CoRN formalization (Section~\ref{sec:related})\\\hline
-The working interface is derived hypothesis-free---all fourteen fields---from a clause-by-clause transcription of Definition~1.1 (Remark~\ref{rem:fidelity}) & \path{toIntSpaceC}; \path{logs/reading_layer_axioms.txt} & relative to the development's ambient encoding; not the memoir's full ambient setting\\\hline
+A profile-route Bishop--Cheng dominated convergence theorem over presented reals (Theorem~\ref{thm:prop-dct}) & the Prop-facing public declaration and the separately proved Type-valued route (Section~\ref{sec:formalization}) & no priority over the CoRN formalization (Section~\ref{sec:related})\\\hline
+The working interface is derived hypothesis-free---all fourteen fields---from a clause-by-clause transcription of Definition~1.1 (Remark~\ref{rem:fidelity}) & \path{toIntSpaceC} and \path{cutSmall_tendsto_of_src}; \path{logs/reading_layer_axioms.txt} & relative to the development's ambient encoding; not the memoir's full ambient setting\\\hline
 Full-set, index-dependent domination is the source's own \S1 convention with the quantifiers displayed (Definition~\ref{def:domination}) & the memoir's \S1 notational convention & not a weakening introduced by this paper\\\hline
 The named public declarations report \texttt{[propext, Quot.sound]} (Section~\ref{sec:audit}) & kernel output, static source scan, checksums, shipped logs & no claim about ZF, about predicativity, or about mathlib as a whole\\\hline
 The countable-avoidance step is discharged constructively (Section~\ref{sec:nogo}) & the explicit exception sequence and the nested-interval construction (Appendix~\ref{sec:appendix-b}) & the no-go results are not overturned; the claim is presented-reals-relative\\\hline
-The formalization cost peaks in the stratum containing the known obstruction (Section~\ref{sec:cost}) & the stratified measurement, counting pattern disclosed & one development; heuristic attribution; strata pinned at the v0.3.0 measurement\\
+An exploratory attribution places the largest per-statement ratio in the stratum containing the known obstruction (Section~\ref{sec:cost}) & the recorded v0.3.0 stratification; counting pattern disclosed & one development; the file-to-stratum and declaration-to-statement mappings are not shipped, so the attribution is neither independently reproducible nor causal; strata pinned at the v0.3.0 measurement\\
 \end{tabular}
 \end{center}
 
@@ -78,7 +78,7 @@ Two consequences matter later.  First, every real carries its own modulus by con
 
 That second consequence is Richman's construction, quoted here because it is precisely the step at which a classical argument divides into cases: ``if $a<b$ are rational numbers, then we can show that either $x<b$ or $x>a$.  Indeed let $x'$ be a rational number within $(b-a)/3$ of $x$.  If $x'\le(b+a)/2$, then $x<b$; while if $x'\ge(b+a)/2$, then $x>a$''~\cite{richman-1982}.  The branch is settled by one rational comparison at a computable accuracy, and that outcome is the datum returned by the order layer (Appendix~\ref{sec:b-order}).  Richman also states the moral this development follows throughout: a case split ``only says that the \emph{argument} is discontinuous as a function of the data, not that this discontinuity is an essential feature of the theorem''~\cite{richman-1982}.
 
-Supplying such a datum is the standard device of the subject rather than a local expedient---``we can constructivize a classical notion by supplying additional information'', and moduli witness not only Cauchyness but uniform continuity, uniform convergence, differentiability and monotonicity as well~\cite[\S27.2.1]{miyamoto-2023}---and it is not free.  Bickford states the price exactly: a theorem proved under a uniform-continuity hypothesis ``requires a modulus of continuity as an input'', whereas a hypothesis with no constructive content needs none~\cite[\S28.1]{bickford-2023}.  The Type-valued kernel of Section~\ref{sec:formalization} makes that payment explicit; the Prop-facing surface hides it again from callers who do not need it.
+Supplying such a datum is the standard device of the subject rather than a local expedient---``we can constructivize a classical notion by supplying additional information'', and moduli witness not only Cauchyness but uniform continuity, uniform convergence, differentiability and monotonicity as well~\cite[\S27.2.1]{miyamoto-2023}---and it is not free.  Bickford states the price exactly: a theorem proved under a uniform-continuity hypothesis ``requires a modulus of continuity as an input'', whereas a hypothesis with no constructive content needs none~\cite[\S28.1]{bickford-2023}.  The Type-valued route of Section~\ref{sec:formalization} makes that payment explicit; the Prop-facing surface hides it again from callers who do not need it.
 
 \subsection{Integration spaces}
 \label{sec:intspace}
@@ -352,7 +352,7 @@ Layer III: Prop-facing full-set DCT
 \end{center}
 The two columns are deliberately not joined by an arrow: Layer~III is not obtained by applying the Layer~I theorem, and Layer~I is not obtained from Layer~III either.  (The Roman numerals name API layers; the letters A--E of Section~\ref{sec:cost} name cost strata, a different partition.)  The distinction between the layers is the distinction between a proof that merely asserts convergence and a proof that returns the modulus.  In Lean, a statement in \texttt{Prop} is proof-irrelevant, and an arbitrary witness hidden in a \texttt{Prop}-valued existential cannot in general be eliminated into \texttt{Type} (data can nevertheless be recomputed when an independent decidable search produces a witness---Appendix~\ref{sec:b-onepoint}); a statement in \texttt{Type} is proof-relevant, and its inhabitants are data that later constructions may consume.  A mathematician may read Layer~III as the theorem and Layers~I--II as the same theorem with the witnesses kept.  More precisely, the Type-valued surface is a data refinement rather than an equivalent restatement: it demands and returns witnesses.  A direct wrapper from the Prop-facing hypotheses to that surface would have to extract indexed witnesses hidden in \texttt{Prop} and would therefore require an additional choice principle.  The artifact instead proves the Prop-facing and Type-valued routes separately; this is an interface and implementation claim, not a theorem of logical non-derivability between the two complete statements.  ``Returns data'' means that a proof-relevant term exists; efficient program extraction is not claimed, and the fact that some public aliases are marked \texttt{noncomputable} is not evidence of choice either way (Section~\ref{sec:audit}).
 
-\paragraph{Layer I: Type-valued data-carrying kernel.}
+\paragraph{Layer I: Type-valued data-carrying route.}
 The declarations
 \begin{quote}\small\raggedright
 \path{ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC}\par
@@ -751,7 +751,7 @@ Proof step~(5) & --- & \path{integral_diff_lt_of_abs_error_integral_ltC} \\
 \end{tabular}
 \end{center}
 
-\noindent Public aliases are in the namespace \path{ChoiceFreeMeasureDCT}; implementation declarations are in \path{BishopSec1P} or \path{BishopSec3P}.  The complete list of public aliases, including the Type-valued kernel and the automatic wrappers of Section~\ref{sec:formalization}, is in \path{ChoiceFreeMeasureDCTPublic.lean}.
+\noindent Public aliases are in the namespace \path{ChoiceFreeMeasureDCT}; implementation declarations are in \path{BishopSec1P} or \path{BishopSec3P}.  The complete list of public aliases, including the Type-valued route and the automatic wrappers of Section~\ref{sec:formalization}, is in \path{ChoiceFreeMeasureDCTPublic.lean}.
 
 \section{Constructions specific to the formalization, and their mathematical status}
 \label{sec:appendix-b}
