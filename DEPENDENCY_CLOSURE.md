@@ -1,6 +1,6 @@
 # Dependency closure
 
-Version: 0.4.0. This is a public import-closure artifact, not a fully minimized micro-library. Historical file names that remain in the closure are retained only because stable declarations still depend on them. Unused legacy branches with selector-style finite search have been neutralized where they were not consumed by the audited public declarations.
+Version: 0.4.1. This is a public import-closure artifact, not a fully minimized micro-library. Historical file names that remain in the closure are retained only because stable declarations still depend on them. Unused legacy branches with selector-style finite search have been neutralized where they were not consumed by the audited public declarations.
 
 
 ## Audit roots
@@ -14,7 +14,7 @@ Version: 0.4.0. This is a public import-closure artifact, not a fully minimized 
 
 ## Public transitive Lean source closure
 
-The audited closure of the public roots contains the following 512 Lean files (regenerated from `logs/static_audit.txt` of the v0.3.0 release run, 2026-08-08). This list coincides exactly with the set of Lean files tracked by the repository.
+The audited closure of the public roots contains the following 512 Lean files. The list was first generated from `logs/static_audit.txt` of the v0.3.0 release run (2026-08-08) and is unchanged through v0.4.1: the 2026-08-28 `build_audit.sh` run from the v0.4.1 tree reports `closure_files: 512` in `logs/build_audit.txt`, and this list coincides exactly with the set of Lean files tracked by the repository at tag `v0.4.1`.
 
 - `ChoiceFreeMeasureDCTPublic.lean`
 - `Mathdemo/BishopSec3PresentedEnhancementsC.lean`
