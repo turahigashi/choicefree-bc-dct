@@ -628,7 +628,7 @@ A complete \path{./build_audit.sh} run from the v0.4.1 tree finished on 2026-08-
 
 The scope of the build audit should be delimited.  The three reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, and \path{Mathdemo.DiracIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built among the jobs above.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes all $2869$ jobs, and a dedicated reading-layer audit covers all $73$ declarations---including the hypothesis-free adapter \path{toIntSpaceC} and the gauge bridge---of which $72$ report \texttt{[propext, Quot.sound]} while \path{BishopCheng.ComplementedSet} reports no axioms at all.  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the 512-file invariant is preserved, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-The artifact is tagged \texttt{v\CFBDCTVersion}.  The requirement that the tagged release receive a complete \path{./build_audit.sh} run is met by the run from the release tree just described.  The software deposit~\cite{artifact} carries the Lean code and the audit apparatus only; the paper source is not part of the deposit.
+The artifact is tagged \texttt{v\CFBDCTVersion}.  The requirement that the tagged release receive a complete \path{./build_audit.sh} run is met by the run from the release tree just described.  The software deposit~\cite{artifact}, version DOI \doi{10.5281/zenodo.22137161}, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \section*{Use of AI-assisted tools}
 Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code, and in drafting and revising the prose of this paper.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, reviewed and edited the manuscript text, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
@@ -1437,7 +1437,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
 \newblock Version \CFBDCTVersion, tagged 2026-08-28.  Software deposit, Zenodo.
-\newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.  The version DOI for v\CFBDCTVersion\ is assigned on deposit.
+\newblock Version DOI: \doi{10.5281/zenodo.22137161}; concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}
 

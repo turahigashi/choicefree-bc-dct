@@ -3,9 +3,11 @@
 - Artifact name: `choicefree-bc-dct`
 - Version: `0.4.1`
 - Date: 2026-08-28
-- DOI (software deposit, this version): assigned on deposit (previous version v0.4.0: `10.5281/zenodo.21854936`)
+- DOI (software deposit, this version): `10.5281/zenodo.22137161`
+- DOI (previous version v0.4.0): `10.5281/zenodo.21854936`
 - DOI (all versions): `10.5281/zenodo.21850965`
-- Published: pending (previous version v0.4.0 published 2026-08-09, https://zenodo.org/record/21854936)
+- Published: 2026-08-28 (Zenodo, https://zenodo.org/record/22137161)
+- Git tag: `v0.4.1`
 - Lean version: `leanprover/lean4:v4.30.0`
 - mathlib revision: `v4.30.0`
 

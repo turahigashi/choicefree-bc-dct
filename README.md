@@ -2,7 +2,7 @@
 
 Version: 0.4.1
 
-DOI (this version): assigned on deposit.  Previous version v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
+DOI (this version): [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  previous version v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -259,7 +259,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release (concept DOI `10.5281/zenodo.21850965`; the v0.4.1 software deposit DOI is assigned on deposit, the v0.4.0 deposit DOI was `10.5281/zenodo.21854936`).
+`CITATION.cff` contains the author and DOI metadata for this release (software deposit DOI `10.5281/zenodo.22137161`; concept DOI `10.5281/zenodo.21850965`, which resolves to the latest version).
 
 ## Note on Lean warnings
 

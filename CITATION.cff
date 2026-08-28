@@ -7,6 +7,6 @@ authors:
     given-names: Toshihisa
 version: "0.4.1"
 date-released: "2026-08-28"
-doi: "10.5281/zenodo.21850965"
+doi: "10.5281/zenodo.22137161"
 license: MIT
 repository-code: "https://github.com/turahigashi/choicefree-bc-dct"
