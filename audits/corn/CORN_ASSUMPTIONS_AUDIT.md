@@ -1,8 +1,8 @@
 # CoRN/Rocq assumptions audit for Semeria's Bishop--Cheng DCT declarations
 
-This directory contains a small reproducibility package for the independently
-reproduced Rocq assumptions audit of Vincent Séméria's Bishop--Cheng dominated
-convergence development in CoRN.
+This directory contains a small reproducibility package for the Rocq assumptions audit of
+Vincent Séméria's Bishop--Cheng dominated
+convergence development in CoRN, reproduced by the present author—independently of the original authors' report—from the pinned CoRN snapshot.
 
 ## Audited source
 

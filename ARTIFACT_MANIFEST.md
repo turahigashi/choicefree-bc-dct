@@ -84,7 +84,7 @@ The underlying `0.2.2` development line added a separated L1/integral public API
 
 ## CoRN audit package
 
-`audits/corn/` contains a minimal reproducibility package for the independently reproduced Rocq `Print Assumptions` audit. It does not include a CoRN clone, build products, Docker layers, OPAM caches, or development-history archives.
+`audits/corn/` contains a minimal reproducibility package for the Rocq `Print Assumptions` audit reproduced by the present author from the pinned CoRN snapshot. It does not include a CoRN clone, build products, Docker layers, OPAM caches, or development-history archives.
 
 ## Development archive
 
