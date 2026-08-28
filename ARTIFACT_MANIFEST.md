@@ -1,11 +1,11 @@
 # Artifact manifest
 
 - Artifact name: `choicefree-bc-dct`
-- Version: `0.4.0`
-- Date: 2026-08-09
-- DOI (software deposit, this version): `10.5281/zenodo.21854936`
+- Version: `0.4.1`
+- Date: 2026-08-28
+- DOI (software deposit, this version): assigned on deposit (previous version v0.4.0: `10.5281/zenodo.21854936`)
 - DOI (all versions): `10.5281/zenodo.21850965`
-- Published: 2026-08-09 (Zenodo, https://zenodo.org/record/21854936)
+- Published: pending (previous version v0.4.0 published 2026-08-09, https://zenodo.org/record/21854936)
 - Lean version: `leanprover/lean4:v4.30.0`
 - mathlib revision: `v4.30.0`
 
@@ -52,7 +52,7 @@ cd audits/corn && sha256sum -c SHA256SUMS
 
 `./build_audit.sh` runs the public theorem build, the public alias files, and the strengthened static no-choice audit. The script writes local rerun logs to `logs/build_audit.rerun.txt` and `logs/static_audit.rerun.txt`; shipped reference logs remain stable.
 
-Release status: on 2026-08-09 a complete `./build_audit.sh` run from the repaired tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2857 and 2858 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0. The aggregate build `lake build Mathdemo` succeeded with all 2869 jobs, covering the mathematical facade, the Definition 1.1 transcription with its now hypothesis-free adapter, and the point-evaluation model. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run (re-stamped `artifact_version=0.4.0`).  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the 2869-job aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 57 reading-layer declarations (56 report `[propext, Quot.sound]`, one reports no axioms). The 512 Lean files tracked by the repository coincide exactly with the audited import closure of the public roots: the artifact contains no Lean file outside the dependency closure of its public theorems.
+Release status: on 2026-08-28 a complete `./build_audit.sh` run from the v0.4.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858 and 2869 jobs in the shipped log; the 2869-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0 and v0.4.0. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run (`artifact_version=0.4.1`).  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 73 reading-layer declarations (72 report `[propext, Quot.sound]`, one reports no axioms). The 512 Lean files tracked by the repository coincide exactly with the audited import closure of the public roots: the artifact contains no Lean file outside the dependency closure of its public theorems.
 
 ## Expected result summary
 
@@ -66,7 +66,7 @@ Release status: on 2026-08-09 a complete `./build_audit.sh` run from the repaire
 
 ## Development-line additions
 
-Version `0.4.0` (release) repairs the integration-space interface. The arbitrary-constant truncation clause `cutConst_mem` is replaced by a positivity-witnessed clause `cutPos_mem`; the zero cut is derived as a lemma from linearity, absolute value, and equality-respect; a witness type `CutConstWitnessC` (positive/zero) threads the data through the development, and every use site carries a canonical witness. As a consequence the adapter from the field-for-field transcription of Bishop--Cheng Definition 1.1 is now hypothesis-free: all fourteen fields of the working interface are derived from the verbatim structure, so the working interface is satisfied by every integration space in the verbatim sense. The full audit was rerun from the repaired tree (see Release status).
+Version `0.4.0` (release) repairs the integration-space interface. The arbitrary-constant truncation clause `cutConst_mem` is replaced by a positivity-witnessed clause `cutPos_mem`; the zero cut is derived as a lemma from linearity, absolute value, and equality-respect; a witness type `CutConstWitnessC` (positive/zero) threads the data through the development, and every use site carries a canonical witness. As a consequence all fourteen fields of the working interface became derivable, without extra hypotheses, from the clause-by-clause encoded transcription of Bishop--Cheng Definition 1.1.  Version `0.4.1` machine-checks the remaining gauge passage: the transcription now states clause (4) at the source's own gauge `1/(n+1)`, and `cutSmall_tendsto_of_src` derives the dyadic-gauge field used by the working interface.  The reverse comparison `srcGauge_le_halfPow` is used by the point-evaluation model. The full audit was rerun from the repaired tree (see Release status).
 
 Version `0.3.0` (release) added three modules on top of the audited closure without reorganizing it: `Mathdemo/MathematicalInterface.lean`, a thin mathematical facade (36 declarations, mathematician-facing names, all auditing to `[propext, Quot.sound]`, with implementation counterparts matching 20/20 on axiom footprints) that Part I of the paper transcribes; `Mathdemo/SourceIntegrationSpaceDef11.lean`, a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 with an adapter to the development interface that isolates the difference in a single hypothesis (truncation at an arbitrary constant); and `Mathdemo/DiracIntegrationSpace.lean`, an unconditional normalized point-evaluation model. It also freezes the full-audit status above. The archived software deposit for this version excludes the `paper/` sources, which are maintained in the development repository.
 

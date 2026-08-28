@@ -1,14 +1,16 @@
 import Mathdemo.BishopSec3Presented
 
 /-!
-# Bishop and Cheng's Definition 1.1, verbatim
+# Bishop and Cheng's Definition 1.1: a clause-by-clause encoded transcription
 
-This file transcribes Definition 1.1 of the source — E. Bishop and H. Cheng,
-*Constructive Measure Theory* (Memoirs AMS 116, 1972), Section 1 — as a Lean
-structure, clause by clause --- with the ambient notions (partial functions,
-the ambient-total encoding of `I`, the dyadic gauge) in the development's
-encoding --- and relates it to the interface
-`BishopSec1P.IntSpaceC` that the development actually uses.
+This file gives a clause-by-clause transcription of the four displayed clauses
+of Definition 1.1 of E. Bishop and H. Cheng, *Constructive Measure Theory*
+(Memoirs AMS 116, 1972), Section 1, relative to the development's encoding of
+the ambient notions.  In particular, partial functions are represented by total
+operations together with domains, `I` is ambient-total, and the source's
+apartness and strong-extensionality structures are not represented here.  The
+file then derives, without additional hypotheses, all fourteen fields of the
+working interface `BishopSec1P.IntSpaceC`.
 
 The source reads:
 
@@ -42,9 +44,124 @@ make its ambient convention explicit.
 
 namespace BishopCheng
 
-open BishopCReal BishopSec1P
+open BishopCReal BishopSec1P BishopSec3P
 
 universe u
+
+/-! ## The source gauge `1/(n+1)`
+
+Clause (4) of the source reads `limₙ I(min{|f|,n⁻¹}) = 0`.  The constant is the
+source's own `n⁻¹`, built here as a presented real from a positivity witness;
+no rational inverse is assumed.  The development's interface uses the dyadic
+gauge `2⁻ⁿ`, and the passage from one to the other is the machine-checked
+result `IntegrationSpaceDef11.cutSmall_tendsto_of_src` below. -/
+
+/-- The source's gauge `1/(n+1)`, as a presented real with a positivity
+witness. -/
+def srcGauge (n : Nat) : CReal :=
+  CReal.invPos (constSeq (Nat.cast (n + 1))) (natCast_succ_posDataC n)
+
+/-- `1/(n+1)` is positive. -/
+def srcGauge_posData (n : Nat) : PosEventuallyData (srcGauge n) :=
+  CReal.invPos_posData _ (natCast_succ_posDataC n)
+
+/-- The source's small cut `min{|f|, 1/(n+1)}` of clause (4). -/
+def cutSmallSrc (n : Nat) (f : BFunC X) : BFunC X :=
+  BFunC.minC (BFunC.absf f) (srcGauge n)
+
+/-- `2^{-(n+1)} ≤ 1/(n+1)`: the dyadic gauge is dominated by the source gauge
+at the same index.  The proof multiplies through by `n+1` and cancels, the
+same algebra as the source's own remark `min{f,n} = n·min{n⁻¹f,1}`. -/
+theorem halfPow_succ_le_srcGauge (n : Nat) :
+    RegularSeqLe (halfPow (n + 1)) (srcGauge n) := by
+  let denom : CReal := constSeq (Nat.cast (n + 1))
+  let hpos : PosEventuallyData denom := natCast_succ_posDataC n
+  let T : Nat := 2 ^ (n + 1)
+  have hnat : n + 1 ≤ T := BishopC.lemma33H4_succ_le_two_pow_succ n
+  have hcast : RegularSeqLe denom (constSeq (Nat.cast T)) :=
+    natCast_leC (n + 1) T hnat
+  have hhp_nn : RegularSeqNonneg (halfPow (n + 1)) :=
+    regularSeqNonneg_of_zero_le
+      (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_halfPow (n + 1)))
+  have hsg_nn : RegularSeqNonneg (srcGauge n) :=
+    regularSeqNonneg_of_zero_le
+      (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_of_posData (srcGauge_posData n)))
+  have hprod_nn : RegularSeqNonneg (CReal.mul (halfPow (n + 1)) (srcGauge n)) :=
+    CReal.mul_nonneg_E hhp_nn hsg_nn
+  have hmul : RegularSeqLe
+      (CReal.mul denom (CReal.mul (halfPow (n + 1)) (srcGauge n)))
+      (CReal.mul (constSeq (Nat.cast T)) (CReal.mul (halfPow (n + 1)) (srcGauge n))) :=
+    regularSeqLe_mul_right_of_nonnegC hcast hprod_nn
+  have hleft : CReal.mul denom (CReal.mul (halfPow (n + 1)) (srcGauge n))
+      ≈ halfPow (n + 1) :=
+    mul_invPos_scale_cancelC denom (halfPow (n + 1)) hpos
+  have hscalar : (Nat.cast T : Scalar) * eps (n + 1) = 1 := by
+    show (Nat.cast (2 ^ (n + 1)) : Scalar) * eps (n + 1) = 1
+    rw [mul_comm]
+    exact eps_mul_natCast_twoPow (n + 1)
+  have hunit : CReal.mul (constSeq (Nat.cast T)) (halfPow (n + 1)) ≈ CReal.one := by
+    calc CReal.mul (constSeq (Nat.cast T)) (halfPow (n + 1))
+        = CReal.mul (constSeq (Nat.cast T)) (constSeq (eps (n + 1))) := rfl
+      _ ≈ constSeq ((Nat.cast T : Scalar) * eps (n + 1)) :=
+        constSeq_mulC (Nat.cast T) (eps (n + 1))
+      _ = CReal.one := by rw [hscalar]; rfl
+  have hright : CReal.mul (constSeq (Nat.cast T))
+      (CReal.mul (halfPow (n + 1)) (srcGauge n)) ≈ srcGauge n := by
+    calc CReal.mul (constSeq (Nat.cast T)) (CReal.mul (halfPow (n + 1)) (srcGauge n))
+        ≈ CReal.mul (CReal.mul (constSeq (Nat.cast T)) (halfPow (n + 1))) (srcGauge n) :=
+          Setoid.symm (CReal.mul_assoc _ _ _)
+      _ ≈ CReal.mul CReal.one (srcGauge n) :=
+          CReal.mul_respects_equiv _ CReal.one _ _ hunit (Setoid.refl _)
+      _ ≈ srcGauge n := CReal.one_mul _
+  exact regularSeqLe_of_left_eventual (Setoid.symm hleft)
+    (regularSeqLe_of_right_eventual hright hmul)
+
+/-- `1/(n+1) ≤ 2^{-k}` whenever `2^k ≤ n+1`: an eventual reverse comparison
+from the source gauge to a prescribed dyadic gauge. -/
+theorem srcGauge_le_halfPow {k n : Nat} (h : 2 ^ k ≤ n + 1) :
+    RegularSeqLe (srcGauge n) (halfPow k) := by
+  let denom : CReal := constSeq (Nat.cast (n + 1))
+  let hpos : PosEventuallyData denom := natCast_succ_posDataC n
+  have hcast : RegularSeqLe (constSeq (Nat.cast (2 ^ k))) denom :=
+    natCast_leC (2 ^ k) (n + 1) h
+  have hhp_nn : RegularSeqNonneg (halfPow k) :=
+    regularSeqNonneg_of_zero_le
+      (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_halfPow k))
+  have hsg_nn : RegularSeqNonneg (srcGauge n) :=
+    regularSeqNonneg_of_zero_le
+      (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_of_posData (srcGauge_posData n)))
+  have hprod_nn : RegularSeqNonneg (CReal.mul (halfPow k) (srcGauge n)) :=
+    CReal.mul_nonneg_E hhp_nn hsg_nn
+  have hmul : RegularSeqLe
+      (CReal.mul (constSeq (Nat.cast (2 ^ k))) (CReal.mul (halfPow k) (srcGauge n)))
+      (CReal.mul denom (CReal.mul (halfPow k) (srcGauge n))) :=
+    regularSeqLe_mul_right_of_nonnegC hcast hprod_nn
+  have hright : CReal.mul denom (CReal.mul (halfPow k) (srcGauge n)) ≈ halfPow k :=
+    mul_invPos_scale_cancelC denom (halfPow k) hpos
+  have hscalar : (Nat.cast (2 ^ k) : Scalar) * eps k = 1 := by
+    rw [mul_comm]
+    exact eps_mul_natCast_twoPow k
+  have hunit : CReal.mul (constSeq (Nat.cast (2 ^ k))) (halfPow k) ≈ CReal.one := by
+    calc CReal.mul (constSeq (Nat.cast (2 ^ k))) (halfPow k)
+        = CReal.mul (constSeq (Nat.cast (2 ^ k))) (constSeq (eps k)) := rfl
+      _ ≈ constSeq ((Nat.cast (2 ^ k) : Scalar) * eps k) :=
+        constSeq_mulC (Nat.cast (2 ^ k)) (eps k)
+      _ = CReal.one := by rw [hscalar]; rfl
+  have hleft : CReal.mul (constSeq (Nat.cast (2 ^ k)))
+      (CReal.mul (halfPow k) (srcGauge n)) ≈ srcGauge n := by
+    calc CReal.mul (constSeq (Nat.cast (2 ^ k))) (CReal.mul (halfPow k) (srcGauge n))
+        ≈ CReal.mul (CReal.mul (constSeq (Nat.cast (2 ^ k))) (halfPow k)) (srcGauge n) :=
+          Setoid.symm (CReal.mul_assoc _ _ _)
+      _ ≈ CReal.mul CReal.one (srcGauge n) :=
+          CReal.mul_respects_equiv _ CReal.one _ _ hunit (Setoid.refl _)
+      _ ≈ srcGauge n := CReal.one_mul _
+  exact regularSeqLe_of_left_eventual (Setoid.symm hleft)
+    (regularSeqLe_of_right_eventual hright hmul)
+
+#print axioms BishopCheng.srcGauge_le_halfPow
+#print axioms BishopCheng.srcGauge
+#print axioms BishopCheng.cutSmallSrc
+#print axioms BishopCheng.halfPow_succ_le_srcGauge
 
 /-- **Bishop and Cheng, Definition 1.1**, transcribed clause by clause (ambient
 notions in the development's encoding; see the file header). -/
@@ -85,9 +202,12 @@ structure IntegrationSpaceDef11 (X : Type u) where
   /-- (4) `limₙ I(min{f,n}) = I(f)`, with a modulus. -/
   cutNat_tendsto : ∀ {f : BFunC X}, f ∈ L →
     RepSeriesTendsto (fun n => I (BFunC.cutNat n f)) (I f)
-  /-- (4) `limₙ I(min{|f|,n⁻¹}) = 0`, with a modulus. -/
-  cutSmall_tendsto : ∀ {f : BFunC X}, f ∈ L →
-    RepSeriesTendsto (fun n => I (BFunC.cutSmall n f)) CReal.zero
+  /-- (4) `limₙ I(min{|f|,n⁻¹}) = 0`, with a modulus.  The cut is at the
+  source's own gauge `1/(n+1)` (`cutSmallSrc`), not at the development's
+  dyadic gauge; the two are related by the machine-checked theorem
+  `cutSmall_tendsto_of_src`. -/
+  cutSmallSrc_tendsto : ∀ {f : BFunC X}, f ∈ L →
+    RepSeriesTendsto (fun n => I (cutSmallSrc n f)) CReal.zero
 
 /-! ## Consequences of clause (1)
 
@@ -365,6 +485,154 @@ theorem cutPos_mem (a : CReal) (h : PosEventuallyData a) {f : BFunC X}
                     (Setoid.refl (f.toFun x))
             _ ≈ f.toFun x := one_mul_equivC (f.toFun x)
 
+/-! ## The gauge bridge
+
+The interface field `IntSpaceC.cutSmall_tendsto` is stated at the dyadic gauge
+`2⁻ⁿ`.  Clause (4) above is stated at the source's gauge `1/(n+1)`.  The
+passage from the latter to the former is proved here, so that the adapter
+below derives every field of the interface from Definition 1.1 itself. -/
+
+/-- Reproduction of a one-line lemma that is `private` upstream. -/
+theorem addC_congr {a a' b b' : CReal} (ha : a ≈ a') (hb : b ≈ b') :
+    CReal.add a b ≈ CReal.add a' b' :=
+  CReal.add_respects_equiv a a' b b' ha hb
+
+/-- Reproduction of a one-line lemma that is `private` upstream. -/
+theorem addC_negOne_mul_right_sub (a b : CReal) :
+    CReal.add a (CReal.mul (CReal.neg CReal.one) b) ≈ CReal.sub a b := by
+  change addSeq a (mulSeqConcreteWith cRatScalarMulArch (negSeq oneSeq) b) ≈ subSeq a b
+  exact addSeq_negOneMul_right_eventually_subSeq cRatScalarMulArch a b
+
+/-- Reproduction of a lemma proved downstream of this module. -/
+theorem ltProp_abs_sub_of_repClose_succ {x y : CReal} {K : Nat}
+    (hclose : RepCloseAtGauge (K + 1) x y) :
+    regularSeqLtProp (CReal.abs (CReal.sub x y)) (halfPow K) := by
+  rcases hclose with ⟨N, hN⟩
+  have hlt : regularSeqLtData (absSeq (subSeq x y)) (constSeq (eps K)) := by
+    refine ⟨K + 2, N, ?_⟩
+    intro n hn
+    have hle_point : BishopCReal.Le
+        (BishopC.COF_core.abs (x.val (n + 2) - y.val (n + 2))) (eps (K + 1)) :=
+      hN (n + 2) (Nat.le_trans hn (Nat.le_add_right n 2))
+    have hgap := scalar_eps_gap_of_le_succ
+      (a := BishopC.COF_core.abs (x.val (n + 2) - y.val (n + 2))) K hle_point
+    simpa [subSeq, subVal, constSeq, constVal, absSeq, absVal, addIndex]
+      using hgap
+  simpa [CReal.abs, CReal.sub, halfPow, CReal.epsSeq] using hlt.toProp
+
+/-- `z ≤ |z - 0|`. -/
+theorem le_abs_sub_zero (z : CReal) :
+    RegularSeqLe z (CReal.abs (CReal.sub z CReal.zero)) := by
+  have h1 : RegularSeqLe z (absSeq z) := base_le_abs_base_regularSeqLe z
+  have h2 : relEventually (absSeq z) (absSeq (subSeq z zeroSeq)) :=
+    relEventually_symm _ _ (absSeq_respects_eventually (subSeq z zeroSeq) z
+      (subSeq_zero_right_eventually z))
+  exact regularSeqLe_of_right_eventual h2 h1
+
+/-- `I(f + (-1)·g) ≈ I f - I g`. -/
+theorem I_sub {f g : BFunC X} (hf : f ∈ D.L) (hg : g ∈ D.L) :
+    D.I (BFunC.add f (BFunC.smul (CReal.neg CReal.one) g)) ≈
+      CReal.sub (D.I f) (D.I g) := by
+  have hsmul : D.I (BFunC.smul (CReal.neg CReal.one) g) ≈
+      CReal.mul (CReal.neg CReal.one) (D.I g) :=
+    D.I_smul (CReal.neg CReal.one) hg
+  calc
+    D.I (BFunC.add f (BFunC.smul (CReal.neg CReal.one) g))
+        ≈ CReal.add (D.I f) (D.I (BFunC.smul (CReal.neg CReal.one) g)) :=
+          D.I_add hf (D.smul_mem (CReal.neg CReal.one) hg)
+    _ ≈ CReal.add (D.I f) (CReal.mul (CReal.neg CReal.one) (D.I g)) :=
+          addC_congr (Setoid.refl (D.I f)) hsmul
+    _ ≈ CReal.sub (D.I f) (D.I g) :=
+          addC_negOne_mul_right_sub (D.I f) (D.I g)
+
+/-- Monotonicity of `I`, from clause (2) through `I_nonneg`. -/
+theorem I_mono {f g : BFunC X}
+    (hf : f ∈ D.L) (hg : g ∈ D.L) (hfg : BFunC.PointwiseLE f g) :
+    RegularSeqLe (D.I f) (D.I g) := by
+  let neg_f : BFunC X := BFunC.smul (CReal.neg CReal.one) f
+  let diff : BFunC X := BFunC.add g neg_f
+  have hneg_mem : neg_f ∈ D.L := by
+    simpa [neg_f] using D.smul_mem (CReal.neg CReal.one) hf
+  have hdiff_mem : diff ∈ D.L := by
+    simpa [diff] using D.add_mem hg hneg_mem
+  have hdiff_nn : BFunC.PointwiseNonneg diff := by
+    intro x hx
+    have hxf : x ∈ f.dom := by
+      have hx' : x ∈ g.dom ∩ f.dom := by
+        simpa [diff, neg_f, BFunC.add, BFunC.smul] using hx
+      exact hx'.2
+    have hdiff_val :
+        relEventually (diff.toFun x) (subSeq (g.toFun x) (f.toFun x)) := by
+      change relEventually
+        (addSeq (g.toFun x)
+          (mulSeqConcreteWith cRatScalarMulArch (negSeq oneSeq) (f.toFun x)))
+        (subSeq (g.toFun x) (f.toFun x))
+      exact addSeq_negOneMul_right_eventually_subSeq
+        cRatScalarMulArch (g.toFun x) (f.toFun x)
+    have hdiff_zero_to_sub :
+        relEventually (subSeq (diff.toFun x) zeroSeq)
+          (subSeq (g.toFun x) (f.toFun x)) :=
+      relEventually_trans
+        (subSeq (diff.toFun x) zeroSeq) (diff.toFun x)
+        (subSeq (g.toFun x) (f.toFun x))
+        (subSeq_zero_right_eventually (diff.toFun x)) hdiff_val
+    change RegularSeqNonneg (subSeq (diff.toFun x) zeroSeq)
+    exact regularSeqNonneg_of_eventual hdiff_zero_to_sub (hfg.le_val x hxf)
+  have hI_diff_nonneg : RegularSeqLe zeroSeq (D.I diff) :=
+    D.I_nonneg hdiff_mem hdiff_nn
+  have hI_to_sub : relEventually (D.I diff) (subSeq (D.I g) (D.I f)) := by
+    simpa [diff, neg_f] using D.I_sub hg hf
+  have hzero_sub : RegularSeqLe zeroSeq (subSeq (D.I g) (D.I f)) :=
+    regularSeqLe_of_right_eventual hI_to_sub hI_diff_nonneg
+  change RegularSeqNonneg (subSeq (D.I g) (D.I f))
+  exact regularSeqNonneg_of_zero_le hzero_sub
+
+/-- `min{|f|, 1/(n+1)} ∈ L`, by clause (1) through `cutPos_mem`. -/
+theorem cutSmallSrc_mem {f : BFunC X} (hf : f ∈ D.L) (n : Nat) :
+    cutSmallSrc n f ∈ D.L :=
+  D.cutPos_mem (srcGauge n) (srcGauge_posData n) (D.abs_mem hf)
+
+/-- `min{|f|, 2⁻ⁿ} ∈ L`, by clause (1) through `cutPos_mem`. -/
+theorem cutSmall_mem {f : BFunC X} (hf : f ∈ D.L) (n : Nat) :
+    BFunC.cutSmall n f ∈ D.L :=
+  D.cutPos_mem (halfPow n) (epsConst_posDataC n) (D.abs_mem hf)
+
+/-- Pointwise `min{|f|, 2^{-(n+1)}} ≤ min{|f|, 1/(n+1)}`. -/
+theorem cutSmall_succ_le_cutSmallSrc (f : BFunC X) (n : Nat) :
+    BFunC.PointwiseLE (BFunC.cutSmall (n + 1) f) (cutSmallSrc n f) where
+  dom_eq := rfl
+  le_val := fun _x _hx => CReal.min_right_monoC (halfPow_succ_le_srcGauge n)
+
+/-- **The gauge bridge.**  Clause (4) at the source's gauge `1/(n+1)` yields
+the interface's clause at the dyadic gauge `2⁻ⁿ`, with the modulus
+reindexed. -/
+def cutSmall_tendsto_of_src {f : BFunC X} (hf : f ∈ D.L)
+    (h : RepSeriesTendsto (fun n => D.I (cutSmallSrc n f)) CReal.zero) :
+    RepSeriesTendsto (fun n => D.I (BFunC.cutSmall n f)) CReal.zero where
+  mod := fun k => h.mod (k + 1) + 1
+  close := by
+    intro k n hn
+    obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
+    have hm : h.mod (k + 1) ≤ m := by omega
+    have hclose : RepCloseAtGauge (k + 1 + 1) (D.I (cutSmallSrc m f)) CReal.zero :=
+      h.close (k + 1) m hm
+    have hy : regularSeqLtProp
+        (CReal.abs (CReal.sub (D.I (cutSmallSrc m f)) CReal.zero)) (halfPow (k + 1)) :=
+      ltProp_abs_sub_of_repClose_succ hclose
+    have hnn : BFunC.PointwiseNonneg (BFunC.cutSmall (m + 1) f) := by
+      intro x hx
+      exact regularSeqLe_zero_of_nonneg
+        (lemma43Min_nonnegC (absSeq_regularSeqNonneg (f.toFun x))
+          (regularSeqNonneg_of_zero_le
+            (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_halfPow (m + 1)))))
+    have hx : RegularSeqNonneg (D.I (BFunC.cutSmall (m + 1) f)) :=
+      regularSeqNonneg_of_zero_le (D.I_nonneg (D.cutSmall_mem hf (m + 1)) hnn)
+    have hcmp : RegularSeqLe (D.I (BFunC.cutSmall (m + 1) f)) (D.I (cutSmallSrc m f)) :=
+      D.I_mono (D.cutSmall_mem hf (m + 1)) (D.cutSmallSrc_mem hf m)
+        (cutSmall_succ_le_cutSmallSrc f m)
+    exact repCloseAtGauge_zero_of_nonneg_le_ltC hx
+      (regularSeqLe_trans hcmp (le_abs_sub_zero _)) hy
+
 /-! ## The adapter
 
 Every field of `IntSpaceC` is available from Definition 1.1, **with no
@@ -390,7 +658,7 @@ def toIntSpaceC : IntSpaceC X where
   I_add := D.I_add
   I_smul := D.I_smul
   cutNat_tendsto := D.cutNat_tendsto
-  cutSmall_tendsto := D.cutSmall_tendsto
+  cutSmall_tendsto := fun {_f} hf => D.cutSmall_tendsto_of_src hf (D.cutSmallSrc_tendsto hf)
   I_nonneg := D.I_nonneg
   continuity := D.continuity
 
@@ -403,6 +671,12 @@ end IntegrationSpaceDef11
 #print axioms BishopCheng.IntegrationSpaceDef11.I_add
 #print axioms BishopCheng.IntegrationSpaceDef11.I_smul
 #print axioms BishopCheng.IntegrationSpaceDef11.cutPos_mem
+#print axioms BishopCheng.IntegrationSpaceDef11.I_sub
+#print axioms BishopCheng.IntegrationSpaceDef11.I_mono
+#print axioms BishopCheng.IntegrationSpaceDef11.cutSmallSrc_mem
+#print axioms BishopCheng.IntegrationSpaceDef11.cutSmall_mem
+#print axioms BishopCheng.IntegrationSpaceDef11.cutSmall_succ_le_cutSmallSrc
+#print axioms BishopCheng.IntegrationSpaceDef11.cutSmall_tendsto_of_src
 #print axioms BishopCheng.IntegrationSpaceDef11.toIntSpaceC
 
 end BishopCheng

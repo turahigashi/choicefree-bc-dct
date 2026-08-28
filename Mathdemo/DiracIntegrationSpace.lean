@@ -13,16 +13,16 @@ evaluation at a fixed point `x₀`.
 model of Bishop and Cheng's Definition 1.1 clause (3), which the zero-integral
 space is not.
 
-**Every clause of Definition 1.1 is discharged, with no hypotheses.**  The two
-limits of clause (4) reduce, for point evaluation, to two statements about the
-truncations of a single real,
+**Every clause of Definition 1.1 is discharged, with no hypotheses.**  For
+point evaluation, the two source-level limits of clause (4) reduce to
+statements about the truncations of a single real,
 
 * `min{c,n} → c`, which holds with a constant modulus once `n` passes the
   Archimedean bound of `c`, and
-* `min{|c|,2⁻ⁿ} → 0`, which holds because the truncation is squeezed between `0`
-  and `2⁻ⁿ`,
+* `min{|c|,1/(n+1)} → 0`, the source-gauge limit used by `diracDef11`,
 
-and both are proved below.  Composing with the adapter of
+and both are proved below, together with the auxiliary dyadic limit
+`min{|c|,2⁻ⁿ} → 0`.  Composing with the adapter of
 `Mathdemo.SourceIntegrationSpaceDef11` — which is itself hypothesis-free —
 yields an integration space in the sense of Definition 2.1 as well.  This is
 therefore a nondegenerate concrete model, and it is unconditional.
@@ -146,6 +146,39 @@ noncomputable def cutSmall_tendsto_point (c : CReal) :
       exact regularSeqLtProp_of_le_of_lt (halfPow_antitone_leC hn)
         (regularSeqLtProp_halfPow_succ (k + 1))
 
+/-- **The second limit of clause (4) at the source's gauge**, for a single
+real: `min{|c|, 1/(n+1)} → 0`.  Same squeeze as the dyadic version, with
+`srcGauge_le_halfPow` supplying the eventual bound. -/
+noncomputable def cutSmallSrc_tendsto_point (c : CReal) :
+    RepSeriesTendsto
+      (fun n : Nat => CReal.min (CReal.abs c) (srcGauge n)) CReal.zero where
+  mod := fun k => 2 ^ (k + 2)
+  close := by
+    intro k n hn
+    refine BishopSec3P.lemma43RepCloseAtGauge_zero_of_abs_le_ltC
+      (y := srcGauge n) ?_ ?_
+    · have hcomm : relEventually (CReal.min (CReal.abs c) (srcGauge n))
+          (CReal.min (srcGauge n) (CReal.abs c)) :=
+        minSeqWith_comm_eventually cRatScalarMulArch _ _
+      have habs :
+          relEventually (CReal.abs (CReal.min (CReal.abs c) (srcGauge n)))
+            (CReal.abs (CReal.min (srcGauge n) (CReal.abs c))) :=
+        absSeq_respects_eventually _ _ hcomm
+      have h1 :
+          RegularSeqLe (CReal.abs (CReal.min (srcGauge n) (CReal.abs c)))
+            (CReal.abs (srcGauge n)) :=
+        CReal.abs_min_const_le (absSeq_regularSeqNonneg c) _
+      have h2 : CReal.abs (srcGauge n) ≈ srcGauge n :=
+        CReal.abs_of_nonneg_E
+          (regularSeqNonneg_of_zero_le
+            (regularSeqLe_of_ltPropC
+              (regularSeqLtProp_zero_of_posData (srcGauge_posData n))))
+      exact regularSeqLe_of_right_eventual h2
+        (regularSeqLe_of_left_eventual habs h1)
+    · exact regularSeqLtProp_of_le_of_lt
+        (srcGauge_le_halfPow (Nat.le_succ_of_le hn))
+        (regularSeqLtProp_halfPow_succ (k + 1))
+
 /-- **Point evaluation is an integration space in the sense of Definition 1.1**,
 with no remaining hypotheses. -/
 noncomputable def diracDef11 (x₀ : X) : IntegrationSpaceDef11 X where
@@ -183,9 +216,9 @@ noncomputable def diracDef11 (x₀ : X) : IntegrationSpaceDef11 X where
   cutNat_tendsto := by
     intro f _hf
     exact cutNat_tendsto_point (f.toFun x₀)
-  cutSmall_tendsto := by
+  cutSmallSrc_tendsto := by
     intro f _hf
-    exact cutSmall_tendsto_point (f.toFun x₀)
+    exact cutSmallSrc_tendsto_point (f.toFun x₀)
 
 /-- Truncation at an arbitrary constant stays in `L`, because truncation does
 not change the domain.  The adapter no longer needs this (it derives the
@@ -204,6 +237,7 @@ noncomputable def diracIntSpaceC (x₀ : X) : IntSpaceC X :=
 #print axioms BishopCheng.natGeBound_spec
 #print axioms BishopCheng.cutNat_tendsto_point
 #print axioms BishopCheng.cutSmall_tendsto_point
+#print axioms BishopCheng.cutSmallSrc_tendsto_point
 #print axioms BishopCheng.diracDef11
 #print axioms BishopCheng.diracIntSpaceC
 #print axioms BishopCheng.diracCutConst

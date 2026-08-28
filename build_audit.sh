@@ -8,7 +8,7 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== toolchain =="
   lean --version
   lake --version
-  echo "artifact_version=0.4.0"
+  echo "artifact_version=0.4.1"
   echo "== lake build Mathdemo.CheckSec3PortAxioms =="
   lake build Mathdemo.CheckSec3PortAxioms
   echo "== lake build public DCT implementation support modules =="
@@ -29,6 +29,12 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   lake env lean SupplementChoiceFreeMeasureDCT.lean
   echo "== lake env lean ChoiceFreeMeasureDCTPublic.lean =="
   lake env lean ChoiceFreeMeasureDCTPublic.lean
+  echo "== lake build Mathdemo =="
+  lake build Mathdemo
+  echo "== reading-layer axiom report =="
+  python3 tools/generate_reading_layer_axioms.py --output .lake/reading_layer_axioms_check.lean
+  lake env lean .lake/reading_layer_axioms_check.lean > logs/reading_layer_axioms.rerun.txt
+  python3 tools/check_reading_layer_axioms.py logs/reading_layer_axioms.rerun.txt
   echo "== python3 tools/static_no_choice_audit.py =="
   python3 tools/static_no_choice_audit.py | tee "$STATIC_LOG"
 } 2>&1 | tee "$RUN_LOG"

@@ -1,8 +1,8 @@
 # choicefree-bc-dct
 
-Version: 0.4.0
+Version: 0.4.1
 
-DOI (this version): [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
+DOI (this version): assigned on deposit.  Previous version v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -12,9 +12,9 @@ This is a clean public import-closure Lean artifact for the paper:
 
 The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 512 Lean files tracked here coincide exactly with the audited import closure of the public roots, so the artifact contains no Lean file outside the dependency closure of its public theorems.
 
-For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 57 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it (v0.4.0), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
+For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 73 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it, including the machine-checked passage from the source's gauge `n⁻¹` to the development's dyadic gauge `2⁻ⁿ` (v0.4.1), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
 
-That facade is a *reading* layer: it states the results in the form a mathematician reads them, which for the dominated convergence theorem is the `Prop`-facing one. It is not the whole of what is formalized. The original route is the Type-valued, data-carrying one — Layer A of [Three-layer DCT interface](#three-layer-dct-interface) below — and the `Prop`-facing statement is derived from it, not the other way round.
+That facade is a *reading* layer: it states the results in the form a mathematician reads them, which for the dominated convergence theorem is the `Prop`-facing one. It is not the whole of what is formalized. The original route is the Type-valued, data-carrying one — Layer A of [Three-layer DCT interface](#three-layer-dct-interface) below.  The Type-valued route and the `Prop`-facing route share the profile and measure-theoretic infrastructure, but their endpoints are assembled separately.  The `Prop`-facing theorem is not obtained by applying the Layer A full-set theorem, because its `Prop`-valued convergence and domination hypotheses do not expose the indexed Type-valued selectors that Layer A requires.  Conversely, the `Prop`-valued conclusion does not by itself supply Layer A's data-valued convergence output.  A direct wrapper extracting those hidden witnesses would require an additional choice principle; the artifact does not claim a general logical non-derivability theorem between the two complete statements.
 
 ## Related Coq/CoRN formalization
 
@@ -46,7 +46,7 @@ The Lean public declarations have a separate audit profile: the named public ali
 
 ## What is proved
 
-The public aliases summarize the formalized development. Throughout this list, the suffix `C` marks a declaration of the **Type-valued, data-carrying** route (Layers A and B of the three-layer interface below); it does not indicate a `Prop`-valued statement. Names containing `prop` are the `Prop`-facing facade of Layer C, which is obtained by applying the Layer A theorem.
+The public aliases summarize the formalized development. Throughout this list, the suffix `C` marks a declaration of the **Type-valued, data-carrying** route (Layers A and B of the three-layer interface below); it does not indicate a `Prop`-valued statement. Names containing `prop` are the `Prop`-facing facade of Layer C.  Layer C is proved on its own `Prop`-level route and does not apply the Layer A theorem; see [Layer C](#layer-c-prop-facing-theorem) below.
 
 - `ChoiceFreeMeasureDCT.profile_partition_dataC`
 - `ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC`
@@ -125,7 +125,7 @@ The declarations ending in `_autoC` internally construct the dyadic smooth-level
 
 The proof opens existential witnesses from the convergence and domination hypotheses only within Prop proof goals. It does not assemble those witnesses into a global Type-valued selector. Callers who already have such a selector can instead use `DominatedOnFullDataC` and retain the Type-valued convergence modulus.
 
-This layer is choice-free because its hypotheses **and** its conclusion both live in `Prop`: eliminating a `Prop`-valued existential into a `Prop` goal requires no choice principle. The enabling condition is the conclusion, not the hypotheses — keeping the conclusion in `Type` while weakening the hypotheses to `Prop` would require `Classical.choice`. Layer A remains the original route: the Type-valued statement is not derivable inside Lean from this Prop-facing one without `Classical.choice`.
+This layer is choice-free because its hypotheses **and** its conclusion both live in `Prop`: existential witnesses can be opened inside the final `Prop` proof without constructing a global Type-valued selector. Layer A remains a separate data-carrying route. A direct conversion from these `Prop`-valued hypotheses to Layer A's indexed selector would require an additional choice principle; no such conversion is used here.
 
 ## Domination assumptions compared with CoRN
 
@@ -259,7 +259,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release (software deposit DOI `10.5281/zenodo.21854936`; concept DOI `10.5281/zenodo.21850965`).
+`CITATION.cff` contains the author and DOI metadata for this release (concept DOI `10.5281/zenodo.21850965`; the v0.4.1 software deposit DOI is assigned on deposit, the v0.4.0 deposit DOI was `10.5281/zenodo.21854936`).
 
 ## Note on Lean warnings
 
