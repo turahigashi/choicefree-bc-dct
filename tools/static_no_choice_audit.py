@@ -28,6 +28,17 @@ BANNED_REGEXES = [
     ("open scoped Classical", re.compile(r"(?<![A-Za-z0-9_'])open\s+scoped\s+Classical(?![A-Za-z0-9_'])")),
     ("open Classical", re.compile(r"(?<![A-Za-z0-9_'])open\s+Classical(?![A-Za-z0-9_'])")),
     ("classical", re.compile(r"(?<![A-Za-z0-9_'])classical(?![A-Za-z0-9_'])")),
+    # Added in v0.4.2.  The first six close gaps that a literal scan of the
+    # earlier list left open; the last catches a vacuous statement, which the
+    # token scan otherwise cannot see (it detects vacuous proofs, not vacuous
+    # statements).  All seven report zero on the v0.4.2 closure.
+    ("axiom declaration", re.compile(r"(?m)^\s*axiom\s")),
+    ("Quotient.out", re.compile(r"(?<![A-Za-z0-9_'])Quotient\.out(?![A-Za-z0-9_'])")),
+    ("partial def", re.compile(r"(?m)^\s*partial\s+def\s")),
+    ("implemented_by", re.compile(r"implemented_by")),
+    ("extern", re.compile(r"@\[extern")),
+    ("debug.skipKernelTC", re.compile(r"debug\.skipKernelTC")),
+    ("conclusion True", re.compile(r":\s*True\s*:=")),
 ]
 
 def strip_comments(src: str) -> str:
