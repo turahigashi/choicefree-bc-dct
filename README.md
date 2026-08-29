@@ -149,9 +149,50 @@ The development further includes CReal-native support for the countable-avoidanc
 
 `Mathdemo.ChoiceFreeDCTExamples` contains abstract application examples that call both the explicit-smooth and automatic public DCT aliases from proof terms rather than merely checking their names. `Mathdemo.ChoiceFreeDCTConcreteExamples` contains a concrete `PUnit` zero-integral example. This example is intentionally degenerate; it demonstrates end-to-end use of the public API on a nonempty concrete carrier. A nontrivial finite integration model remains future work.
 
+## Reading the file names
+
+The file names record the order in which the development was built, not a topical
+organisation of the mathematics.  What follows is a key, so that a reader can find
+any part of it without reading the whole.
+
+The 512 Lean files fall into three places.
+
+| Location | Files | What is there |
+|---|---:|---|
+| repository root | 3 | `ChoiceFreeMeasureDCTPublic.lean` (the paper-facing aliases), `Mathdemo.lean` (aggregation module, the root of the audited closure), `SupplementChoiceFreeMeasureDCT.lean` (supplementary axiom checks) |
+| `Mathdemo/` | 15 | the named modules: the presented reals, the two Bishop sections that carry the proof, the Theorem 4.15 endpoints, the reading interface, the Definition 1.1 transcription, the point-evaluation model, the examples, and the axiom-check modules |
+| `Mathdemo/Internal/` | 494 | implementation |
+
+Inside `Mathdemo/Internal`, the names come in four families.
+
+| Family | Files | What the name means |
+|---|---:|---|
+| `BishopB`, `BishopB_Completeness`, `BishopSec2_L1`, `BishopSec3_Profile`, `BishopSec4_Convergence`, `BishopSec5_Measure` | 6 | the abstract ordered-field interface (`BishopB`) and the generic route through the sections of the source: `SecN` is the source's section N.  These are stated over an abstract constructive ordered field, not over the presented reals; the public theorems take the presented-real route |
+| `CRat_iter1` ... `CRat_iter500` | 425 | sequential build stages.  The number is a position in the build order, not a topic |
+| `Sec4_Phase2_IB_*_iteration1` | 56 | the decomposition of one step of Section 4 (the uniform `I_B` frontier) into small pieces; the letters and digits are positions in that decomposition |
+| `Sec4_*_iteration1`, `Sec4GenIB`, `Nodes` | 7 | the remaining Section 4 stages and two small aggregation modules |
+
+**The names of the `CRat_iter*` files carry no information; the doc-string at the
+top of each file does.**  419 of the 425 begin with a module doc-string naming
+their content, for instance
+
+```
+CRat_iter4    # CReal regular-sequence layer over the live `CRat` scalar
+CRat_iter20   # CReal eventual Bishop equality
+CRat_iter138  # G38: Definition 1.6, `L1` integrable functions over Bishop RegularSeq reals
+CRat_iter300  # G201: data-carrying mid constructor source for Proposition 4.12
+CRat_iter431  # Stage A11: section 4 data-carrying remainder audit
+```
+
+so `grep -n '^# ' Mathdemo/Internal/CRat_iter*.lean` prints a table of contents for
+the whole family.  The chain is close to linear: 387 of the 425 import exactly one
+other file of the family, and in 386 of those the imported number is smaller, so the
+numbering also gives a topological order.  The remaining 38 additionally import one
+of the named `Bishop*` or `Sec4_*` modules.
+
 ## Internal-code status
 
-`Mathdemo/Internal` contains implementation details in the audited transitive import closure. Files named `CRat_iter*` retain historical or generated intermediate stages that are still in the public import closure. These files are not the intended public API, and this artifact does not claim a large-scale cleanup of the internal implementation library.
+`Mathdemo/Internal` contains implementation details in the audited transitive import closure. Files named `CRat_iter*` retain historical or generated intermediate stages that are still in the public import closure. These files are not the intended public API, and this artifact does not claim a large-scale cleanup of the internal implementation library.  The paper reports the size of this closure as a measurement rather than as a design: the cost figures of its Section 11 are figures for the development as it was actually built.
 
 ## Build and audit
 
