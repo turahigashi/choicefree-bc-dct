@@ -11,3 +11,7 @@ logs/reading_layer_axioms.rerun.txt
 paper/*.aux
 paper/*.log
 paper/*.out
+
+# Python bytecode from running the audit tools
+__pycache__/
+*.pyc
