@@ -27,6 +27,21 @@ noncomputable def profile_partition_dataC
         (BishopCReal.CReal.mul (BishopCReal.constSeq (n + 1)) eps)) :=
   BishopSec3P.lemma_3_4DataC P heps n hn h_cond
 
+/-- Theorem 3.5: all but countably many points of `[a,b]` are smooth for the
+profile, with the exceptional sequence returned explicitly. -/
+theorem profile_smooth_away_from_sequenceC
+    {a b : BishopCReal.CReal}
+    {hab : BishopCReal.regularSeqLtProp a b}
+    (P : BishopSec3P.ProfileC a b hab) :
+    Exists (fun T : Nat -> BishopCReal.CReal =>
+      forall t : BishopCReal.CReal,
+        BishopCReal.RegularSeqLe a t -> BishopCReal.RegularSeqLe t b ->
+        (forall n : Nat,
+          BishopCReal.regularSeqLtProp BishopCReal.CReal.zero
+            (BishopCReal.CReal.abs (BishopCReal.CReal.sub t (T n)))) ->
+        P.IsSmoothAtC t) :=
+  BishopSec3P.thm_3_5_smooth_aeC P
+
 noncomputable def profile_level_sets_integrable_apartC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (h : BishopSec1P.IntegrableRepC3 S)
@@ -304,6 +319,7 @@ noncomputable def bishop_cheng_dominated_convergence_propC
 end ChoiceFreeMeasureDCT
 
 #check ChoiceFreeMeasureDCT.profile_partition_dataC
+#check ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
 #check ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
 #check ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #check ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
@@ -324,6 +340,7 @@ end ChoiceFreeMeasureDCT
 #check ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC
 
 #print axioms ChoiceFreeMeasureDCT.profile_partition_dataC
+#print axioms ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
 #print axioms ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
 #print axioms ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #print axioms ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC

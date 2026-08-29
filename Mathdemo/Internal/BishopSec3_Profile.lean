@@ -7,11 +7,6 @@ namespace BishopC
 
 variable {X R : Type*} [COFOC R]
 
-/-- Technical lemma used in the public import closure. -/
-def ContinuousOn (a b : R) (f : R → R) : Prop :=
-  -- Technical note.
-  True
-
 universe u
 
 /-- Technical lemma used in the public import closure. -/
@@ -509,12 +504,6 @@ explicit data.
 def lemma33Iter (next : Nat → Nat) : Nat → Nat
   | 0 => 0
   | j + 1 => next (lemma33Iter next j)
-
-
-/-- Legacy finite-location marker.  The audited public DCT declarations do not
-use the earlier double-negation elimination branch. -/
-theorem lemma33_lt_of_not_le {a b : R} (h : ¬ Le a b) : True := by
-  trivial
 
 
 /-- A positive summand is strictly smaller than the sum. -/
@@ -5001,19 +4990,6 @@ theorem lemma34_out_rel_N_pos
   have hp := B.proper
   rw [← hEq] at hp
   exact COF.lt_irrefl B.left hp
-
-
-/-- Legacy finite-location branch.  The audited public DCT declarations use the
-data-carrying C route and do not consume this earlier finite-search theorem. -/
-theorem lemma34_out_exists_cell
-    {a b : R} {hab : COF.lt a b} {P : Profile a b hab}
-    {a' b' : R} {m : Nat} {eps delta : R}
-    (r : Lemma33RelResult P a' b' m eps delta) {x : R}
-    (hN : 0 < r.N)
-    (hleft : Le (r.pts 0) x)
-    (hright : Le x (r.pts r.N)) :
-    True := by
-  trivial
 
 
 /-- A positive source index is retained by `lemma34_childBlocksOfResult`. -/

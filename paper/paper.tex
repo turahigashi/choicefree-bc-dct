@@ -169,7 +169,7 @@ Let $[a,b]\subset\mathbb{R}$ be a compact proper interval and let $C[a,b]$ be th
 Let $\lambda:F\to\mathbb{R}$ be non-decreasing, i.e.\ $\lambda(f)\le\lambda(g)$ whenever $f\le g$ pointwise on $[a,b]$.  Then $(F,\lambda)$ is a \emph{profile} on $[a,b]$.
 \end{definition}
 
-The example to keep in mind is $\lambda(f)=\int_a^b f(x)\,dx$; this sentence is the source's own.  A profile is thus a monotone functional on a supply of ramp functions, and condition~(c) says that the supply is rich enough to separate any two levels.  (The formalization states the definition in a coded form in which condition~(c) returns the separating function; Appendix~\ref{sec:b-coded}.)
+The example to keep in mind is $\lambda(f)=\int_a^b f(x)\,dx$; this sentence is the source's own.  A profile is thus a monotone functional on a supply of ramp functions, and condition~(c) says that the supply is rich enough to separate any two levels.  (The formalization states the definition in a coded form in which condition~(c) returns the separating function; Appendix~\ref{sec:b-coded}.  The coded structure records (a)--(c) and the monotonicity of $\lambda$, and carries \emph{no} continuity clause: where the source takes $F\subseteq C[a,b]$, the formalized profile requires of its members only the displayed conditions.  This weakens the hypothesis, so the formalized Theorems~\ref{thm:3-5} and~\ref{thm:3-6} are correspondingly more general than the source's; and since the structure has no continuity field, nothing downstream can depend on continuity.)
 
 \begin{definition}[Smooth level; introduced in the source inside the text of its Theorem~3.5]
 \label{def:smooth}
@@ -370,14 +370,19 @@ The public declarations ending in \texttt{\_autoC} internally construct the dyad
 \paragraph{Layer III: Prop-facing theorem.}
 The declaration \path{ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC} accepts Prop-valued \path{ConvergeInMeasureC} and an existential integrable majorant satisfying \path{DominatedOnFullC}.  It concludes Prop-valued epsilon convergence of the integral sequence.  Existential witnesses from convergence and full-set domination are opened only inside Prop proof goals, not assembled into the selector required by the Type-valued full-set route.  Consequently the final theorem does not manufacture a global Type-valued choice function.  A separate Type-valued interface accepts precisely such data as \path{DominatedOnFullDataC}: for each index it contains a carrier, a proof that the carrier is full, and the domination proof on that carrier.  It then returns \path{RepSeriesTendsto}, retaining the convergence modulus.
 
-The two routes are therefore proved separately, and the separation is visible in the source.  From the uniform-complement estimate onward the assembly exists twice, once producing a \texttt{Prop} and once producing a structure: the paired declarations differ only in the type of the hypothesis, the type of the conclusion, how the witness is opened, and how the result is assembled, and agree line for line in between.  What is not duplicated is the substance: the Lemma~4.3 apparatus---dyadic smooth-level data, level-set sequences, countable avoidance, the stratum where the known obstruction lives---exists once and is called by both.  The repeated tail is an implementation consequence of the chosen interfaces: a direct wrapper would have to extract indexed witnesses hidden in \texttt{Prop}.  The duplication makes that interface boundary visible, but is not by itself a proof that every choice-free implementation must duplicate the tail, or that the two complete statements are logically independent.
+The two routes are therefore proved separately, and the separation is visible in the source.  From the uniform-complement estimate onward the assembly exists twice, once producing a \texttt{Prop} and once producing a structure: some of the paired declarations differ only in the type of the hypothesis, the type of the conclusion, how the witness is opened, and how the result is assembled; others diverge further---the Prop-valued $L^1$ endpoint is an explicit proof, while its Type-valued counterpart composes data-valued lemmas.  The two assemblies are structurally parallel rather than textually identical.  What is not duplicated is the substance: the Lemma~4.3 apparatus---dyadic smooth-level data, level-set sequences, countable avoidance, the stratum where the known obstruction lives---exists once and is called by both.  The repeated tail is an implementation consequence of the chosen interfaces: a direct wrapper would have to extract indexed witnesses hidden in \texttt{Prop}.  The duplication makes that interface boundary visible, but is not by itself a proof that every choice-free implementation must duplicate the tail, or that the two complete statements are logically independent.
 
 \subsection{Formal counterparts of Section~\ref{sec:profile-theory}}
-Theorem~\ref{thm:3-5} and the partition data underlying it are exported as
+Theorem~\ref{thm:3-5} is exported as
+\[
+\texttt{ChoiceFreeMeasureDCT.profile\_smooth\_away\_from\_sequenceC}
+\]
+(implementation \texttt{BishopSec3P.thm\_3\_5\_smooth\_aeC}); the partition data underlying it, which is the
+source's Lemma~3.4 rather than its Theorem~3.5, is exported separately as
 \[
 \texttt{ChoiceFreeMeasureDCT.profile\_partition\_dataC}
 \]
-(implementation \texttt{BishopSec3P.lemma\_3\_4DataC}), and Theorem~\ref{thm:3-6} as
+(implementation \texttt{BishopSec3P.lemma\_3\_4DataC}).  Theorem~\ref{thm:3-6} is exported as
 \[
 \texttt{ChoiceFreeMeasureDCT.profile\_level\_sets\_integrable\_apartC},
 \]
@@ -385,7 +390,7 @@ which packages the conclusion that apart level thresholds give integrable upper 
 \[
 \texttt{ChoiceFreeMeasureDCT.uniform\_complement\_from\_profile\_levelsC},
 \]
-implemented by \texttt{BishopSec3P.lemma43UniformComplementData\_of\_majorantC}; the variant whose domination hypothesis is itself a full-set hypothesis, as in the statement of Proposition~\ref{prop:uniform-complement}, is \path{lemma43UniformComplementData_of_majorantOnFullDataC}.  Lemma~\ref{lem:avoid} is formalized as \path{thm36B1_exists_apart_in_interval} and \path{thm36B1_apart_data}: the data-valued nested-interval step, the interval sequence, monotonicity of the endpoints, width shrinkage, Cauchy data for the left endpoints, and the limiting apart point; and \path{lemma_4_3_A_n_apart_data} supplies the resulting admissible threshold to Proposition~\ref{prop:uniform-complement}.  Step~(4) of the proof in Section~\ref{sec:proof} is \path{lemma_4_14_local_two_epsilonC}, and step~(5) is \path{integral_diff_lt_of_abs_error_integral_ltC}.
+implemented by \texttt{BishopSec3P.lemma43UniformComplementData\_of\_majorantC}; the variant whose domination hypothesis is itself a full-set hypothesis, as in the statement of Proposition~\ref{prop:uniform-complement}, is \path{lemma43UniformComplementData_of_majorantOnFullDataC}.  Lemma~\ref{lem:avoid} is formalized on the presented reals as the structure \path{Thm36B1ApartPointDataC}---a point $t$ with $a<t<b$ together with, for every $n$, a witness that $t$ is apart from the $n$-th term of the prescribed sequence---and its canonical inhabitant \path{thm36B1_apartPointDataC}, obtained from the data-valued nested-interval construction: the interval sequence, monotonicity of the endpoints, width shrinkage, Cauchy data for the left endpoints, and the limiting apart point.  \path{thm36B_smoothPointDataC_construct} applies it to the profile exception sequence, and \path{lemma43DyadicSmoothDataC_construct} iterates that at the dyadic gauges to supply the smooth-level data consumed by Proposition~\ref{prop:uniform-complement}; the latter is the declaration the public \path{_autoC} route calls.  The generic-route counterparts \path{thm36B1_exists_apart_in_interval}, \path{thm36B1_apart_data} and \path{lemma_4_3_A_n_apart_data} are earlier declarations over an abstract ordered field and are not on the presented-real path taken by the public theorems.  Step~(4) of the proof in Section~\ref{sec:proof} is \path{lemma_4_14_local_two_epsilonC}, and step~(5) is \path{integral_diff_lt_of_abs_error_integral_ltC}.
 
 \subsection{Artifact additions in this development line}
 \label{sec:additions}
@@ -619,7 +624,7 @@ The result should be read with the following limitations in view.
 
 \item \textbf{Comparison and priority.}  S\'em\'eria's CoRN development already contains a Bishop--Cheng dominated-convergence theorem, and the two theorem surfaces live over different real-number and integration-space interfaces.  No claim of priority or strict formal generalization is made.
 
-\item \textbf{Implementation maturity.}  The artifact is a public import closure, not a minimal library.  Its 512-file audited closure retains historically generated \path{CRat_iter*} stages.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A declaration-level scan of the closure for theorems whose conclusion is \texttt{True} returns exactly two---\path{lemma33_lt_of_not_le} and \path{lemma34_out_exists_cell}, both in \path{Mathdemo/Internal/BishopSec3_Profile.lean}---legacy markers recording that the audited route replaced an earlier double-negation branch and an earlier finite-search branch respectively.  Neither is referenced anywhere in the closure, and a theorem whose conclusion is \texttt{True} carries no information, so neither can contribute to any proof.  They are reported here because the token-level scan of the previous item detects vacuous \emph{proofs} and not vacuous \emph{statements}: the two checks are complementary, and the second was run at the declaration level.
+\item \textbf{Implementation maturity.}  The artifact is a public import closure, not a minimal library.  Its 512-file audited closure retains historically generated \path{CRat_iter*} stages.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A declaration-level scan of the closure for declarations whose conclusion or body is \texttt{True} now returns none.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because the token-level scan of the previous item detects vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}; the two checks are complementary, and the second is now run at the declaration level.
 \end{enumerate}
 
 A complete \path{./build_audit.sh} run from the v0.4.1 tree finished on 2026-08-28 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.4.1} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2869$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $73$ declarations, and the static audit traversing its 512-file closure within the same run.
@@ -695,7 +700,7 @@ Definition~\ref{def:full} & full set & Definition~1.9 & same statement \\
 Definition~\ref{def:complemented} & complemented set & Definitions~2.1, 2.2(d)(e), 2.3 & same core statement; merges $-A$, $A-B$, integrability, measure \\
 Definition~\ref{def:convmeasure} & convergence in measure & Definition~4.11 & same statement \\
 Definition~\ref{def:domination} & domination on full sets & \S1 notational convention & the convention with the quantifiers displayed; index-dependent full sets already licensed by it---not a weakening \\
-Definition~\ref{def:profile} & profile & Definition~3.1 & stated by the formalization in coded form (Appendix~\ref{sec:b-coded}) \\
+Definition~\ref{def:profile} & profile & Definition~3.1 & stated by the formalization in coded form (Appendix~\ref{sec:b-coded}); no continuity clause---a weaker hypothesis, hence more general \\
 Definition~\ref{def:smooth} & smooth level & --- & introduced in the source inside the text of its Theorem~3.5 \\
 Theorem~\ref{thm:prop-dct} & dominated convergence & Theorem~4.15 & same assertion; hypotheses phrased differently (Remark~\ref{rem:weaker}, Section~\ref{sec:proof}) \\
 Theorem~\ref{thm:3-5} & smoothness away from an explicit sequence & Theorem~3.5 & the formalized statement returns the explicit family constructed by the source's proof (Appendix~\ref{sec:b-exception}); Part~I keeps the source's wording---not a strengthening (Appendix~\ref{sec:b-exception}) \\
@@ -737,14 +742,15 @@ Mathematical object & Public alias & Implementation \\
 Definition~\ref{def:convmeasure} & --- & \path{ConvergeInMeasureC} \\
 Definition~\ref{def:domination} & --- & \path{DominatedOnFullC} \\
 Theorem~\ref{thm:prop-dct} & \path{bishop_cheng_dominated_convergence_propC} & \path{bishop_cheng_thm_4_15_propC} \\
-Theorem~\ref{thm:3-5} & \path{profile_partition_dataC} & \path{lemma_3_4DataC} \\
+Theorem~\ref{thm:3-5} & \path{profile_smooth_away_from_sequenceC} & \path{thm_3_5_smooth_aeC} \\
+Lemma~3.4 (partition data) & \path{profile_partition_dataC} & \path{lemma_3_4DataC} \\
 Theorem~\ref{thm:3-6} & \path{profile_level_sets_integrable_apartC} & --- \\
-Lemma~\ref{lem:avoid} & --- & \path{thm36B1_exists_apart_in_interval} \\
- & & \path{thm36B1_apart_data} \\
+Lemma~\ref{lem:avoid} & --- & \path{Thm36B1ApartPointDataC} \\
+ & & \path{thm36B1_apartPointDataC} \\
+ & & \path{thm36B_smoothPointDataC_construct} \\
 Proposition~\ref{prop:uniform-complement} & \path{uniform_complement_from_profile_levelsC} & \path{lemma43UniformComplementData_of_majorantC} \\
  & & \path{lemma43UniformComplementData_of_majorantOnFullDataC} \\
 Proof step~(2) & --- & \path{lemma43DyadicSmoothDataC_construct} \\
-Proof step~(2), threshold & --- & \path{lemma_4_3_A_n_apart_data} \\
 Proof step~(4) & --- & \path{lemma_4_14_local_two_epsilonC} \\
 Proof step~(5) & --- & \path{integral_diff_lt_of_abs_error_integral_ltC} \\
 \hline

@@ -1233,21 +1233,4 @@ theorem relIntegral_bigOrFin_mono {S : IntSpaceRC X R} {B : BSet X} (hB : IsMeas
          (hB (bigOrFin A (k + 1)) (bigOrFin_int A hA (k + 1))) f hnn) :=
   relIntegral_and_mono_or_step hB (bigOrFin_int A hA k) (hA (k + 1)) f hnn
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def fatou_type_stub_not_source_4_14 {S : IntSpaceRC X R} (_fn : Nat -> IntegrableRep S)
-    (_f : IntegrableRep S)
-    (_h_nonneg : ∀ n, RepNonneg (_fn n))
-    (_c : R) (_h_bound : ∀ n, ¬ COF.lt _c (((_fn n).integral)))
-    (_h_conv : ConvergeInMeasure S (fun n => IntegrableRep.toPFunR (_fn n)) _f.toPFunR) :
-    True := by
-  trivial
-
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_15_dominated_convergence {S : IntSpaceRC X R} (_fn : Nat -> IntegrableRep S)
-    (_f : IntegrableRep S) (_g : IntegrableRep S)
-    (_h_conv : ConvergeInMeasure S (fun n => IntegrableRep.toPFunR (_fn n)) _f.toPFunR)
-    (_h_bound : ∀ n, RepNonneg (_g.sub ((_fn n).absVal))) :
-    True := by
-  trivial
-
 end BishopC
