@@ -1,0 +1,260 @@
+@ChoiceFreeMeasureDCT.profile_partition_dataC : {a b eps : BishopCReal.CReal} →
+  {hab : BishopCReal.regularSeqLtProp a b} →
+    (P : BishopSec3P.ProfileC a b hab) →
+      BishopCReal.regularSeqLtProp BishopCReal.zeroSeq eps →
+        (n : ℕ) →
+          0 < n →
+            BishopCReal.regularSeqLtProp ((P.lambda P.oneCode).sub (P.lambda P.zeroCode))
+                (BishopCReal.CReal.mul (BishopCReal.constSeq (↑n + 1)) eps) →
+              BishopSec3P.Lemma34ResultDataC P n
+@ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC : ∀ {a b : BishopCReal.CReal}
+  {hab : BishopCReal.regularSeqLtProp a b} (P : BishopSec3P.ProfileC a b hab),
+  ∃ T,
+    ∀ (t : BishopCReal.CReal),
+      BishopCReal.RegularSeqLe a t →
+        BishopCReal.RegularSeqLe t b →
+          (∀ (n : ℕ), BishopCReal.regularSeqLtProp BishopCReal.CReal.zero (t.sub (T n)).abs) → P.IsSmoothAtC t
+@ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (h : BishopSec1P.IntegrableRepC3 S) →
+      {a b : BishopCReal.CReal} →
+        (hab : BishopCReal.regularSeqLtProp a b) →
+          (ha : BishopCReal.PosEventuallyData a) →
+            (t : BishopCReal.CReal) →
+              (hat : BishopCReal.regularSeqLtProp a t) →
+                (htb : BishopCReal.regularSeqLtProp t b) →
+                  (hT :
+                      ∀ (n : ℕ),
+                        BishopCReal.regularSeqLtProp BishopCReal.CReal.zero
+                          (t.sub (BishopSec3P.thm36ExceptionSeqC h hab ha n)).abs) →
+                    ((A : { A // A.S1 = BishopSec3P.thm36D_upperSetC h t ∧ A.S2 = BishopSec3P.thm36D_lowerSetC h t }) ×'
+                        (hA : BishopSec1P.IntegrableSet1C S ↑A) ×'
+                          hA.rep.integral ≈ BishopSec3P.thm36C_lambdaBarC h hab ha t ⋯ ⋯ hT) ×
+                      (B :
+                        { B //
+                          B.S1 = BishopSec3P.thm36D_upperSetStrictC h t ∧
+                            B.S2 = BishopSec3P.thm36D_lowerSetWeakC h t }) ×'
+                        (hB : BishopSec1P.IntegrableSet1C S ↑B) ×'
+                          hB.rep.integral ≈ BishopSec3P.thm36C_lambdaBarC h hab ha t ⋯ ⋯ hT
+@ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC : ∀ {X : Type u_1} {S : BishopSec1P.IntSpaceC X}
+  (h : BishopSec1P.IntegrableRepC3 S),
+  ∃ T,
+    ∀ (t : BishopCReal.CReal) (a : BishopCReal.PosEventuallyData t),
+      (∀ (j : ℕ), BishopCReal.regularSeqLtProp BishopCReal.CReal.zero (t.sub (T j)).abs) →
+        BishopSec3P.Thm36GlobalLevelSetsConclusionC h t
+@ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (hnn : ∀ (n : ℕ), BishopSec1P.RepNonnegC (fn n)) →
+        (g : BishopSec1P.IntegrableRepC3 S) →
+          BishopSec1P.RepNonnegC g →
+            BishopSec3P.Lemma43LevelSetSeqDataC g →
+              (∀ (n : ℕ) (x : X) (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+                  (fv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+                  (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                  BishopCReal.RegularSeqLe fv.sum gv.sum) →
+                (eps : BishopCReal.CReal) →
+                  BishopCReal.regularSeqLtProp BishopCReal.CReal.zero eps →
+                    BishopSec1P.Lemma414UniformComplementDataC fn hnn eps
+@ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          (g : BishopSec1P.IntegrableRepC3 S) →
+            BishopSec1P.RepNonnegC g →
+              BishopSec3P.Lemma43DyadicSmoothDataC g →
+                (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+                    (ev :
+                      BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+                    (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                    BishopCReal.RegularSeqLe ev.sum gv.sum) →
+                  BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                    BishopSec1P.RepSeriesTendsto (fun n => (BishopSec1P.thm_4_15_abs_errorC fn f n).integral)
+                      BishopCReal.CReal.zero
+@ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          (g : BishopSec1P.IntegrableRepC3 S) →
+            BishopSec1P.RepNonnegC g →
+              BishopSec3P.Lemma43DyadicSmoothDataC g →
+                (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+                    (ev :
+                      BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+                    (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                    BishopCReal.RegularSeqLe ev.sum gv.sum) →
+                  BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                    BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profileC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          BishopSec3P.Lemma43DyadicSmoothDataC g →
+            (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+                (ev : BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+                (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k), BishopCReal.RegularSeqLe ev.sum gv.sum) →
+              BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profileC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          BishopSec3P.Lemma43DyadicSmoothDataC (g.add f.absVal) →
+            (∀ (n : ℕ) (x : X) (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+                (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+                (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum) →
+              BishopSec3P.Lemma415ConvergeInMeasureDataC fn f →
+                BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          BishopSec3P.Lemma43DyadicSmoothDataC (g.add f.absVal) →
+            (∀ (n : ℕ) (x : X) (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+                (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+                (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum) →
+              BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC fn f →
+                BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergence_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          (g : BishopSec1P.IntegrableRepC3 S) →
+            BishopSec1P.RepNonnegC g →
+              (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+                  (ev : BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+                  (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                  BishopCReal.RegularSeqLe ev.sum gv.sum) →
+                BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                  BishopSec1P.RepSeriesTendsto (fun n => (BishopSec1P.thm_4_15_abs_errorC fn f n).integral)
+                    BishopCReal.CReal.zero
+@ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergence_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          (g : BishopSec1P.IntegrableRepC3 S) →
+            BishopSec1P.RepNonnegC g →
+              (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+                  (ev : BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+                  (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+                  BishopCReal.RegularSeqLe ev.sum gv.sum) →
+                BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                  BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profile_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          (∀ (n : ℕ) (x : X) (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x) (hgdom : g.MemAt x)
+              (ev : BishopSec1P.RepSeriesSum fun k => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+              (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k), BishopCReal.RegularSeqLe ev.sum gv.sum) →
+            BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+              BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profile_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          (∀ (n : ℕ) (x : X) (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+              (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+              (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+              BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum) →
+            BishopSec3P.Lemma415ConvergeInMeasureDataC fn f →
+              BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profile_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.RepNonnegC g →
+          (∀ (n : ℕ) (x : X) (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+              (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+              (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
+              BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum) →
+            BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC fn f →
+              BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_on_full_dataC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f H : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          BishopSec1P.RepNonnegC H →
+            BishopSec3P.Lemma43DyadicSmoothDataC H →
+              ((n : ℕ) → BishopSec1P.RepLeOnFullDataC (BishopSec1P.thm_4_15_abs_errorC fn f n) H) →
+                BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                  BishopSec1P.RepSeriesTendsto (fun n => (BishopSec1P.thm_4_15_abs_errorC fn f n).integral)
+                    BishopCReal.CReal.zero
+@ChoiceFreeMeasureDCT.integral_convergence_from_majorant_on_full_dataC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f H : BishopSec1P.IntegrableRepC3 S) →
+        (∀ (n : ℕ), BishopSec1P.RepNonnegC (BishopSec1P.thm_4_15_abs_errorC fn f n)) →
+          BishopSec1P.RepNonnegC H →
+            BishopSec3P.Lemma43DyadicSmoothDataC H →
+              ((n : ℕ) → BishopSec1P.RepLeOnFullDataC (BishopSec1P.thm_4_15_abs_errorC fn f n) H) →
+                BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC (BishopSec1P.thm_4_15_abs_errorC fn f) →
+                  BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_dataC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec3P.Lemma43DyadicSmoothDataC (g.absVal.add f.absVal) →
+          BishopSec1P.DominatedOnFullDataC fn g →
+            BishopSec3P.Lemma415ConvergeInMeasureDataC fn f →
+              BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_data_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.DominatedOnFullDataC fn g →
+          BishopSec3P.Lemma415ConvergeInMeasureDataC fn f →
+            BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_good_set_data_autoC : {X : Type u_1} →
+  {S : BishopSec1P.IntSpaceC X} →
+    (fn : ℕ → BishopSec1P.IntegrableRepC3 S) →
+      (f g : BishopSec1P.IntegrableRepC3 S) →
+        BishopSec1P.DominatedOnFullDataC fn g →
+          BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC fn f →
+            BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral
+@ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC : ∀ {X : Type u_1} {S : BishopSec1P.IntSpaceC X}
+  (fn : ℕ → BishopSec1P.IntegrableRepC3 S) (f : BishopSec1P.IntegrableRepC3 S),
+  BishopSec1P.ConvergeInMeasureC S (fun n => (fn n).toDataPFunRC) f.toDataPFunRC →
+    (∃ g, BishopSec1P.DominatedOnFullC fn g) →
+      BishopSec1P.RepSeriesTendstoEpsPropC (fun n => (fn n).integral) f.integral
+'ChoiceFreeMeasureDCT.profile_partition_dataC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profileC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profileC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergence_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergence_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profile_autoC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profile_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profile_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_on_full_dataC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.integral_convergence_from_majorant_on_full_dataC' depends on axioms: [propext, Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_dataC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_data_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_good_set_data_autoC' depends on axioms: [propext,
+ Quot.sound]
+'ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC' depends on axioms: [propext, Quot.sound]

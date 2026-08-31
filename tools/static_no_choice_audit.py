@@ -121,15 +121,22 @@ def closure(roots: list[str]) -> list[str]:
     return seen
 
 def tracked_lean_paths() -> set[str] | None:
-    """The Lean paths recorded in SHA256SUMS, if it is present."""
+    """The Lean paths of the development recorded in SHA256SUMS.
+
+    Files under `tools/` are auditing scripts, not part of the development, and
+    are excluded: they are not imported by anything and so never appear in the
+    import closure."""
     f = ROOT / 'SHA256SUMS'
     if not f.exists():
         return None
     out = set()
     for line in f.read_text(encoding='utf-8').splitlines():
         parts = line.split(None, 1)
-        if len(parts) == 2 and parts[1].strip().endswith('.lean'):
-            out.add(parts[1].strip().lstrip('./'))
+        if len(parts) != 2:
+            continue
+        rel = parts[1].strip().lstrip('./')
+        if rel.endswith('.lean') and not rel.startswith('tools/'):
+            out.add(rel)
     return out or None
 
 def token_hits(src: str) -> list[tuple[str, int, str]]:
