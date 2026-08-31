@@ -226,7 +226,7 @@ This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from inva
 
 ### Current-worktree build status
 
-A complete `./build_audit.sh` run finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512`. **That build log documents the tree as it stood before the implementation modules were regrouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`.** The regrouping renamed files and rewrote import lines; it added, removed and changed no declaration, and the corresponding build-audit run on the regrouped tree was still in progress when this file was written. `logs/static_audit.txt` and `SHA256SUMS` have been regenerated against the regrouped tree: the audit reports `closure_files: 512`, `tracked_lean_files: 512` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions. The closure of the public theorem aliases alone is 502 of the 512.
+On 2026-09-01 a complete `./build_audit.sh` run from the v0.5.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs), and the static source-closure audit passed with `closure_files: 512`, `tracked_lean_files: 512` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All four shipped logs record that run, taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 512.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
