@@ -38,7 +38,7 @@
 - `Mathdemo/SourceIntegrationSpaceDef11.lean`
 - `Mathdemo/DiracIntegrationSpace.lean`
 - `Mathdemo/`
-- `tools/` (includes `reachable_core.lean`, which measures how much of the tree the paper's claims reach; recorded run in `logs/reachable_core.txt`)
+- `tools/`
 - `paper/` (development repository only; excluded from the archived deposit)
 - `logs/`
 - `audits/corn/`
@@ -55,7 +55,7 @@ cd audits/corn && sha256sum -c SHA256SUMS
 
 `./build_audit.sh` runs the public theorem build, the public alias files, and the strengthened static no-choice audit. The script writes local rerun logs to `logs/build_audit.rerun.txt` and `logs/static_audit.rerun.txt`; shipped reference logs remain stable.
 
-Release status: on 2026-08-31 a complete `./build_audit.sh` run from the v0.5.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log; the 2869-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0 and v0.4.0. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run (`artifact_version=0.5.1`).  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 73 reading-layer declarations (72 report `[propext, Quot.sound]`, one reports no axioms). The 512 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
+Release status: a complete `./build_audit.sh` run finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log; the 2869-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0 and v0.4.0. **The shipped `logs/build_audit.txt` documents the tree as it stood before the implementation modules were regrouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`.** That regrouping renamed files and rewrote import lines; it added, removed and changed no declaration, and the corresponding build-audit run on the regrouped tree was still in progress when this manifest was written. `logs/static_audit.txt` and `SHA256SUMS` have been regenerated against the regrouped tree.  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 73 reading-layer declarations (72 report `[propext, Quot.sound]`, one reports no axioms). The 512 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
 
 ## Expected result summary
 

@@ -1,5 +1,5 @@
 import Mathdemo.BishopSec1Presented
-import Mathdemo.Internal.CRat_iter500
+import Mathdemo.Internal.Real.ScaleAndHalfReduction
 
 /-! Technical auxiliary material for the public import closure. -/
 

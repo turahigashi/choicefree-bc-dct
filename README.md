@@ -165,44 +165,27 @@ The 512 Lean files fall into three places.
 | `Mathdemo/` | 15 | the named modules: the presented reals, the two Bishop sections that carry the proof, the Theorem 4.15 endpoints, the reading interface, the Definition 1.1 transcription, the point-evaluation model, the examples, and the axiom-check modules |
 | `Mathdemo/Internal/` | 494 | implementation |
 
-Inside `Mathdemo/Internal`, the names come in four families.
+Inside `Mathdemo/Internal`, the modules are grouped by the layer they build.
 
-| Family | Files | What the name means |
+| Directory | Files | Contents |
 |---|---:|---|
-| `BishopB`, `BishopB_Completeness`, `BishopSec2_L1`, `BishopSec3_Profile`, `BishopSec4_Convergence`, `BishopSec5_Measure` | 6 | the abstract ordered-field interface (`BishopB`) and the generic route through the sections of the source: `SecN` is the source's section N.  These are stated over an abstract constructive ordered field, not over the presented reals; the public theorems take the presented-real route |
-| `CRat_iter1` ... `CRat_iter500` | 425 | sequential build stages.  The number is a position in the build order, not a topic |
-| `Sec4_Phase2_IB_*_iteration1` | 56 | the decomposition of one step of Section 4 (the uniform `I_B` frontier) into small pieces; the letters and digits are positions in that decomposition |
-| `Sec4_*_iteration1`, `Sec4GenIB`, `Nodes` | 7 | the remaining Section 4 stages and two small aggregation modules |
+| `Rat/` | 8 | the rational scalar layer: the setoid, its quotient, and the decidable order |
+| `Real/` | 373 | the presented reals -- regular sequences, Bishop equality, the two orders, the arithmetic and its laws -- and the integration layer built over them |
+| `Measure/` | 44 | integrable representations and the measure-theoretic frontier |
+| `Sec4/` | 61 | the decomposition of the uniform `I_B` step of the source's Section 4 |
+| `BishopB`, `BishopB_Completeness`, `BishopSec2_L1`, `BishopSec3_Profile`, `BishopSec4_Convergence`, `BishopSec5_Measure`, `Sec4GenIB`, `Nodes` | 8 | the abstract ordered-field interface (`BishopB`) and the generic route through the sections of the source: `SecN` is the source's section N.  These are stated over an abstract constructive ordered field, not over the presented reals; the public theorems take the presented-real route |
 
-**The names of the `CRat_iter*` files carry no information; the doc-string at the
-top of each file does.**  419 of the 425 begin with a module doc-string naming
-their content, for instance
+Each module is named for its content, and each begins with a doc-string stating it, so
 
-```
-CRat_iter4    # CReal regular-sequence layer over the live `CRat` scalar
-CRat_iter20   # CReal eventual Bishop equality
-CRat_iter138  # G38: Definition 1.6, `L1` integrable functions over Bishop RegularSeq reals
-CRat_iter300  # G201: data-carrying mid constructor source for Proposition 4.12
-CRat_iter431  # Stage A11: section 4 data-carrying remainder audit
+```bash
+grep -rn '^# ' Mathdemo/Internal
 ```
 
-so `grep -n '^# ' Mathdemo/Internal/CRat_iter*.lean` prints a table of contents for
-the whole family.  The chain is close to linear: 387 of the 425 import exactly one
-other file of the family, and in 386 of those the imported number is smaller, so the
-numbering also gives a topological order.  The remaining 38 additionally import one
-of the named `Bishop*` or `Sec4_*` modules.
+prints a table of contents for the implementation.
 
 ## Internal-code status
 
-`Mathdemo/Internal` contains implementation details in the audited transitive import closure. Files named `CRat_iter*` retain historical or generated intermediate stages that are still in the public import closure. These files are not the intended public API, and this artifact does not claim a large-scale cleanup of the internal implementation library.  The paper reports the size of this closure as a description of the development as it was actually built, not as a design, and it does not read any declaration count as a cost.
-
-How much of the tree the claims of the paper depend on is measured rather than estimated:
-
-```bash
-lake env lean --run tools/reachable_core.lean
-```
-
-The tool seeds with every declaration of the modules that carry a claim -- the public aliases, the reading interface, the Definition 1.1 transcription, the point-evaluation model, the supplementary check module and the three axiom-check modules -- takes the transitive closure of the constants occurring in the type and in the value of each declaration, and counts only declarations that carry a source position.  On the v0.5.1 tree it reports 2,516 reachable declarations out of 20,796, in 136 of the 511 modules, and it prints `REACHABLE CORE CHECK PASSED` only if the five principal declarations (Theorem 4.15, Theorems 3.5 and 3.6, Lemma 3.4, and the integration-space structure) are all reachable.  The recorded run is `logs/reachable_core.txt`.  Extracting the reachable part as a library is future work; this tool computes the set such an extraction would consist of.
+`Mathdemo/Internal` contains implementation details in the audited transitive import closure.  These modules are not the intended public API; the public surface is `ChoiceFreeMeasureDCTPublic.lean`.  The paper reports the size of this closure as a description, not as a design.
 
 ## Build and audit
 
@@ -243,7 +226,7 @@ This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from inva
 
 ### Current-worktree build status
 
-On 2026-08-31 a complete `./build_audit.sh` run from the v0.5.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0. The aggregate build `lake build Mathdemo` succeeded with all 2869 jobs, covering the mathematical facade, the Definition 1.1 transcription with its hypothesis-free adapter, and the point-evaluation model. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run. The 512 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots; the closure of the public theorem aliases alone is 502 of them, the remaining ten being the aggregation module, the three axiom-check modules, the supplementary check module, the two example modules, the reading interface, the Definition 1.1 transcription, and the point-evaluation model.
+A complete `./build_audit.sh` run finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512`. **That build log documents the tree as it stood before the implementation modules were regrouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`.** The regrouping renamed files and rewrote import lines; it added, removed and changed no declaration, and the corresponding build-audit run on the regrouped tree was still in progress when this file was written. `logs/static_audit.txt` and `SHA256SUMS` have been regenerated against the regrouped tree: the audit reports `closure_files: 512`, `tracked_lean_files: 512` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions. The closure of the public theorem aliases alone is 502 of the 512.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 

@@ -1,5 +1,5 @@
 import Mathdemo.CRealPresented
-import Mathdemo.Internal.CRat_iter138
+import Mathdemo.Internal.Real.Definition16L1IntegrableFunctions
 
 namespace BishopSec1P
 open BishopCReal
