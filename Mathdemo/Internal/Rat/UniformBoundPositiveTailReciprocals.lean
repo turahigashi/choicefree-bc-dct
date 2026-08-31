@@ -147,53 +147,9 @@ theorem positiveTailInvValWithBound_abs_mul_le_lipschitzBound
       (scalarPositiveInverseSeed.inv (eps h.k))]
   rwa [hL]
 
-/-- Data package for the scalar/tail reciprocal uniform bound layer. -/
-structure PositiveTailReciprocalUniformBoundSeed : Type where
-  scalar_inv_le :
-    ∀ e a : Scalar, COF.lt 0 e → COF.lt e a →
-      Le (scalarPositiveInverseSeed.inv a) (scalarPositiveInverseSeed.inv e)
-  scalar_abs_inv_le :
-    ∀ e a : Scalar, COF.lt 0 e → COF.lt e a →
-      Le (COF.abs (scalarPositiveInverseSeed.inv a))
-        (COF.abs (scalarPositiveInverseSeed.inv e))
-  tail_abs_inv_le :
-    ∀ x : RegularSeq, ∀ h : PosEventuallyData x, ∀ {n : Nat}, h.N ≤ n →
-      Le (COF.abs (positiveTailInvVal x h n))
-        (COF.abs (scalarPositiveInverseSeed.inv (eps h.k)))
-  bounded_tail_abs_inv_le :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ n : Nat,
-        Le (COF.abs (positiveTailInvValWithBound A x h n))
-          (COF.abs (scalarPositiveInverseSeed.inv (eps h.k)))
-  bounded_tail_abs_mul_le :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ m n : Nat,
-        Le
-          (COF.abs (positiveTailInvValWithBound A x h m) *
-            COF.abs (positiveTailInvValWithBound A x h n))
-          (COF.abs (positiveReciprocalLipschitzBound x h))
 
-def positiveTailReciprocalUniformBoundSeed :
-    PositiveTailReciprocalUniformBoundSeed where
-  scalar_inv_le := scalar_posInv_le_of_lt
-  scalar_abs_inv_le := scalar_abs_posInv_le_of_lt
-  tail_abs_inv_le := fun x h _ hn =>
-    positiveTailInvVal_abs_le_lipschitzFactor x h hn
-  bounded_tail_abs_inv_le := positiveTailInvValWithBound_abs_le_lipschitzFactor
-  bounded_tail_abs_mul_le :=
-    positiveTailInvValWithBound_abs_mul_le_lipschitzBound
 
-/-- Frontier after the reciprocal uniform bound is closed. -/
-structure CRealQuotPositiveInverseUniformBoundFrontier : Type where
-  reciprocal_tail_regular : Prop
-  quotient_inv_definition : Prop
-  quotient_inverse_laws : Prop
 
-def cRealQuotPositiveInverseUniformBoundFrontier :
-    CRealQuotPositiveInverseUniformBoundFrontier where
-  reciprocal_tail_regular := True
-  quotient_inv_definition := True
-  quotient_inverse_laws := True
 
 end BishopCReal
 

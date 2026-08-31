@@ -86,42 +86,9 @@ theorem scalar_abs_posInv_sub_le_mul_abs_sub (a b : Scalar)
     (COF.abs (scalarPositiveInverseSeed.inv a) *
       COF.abs (scalarPositiveInverseSeed.inv b) * COF.abs (b - a))
 
-/-- Data package for the scalar reciprocal-difference layer. -/
-structure ScalarPositiveInverseDifferenceSeed : Type where
-  sub_eq_mul_sub :
-    ∀ a b : Scalar, COF.lt 0 a → COF.lt 0 b →
-      scalarPositiveInverseSeed.inv a - scalarPositiveInverseSeed.inv b =
-        scalarPositiveInverseSeed.inv a * scalarPositiveInverseSeed.inv b * (b - a)
-  abs_sub_eq :
-    ∀ a b : Scalar, COF.lt 0 a → COF.lt 0 b →
-      COF.abs (scalarPositiveInverseSeed.inv a - scalarPositiveInverseSeed.inv b) =
-        COF.abs (scalarPositiveInverseSeed.inv a) *
-          COF.abs (scalarPositiveInverseSeed.inv b) * COF.abs (b - a)
-  abs_sub_le :
-    ∀ a b : Scalar, COF.lt 0 a → COF.lt 0 b →
-      Le (COF.abs (scalarPositiveInverseSeed.inv a - scalarPositiveInverseSeed.inv b))
-        (COF.abs (scalarPositiveInverseSeed.inv a) *
-          COF.abs (scalarPositiveInverseSeed.inv b) * COF.abs (b - a))
 
-def scalarPositiveInverseDifferenceSeed :
-    ScalarPositiveInverseDifferenceSeed where
-  sub_eq_mul_sub := scalar_posInv_sub_eq_mul_sub
-  abs_sub_eq := scalar_abs_posInv_sub_eq_mul_abs_sub
-  abs_sub_le := scalar_abs_posInv_sub_le_mul_abs_sub
 
-/-- Frontier after the exact scalar reciprocal-difference identity is closed. -/
-structure CRealQuotPositiveInverseDifferenceFrontier : Type where
-  reciprocal_tail_uniform_bound : Prop
-  reciprocal_tail_regular : Prop
-  quotient_inv_definition : Prop
-  quotient_inverse_laws : Prop
 
-def cRealQuotPositiveInverseDifferenceFrontier :
-    CRealQuotPositiveInverseDifferenceFrontier where
-  reciprocal_tail_uniform_bound := True
-  reciprocal_tail_regular := True
-  quotient_inv_definition := True
-  quotient_inverse_laws := True
 
 end BishopCReal
 

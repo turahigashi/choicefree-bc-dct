@@ -95,11 +95,6 @@ def positiveTailInvValWithBound
     (h : PosEventuallyData x) (n : Nat) : Scalar :=
   positiveTailInvVal x h (reciprocalTailIndexWith A x h n)
 
-theorem positiveTailInvValWithBound_pos
-    (A : ScalarMulArchimedeanData) (x : RegularSeq)
-    (h : PosEventuallyData x) (n : Nat) :
-    COF.lt 0 (positiveTailInvValWithBound A x h n) :=
-  positiveTailInvVal_pos x h (reciprocalTailIndex_tail A x h n)
 
 theorem positiveTail_mul_invValWithBound_eq_one
     (A : ScalarMulArchimedeanData) (x : RegularSeq)
@@ -108,60 +103,9 @@ theorem positiveTail_mul_invValWithBound_eq_one
       positiveTailInvValWithBound A x h n = 1 :=
   positiveTail_mul_invVal_eq_one x h (reciprocalTailIndex_tail A x h n)
 
-/-- Data package for the bound-sensitive reciprocal tail scaffold. -/
-structure PositiveTailReciprocalBoundSeed : Type where
-  scalarBound : ScalarMulArchimedeanData → Scalar → Nat
-  scalar_bound_tail_eps_le :
-    ∀ A : ScalarMulArchimedeanData, ∀ B : Scalar, ∀ r : Nat,
-      Le (COF.abs B * eps (scalarBound A B + r)) (eps r)
-  lipschitzBound : ∀ x : RegularSeq, PosEventuallyData x → Scalar
-  recipBound : ∀ _A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-    PosEventuallyData x → Nat
-  recipIndex : ∀ _A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-    PosEventuallyData x → Nat → Nat
-  recipIndex_tail :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ n : Nat, h.N ≤ recipIndex A x h n
-  recipIndex_bound :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ n : Nat,
-        recipBound A x h + n ≤ recipIndex A x h n
-  recipVal : ∀ _A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-    PosEventuallyData x → Nat → Scalar
-  recipVal_pos :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ n : Nat, COF.lt 0 (recipVal A x h n)
-  tail_mul_recipVal :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, ∀ n : Nat,
-        x.val (recipIndex A x h n) * recipVal A x h n = 1
 
-def positiveTailReciprocalBoundSeed :
-    PositiveTailReciprocalBoundSeed where
-  scalarBound := scalarBoundWith
-  scalar_bound_tail_eps_le := scalar_bound_tail_eps_le
-  lipschitzBound := positiveReciprocalLipschitzBound
-  recipBound := reciprocalTailBoundWith
-  recipIndex := reciprocalTailIndexWith
-  recipIndex_tail := reciprocalTailIndex_tail
-  recipIndex_bound := reciprocalTailIndex_bound
-  recipVal := positiveTailInvValWithBound
-  recipVal_pos := positiveTailInvValWithBound_pos
-  tail_mul_recipVal := positiveTail_mul_invValWithBound_eq_one
 
-/-- Frontier after the bound-sensitive reciprocal tail scaffold is available. -/
-structure CRealQuotPositiveInverseBoundFrontier : Type where
-  reciprocal_lipschitz_order_bound : Prop
-  reciprocal_tail_regular : Prop
-  quotient_inv_definition : Prop
-  quotient_inverse_laws : Prop
 
-def cRealQuotPositiveInverseBoundFrontier :
-    CRealQuotPositiveInverseBoundFrontier where
-  reciprocal_lipschitz_order_bound := True
-  reciprocal_tail_regular := True
-  quotient_inv_definition := True
-  quotient_inverse_laws := True
 
 end BishopCReal
 

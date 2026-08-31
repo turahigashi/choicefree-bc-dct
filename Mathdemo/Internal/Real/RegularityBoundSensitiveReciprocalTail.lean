@@ -138,36 +138,9 @@ def positiveTailInvSeqWithBound
   val := positiveTailInvValWithBound A x h
   regular := positiveTailInvValWithBound_regular A x h
 
-/-- Data package for the regular reciprocal-tail layer. -/
-structure PositiveTailReciprocalRegularSeed : Type where
-  recipVal : ScalarMulArchimedeanData → ∀ x : RegularSeq,
-    PosEventuallyData x → Nat → Scalar
-  recip_regular :
-    ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      ∀ h : PosEventuallyData x, RegularVal (recipVal A x h)
-  recipSeq :
-    ∀ _A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-      PosEventuallyData x → RegularSeq
 
-def positiveTailReciprocalRegularSeed :
-    PositiveTailReciprocalRegularSeed where
-  recipVal := positiveTailInvValWithBound
-  recip_regular := positiveTailInvValWithBound_regular
-  recipSeq := positiveTailInvSeqWithBound
 
-/-- Frontier after the regular reciprocal representative exists. -/
-structure CRealQuotPositiveInverseRegularFrontier : Type where
-  quotient_inv_definition : Prop
-  quotient_inv_respects : Prop
-  quotient_mul_inv_cancel : Prop
-  quotient_inv_pos : Prop
 
-def cRealQuotPositiveInverseRegularFrontier :
-    CRealQuotPositiveInverseRegularFrontier where
-  quotient_inv_definition := True
-  quotient_inv_respects := True
-  quotient_mul_inv_cancel := True
-  quotient_inv_pos := True
 
 end BishopCReal
 

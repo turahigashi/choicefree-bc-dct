@@ -30,14 +30,6 @@ def positiveTailInvVal (x : RegularSeq) (h : PosEventuallyData x) (n : Nat) :
   else
     0
 
-/-- On the certified tail, the tail reciprocal is positive. -/
-theorem positiveTailInvVal_pos
-    (x : RegularSeq) (h : PosEventuallyData x) {n : Nat} (hn : h.N ≤ n) :
-    COF.lt 0 (positiveTailInvVal x h n) := by
-  unfold positiveTailInvVal
-  rw [if_pos hn]
-  exact scalarPositiveInverseSeed.inv_pos (x.val n)
-    (scalar_pos_of_posEventuallyData_tail x h hn)
 
 /-- On the certified tail, the original scalar times the tail reciprocal is
 exactly one. -/
@@ -49,41 +41,9 @@ theorem positiveTail_mul_invVal_eq_one
   exact scalarPositiveInverseSeed.mul_inv_cancel (x.val n)
     (scalar_pos_of_posEventuallyData_tail x h hn)
 
-/-- Data package for the positive representative tail reciprocal layer. -/
-structure PositiveTailReciprocalSeed : Type where
-  tailInvVal : ∀ x : RegularSeq, PosEventuallyData x → Nat → Scalar
-  tail_scalar_pos :
-    ∀ x : RegularSeq, ∀ h : PosEventuallyData x, ∀ {n : Nat}, h.N ≤ n →
-      COF.lt 0 (x.val n)
-  tail_inv_pos :
-    ∀ x : RegularSeq, ∀ h : PosEventuallyData x, ∀ {n : Nat}, ∀ _hn : h.N ≤ n,
-      COF.lt 0 (tailInvVal x h n)
-  tail_mul_inv :
-    ∀ x : RegularSeq, ∀ h : PosEventuallyData x, ∀ {n : Nat}, ∀ _hn : h.N ≤ n,
-      x.val n * tailInvVal x h n = 1
 
-def positiveTailReciprocalSeed : PositiveTailReciprocalSeed where
-  tailInvVal := positiveTailInvVal
-  tail_scalar_pos := fun x h _ hn =>
-    scalar_pos_of_posEventuallyData_tail x h hn
-  tail_inv_pos := fun x h _ hn =>
-    positiveTailInvVal_pos x h hn
-  tail_mul_inv := fun x h _ hn =>
-    positiveTail_mul_invVal_eq_one x h hn
 
-/-- Frontier after the scalar and tail pointwise reciprocal layers are closed. -/
-structure CRealQuotPositiveInverseTailFrontier : Type where
-  tail_reciprocal_regular : Prop
-  quotient_inv_definition : Prop
-  quotient_mul_inv_cancel : Prop
-  quotient_inv_pos : Prop
 
-def cRealQuotPositiveInverseTailFrontier :
-    CRealQuotPositiveInverseTailFrontier where
-  tail_reciprocal_regular := True
-  quotient_inv_definition := True
-  quotient_mul_inv_cancel := True
-  quotient_inv_pos := True
 
 end BishopCReal
 

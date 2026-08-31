@@ -90,46 +90,9 @@ theorem positiveTail_source_mul_invValWithBound_abs_sub_one_le_budget
     exact BishopC.le_add hpterm hqterm
   exact BishopC.le_trans hbase hterms
 
-/-- Data package for the source-times-reciprocal value estimate. -/
-structure PositiveTailSourceMulReciprocalEstimateSeed : Type where
-  product_abs_sub_one_le :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ x : RegularSeq, ∀ h : PosEventuallyData x,
-      ∀ p m : Nat,
-        Le
-          (COF.abs
-            (x.val p * positiveTailInvValWithBound A x h m - 1))
-          (COF.abs (scalarPositiveInverseSeed.inv (eps h.k)) *
-            (eps p + eps (reciprocalTailIndexWith A x h m)))
-  product_abs_sub_one_le_budget :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ x : RegularSeq, ∀ h : PosEventuallyData x,
-      ∀ {p m r : Nat},
-        scalarBoundWith A (COF.abs (scalarPositiveInverseSeed.inv (eps h.k))) + r ≤ p →
-        scalarBoundWith A (COF.abs (scalarPositiveInverseSeed.inv (eps h.k))) + r ≤
-          reciprocalTailIndexWith A x h m →
-        Le
-          (COF.abs
-            (x.val p * positiveTailInvValWithBound A x h m - 1))
-          (eps r + eps r)
 
-def positiveTailSourceMulReciprocalEstimateSeed :
-    PositiveTailSourceMulReciprocalEstimateSeed where
-  product_abs_sub_one_le := positiveTail_source_mul_invValWithBound_abs_sub_one_le
-  product_abs_sub_one_le_budget :=
-    positiveTail_source_mul_invValWithBound_abs_sub_one_le_budget
 
-/-- Frontier after the value-level cancellation estimate is available. -/
-structure CRealQuotPositiveInverseProductEstimateFrontier : Type where
-  quotient_product_eventual_cancel : Prop
-  quotient_inv_pos_uniform_lower_bound : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotPositiveInverseProductEstimateFrontier :
-    CRealQuotPositiveInverseProductEstimateFrontier where
-  quotient_product_eventual_cancel := True
-  quotient_inv_pos_uniform_lower_bound := True
-  cauchy_completeness := True
 
 end BishopCReal
 
