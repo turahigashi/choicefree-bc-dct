@@ -45,18 +45,7 @@ theorem half_pos_raw : PosVal halfVal := by
   change COF.lt (eps 2) (COF.half : Scalar)
   exact eps_two_lt_half
 
-/-- Audited dyadic comparison and constant-half positivity seed. -/
-structure CRealHalfPosSeed : Type where
-  eps_succ_add_self : ∀ n : Nat, eps (n + 1) + eps (n + 1) = eps n
-  eps_succ_lt_eps : ∀ n : Nat, COF.lt (eps (n + 1)) (eps n)
-  eps_two_lt_half : COF.lt (eps 2) (COF.half : Scalar)
-  half_pos_raw : PosVal halfVal
 
-def cRealHalfPosSeed : CRealHalfPosSeed where
-  eps_succ_add_self := eps_succ_add_self
-  eps_succ_lt_eps := eps_succ_lt_eps
-  eps_two_lt_half := eps_two_lt_half
-  half_pos_raw := half_pos_raw
 
 end BishopCReal
 

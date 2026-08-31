@@ -291,22 +291,7 @@ def cRealMulClosureDataWith (A : ScalarMulArchimedeanData) : CRealMulClosureData
   mul_regular := boundedMul_regular_with A
   mul_respects_eventually := boundedMul_respects_eventually_with A
 
-/-- Audited Phase 10 multiplication closure seed. -/
-structure CRealMulClosureSeed : Type where
-  scalarData : ScalarMulArchimedeanData
-  closureData : CRealMulClosureData scalarData
-  respects_eventually : ∀ x x' y y' : RegularSeq,
-    relEventually x x' → relEventually y y' →
-      relEventually
-        { val := boundedMulValWith scalarData x y,
-          regular := closureData.mul_regular x y }
-        { val := boundedMulValWith scalarData x' y',
-          regular := closureData.mul_regular x' y' }
 
-def cRealMulClosureSeedWith (A : ScalarMulArchimedeanData) : CRealMulClosureSeed where
-  scalarData := A
-  closureData := cRealMulClosureDataWith A
-  respects_eventually := boundedMul_respects_eventually_with A
 
 end BishopCReal
 

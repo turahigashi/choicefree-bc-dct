@@ -42,28 +42,7 @@ def absQuot : CRealQuot → CRealQuot :=
   Quotient.lift (fun x => mkQuot (absSeq x))
     (fun x y hxy => Quotient.sound (absSeq_respects_eventually x y hxy))
 
-/-- Audited quotient-level additive operation seed. -/
-structure CRealQuotAdditiveOpsSeed : Type where
-  mkQuot : RegularSeq → CRealQuot
-  constQuot : Scalar → CRealQuot
-  zeroQuot : CRealQuot
-  oneQuot : CRealQuot
-  halfQuot : CRealQuot
-  negQuot : CRealQuot → CRealQuot
-  addQuot : CRealQuot → CRealQuot → CRealQuot
-  subQuot : CRealQuot → CRealQuot → CRealQuot
-  absQuot : CRealQuot → CRealQuot
 
-def cRealQuotAdditiveOpsSeed : CRealQuotAdditiveOpsSeed where
-  mkQuot := mkQuot
-  constQuot := constQuot
-  zeroQuot := zeroQuot
-  oneQuot := oneQuot
-  halfQuot := halfQuot
-  negQuot := negQuot
-  addQuot := addQuot
-  subQuot := subQuot
-  absQuot := absQuot
 
 end BishopCReal
 

@@ -76,21 +76,7 @@ theorem relEventually_trans (x y z : RegularSeq)
     rwa [eps_succ_add_self k] at hsum
   exact BishopC.le_trans htri hbudget
 
-/-- Audited setoid-style seed for eventual Bishop equality. -/
-structure CRealEventualSetoidSeed : Type where
-  relEventually : RegularSeq → RegularSeq → Prop
-  raw_to_eventual : ∀ x y : RegularSeq, rel x y → relEventually x y
-  refl : ∀ x : RegularSeq, relEventually x x
-  symm : ∀ x y : RegularSeq, relEventually x y → relEventually y x
-  trans : ∀ x y z : RegularSeq,
-    relEventually x y → relEventually y z → relEventually x z
 
-def cRealEventualSetoidSeed : CRealEventualSetoidSeed where
-  relEventually := relEventually
-  raw_to_eventual := rel_to_relEventually
-  refl := relEventually_refl
-  symm := relEventually_symm
-  trans := relEventually_trans
 
 end BishopCReal
 

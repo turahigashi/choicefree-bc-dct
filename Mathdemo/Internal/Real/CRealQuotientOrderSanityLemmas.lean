@@ -52,25 +52,8 @@ theorem ltQuot_irrefl (x : CRealQuot) : ¬ ltQuot x x := by
   intro a
   exact ltQuot_irrefl_mk a
 
-/-- A quotient element is not apart from itself. -/
-theorem not_apartQuot_self (x : CRealQuot) : ¬ apartQuot x x := by
-  intro hx
-  rcases hx with h | h
-  · exact ltQuot_irrefl x h
-  · exact ltQuot_irrefl x h
 
-/-- Audited sanity seed for the quotient order layer. -/
-structure CRealQuotOrderSanitySeed : Type where
-  not_pos_zero : ¬ posQuot zeroQuot
-  sub_self_mk : ∀ x : RegularSeq, subQuot (mkQuot x) (mkQuot x) = zeroQuot
-  lt_irrefl : ∀ x : CRealQuot, ¬ ltQuot x x
-  not_apart_self : ∀ x : CRealQuot, ¬ apartQuot x x
 
-def cRealQuotOrderSanitySeed : CRealQuotOrderSanitySeed where
-  not_pos_zero := not_posQuot_zero
-  sub_self_mk := subQuot_self_mk
-  lt_irrefl := ltQuot_irrefl
-  not_apart_self := not_apartQuot_self
 
 end BishopCReal
 

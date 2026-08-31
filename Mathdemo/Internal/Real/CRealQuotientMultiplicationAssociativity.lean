@@ -258,32 +258,7 @@ theorem mulQuotConcrete_assoc
   intro x' y' z'
   exact mulQuotConcrete_assoc_mk A x' y' z'
 
-/-- The multiplication ring-law data from `CRealMultiplicationCompletionFrontier`, now fully concrete. -/
-def cRealQuotMulRingLawDataConcreteWith
-    (A : ScalarMulArchimedeanData) :
-    CRealQuotMulRingLawData (cRealMulCompletionObligationsWith A) where
-  mul_assoc := by
-    intro x y z
-    change mulQuotConcreteWith A (mulQuotConcreteWith A x y) z =
-      mulQuotConcreteWith A x (mulQuotConcreteWith A y z)
-    exact mulQuotConcrete_assoc A x y z
-  left_distrib := by
-    intro x y z
-    change mulQuotConcreteWith A x (addQuot y z) =
-      addQuot (mulQuotConcreteWith A x y) (mulQuotConcreteWith A x z)
-    exact mulQuotConcrete_left_distrib A x y z
-  right_distrib := by
-    intro x y z
-    change mulQuotConcreteWith A (addQuot x y) z =
-      addQuot (mulQuotConcreteWith A x z) (mulQuotConcreteWith A y z)
-    exact mulQuotConcrete_right_distrib A x y z
 
-/-- The Phase 9-11 multiplication frontier is closed for every explicit scalar
-multiplicative Archimedean datum. -/
-def cRealMulFinalFrontierConcreteWith
-    (A : ScalarMulArchimedeanData) : CRealMulFinalFrontier where
-  obligations := cRealMulCompletionObligationsWith A
-  ringLaws := cRealQuotMulRingLawDataConcreteWith A
 
 end BishopCReal
 

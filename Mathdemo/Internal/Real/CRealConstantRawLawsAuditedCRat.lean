@@ -60,17 +60,8 @@ theorem const_regular (q : Scalar) : RegularVal (constVal q) := by
   rw [show q - q = (0 : Scalar) from by ring, scalarCOFOSeed.abs_zero]
   exact eps_add_nonneg m n
 
-theorem zero_regular : RegularVal zeroVal := by
-  change RegularVal (constVal (0 : Scalar))
-  exact const_regular 0
 
-theorem one_regular : RegularVal oneVal := by
-  change RegularVal (constVal (1 : Scalar))
-  exact const_regular 1
 
-theorem half_regular : RegularVal halfVal := by
-  change RegularVal (constVal (COF.half : Scalar))
-  exact const_regular COF.half
 
 /-- Raw CReal `abs 0 = 0` at the representative level. -/
 theorem abs_zero_raw : relVal (absVal zeroVal) zeroVal := by
@@ -80,24 +71,7 @@ theorem abs_zero_raw : relVal (absVal zeroVal) zeroVal := by
   rw [show (0 : Scalar) - 0 = 0 from by ring, scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-/-- Audited constant-sequence seed. -/
-structure CRealConstantSeed : Type where
-  eps_pos : ∀ n : Nat, COF.lt 0 (eps n)
-  eps_nonneg : ∀ n : Nat, Le 0 (eps n)
-  const_regular : ∀ q : Scalar, RegularVal (constVal q)
-  zero_regular : RegularVal zeroVal
-  one_regular : RegularVal oneVal
-  half_regular : RegularVal halfVal
-  abs_zero_raw : relVal (absVal zeroVal) zeroVal
 
-def cRealConstantSeed : CRealConstantSeed where
-  eps_pos := eps_pos
-  eps_nonneg := eps_nonneg
-  const_regular := const_regular
-  zero_regular := zero_regular
-  one_regular := one_regular
-  half_regular := half_regular
-  abs_zero_raw := abs_zero_raw
 
 end BishopCReal
 

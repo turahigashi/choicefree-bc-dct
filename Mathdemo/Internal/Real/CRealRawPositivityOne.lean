@@ -27,15 +27,7 @@ theorem one_pos_raw : PosVal oneVal := by
   rw [mul_one]
   exact scalar_half_lt_one
 
-/-- Audited raw positivity seed currently closed without extra dyadic
-comparison lemmas. -/
-structure CRealPosSeed : Type where
-  scalar_half_lt_one : COF.lt (COF.half : Scalar) 1
-  one_pos_raw : PosVal oneVal
 
-def cRealPosSeed : CRealPosSeed where
-  scalar_half_lt_one := scalar_half_lt_one
-  one_pos_raw := one_pos_raw
 
 end BishopCReal
 

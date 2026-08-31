@@ -101,19 +101,7 @@ theorem ltQuot_cotrans (a b c : CRealQuot) (h : ltQuot a b) :
   intro c' h
   exact ltQuot_cotrans_mk a' b' c' h
 
-/-- Audited cotransitivity seed for the quotient order layer. -/
-structure CRealQuotOrderCotransSeed : Type where
-  scalar_split_add : ∀ {e u v : Scalar}, COF.lt (e + e) (u + v) →
-    COF.lt e u ∨ COF.lt e v
-  late_point_pos : ∀ x : RegularSeq, ∀ {j M : Nat},
-    j + 2 ≤ M → COF.lt (eps j) (x.val M) → PosEventually x
-  lt_cotrans : ∀ {a b : CRealQuot}, ltQuot a b → ∀ c : CRealQuot,
-    ltQuot a c ∨ ltQuot c b
 
-def cRealQuotOrderCotransSeed : CRealQuotOrderCotransSeed where
-  scalar_split_add := fun h => scalar_lt_split_add h
-  late_point_pos := posEventually_of_late_point
-  lt_cotrans := fun {a b} h c => ltQuot_cotrans a b c h
 
 end BishopCReal
 

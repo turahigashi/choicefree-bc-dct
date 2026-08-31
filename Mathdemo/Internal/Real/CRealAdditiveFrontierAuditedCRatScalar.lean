@@ -54,12 +54,6 @@ theorem scalar_abs_abs_sub_abs_le (a b : Scalar) :
     rwa [show COF.abs b - COF.abs a = -(COF.abs a - COF.abs b) from by ring] at hb
   exact scalarCOFOSeed.abs_le_of h1 h2
 
-/-- The equality tolerance has the same dyadic halving behavior. -/
-theorem tol_succ_add_self (n : Nat) : tol (n + 1) + tol (n + 1) = tol n := by
-  unfold tol
-  rw [show (eps (n + 1) + eps (n + 1)) + (eps (n + 1) + eps (n + 1))
-      = (eps (n + 1) + eps (n + 1)) + (eps (n + 1) + eps (n + 1)) from rfl,
-    eps_succ_add_self n]
 
 /-- Addition preserves regularity of representatives. -/
 theorem add_regular (x y : RegularSeq) : RegularVal (addVal x.val y.val) := by
@@ -92,31 +86,6 @@ theorem add_regular (x y : RegularSeq) : RegularVal (addVal x.val y.val) := by
     rwa [hbudget] at hsum
   exact BishopC.le_trans htri hsum'
 
-/-- Addition respects raw Bishop equality. -/
-theorem add_respects (x x' y y' : RegularSeq) (hxx : rel x x') (hyy : rel y y') :
-    relVal (addVal x.val y.val) (addVal x'.val y'.val) := by
-  intro n
-  unfold addVal addIndex
-  have htri : Le
-      (COF.abs ((x.val (n + 1) + y.val (n + 1)) - (x'.val (n + 1) + y'.val (n + 1))))
-      (COF.abs (x.val (n + 1) - x'.val (n + 1))
-        + COF.abs (y.val (n + 1) - y'.val (n + 1))) := by
-    have h := scalar_abs_add_le
-      (x.val (n + 1) - x'.val (n + 1))
-      (y.val (n + 1) - y'.val (n + 1))
-    rwa [show (x.val (n + 1) - x'.val (n + 1))
-        + (y.val (n + 1) - y'.val (n + 1))
-        = (x.val (n + 1) + y.val (n + 1)) - (x'.val (n + 1) + y'.val (n + 1))
-        from by ring] at h
-  have hx := hxx (n + 1)
-  have hy := hyy (n + 1)
-  have hsum := BishopC.le_add hx hy
-  have hsum' : Le
-      (COF.abs (x.val (n + 1) - x'.val (n + 1))
-        + COF.abs (y.val (n + 1) - y'.val (n + 1)))
-      (tol n) := by
-    rwa [tol_succ_add_self n] at hsum
-  exact BishopC.le_trans htri hsum'
 
 /-- Absolute value preserves regularity of representatives. -/
 theorem abs_regular (x : RegularSeq) : RegularVal (absVal x.val) := by
@@ -124,22 +93,7 @@ theorem abs_regular (x : RegularSeq) : RegularVal (absVal x.val) := by
   unfold absVal
   exact BishopC.le_trans (scalar_abs_abs_sub_abs_le (x.val m) (x.val n)) (x.regular m n)
 
-/-- Absolute value respects raw Bishop equality. -/
-theorem abs_respects (x y : RegularSeq) (hxy : rel x y) :
-    relVal (absVal x.val) (absVal y.val) := by
-  intro n
-  unfold absVal
-  exact BishopC.le_trans (scalar_abs_abs_sub_abs_le (x.val n) (y.val n)) (hxy n)
 
-/-- The complete additive frontier currently needed by `ReadyForCOFOC`. -/
-def cRealAdditiveFrontier : CRealAdditiveFrontier where
-  const_regular := const_regular
-  neg_regular := neg_regular
-  add_regular := add_regular
-  abs_regular := abs_regular
-  neg_respects := neg_respects
-  add_respects := add_respects
-  abs_respects := abs_respects
 
 end BishopCReal
 

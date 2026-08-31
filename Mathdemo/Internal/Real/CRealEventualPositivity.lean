@@ -64,30 +64,9 @@ def posQuot : CRealQuot → Prop :=
 def ltQuot (x y : CRealQuot) : Prop :=
   posQuot (subQuot y x)
 
-/-- Quotient nonnegativity in constructive order style. -/
-def nonnegQuot (x : CRealQuot) : Prop :=
-  ¬ posQuot (negQuot x)
 
-/-- Quotient apartness, recorded as a disjunction of directed positivity. -/
-def apartQuot (x y : CRealQuot) : Prop :=
-  ltQuot x y ∨ ltQuot y x
 
-/-- Audited first-order seed for the quotient order layer. -/
-structure CRealQuotPositiveSeed : Type where
-  PosEventually : RegularSeq → Prop
-  pos_respects : ∀ x y : RegularSeq, relEventually x y → PosEventually x → PosEventually y
-  posQuot : CRealQuot → Prop
-  ltQuot : CRealQuot → CRealQuot → Prop
-  nonnegQuot : CRealQuot → Prop
-  apartQuot : CRealQuot → CRealQuot → Prop
 
-def cRealQuotPositiveSeed : CRealQuotPositiveSeed where
-  PosEventually := PosEventually
-  pos_respects := posEventually_respects
-  posQuot := posQuot
-  ltQuot := ltQuot
-  nonnegQuot := nonnegQuot
-  apartQuot := apartQuot
 
 end BishopCReal
 

@@ -24,14 +24,7 @@ theorem abs_neg_raw (x : RegularSeq) : relVal (absVal (negVal x.val)) (absVal x.
       = (0 : Scalar) from by ring, scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-/-- Audited raw absolute-value seed. -/
-structure CRealAbsSeed : Type where
-  abs_zero_raw : relVal (absVal zeroVal) zeroVal
-  abs_neg_raw : ∀ x : RegularSeq, relVal (absVal (negVal x.val)) (absVal x.val)
 
-def cRealAbsSeed : CRealAbsSeed where
-  abs_zero_raw := abs_zero_raw
-  abs_neg_raw := abs_neg_raw
 
 end BishopCReal
 

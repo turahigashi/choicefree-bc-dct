@@ -84,37 +84,7 @@ theorem bounded_mul_comm_raw_with (A : ScalarMulArchimedeanData) (x y : RegularS
   rw [mulBoundWith_comm A x y]
   exact mul_comm_raw_fixed (mulBoundWith A y x) x y
 
-/-- Audited conditional seed for global multiplication bounds. -/
-structure CRealMulBoundSeed : Type where
-  scalarData : ScalarMulArchimedeanData
-  standardBound : RegularSeq → Nat
-  standardBound_spec : ∀ x : RegularSeq,
-    Le (COF.abs (COF.abs (x.val 1) + 1) * eps (standardBound x)) 1
-  mulBound : RegularSeq → RegularSeq → Nat
-  mulBound_left : ∀ x y : RegularSeq, standardBound x ≤ mulBound x y
-  mulBound_right : ∀ x y : RegularSeq, standardBound y ≤ mulBound x y
-  mulBound_comm : ∀ x y : RegularSeq, mulBound x y = mulBound y x
-  boundedMulVal : RegularSeq → RegularSeq → Nat → Scalar
-  zero_left : ∀ x : RegularSeq, relVal (boundedMulVal zeroSeq x) zeroVal
-  zero_right : ∀ x : RegularSeq, relVal (boundedMulVal x zeroSeq) zeroVal
-  one_left : ∀ x : RegularSeq, relVal (boundedMulVal oneSeq x) x.val
-  one_right : ∀ x : RegularSeq, relVal (boundedMulVal x oneSeq) x.val
-  comm_raw : ∀ x y : RegularSeq, relVal (boundedMulVal x y) (boundedMulVal y x)
 
-def cRealMulBoundSeedWith (A : ScalarMulArchimedeanData) : CRealMulBoundSeed where
-  scalarData := A
-  standardBound := standardBoundWith A
-  standardBound_spec := standardBoundWith_spec A
-  mulBound := mulBoundWith A
-  mulBound_left := standardBoundWith_le_mulBound_left A
-  mulBound_right := standardBoundWith_le_mulBound_right A
-  mulBound_comm := mulBoundWith_comm A
-  boundedMulVal := boundedMulValWith A
-  zero_left := bounded_mul_zero_left_raw_with A
-  zero_right := bounded_mul_zero_right_raw_with A
-  one_left := bounded_mul_one_left_raw_with A
-  one_right := bounded_mul_one_right_raw_with A
-  comm_raw := bounded_mul_comm_raw_with A
 
 end BishopCReal
 

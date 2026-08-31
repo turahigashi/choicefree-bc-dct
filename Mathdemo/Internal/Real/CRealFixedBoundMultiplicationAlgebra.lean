@@ -105,33 +105,7 @@ theorem mul_comm_raw_fixed (K : Nat) (x y : RegularSeq) :
   rw [scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-/-- Audited fixed-bound multiplication algebra seed. -/
-structure CRealFixedMulAlgebraSeed : Type where
-  eps_add_le_eps : ∀ n d : Nat, Le (eps (n + d)) (eps n)
-  eps_le_of_le : ∀ {n m : Nat}, n ≤ m → Le (eps m) (eps n)
-  le_mulIndexFromBound : ∀ K n : Nat, n ≤ mulIndexFromBound K n
-  mul_zero_left_raw_fixed : ∀ K : Nat, ∀ x : RegularSeq,
-    relVal (mulValWithBound K zeroVal x.val) zeroVal
-  mul_zero_right_raw_fixed : ∀ K : Nat, ∀ x : RegularSeq,
-    relVal (mulValWithBound K x.val zeroVal) zeroVal
-  mul_one_left_raw_fixed : ∀ K : Nat, ∀ x : RegularSeq,
-    relVal (mulValWithBound K oneVal x.val) x.val
-  mul_one_right_raw_fixed : ∀ K : Nat, ∀ x : RegularSeq,
-    relVal (mulValWithBound K x.val oneVal) x.val
-  mul_comm_raw_fixed : ∀ K : Nat, ∀ x y : RegularSeq,
-    relVal
-      (mulValWithBound K x.val y.val)
-      (mulValWithBound K y.val x.val)
 
-def cRealFixedMulAlgebraSeed : CRealFixedMulAlgebraSeed where
-  eps_add_le_eps := eps_add_le_eps
-  eps_le_of_le := fun h => eps_le_of_le h
-  le_mulIndexFromBound := le_mulIndexFromBound
-  mul_zero_left_raw_fixed := mul_zero_left_raw_fixed
-  mul_zero_right_raw_fixed := mul_zero_right_raw_fixed
-  mul_one_left_raw_fixed := mul_one_left_raw_fixed
-  mul_one_right_raw_fixed := mul_one_right_raw_fixed
-  mul_comm_raw_fixed := mul_comm_raw_fixed
 
 end BishopCReal
 

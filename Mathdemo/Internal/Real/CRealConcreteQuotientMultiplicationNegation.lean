@@ -198,40 +198,9 @@ theorem bounded_mul_neg_right_eventually_with (A : ScalarMulArchimedeanData)
     exact BishopC.le_refl (eps k)
   exact BishopC.le_trans htri (BishopC.le_trans hsum hbudget)
 
-theorem mulQuotConcrete_neg_left (A : ScalarMulArchimedeanData)
-    (x y : CRealQuot) :
-    mulQuotConcreteWith A (negQuot x) y = negQuot (mulQuotConcreteWith A x y) := by
-  refine Quotient.inductionOn x ?_
-  intro x'
-  refine Quotient.inductionOn y ?_
-  intro y'
-  apply Quotient.sound
-  exact bounded_mul_neg_left_eventually_with A x' y'
 
-theorem mulQuotConcrete_neg_right (A : ScalarMulArchimedeanData)
-    (x y : CRealQuot) :
-    mulQuotConcreteWith A x (negQuot y) = negQuot (mulQuotConcreteWith A x y) := by
-  refine Quotient.inductionOn x ?_
-  intro x'
-  refine Quotient.inductionOn y ?_
-  intro y'
-  apply Quotient.sound
-  exact bounded_mul_neg_right_eventually_with A x' y'
 
-/-- Concrete quotient multiplication compatibility with additive negation. -/
-structure CRealQuotMulNegConcreteSeed (A : ScalarMulArchimedeanData) : Type where
-  standard_bound_neg : ∀ x : RegularSeq,
-    standardBoundWith A (negSeq x) = standardBoundWith A x
-  neg_left : ∀ x y : CRealQuot,
-    mulQuotConcreteWith A (negQuot x) y = negQuot (mulQuotConcreteWith A x y)
-  neg_right : ∀ x y : CRealQuot,
-    mulQuotConcreteWith A x (negQuot y) = negQuot (mulQuotConcreteWith A x y)
 
-def cRealQuotMulNegConcreteSeedWith
-    (A : ScalarMulArchimedeanData) : CRealQuotMulNegConcreteSeed A where
-  standard_bound_neg := standardBoundWith_neg A
-  neg_left := mulQuotConcrete_neg_left A
-  neg_right := mulQuotConcrete_neg_right A
 
 end BishopCReal
 

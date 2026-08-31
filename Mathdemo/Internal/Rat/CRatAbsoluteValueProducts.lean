@@ -91,20 +91,8 @@ open BishopCRat
 theorem scalar_abs_mul (a b : Scalar) : COF.abs (a * b) = COF.abs a * COF.abs b :=
   BishopCRat.CRat.abs_mul a b
 
-/-- Non-strict version used by product estimates. -/
-theorem scalar_abs_mul_le (a b : Scalar) :
-    Le (COF.abs (a * b)) (COF.abs a * COF.abs b) := by
-  rw [scalar_abs_mul a b]
-  exact BishopC.le_refl (COF.abs a * COF.abs b)
 
-/-- Audited absolute-multiplication seed for Phase 10. -/
-structure CRealScalarAbsMulSeed : Type where
-  abs_mul : ∀ a b : Scalar, COF.abs (a * b) = COF.abs a * COF.abs b
-  abs_mul_le : ∀ a b : Scalar, Le (COF.abs (a * b)) (COF.abs a * COF.abs b)
 
-def cRealScalarAbsMulSeed : CRealScalarAbsMulSeed where
-  abs_mul := scalar_abs_mul
-  abs_mul_le := scalar_abs_mul_le
 
 end BishopCReal
 

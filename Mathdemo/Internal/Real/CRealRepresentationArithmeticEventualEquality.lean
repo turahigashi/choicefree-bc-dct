@@ -143,38 +143,7 @@ theorem absSeq_respects_eventually (x y : RegularSeq) (hxy : relEventually x y) 
   unfold absSeq absVal
   exact BishopC.le_trans (scalar_abs_abs_sub_abs_le (x.val n) (y.val n)) (hN n hn)
 
-/-- Audited representation arithmetic seed for eventual equality. -/
-structure CRealEventualAdditiveSeed : Type where
-  setoid : Setoid RegularSeq
-  constSeq : Scalar → RegularSeq
-  zeroSeq : RegularSeq
-  oneSeq : RegularSeq
-  halfSeq : RegularSeq
-  negSeq : RegularSeq → RegularSeq
-  addSeq : RegularSeq → RegularSeq → RegularSeq
-  subSeq : RegularSeq → RegularSeq → RegularSeq
-  absSeq : RegularSeq → RegularSeq
-  neg_respects : ∀ x y : RegularSeq, relEventually x y → relEventually (negSeq x) (negSeq y)
-  add_respects : ∀ x x' y y' : RegularSeq,
-    relEventually x x' → relEventually y y' → relEventually (addSeq x y) (addSeq x' y')
-  sub_respects : ∀ x x' y y' : RegularSeq,
-    relEventually x x' → relEventually y y' → relEventually (subSeq x y) (subSeq x' y')
-  abs_respects : ∀ x y : RegularSeq, relEventually x y → relEventually (absSeq x) (absSeq y)
 
-def cRealEventualAdditiveSeed : CRealEventualAdditiveSeed where
-  setoid := eventualSetoid
-  constSeq := constSeq
-  zeroSeq := zeroSeq
-  oneSeq := oneSeq
-  halfSeq := halfSeq
-  negSeq := negSeq
-  addSeq := addSeq
-  subSeq := subSeq
-  absSeq := absSeq
-  neg_respects := negSeq_respects_eventually
-  add_respects := addSeq_respects_eventually
-  sub_respects := subSeq_respects_eventually
-  abs_respects := absSeq_respects_eventually
 
 end BishopCReal
 

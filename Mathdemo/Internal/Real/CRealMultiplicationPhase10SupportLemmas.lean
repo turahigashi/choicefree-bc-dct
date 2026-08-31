@@ -100,27 +100,7 @@ theorem standardBoundWith_spec_base (A : ScalarMulArchimedeanData) (x : RegularS
   change Le ((COF.abs (x.val 1) + 1) * eps (standardBoundWith A x)) 1
   rwa [scalarCOFOSeed.abs_of_nonneg hbase_nonneg] at h
 
-/-- Audited Phase 10 support seed. -/
-structure CRealMulPhase10SupportSeed : Type where
-  scalar_abs_nonneg : ∀ a : Scalar, Le 0 (COF.abs a)
-  scalar_mul_le_mul_left : ∀ {a b c : Scalar}, Le a b → Le 0 c → Le (c * a) (c * b)
-  scalar_mul_le_mul_right : ∀ {a b c : Scalar}, Le a b → Le 0 c → Le (a * c) (b * c)
-  one_le_mulIndexFromBound : ∀ K n : Nat, 1 ≤ mulIndexFromBound K n
-  eps_mulIndex_add_eps_one_le_one : ∀ K n : Nat,
-    Le (eps (mulIndexFromBound K n) + eps 1) 1
-  regular_value_bound_from_one : ∀ x : RegularSeq, ∀ K n : Nat,
-    Le (COF.abs (x.val (mulIndexFromBound K n))) (COF.abs (x.val 1) + 1)
-  standardBoundWith_spec_base : ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-    Le ((COF.abs (x.val 1) + 1) * eps (standardBoundWith A x)) 1
 
-def cRealMulPhase10SupportSeed : CRealMulPhase10SupportSeed where
-  scalar_abs_nonneg := scalar_abs_nonneg
-  scalar_mul_le_mul_left := fun h hc => scalar_mul_le_mul_left h hc
-  scalar_mul_le_mul_right := fun h hc => scalar_mul_le_mul_right h hc
-  one_le_mulIndexFromBound := one_le_mulIndexFromBound
-  eps_mulIndex_add_eps_one_le_one := eps_mulIndex_add_eps_one_le_one
-  regular_value_bound_from_one := regular_value_bound_from_one
-  standardBoundWith_spec_base := standardBoundWith_spec_base
 
 end BishopCReal
 

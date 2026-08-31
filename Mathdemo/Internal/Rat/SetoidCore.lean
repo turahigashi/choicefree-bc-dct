@@ -151,25 +151,6 @@ theorem lt_cotrans {a b : Q} (h : lt a b) (c : Q) : lt a c ∨ lt c b := by
       omega
     exact Int.lt_of_mul_lt_mul_right chain (le_of_lt a.den_pos)
 
-/-- Data-valued cotransitivity. This is the same cross-multiplication proof as
-`lt_cotrans`, but it returns `PSum` directly, matching the current
-`BishopB.COF.lt_cotrans_data` field without extracting data from a Prop. -/
-def lt_cotrans_data {a b : Q} (h : lt a b) (c : Q) : PSum (lt a c) (lt c b) := by
-  unfold lt at h ⊢
-  by_cases hlt : a.num * c.den < c.num * a.den
-  · exact PSum.inl hlt
-  · refine PSum.inr ?_
-    have hca : c.num * a.den ≤ a.num * c.den := by omega
-    have s1 : c.num * a.den * b.den ≤ a.num * c.den * b.den :=
-      Int.mul_le_mul_of_nonneg_right hca (le_of_lt b.den_pos)
-    have s2 : a.num * b.den * c.den < b.num * a.den * c.den :=
-      Int.mul_lt_mul_of_pos_right h c.den_pos
-    have chain : c.num * b.den * a.den < b.num * c.den * a.den := by
-      have e1 : c.num * a.den * b.den = c.num * b.den * a.den := by ring
-      have e2 : a.num * c.den * b.den = a.num * b.den * c.den := by ring
-      have e3 : b.num * a.den * c.den = b.num * c.den * a.den := by ring
-      omega
-    exact Int.lt_of_mul_lt_mul_right chain (le_of_lt a.den_pos)
 
 /-- Technical lemma used in the public import closure. -/
 theorem pos_of_mul_pos_right {x p : Int} (h : 0 < x * p) (hp : 0 ≤ p) : 0 < x :=

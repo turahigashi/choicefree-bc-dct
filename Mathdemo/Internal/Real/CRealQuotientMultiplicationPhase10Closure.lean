@@ -15,12 +15,6 @@ namespace BishopCReal
 open BishopC
 open BishopCRat
 
-/-- Phase 10 discharges the completion obligations recorded in `CRealMultiplicationCompletionFrontier`. -/
-def cRealMulCompletionObligationsWith
-    (A : ScalarMulArchimedeanData) : CRealMulCompletionObligations where
-  scalarData := A
-  mul_regular := boundedMul_regular_with A
-  mul_respects_eventually := boundedMul_respects_eventually_with A
 
 /-- Concrete multiplication closure data from the explicit scalar datum. -/
 def cRealMulClosureConcreteWith
@@ -73,39 +67,8 @@ theorem mulQuotConcrete_comm
     mulQuotConcreteWith A x y = mulQuotConcreteWith A y x := by
   exact mulQuotWith_comm A (cRealMulClosureConcreteWith A) x y
 
-/-- The conditional quotient multiplication seed from `CRealQuotientMultiplicationExplicitClosureData`, now
-specialized with the closure constructed in `CRealBoundedMultiplicationEventualRespect`. -/
-def cRealQuotMulOpsSeedConcreteWith
-    (A : ScalarMulArchimedeanData) : CRealQuotMulOpsSeed :=
-  cRealQuotMulOpsSeedWith A (cRealMulClosureConcreteWith A)
 
-/-- A typed Phase 11-A package retaining the scalar datum as a parameter, so the
-next ring-law phase can use the concrete operations without unpacking the
-generic seed. -/
-structure CRealQuotMulConcreteSeed (A : ScalarMulArchimedeanData) : Type where
-  closureData : CRealMulClosureData A
-  mulSeq : RegularSeq → RegularSeq → RegularSeq
-  mulQuot : CRealQuot → CRealQuot → CRealQuot
-  mul_respects : ∀ x x' y y' : RegularSeq,
-    relEventually x x' → relEventually y y' →
-      relEventually (mulSeq x y) (mulSeq x' y')
-  zero_left : ∀ x : CRealQuot, mulQuot zeroQuot x = zeroQuot
-  zero_right : ∀ x : CRealQuot, mulQuot x zeroQuot = zeroQuot
-  one_left : ∀ x : CRealQuot, mulQuot oneQuot x = x
-  one_right : ∀ x : CRealQuot, mulQuot x oneQuot = x
-  comm : ∀ x y : CRealQuot, mulQuot x y = mulQuot y x
 
-def cRealQuotMulConcreteSeedWith
-    (A : ScalarMulArchimedeanData) : CRealQuotMulConcreteSeed A where
-  closureData := cRealMulClosureConcreteWith A
-  mulSeq := mulSeqConcreteWith A
-  mulQuot := mulQuotConcreteWith A
-  mul_respects := mulSeqConcrete_respects_eventually A
-  zero_left := mulQuotConcrete_zero_left A
-  zero_right := mulQuotConcrete_zero_right A
-  one_left := mulQuotConcrete_one_left A
-  one_right := mulQuotConcrete_one_right A
-  comm := mulQuotConcrete_comm A
 
 end BishopCReal
 

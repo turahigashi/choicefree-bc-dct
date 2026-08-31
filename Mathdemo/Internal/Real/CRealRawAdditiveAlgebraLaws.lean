@@ -108,23 +108,7 @@ theorem add_neg_cancel_raw (x : RegularSeq) :
   rw [scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-/-- Audited raw additive algebra seed. -/
-structure CRealAdditiveAlgebraSeed : Type where
-  add_zero_raw : ∀ x : RegularSeq, relVal (addVal x.val zeroVal) x.val
-  zero_add_raw : ∀ x : RegularSeq, relVal (addVal zeroVal x.val) x.val
-  add_comm_raw : ∀ x y : RegularSeq, relVal (addVal x.val y.val) (addVal y.val x.val)
-  add_assoc_raw : ∀ x y z : RegularSeq,
-    relVal (addVal (addVal x.val y.val) z.val) (addVal x.val (addVal y.val z.val))
-  neg_add_cancel_raw : ∀ x : RegularSeq, relVal (addVal (negVal x.val) x.val) zeroVal
-  add_neg_cancel_raw : ∀ x : RegularSeq, relVal (addVal x.val (negVal x.val)) zeroVal
 
-def cRealAdditiveAlgebraSeed : CRealAdditiveAlgebraSeed where
-  add_zero_raw := add_zero_raw
-  zero_add_raw := zero_add_raw
-  add_comm_raw := add_comm_raw
-  add_assoc_raw := add_assoc_raw
-  neg_add_cancel_raw := neg_add_cancel_raw
-  add_neg_cancel_raw := add_neg_cancel_raw
 
 end BishopCReal
 

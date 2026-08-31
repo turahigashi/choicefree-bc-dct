@@ -65,22 +65,7 @@ theorem sub_comm_neg_raw (x y : RegularSeq) :
   rw [scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-/-- Audited raw subtraction algebra seed. -/
-structure CRealSubAlgebraSeed : Type where
-  sub_zero_raw : ∀ x : RegularSeq, relVal (subVal x.val zeroVal) x.val
-  zero_sub_raw : ∀ x : RegularSeq, relVal (subVal zeroVal x.val) (negVal x.val)
-  sub_self_raw : ∀ x : RegularSeq, relVal (subVal x.val x.val) zeroVal
-  sub_eq_add_neg_raw : ∀ x y : RegularSeq,
-    relVal (subVal x.val y.val) (addVal x.val (negVal y.val))
-  sub_comm_neg_raw : ∀ x y : RegularSeq,
-    relVal (subVal x.val y.val) (negVal (subVal y.val x.val))
 
-def cRealSubAlgebraSeed : CRealSubAlgebraSeed where
-  sub_zero_raw := sub_zero_raw
-  zero_sub_raw := zero_sub_raw
-  sub_self_raw := sub_self_raw
-  sub_eq_add_neg_raw := sub_eq_add_neg_raw
-  sub_comm_neg_raw := sub_comm_neg_raw
 
 end BishopCReal
 

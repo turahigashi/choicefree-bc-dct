@@ -333,19 +333,7 @@ theorem mulQuotConcrete_right_distrib
   intro z'
   exact mulQuotConcrete_right_distrib_mk A x' y' z'
 
-/-- Audited concrete quotient multiplication distributivity seed. -/
-structure CRealQuotMulDistribConcreteSeed (A : ScalarMulArchimedeanData) : Type where
-  left_distrib : ∀ x y z : CRealQuot,
-    mulQuotConcreteWith A x (addQuot y z) =
-      addQuot (mulQuotConcreteWith A x y) (mulQuotConcreteWith A x z)
-  right_distrib : ∀ x y z : CRealQuot,
-    mulQuotConcreteWith A (addQuot x y) z =
-      addQuot (mulQuotConcreteWith A x z) (mulQuotConcreteWith A y z)
 
-def cRealQuotMulDistribConcreteSeed
-    (A : ScalarMulArchimedeanData) : CRealQuotMulDistribConcreteSeed A where
-  left_distrib := mulQuotConcrete_left_distrib A
-  right_distrib := mulQuotConcrete_right_distrib A
 
 end BishopCReal
 

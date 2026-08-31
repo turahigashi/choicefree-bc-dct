@@ -127,32 +127,7 @@ theorem mulQuotWith_comm (A : ScalarMulArchimedeanData)
   intro y'
   exact mulQuotWith_comm_mk A D x' y'
 
-/-- Audited conditional quotient multiplication seed. -/
-structure CRealQuotMulOpsSeed : Type where
-  scalarData : ScalarMulArchimedeanData
-  closureData : CRealMulClosureData scalarData
-  mulSeq : RegularSeq → RegularSeq → RegularSeq
-  mulQuot : CRealQuot → CRealQuot → CRealQuot
-  mul_respects : ∀ x x' y y' : RegularSeq,
-    relEventually x x' → relEventually y y' → relEventually (mulSeq x y) (mulSeq x' y')
-  zero_left : ∀ x : CRealQuot, mulQuot zeroQuot x = zeroQuot
-  zero_right : ∀ x : CRealQuot, mulQuot x zeroQuot = zeroQuot
-  one_left : ∀ x : CRealQuot, mulQuot oneQuot x = x
-  one_right : ∀ x : CRealQuot, mulQuot x oneQuot = x
-  comm : ∀ x y : CRealQuot, mulQuot x y = mulQuot y x
 
-def cRealQuotMulOpsSeedWith (A : ScalarMulArchimedeanData)
-    (D : CRealMulClosureData A) : CRealQuotMulOpsSeed where
-  scalarData := A
-  closureData := D
-  mulSeq := mulSeqWith A D
-  mulQuot := mulQuotWith A D
-  mul_respects := mulSeqWith_respects_eventually A D
-  zero_left := mulQuotWith_zero_left A D
-  zero_right := mulQuotWith_zero_right A D
-  one_left := mulQuotWith_one_left A D
-  one_right := mulQuotWith_one_right A D
-  comm := mulQuotWith_comm A D
 
 end BishopCReal
 

@@ -137,53 +137,8 @@ theorem mulSeqCommon_to_concrete_bound_eventually_with
     (mulSeqAtBoundWith A C x y hxC hyC)
     (mulSeqConcrete_to_common_bound_eventually_with A x y hxC hyC)
 
-/-- A common-bound representative denotes the same quotient product as the
-concrete pairwise-bound multiplication. -/
-theorem mkQuot_mulSeqAtBound_eq_mulQuotConcrete
-    (A : ScalarMulArchimedeanData) (x y : RegularSeq) {C : Nat}
-    (hxC : standardBoundWith A x <= C)
-    (hyC : standardBoundWith A y <= C) :
-    mkQuot (mulSeqAtBoundWith A C x y hxC hyC) =
-      mulQuotConcreteWith A (mkQuot x) (mkQuot y) := by
-  change mkQuot (mulSeqAtBoundWith A C x y hxC hyC) =
-    mkQuot (mulSeqConcreteWith A x y)
-  apply Quotient.sound
-  exact mulSeqCommon_to_concrete_bound_eventually_with A x y hxC hyC
 
-/-- Audited transport package for the forthcoming quotient associativity
-proof. -/
-structure CRealCommonBoundMulTransportSeed
-    (A : ScalarMulArchimedeanData) : Type where
-  common_regular : ∀ (C : Nat) (x y : RegularSeq),
-    standardBoundWith A x <= C → standardBoundWith A y <= C →
-      RegularVal (mulValWithBound C x.val y.val)
-  concrete_to_common : ∀ (C : Nat) (x y : RegularSeq)
-    (hxC : standardBoundWith A x <= C) (hyC : standardBoundWith A y <= C),
-      relEventually (mulSeqConcreteWith A x y)
-        (mulSeqAtBoundWith A C x y hxC hyC)
-  common_to_concrete : ∀ (C : Nat) (x y : RegularSeq)
-    (hxC : standardBoundWith A x <= C) (hyC : standardBoundWith A y <= C),
-      relEventually (mulSeqAtBoundWith A C x y hxC hyC)
-        (mulSeqConcreteWith A x y)
-  quotient_common : ∀ (C : Nat) (x y : RegularSeq)
-    (hxC : standardBoundWith A x <= C) (hyC : standardBoundWith A y <= C),
-      mkQuot (mulSeqAtBoundWith A C x y hxC hyC) =
-        mulQuotConcreteWith A (mkQuot x) (mkQuot y)
 
-def cRealCommonBoundMulTransportSeedWith
-    (A : ScalarMulArchimedeanData) : CRealCommonBoundMulTransportSeed A where
-  common_regular := by
-    intro C x y hxC hyC
-    exact mulValWithBound_regular_with_bound A x y hxC hyC
-  concrete_to_common := by
-    intro C x y hxC hyC
-    exact mulSeqConcrete_to_common_bound_eventually_with A x y hxC hyC
-  common_to_concrete := by
-    intro C x y hxC hyC
-    exact mulSeqCommon_to_concrete_bound_eventually_with A x y hxC hyC
-  quotient_common := by
-    intro C x y hxC hyC
-    exact mkQuot_mulSeqAtBound_eq_mulQuotConcrete A x y hxC hyC
 
 end BishopCReal
 

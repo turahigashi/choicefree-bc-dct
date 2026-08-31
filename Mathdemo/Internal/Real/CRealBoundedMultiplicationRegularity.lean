@@ -191,25 +191,7 @@ theorem boundedMul_regular_with (A : ScalarMulArchimedeanData)
     exact BishopC.le_refl (eps m + eps n)
   exact BishopC.le_trans hprod (BishopC.le_trans hsum hbudget)
 
-/-- Audited regularity seed for the first half of Phase 10 closure. -/
-structure CRealMulRegularitySeed : Type where
-  eps_add_mul : ∀ j m : Nat, eps (j + m) = eps j * eps m
-  standard_bound_mul_eps_le : ∀ A : ScalarMulArchimedeanData, ∀ x : RegularSeq,
-    ∀ {K n : Nat}, standardBoundWith A x ≤ K →
-      Le ((COF.abs (x.val 1) + 1) * eps (mulIndexFromBound K n)) (eps (n + 1))
-  scalar_product_diff_le : ∀ a a' b b' : Scalar,
-    Le (COF.abs (a * b - a' * b'))
-      (COF.abs a * COF.abs (b - b') + COF.abs (a - a') * COF.abs b')
-  boundedMul_regular : ∀ A : ScalarMulArchimedeanData, ∀ x y : RegularSeq,
-    RegularVal (boundedMulValWith A x y)
 
-def cRealMulRegularitySeed : CRealMulRegularitySeed where
-  eps_add_mul := eps_add_mul_local
-  standard_bound_mul_eps_le := by
-    intro A x K n h
-    exact standard_bound_mul_eps_le A x (K := K) (n := n) h
-  scalar_product_diff_le := scalar_product_diff_le
-  boundedMul_regular := boundedMul_regular_with
 
 end BishopCReal
 
