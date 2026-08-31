@@ -64,70 +64,11 @@ theorem positiveTail_mulSeqConcreteWith_invSeq_eventually_one
       (eps k)
   simpa [y] using hfinal
 
-/-- Quotient-level cancellation for the carried positive source representative. -/
-theorem positiveQuot_source_mul_invWithData_eq_one
-    (A : ScalarMulArchimedeanData) {x : CRealQuot}
-    (h : ltQuotData zeroQuot x) :
-    mulQuotConcreteWith A (positiveQuotInvSource h)
-      (positiveQuotInvWithData A h) = oneQuot := by
-  change
-    mulQuotConcreteWith A
-      (mkQuot (subSeq h.right h.left))
-      (mkQuot (positiveTailInvSeqWithBound A (subSeq h.right h.left) h.pos)) =
-        oneQuot
-  apply Quotient.sound
-  exact positiveTail_mulSeqConcreteWith_invSeq_eventually_one
-    A (subSeq h.right h.left) h.pos
 
-/-- Quotient-level cancellation for the original positive quotient element. -/
-theorem positiveQuot_mul_invWithData_eq_one
-    (A : ScalarMulArchimedeanData) {x : CRealQuot}
-    (h : ltQuotData zeroQuot x) :
-    mulQuotConcreteWith A x (positiveQuotInvWithData A h) = oneQuot := by
-  have hs : positiveQuotInvSource h = x := positiveQuotInvSource_eq_self h
-  calc
-    mulQuotConcreteWith A x (positiveQuotInvWithData A h)
-        = mulQuotConcreteWith A (positiveQuotInvSource h)
-            (positiveQuotInvWithData A h) := by
-          rw [hs]
-    _ = oneQuot := positiveQuot_source_mul_invWithData_eq_one A h
 
-/-- Data package for the proof-indexed positive inverse cancellation theorem. -/
-structure PositiveQuotInverseCancellationSeed : Type where
-  recipSeq_mul_eventually_one :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ x : RegularSeq, ∀ h : PosEventuallyData x,
-        relEventually
-          (mulSeqConcreteWith A x (positiveTailInvSeqWithBound A x h))
-          oneSeq
-  source_mul_inv_eq_one :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ {x : CRealQuot}, ∀ h : ltQuotData zeroQuot x,
-        mulQuotConcreteWith A (positiveQuotInvSource h)
-          (positiveQuotInvWithData A h) = oneQuot
-  mul_inv_eq_one :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ {x : CRealQuot}, ∀ h : ltQuotData zeroQuot x,
-        mulQuotConcreteWith A x (positiveQuotInvWithData A h) = oneQuot
 
-def positiveQuotInverseCancellationSeed :
-    PositiveQuotInverseCancellationSeed where
-  recipSeq_mul_eventually_one :=
-    positiveTail_mulSeqConcreteWith_invSeq_eventually_one
-  source_mul_inv_eq_one := positiveQuot_source_mul_invWithData_eq_one
-  mul_inv_eq_one := positiveQuot_mul_invWithData_eq_one
 
-/-- Frontier after proof-indexed positive inverse cancellation is available. -/
-structure CRealQuotPositiveInverseCancellationFrontier : Type where
-  total_selector_cancellation : Prop
-  quotient_inv_pos_uniform_lower_bound : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotPositiveInverseCancellationFrontier :
-    CRealQuotPositiveInverseCancellationFrontier where
-  total_selector_cancellation := True
-  quotient_inv_pos_uniform_lower_bound := True
-  cauchy_completeness := True
 
 end BishopCReal
 

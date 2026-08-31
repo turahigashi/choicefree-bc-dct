@@ -62,71 +62,12 @@ theorem repCloseAtGauge_of_absGap
     scalar_le_of_positive_gap (eps_pos j) hpoint
   simpa [hm2] using hle
 
-/-- The local close bridge's scalar-tail core is now closed. -/
-def cRealRepAbsGapToCloseData : CRealRepAbsGapToCloseData where
-  gap_to_close := repCloseAtGauge_of_absGap
 
-/-- Concrete quotient-order close to representative tail-close is now closed. -/
-def cRealQuotConcreteAbsSubCloseToRepCloseData :
-    CRealQuotConcreteAbsSubCloseToRepCloseData :=
-  cRealQuotConcreteAbsSubCloseToRepCloseData_of_repAbsGap
-    cRealRepAbsGapToCloseData
 
-/-- Record-level local quotient-close extraction is now available for the
-positive-inverse conditional branch. -/
-def cRealQuotCloseToRepCloseDataWithPositiveInverseDecidable
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCloseToRepCloseData
-      (cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf) :=
-  cRealQuotCloseToRepCloseData_of_concreteAbsSubClose
-    A rep hdec ltDataOf cRealQuotConcreteAbsSubCloseToRepCloseData
 
-/-- The first completeness sub-obligation, quotient-Cauchy to
-representative-Cauchy extraction, is closed for the positive-inverse conditional
-branch. -/
-def cRealQuotCauchyToRepSequenceDataWithPositiveInverseDecidable
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCauchyToRepSequenceData
-      (cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf) :=
-  cRealQuotCauchyToRepSequenceData_of_closeBridge
-    (cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf)
-    (cRealQuotCloseToRepCloseDataWithPositiveInverseDecidable
-      A rep hdec ltDataOf)
 
-/-- Final conditional `COFOC` assembly now depends only on representative
-diagonal-limit data. -/
-@[reducible] def cRealQuotCOFOCWithPositiveInverseDecidableOfDiagonal
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b)
-    (diagData : CRealRepDiagonalLimitData
-      (cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf)) :
-    BishopC.COFOC CRealQuot :=
-  cRealQuotCOFOCWithPositiveInverseDecidableOfCloseBridgeAndDiagonal
-    A rep hdec ltDataOf
-    (cRealQuotCloseToRepCloseDataWithPositiveInverseDecidable
-      A rep hdec ltDataOf)
-    diagData
 
-/-- Exact frontier after this file: quotient-Cauchy extraction is closed for
-the conditional branch; representative diagonal convergence remains. -/
-structure CRealQuotAfterCloseExtractionClosedFrontier : Type where
-  representative_diagonal_limit : Prop
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
 
-def cRealQuotAfterCloseExtractionClosedFrontier :
-    CRealQuotAfterCloseExtractionClosedFrontier where
-  representative_diagonal_limit := True
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
 
 end BishopCReal
 

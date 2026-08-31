@@ -102,19 +102,6 @@ theorem cmod_le_repCauchyEnvelope
     hc.cmod k ≤ repCauchyEnvelope hc r :=
   le_natMaxUpTo_self hc.cmod hkr
 
-/-- If two indices are beyond an envelope covering gauge `k`, then the
-representatives are close at gauge `k`. -/
-theorem repCloseAtGauge_of_envelope_le
-    {w : Nat → RegularSeq}
-    (hc : CRealRepSequenceCauchyData w)
-    {k r m n : Nat}
-    (hkr : k ≤ r)
-    (hm : repCauchyEnvelope hc r ≤ m)
-    (hn : repCauchyEnvelope hc r ≤ n) :
-    RepCloseAtGauge k (w m) (w n) :=
-  hc.close_eventually k m n
-    (Nat.le_trans (cmod_le_repCauchyEnvelope hc hkr) hm)
-    (Nat.le_trans (cmod_le_repCauchyEnvelope hc hkr) hn)
 
 /-- Envelope-selected representatives are Cauchy-close whenever both envelopes
 cover the requested gauge. -/
@@ -131,21 +118,7 @@ theorem repCloseAtGauge_envelope_indices
     (cmod_le_repCauchyEnvelope hc hkr)
     (cmod_le_repCauchyEnvelope hc hks)
 
-/-- Frontier after closing representative closeness calculus. -/
-structure CRealQuotAfterRepCloseCalculusFrontier : Type where
-  construct_diagonal_value : Prop
-  prove_diagonal_regular : Prop
-  prove_diagonal_tail_close : Prop
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
 
-def cRealQuotAfterRepCloseCalculusFrontier :
-    CRealQuotAfterRepCloseCalculusFrontier where
-  construct_diagonal_value := True
-  prove_diagonal_regular := True
-  prove_diagonal_tail_close := True
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
 
 end BishopCReal
 

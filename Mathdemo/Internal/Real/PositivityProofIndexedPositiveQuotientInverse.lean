@@ -115,108 +115,14 @@ theorem positiveTailInvValWithBound_uniform_lower_succ
     if_pos hq_tail]
   exact scalar_eps_succ_lt_posInv_of_pos_mul_eps_le_one hq_pos hq_bound
 
-/-- Positivity data for the reciprocal representative, expressed in the same
-`subSeq _ zeroSeq` shape used by quotient strict positivity. -/
-def positiveTailInvSeqWithBound_sub_zero_posData
-    (A : ScalarMulArchimedeanData) (x : RegularSeq)
-    (h : PosEventuallyData x) :
-    PosEventuallyData (subSeq (positiveTailInvSeqWithBound A x h) zeroSeq) where
-  k := standardBoundWith A x + 1
-  N := 0
-  tail_pos := by
-    intro n _hn
-    have hpos := positiveTailInvValWithBound_uniform_lower_succ A x h n
-    change COF.lt (eps (standardBoundWith A x + 1))
-      (positiveTailInvValWithBound A x h (n + 1) - 0)
-    rwa [sub_zero]
 
-/-- Prop-valued positivity of the reciprocal representative. -/
-theorem positiveTailInvSeqWithBound_sub_zero_pos
-    (A : ScalarMulArchimedeanData) (x : RegularSeq)
-    (h : PosEventuallyData x) :
-    PosEventually (subSeq (positiveTailInvSeqWithBound A x h) zeroSeq) :=
-  (positiveTailInvSeqWithBound_sub_zero_posData A x h).toProp
 
-/-- Data-valued quotient positivity for the proof-indexed positive inverse. -/
-def positiveQuotInvWithData_posData
-    (A : ScalarMulArchimedeanData) {x : CRealQuot}
-    (h : ltQuotData zeroQuot x) :
-    ltQuotData zeroQuot (positiveQuotInvWithData A h) where
-  left := zeroSeq
-  right := positiveQuotInvSeqWithData A h
-  left_eq := rfl
-  right_eq := rfl
-  pos := positiveTailInvSeqWithBound_sub_zero_posData
-    A (subSeq h.right h.left) h.pos
 
-/-- Prop-valued quotient positivity for the proof-indexed positive inverse. -/
-theorem positiveQuotInvWithData_pos
-    (A : ScalarMulArchimedeanData) {x : CRealQuot}
-    (h : ltQuotData zeroQuot x) :
-    ltQuot zeroQuot (positiveQuotInvWithData A h) :=
-  ltQuotData_to_ltQuot (positiveQuotInvWithData_posData A h)
 
-/-- In the decidable-order branch, the total selector sends positive quotient
-elements to positive quotient elements. -/
-theorem positiveQuotInvOrZeroWithDecidable_inv_pos
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b)
-    {x : CRealQuot} (hx : ltQuot zeroQuot x) :
-    ltQuot zeroQuot (positiveQuotInvOrZeroWithDecidable A hdec ltDataOf x) := by
-  rw [positiveQuotInvOrZeroWithDecidable_eq_of_pos A hdec ltDataOf hx]
-  exact positiveQuotInvWithData_pos A (ltDataOf hx)
 
-/-- Data package for the positive-inverse positivity layer. -/
-structure PositiveQuotInversePositivitySeed : Type 1 where
-  scalar_lower :
-    ∀ {a : Scalar} {K : Nat}, COF.lt 0 a → Le (a * eps K) 1 →
-      COF.lt (eps (K + 1)) (scalarPositiveInverseSeed.inv a)
-  tail_uniform_lower :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ x : RegularSeq, ∀ h : PosEventuallyData x, ∀ n : Nat,
-        COF.lt (eps (standardBoundWith A x + 1))
-          (positiveTailInvValWithBound A x h (n + 1))
-  tail_posData :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ x : RegularSeq, ∀ h : PosEventuallyData x,
-        PosEventuallyData (subSeq (positiveTailInvSeqWithBound A x h) zeroSeq)
-  inv_posData :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ {x : CRealQuot}, ∀ h : ltQuotData zeroQuot x,
-        ltQuotData zeroQuot (positiveQuotInvWithData A h)
-  inv_pos :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ {x : CRealQuot}, ∀ h : ltQuotData zeroQuot x,
-        ltQuot zeroQuot (positiveQuotInvWithData A h)
-  total_selector_inv_pos :
-    ∀ A : ScalarMulArchimedeanData,
-      ∀ hdec : CRealQuotLTDecidable,
-      ∀ ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b,
-      ∀ {x : CRealQuot}, ltQuot zeroQuot x →
-        ltQuot zeroQuot (positiveQuotInvOrZeroWithDecidable A hdec ltDataOf x)
 
-def positiveQuotInversePositivitySeed :
-    PositiveQuotInversePositivitySeed where
-  scalar_lower := fun ha hb =>
-    scalar_eps_succ_lt_posInv_of_pos_mul_eps_le_one ha hb
-  tail_uniform_lower := positiveTailInvValWithBound_uniform_lower_succ
-  tail_posData := positiveTailInvSeqWithBound_sub_zero_posData
-  inv_posData := fun A {x} h => positiveQuotInvWithData_posData A (x := x) h
-  inv_pos := fun A {x} h => positiveQuotInvWithData_pos A (x := x) h
-  total_selector_inv_pos :=
-    positiveQuotInvOrZeroWithDecidable_inv_pos
 
-/-- Frontier after `inv_pos` is closed for the positive branch and transported
-to the decidable total selector. -/
-structure CRealQuotPositiveInversePositivityFrontier : Type where
-  full_positive_inverse_field_data : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotPositiveInversePositivityFrontier :
-    CRealQuotPositiveInversePositivityFrontier where
-  full_positive_inverse_field_data := True
-  cauchy_completeness := True
 
 end BishopCReal
 

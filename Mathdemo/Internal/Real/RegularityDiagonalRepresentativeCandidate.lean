@@ -168,32 +168,9 @@ def repDiagonalSeq
   val := repDiagonalVal w hc
   regular := repDiagonalVal_regular w hc
 
-/-- Candidate data after regularity has been closed. -/
-structure CRealRepDiagonalRegularData : Type 1 where
-  limit : ∀ (w : Nat → RegularSeq), CRealRepSequenceCauchyData w → RegularSeq
-  value_eq :
-    ∀ (w : Nat → RegularSeq) (hc : CRealRepSequenceCauchyData w) (n : Nat),
-      (limit w hc).val n = repDiagonalVal w hc n
 
-def cRealRepDiagonalRegularData : CRealRepDiagonalRegularData where
-  limit := repDiagonalSeq
-  value_eq := by
-    intro w hc n
-    rfl
 
-/-- Frontier after proving that the diagonal candidate is regular. -/
-structure CRealQuotAfterRepDiagonalRegularFrontier : Type where
-  prove_candidate_tail_close : Prop
-  bundle_close_data : Prop
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
 
-def cRealQuotAfterRepDiagonalRegularFrontier :
-    CRealQuotAfterRepDiagonalRegularFrontier where
-  prove_candidate_tail_close := True
-  bundle_close_data := True
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
 
 end BishopCReal
 

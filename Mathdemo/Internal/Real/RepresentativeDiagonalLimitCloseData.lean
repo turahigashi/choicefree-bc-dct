@@ -118,30 +118,8 @@ def cRealRepDiagonalLimitCloseData : CRealRepDiagonalLimitCloseData where
     intro w hc k n hn
     exact repDiagonalSeq_close_to_limit w hc k n hn
 
-/-- Conditional `COFOC` assembly with the representative diagonal frontier now
-closed.  The remaining hypotheses are the previously isolated global
-representative witness, strict-order decidability fork, and strict-order data
-extraction. -/
-@[reducible] def cRealQuotCOFOCWithPositiveInverseDecidableClosedDiagonal
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    BishopC.COFOC CRealQuot :=
-  cRealQuotCOFOCWithPositiveInverseDecidableOfRepDiagonalClose
-    A rep hdec ltDataOf cRealRepDiagonalLimitCloseData
 
-/-- Frontier after the representative diagonal construction itself is closed. -/
-structure CRealQuotAfterRepDiagonalClosedFrontier : Type where
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
-  remove_lt_data_extraction_argument : Prop
 
-def cRealQuotAfterRepDiagonalClosedFrontier :
-    CRealQuotAfterRepDiagonalClosedFrontier where
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
-  remove_lt_data_extraction_argument := True
 
 end BishopCReal
 

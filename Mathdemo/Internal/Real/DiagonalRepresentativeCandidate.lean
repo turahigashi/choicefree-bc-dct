@@ -48,13 +48,6 @@ theorem cmod_le_repDiagonalIndex_of_le
     hc.cmod k ≤ repDiagonalIndex hc n := by
   exact cmod_le_repCauchyEnvelope hc hkn
 
-/-- In particular, the selected diagonal representative index covers its own
-envelope gauge. -/
-theorem cmod_le_repDiagonalIndex_self
-    {w : Nat → RegularSeq}
-    (hc : CRealRepSequenceCauchyData w) (n : Nat) :
-    hc.cmod (n + repDiagonalSlack) ≤ repDiagonalIndex hc n :=
-  cmod_le_repDiagonalIndex_of_le hc (Nat.le_refl _)
 
 /-- Two selected diagonal representative indices are Cauchy-close whenever both
 selected envelopes cover the requested gauge. -/
@@ -123,56 +116,9 @@ theorem same_rep_tail_to_repDiagonalVal
     (repDiagonalVal w hc n - (w (repDiagonalIndex hc n)).val q)]
   exact h
 
-/-- Data package for the value-level diagonal candidate. -/
-structure CRealRepDiagonalCandidateData : Type 1 where
-  value :
-    ∀ (w : Nat → RegularSeq), CRealRepSequenceCauchyData w → Nat → Scalar
-  index :
-    ∀ {w : Nat → RegularSeq}, CRealRepSequenceCauchyData w → Nat → Nat
-  sample : Nat → Nat
-  cmod_le_index :
-    ∀ {w : Nat → RegularSeq} (hc : CRealRepSequenceCauchyData w)
-      {k n : Nat}, k ≤ n + repDiagonalSlack → hc.cmod k ≤ index hc n
-  index_close :
-    ∀ {w : Nat → RegularSeq} (hc : CRealRepSequenceCauchyData w)
-      {k m n : Nat}, k ≤ m + repDiagonalSlack → k ≤ n + repDiagonalSlack →
-        RepCloseAtGauge k (w (index hc m)) (w (index hc n))
-  same_rep_tail :
-    ∀ (w : Nat → RegularSeq) (hc : CRealRepSequenceCauchyData w)
-      {n q : Nat}, sample n ≤ q →
-        Le
-          (COF.abs (value w hc n - (w (index hc n)).val q))
-          (eps (n + 5))
 
-def cRealRepDiagonalCandidateData : CRealRepDiagonalCandidateData where
-  value := repDiagonalVal
-  index := repDiagonalIndex
-  sample := repDiagonalSample
-  cmod_le_index := by
-    intro w hc k n hkn
-    exact cmod_le_repDiagonalIndex_of_le hc hkn
-  index_close := by
-    intro w hc k m n hkm hkn
-    exact repCloseAtGauge_diagonal_indices hc hkm hkn
-  same_rep_tail := by
-    intro w hc n q hq
-    exact repDiagonalVal_same_rep_tail w hc hq
 
-/-- Frontier after fixing the diagonal value candidate. -/
-structure CRealQuotAfterRepDiagonalCandidateFrontier : Type where
-  prove_candidate_regular : Prop
-  prove_candidate_tail_close : Prop
-  bundle_close_data : Prop
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
 
-def cRealQuotAfterRepDiagonalCandidateFrontier :
-    CRealQuotAfterRepDiagonalCandidateFrontier where
-  prove_candidate_regular := True
-  prove_candidate_tail_close := True
-  bundle_close_data := True
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
 
 end BishopCReal
 

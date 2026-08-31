@@ -68,71 +68,9 @@ structure CRealRepDiagonalLimitCloseData : Type 1 where
       ∀ k n : Nat, lmod w hc k ≤ n →
         RepCloseAtGauge (k + 1) (w n) (limit w hc)
 
-/-- Convert representative diagonal closeness into the quotient convergence
-field required by `CRealRepDiagonalLimitData`, for the current conditional
-positive-inverse branch. -/
-def cRealRepDiagonalLimitDataWithPositiveInverseDecidable_of_repClose
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b)
-    (closeDiag : CRealRepDiagonalLimitCloseData) :
-    CRealRepDiagonalLimitData
-      (cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf) where
-  limit := closeDiag.limit
-  lmod := closeDiag.lmod
-  tends := by
-    intro w hc k n hn
-    letI : BishopC.COFO CRealQuot :=
-      cRealQuotCOFOWithPositiveInverseDecidable A rep hdec ltDataOf
-    let limitRep : RegularSeq := closeDiag.limit w hc
-    have hlt :
-        ltQuot
-          (absQuot (subQuot (mkQuot (w n)) (mkQuot limitRep)))
-          (constQuot (eps k)) :=
-      ltQuot_abs_sub_const_of_repClose_succ (w n) limitRep k
-        (closeDiag.close_to_limit w hc k n hn)
-    have hsub :
-        mkQuot (w n) - mkQuot limitRep =
-          subQuot (mkQuot (w n)) (mkQuot limitRep) := by
-      change addQuot (mkQuot (w n)) (negQuot (mkQuot limitRep)) =
-        subQuot (mkQuot (w n)) (mkQuot limitRep)
-      exact (subQuot_eq_add_neg (mkQuot (w n)) (mkQuot limitRep)).symm
-    change
-      ltQuot
-        (absQuot (mkQuot (w n) - mkQuot limitRep))
-        (@COF.halfPow CRealQuot
-          (cRealQuotCOFConditionalWith A rep ltDataOf) k)
-    rw [hsub, halfPowQuot_eq_const_eps_with A rep ltDataOf k]
-    exact hlt
 
-/-- Final conditional `COFOC` assembly now depends on representative diagonal
-closeness data only. -/
-@[reducible] def cRealQuotCOFOCWithPositiveInverseDecidableOfRepDiagonalClose
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (hdec : CRealQuotLTDecidable)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b)
-    (closeDiag : CRealRepDiagonalLimitCloseData) :
-    BishopC.COFOC CRealQuot :=
-  cRealQuotCOFOCWithPositiveInverseDecidableOfDiagonal
-    A rep hdec ltDataOf
-    (cRealRepDiagonalLimitDataWithPositiveInverseDecidable_of_repClose
-      A rep hdec ltDataOf closeDiag)
 
-/-- Exact frontier after this file: only the representative diagonal limit and
-its representative closeness proof remain, plus the constructivity cleanup
-already identified earlier. -/
-structure CRealQuotAfterRepDiagonalCloseFrontier : Type where
-  representative_diagonal_close : Prop
-  remove_global_rep_witness : Prop
-  remove_decidable_order_fork : Prop
 
-def cRealQuotAfterRepDiagonalCloseFrontier :
-    CRealQuotAfterRepDiagonalCloseFrontier where
-  representative_diagonal_close := True
-  remove_global_rep_witness := True
-  remove_decidable_order_fork := True
 
 end BishopCReal
 
