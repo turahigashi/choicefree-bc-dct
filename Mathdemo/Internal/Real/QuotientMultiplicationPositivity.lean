@@ -120,74 +120,11 @@ theorem posEventually_mul_concrete_from_sub_zero_with
   rw [eps_add_mul_local kx ky]
   exact scalar_mul_lt_mul_of_pos_bounds hxpoint hypoint (eps_pos kx) (eps_pos ky)
 
-/-- Quotient-level concrete multiplication preserves positivity. -/
-theorem mul_posQuotConcreteWith
-    (A : ScalarMulArchimedeanData) {x y : CRealQuot} :
-    ltQuot zeroQuot x → ltQuot zeroQuot y →
-      ltQuot zeroQuot (mulQuotConcreteWith A x y) := by
-  refine Quotient.inductionOn x ?_
-  intro xr
-  refine Quotient.inductionOn y ?_
-  intro yr hx hy
-  change PosEventually (subSeq xr zeroSeq) at hx
-  change PosEventually (subSeq yr zeroSeq) at hy
-  change PosEventually (subSeq (mulSeqConcreteWith A xr yr) zeroSeq)
-  exact posEventually_sub_zero_of_pos (mulSeqConcreteWith A xr yr)
-    (posEventually_mul_concrete_from_sub_zero_with A xr yr hx hy)
 
-/-- Basic quotient `COFO` fields through multiplication positivity. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData cof where
-  mul_pos :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a b : CRealQuot}, COF.lt 0 a → COF.lt 0 b → COF.lt 0 (a * b)
 
-/-- Data-order/representative branch package including multiplication
-positivity. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulFieldDataWith A rep ltDataOf
-  mul_pos := by
-    intro a b ha hb
-    change ltQuot zeroQuot (mulQuotConcreteWith A a b)
-    exact mul_posQuotConcreteWith A ha hb
 
-/-- Decidable-order branch package including multiplication positivity. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulFieldDataWithDecidableLT A hdec
-  mul_pos := by
-    intro a b ha hb
-    change ltQuot zeroQuot (mulQuotConcreteWith A a b)
-    exact mul_posQuotConcreteWith A ha hb
 
-/-- Frontier after multiplication positivity is closed. -/
-structure CRealQuotCOFOAfterMulPosFrontier : Type where
-  abs_le_of : Prop
-  max_min_laws : Prop
-  mul_nonneg : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterMulPosFrontier :
-    CRealQuotCOFOAfterMulPosFrontier where
-  abs_le_of := True
-  max_min_laws := True
-  mul_nonneg := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

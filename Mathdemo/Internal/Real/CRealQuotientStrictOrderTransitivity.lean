@@ -92,56 +92,10 @@ theorem ltQuot_trans (a b c : CRealQuot) :
   intro cr
   exact ltQuot_trans_mk ar br cr
 
-/-- The closed basic `COFO` fields plus strict-order transitivity. -/
-structure CRealQuotCOFOBasicAndTransFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicFieldData cof where
-  lt_trans :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a b c : CRealQuot}, COF.lt a b → COF.lt b c → COF.lt a c
 
-/-- Basic fields plus transitivity for the data-order/representative COF fork. -/
-def cRealQuotCOFOBasicAndTransFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicAndTransFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicFieldData :=
-    cRealQuotCOFOBasicFieldDataWith A rep ltDataOf
-  lt_trans := by
-    intro a b c hab hbc
-    change ltQuot a c
-    exact ltQuot_trans a b c hab hbc
 
-/-- Basic fields plus transitivity for the decidable strict-order COF fork. -/
-def cRealQuotCOFOBasicAndTransFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicAndTransFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicFieldData :=
-    cRealQuotCOFOBasicFieldDataWithDecidableLT A hdec
-  lt_trans := by
-    intro a b c hab hbc
-    change ltQuot a c
-    exact ltQuot_trans a b c hab hbc
 
-/-- Frontier after quotient strict-order transitivity is closed. -/
-structure CRealQuotCOFOAfterLTTransFrontier : Type where
-  abs_order_bounds : Prop
-  abs_add_mul_laws : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterLTTransFrontier :
-    CRealQuotCOFOAfterLTTransFrontier where
-  abs_order_bounds := True
-  abs_add_mul_laws := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

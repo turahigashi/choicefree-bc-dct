@@ -105,63 +105,10 @@ theorem abs_mulQuotConcreteWith
   exact relEventually_trans _ _ _
     (relEventually_trans _ _ _ hleft_abs hmid) hright
 
-/-- Basic quotient `COFO` fields through the absolute-value multiplication
-field. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleFieldData cof where
-  abs_mul :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a b : CRealQuot, COF.abs (a * b) = COF.abs a * COF.abs b
 
-/-- Data-order/representative branch package including the absolute-value
-multiplication field. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleFieldDataWith A rep ltDataOf
-  abs_mul := by
-    intro a b
-    change absQuot (mulQuotConcreteWith A a b) =
-      mulQuotConcreteWith A (absQuot a) (absQuot b)
-    exact abs_mulQuotConcreteWith A a b
 
-/-- Decidable-order branch package including the absolute-value multiplication
-field. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleFieldDataWithDecidableLT A hdec
-  abs_mul := by
-    intro a b
-    change absQuot (mulQuotConcreteWith A a b) =
-      mulQuotConcreteWith A (absQuot a) (absQuot b)
-    exact abs_mulQuotConcreteWith A a b
 
-/-- Frontier after the absolute-value multiplication field is closed. -/
-structure CRealQuotCOFOAfterAbsMulFrontier : Type where
-  abs_le_of : Prop
-  max_min_laws : Prop
-  mul_pos_and_nonneg : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterAbsMulFrontier :
-    CRealQuotCOFOAfterAbsMulFrontier where
-  abs_le_of := True
-  max_min_laws := True
-  mul_pos_and_nonneg := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

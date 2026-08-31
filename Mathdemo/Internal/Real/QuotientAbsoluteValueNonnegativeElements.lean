@@ -123,44 +123,9 @@ theorem absQuot_of_nonneg (x : CRealQuot) :
   change mkQuot (absSeq xr) = mkQuot xr
   exact Quotient.sound (relEventually_abs_of_not_pos_neg xr hx)
 
-/-- Basic quotient `COFO` fields through Archimedean plus `abs_of_nonneg`. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchFieldData cof where
-  abs_of_nonneg :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a : CRealQuot}, ¬ COF.lt a 0 → COF.abs a = a
 
-/-- Data-order/representative branch package including `abs_of_nonneg`. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchFieldDataWith
-      A rep ltDataOf
-  abs_of_nonneg := by
-    intro a ha
-    change absQuot a = a
-    exact absQuot_of_nonneg a ha
 
-/-- Frontier after quotient `abs_of_nonneg` is closed. -/
-structure CRealQuotCOFOAfterAbsNonnegFrontier : Type where
-  abs_le_of : Prop
-  mul_nonneg : Prop
-  mul_archimedean : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterAbsNonnegFrontier :
-    CRealQuotCOFOAfterAbsNonnegFrontier where
-  abs_le_of := True
-  mul_nonneg := True
-  mul_archimedean := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

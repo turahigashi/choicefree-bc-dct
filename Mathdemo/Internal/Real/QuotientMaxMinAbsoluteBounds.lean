@@ -262,71 +262,10 @@ theorem neg_minQuotCOF_le_abs_with
         (absSeq xr))
   exact not_posEventually_neg_min_sub_abs_with A xr
 
-/-- Basic quotient `COFO` fields through all four max/min order fields. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData cof where
-  max_le_abs :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (COF.abs a) (COF.max a 0)
-  neg_min_le_abs :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (COF.abs a) (- COF.min a 0)
 
-/-- Data-order/representative branch package including all max/min order fields. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldDataWith
-      A rep ltDataOf
-  max_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (maxQuotCOFWith A a zeroQuot)
-    exact maxQuotCOF_le_abs_with A a
-  neg_min_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (negQuot (minQuotCOFWith A a zeroQuot))
-    exact neg_minQuotCOF_le_abs_with A a
 
-/-- Decidable-order branch package including all max/min order fields. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldDataWithDecidableLT
-      A hdec
-  max_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (maxQuotCOFWith A a zeroQuot)
-    exact maxQuotCOF_le_abs_with A a
-  neg_min_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (negQuot (minQuotCOFWith A a zeroQuot))
-    exact neg_minQuotCOF_le_abs_with A a
 
-/-- Frontier after all max/min order fields are closed. -/
-structure CRealQuotCOFOAfterMaxMinFrontier : Type where
-  abs_le_of : Prop
-  abs_of_nonneg : Prop
-  mul_nonneg : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterMaxMinFrontier :
-    CRealQuotCOFOAfterMaxMinFrontier where
-  abs_le_of := True
-  abs_of_nonneg := True
-  mul_nonneg := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

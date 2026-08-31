@@ -86,59 +86,10 @@ theorem ltQuot_zero_abs_split (c : CRealQuot) :
   intro x
   exact ltQuot_zero_abs_split_mk x
 
-/-- Basic quotient `COFO` fields, transitivity, unary absolute order bounds,
-and the absolute-value positivity split. -/
-structure CRealQuotCOFOBasicTransAbsSplitFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsFieldData cof where
-  lt_or_lt_of_abs_pos :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {c : CRealQuot}, COF.lt 0 (COF.abs c) → COF.lt 0 c ∨ COF.lt c 0
 
-/-- Data-order/representative branch package for the closed absolute-value
-positivity split. -/
-def cRealQuotCOFOBasicTransAbsSplitFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsFieldData :=
-    cRealQuotCOFOBasicTransAbsFieldDataWith A rep ltDataOf
-  lt_or_lt_of_abs_pos := by
-    intro c h
-    change ltQuot zeroQuot c ∨ ltQuot c zeroQuot
-    exact ltQuot_zero_abs_split c h
 
-/-- Decidable-order branch package for the closed absolute-value positivity
-split. -/
-def cRealQuotCOFOBasicTransAbsSplitFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsSplitFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicTransAbsFieldData :=
-    cRealQuotCOFOBasicTransAbsFieldDataWithDecidableLT A hdec
-  lt_or_lt_of_abs_pos := by
-    intro c h
-    change ltQuot zeroQuot c ∨ ltQuot c zeroQuot
-    exact ltQuot_zero_abs_split c h
 
-/-- Frontier after the absolute-value positivity split is closed. -/
-structure CRealQuotCOFOAfterAbsPosSplitFrontier : Type where
-  abs_le_of : Prop
-  abs_add_mul_laws : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterAbsPosSplitFrontier :
-    CRealQuotCOFOAfterAbsPosSplitFrontier where
-  abs_le_of := True
-  abs_add_mul_laws := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

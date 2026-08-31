@@ -71,70 +71,10 @@ theorem le_abs_selfQuot (x : CRealQuot) : ¬ ltQuot (absQuot x) x := by
   change ¬ PosEventually (subSeq xr (absSeq xr))
   exact not_posEventually_sub_self_abs xr
 
-/-- Basic quotient `COFO` fields, transitivity, and the two unary absolute
-order bounds. -/
-structure CRealQuotCOFOBasicTransAbsFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicAndTransFieldData cof where
-  neg_le_abs :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (COF.abs a) (-a)
-  le_abs_self :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (COF.abs a) a
 
-/-- Data-order/representative branch package for the closed unary absolute
-order fields. -/
-def cRealQuotCOFOBasicTransAbsFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicAndTransFieldData :=
-    cRealQuotCOFOBasicAndTransFieldDataWith A rep ltDataOf
-  neg_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (negQuot a)
-    exact neg_le_absQuot a
-  le_abs_self := by
-    intro a
-    change ¬ ltQuot (absQuot a) a
-    exact le_abs_selfQuot a
 
-/-- Decidable-order branch package for the closed unary absolute order fields. -/
-def cRealQuotCOFOBasicTransAbsFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicAndTransFieldData :=
-    cRealQuotCOFOBasicAndTransFieldDataWithDecidableLT A hdec
-  neg_le_abs := by
-    intro a
-    change ¬ ltQuot (absQuot a) (negQuot a)
-    exact neg_le_absQuot a
-  le_abs_self := by
-    intro a
-    change ¬ ltQuot (absQuot a) a
-    exact le_abs_selfQuot a
 
-/-- Frontier after strict-order transitivity and the two unary absolute order
-bounds are closed. -/
-structure CRealQuotCOFOAfterUnaryAbsFrontier : Type where
-  abs_le_of : Prop
-  abs_add_mul_laws : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterUnaryAbsFrontier :
-    CRealQuotCOFOAfterUnaryAbsFrontier where
-  abs_le_of := True
-  abs_add_mul_laws := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

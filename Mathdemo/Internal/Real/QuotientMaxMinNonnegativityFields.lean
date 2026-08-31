@@ -177,71 +177,10 @@ theorem neg_minQuotCOF_zero_nonneg_with
               (negSeq (absSeq (addSeq xr (negSeq zeroSeq))))))))
   exact not_posEventually_min_positive_with A xr
 
-/-- Basic quotient `COFO` fields through the two max/min nonnegativity fields. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData cof where
-  max_zero_nonneg :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (COF.max a 0) 0
-  neg_min_zero_nonneg :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ a : CRealQuot, ¬ COF.lt (- COF.min a 0) 0
 
-/-- Data-order/representative branch package including max/min nonnegativity. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldDataWith A rep ltDataOf
-  max_zero_nonneg := by
-    intro a
-    change ¬ ltQuot (maxQuotCOFWith A a zeroQuot) zeroQuot
-    exact maxQuotCOF_zero_nonneg_with A a
-  neg_min_zero_nonneg := by
-    intro a
-    change ¬ ltQuot (negQuot (minQuotCOFWith A a zeroQuot)) zeroQuot
-    exact neg_minQuotCOF_zero_nonneg_with A a
 
-/-- Decidable-order branch package including max/min nonnegativity. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldDataWithDecidableLT
-    (A : ScalarMulArchimedeanData)
-    (hdec : CRealQuotLTDecidable) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinNonnegFieldData
-      (cRealQuotCOFConditionalWithDecidableLT A hdec) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosFieldDataWithDecidableLT A hdec
-  max_zero_nonneg := by
-    intro a
-    change ¬ ltQuot (maxQuotCOFWith A a zeroQuot) zeroQuot
-    exact maxQuotCOF_zero_nonneg_with A a
-  neg_min_zero_nonneg := by
-    intro a
-    change ¬ ltQuot (negQuot (minQuotCOFWith A a zeroQuot)) zeroQuot
-    exact neg_minQuotCOF_zero_nonneg_with A a
 
-/-- Frontier after the nonnegativity half of the max/min fields is closed. -/
-structure CRealQuotCOFOAfterMaxMinNonnegFrontier : Type where
-  abs_le_of : Prop
-  abs_of_nonneg : Prop
-  max_min_le_abs : Prop
-  mul_nonneg : Prop
-  archimedean_laws : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterMaxMinNonnegFrontier :
-    CRealQuotCOFOAfterMaxMinNonnegFrontier where
-  abs_le_of := True
-  abs_of_nonneg := True
-  max_min_le_abs := True
-  mul_nonneg := True
-  archimedean_laws := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

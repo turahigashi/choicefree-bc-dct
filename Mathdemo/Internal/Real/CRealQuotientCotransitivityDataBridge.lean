@@ -108,98 +108,15 @@ def ltQuot_cotrans_mk_data (a b c : RegularSeq)
         change COF.lt (eps (k + 1)) ((subSeq b c).val M) at hbc
         exact posEventuallyData_of_late_point (subSeq b c) hMlate hbc)
 
-/-- The representative data split refines the existing quotient Prop order. -/
-def ltQuot_cotrans_mk_data_to_prop (a b c : RegularSeq)
-    (hpos : PosEventuallyData (subSeq b a)) :
-    PSum (ltQuot (mkQuot a) (mkQuot c)) (ltQuot (mkQuot c) (mkQuot b)) := by
-  cases ltQuot_cotrans_mk_data a b c hpos with
-  | inl hca =>
-      exact PSum.inl (by
-        change PosEventually (subSeq c a)
-        exact hca.toProp)
-  | inr hbc =>
-      exact PSum.inr (by
-        change PosEventually (subSeq b c)
-        exact hbc.toProp)
 
-/-- Explicit representative witness for a quotient element.  Constructing this
-uniformly from a quotient is the usual quotient-representative frontier. -/
-structure CRealQuotRepWitness (x : CRealQuot) : Type where
-  rep : RegularSeq
-  eq_mk : x = mkQuot rep
 
-/-- Explicit strict-order witness for quotient elements. -/
-structure CRealQuotLTDataWitness (a b : CRealQuot) : Type where
-  left : RegularSeq
-  right : RegularSeq
-  left_eq : a = mkQuot left
-  right_eq : b = mkQuot right
-  pos : PosEventuallyData (subSeq right left)
 
-/-- If the quotient representatives and positive-tail data are supplied
-explicitly, the data-valued quotient cotransitivity split is closed. -/
-def ltQuot_cotrans_data_from_witness {a b c : CRealQuot}
-    (hab : CRealQuotLTDataWitness a b) (hc : CRealQuotRepWitness c) :
-    PSum (ltQuot a c) (ltQuot c b) := by
-  rcases hab with ⟨ar, br, ha, hb, hpos⟩
-  rcases hc with ⟨cr, hc⟩
-  cases ltQuot_cotrans_mk_data_to_prop ar br cr hpos with
-  | inl hleft =>
-      exact PSum.inl (by
-        rw [ha, hc]
-        exact hleft)
-  | inr hright =>
-      exact PSum.inr (by
-        rw [hc, hb]
-        exact hright)
 
-/-- Exact representative extraction needed to turn the bridge into a true
-quotient-level `COF.lt_cotrans_data` implementation. -/
-abbrev CRealQuotRepresentativeExtractionObligation : Type :=
-  ∀ x : CRealQuot, CRealQuotRepWitness x
 
-/-- Exact positive witness extraction needed to turn `ltQuot a b : Prop` into
-the data consumed by `ltQuot_cotrans_data_from_witness`. -/
-abbrev CRealQuotLTWitnessExtractionObligation : Type :=
-  ∀ {a b : CRealQuot}, ltQuot a b → CRealQuotLTDataWitness a b
 
-structure CRealQuotCOFDataCotransBridgeSeed : Type 1 where
-  posData : RegularSeq → Type
-  posData_to_prop : ∀ {x : RegularSeq}, posData x → PosEventually x
-  scalar_split_data : ∀ {e u v : Scalar}, COF.lt (e + e) (u + v) →
-    PSum (COF.lt e u) (COF.lt e v)
-  late_point_data : ∀ x : RegularSeq, ∀ {j M : Nat},
-    j + 2 ≤ M → COF.lt (eps j) (x.val M) → posData x
-  mk_cotrans_data : ∀ a b c : RegularSeq,
-    posData (subSeq b a) → PSum (posData (subSeq c a)) (posData (subSeq b c))
-  mk_cotrans_data_to_prop : ∀ a b c : RegularSeq,
-    posData (subSeq b a) →
-      PSum (ltQuot (mkQuot a) (mkQuot c)) (ltQuot (mkQuot c) (mkQuot b))
-  quotient_cotrans_from_witness : ∀ {a b c : CRealQuot},
-    CRealQuotLTDataWitness a b → CRealQuotRepWitness c →
-      PSum (ltQuot a c) (ltQuot c b)
 
-def cRealQuotCOFDataCotransBridgeSeed : CRealQuotCOFDataCotransBridgeSeed where
-  posData := PosEventuallyData
-  posData_to_prop := fun h => h.toProp
-  scalar_split_data := fun h => scalar_lt_split_add_data h
-  late_point_data := posEventuallyData_of_late_point
-  mk_cotrans_data := ltQuot_cotrans_mk_data
-  mk_cotrans_data_to_prop := ltQuot_cotrans_mk_data_to_prop
-  quotient_cotrans_from_witness := fun hab hc =>
-    ltQuot_cotrans_data_from_witness hab hc
 
-/-- Honest residual marker after the data bridge: the remaining work is not the
-cotransitivity split itself, but extracting quotient representatives and
-positive-tail data from the current Prop-level quotient order. -/
-structure CRealQuotCOFDataCotransResidualFrontier : Type where
-  representative_extraction : Prop
-  lt_witness_extraction : Prop
 
-def cRealQuotCOFDataCotransResidualFrontier :
-    CRealQuotCOFDataCotransResidualFrontier where
-  representative_extraction := True
-  lt_witness_extraction := True
 
 end BishopCReal
 

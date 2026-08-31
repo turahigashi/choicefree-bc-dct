@@ -42,40 +42,9 @@ theorem mul_nonnegQuotConcreteWith
   exact ltQuot_irrefl zeroQuot
     (ltQuot_trans zeroQuot z zeroQuot hpos_z hneg)
 
-/-- Basic quotient `COFO` fields through `mul_nonneg`. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldData cof where
-  mul_nonneg :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a b : CRealQuot}, ¬ COF.lt a 0 → ¬ COF.lt b 0 → ¬ COF.lt (a * b) 0
 
-/-- Data-order/representative branch package including `mul_nonneg`. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldDataWith
-      A rep ltDataOf
-  mul_nonneg := by
-    intro a b ha hb
-    change ¬ ltQuot (mulQuotConcreteWith A a b) zeroQuot
-    exact mul_nonnegQuotConcreteWith A ha hb
 
-/-- Frontier after quotient `mul_nonneg` is closed. -/
-structure CRealQuotCOFOAfterMulNonnegFrontier : Type where
-  mul_archimedean : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterMulNonnegFrontier :
-    CRealQuotCOFOAfterMulNonnegFrontier where
-  mul_archimedean := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

@@ -82,44 +82,9 @@ theorem absQuot_le_of {a b : CRealQuot}
     rw [habs_neg] at hbabs
     exact hna hbabs
 
-/-- Basic quotient `COFO` fields through Archimedean, `abs_of_nonneg`, and
-`abs_le_of`. -/
-structure CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldData cof where
-  abs_le_of :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a b : CRealQuot},
-      ¬ COF.lt b a → ¬ COF.lt b (-a) → ¬ COF.lt b (COF.abs a)
 
-/-- Data-order/representative branch package including `abs_le_of`. -/
-def cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsNonnegFieldDataWith
-      A rep ltDataOf
-  abs_le_of := by
-    intro a b ha hna
-    change ¬ ltQuot b (absQuot a)
-    exact absQuot_le_of ha hna
 
-/-- Frontier after quotient `abs_le_of` is closed. -/
-structure CRealQuotCOFOAfterAbsOrderFrontier : Type where
-  mul_nonneg : Prop
-  mul_archimedean : Prop
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterAbsOrderFrontier :
-    CRealQuotCOFOAfterAbsOrderFrontier where
-  mul_nonneg := True
-  mul_archimedean := True
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

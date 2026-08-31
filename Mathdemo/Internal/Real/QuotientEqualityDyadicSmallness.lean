@@ -104,60 +104,10 @@ theorem relEventually_of_no_const_lt_abs_sub
   exact relEventually_trans x (shiftSeq (shiftSeq x)) y hx
     (relEventually_trans (shiftSeq (shiftSeq x)) (shiftSeq (shiftSeq y)) y hxy hy)
 
-/-- Quotient-level equality from constant-dyadic smallness of the absolute
-difference. -/
-theorem eqQuot_of_no_const_lt_abs_sub {a b : CRealQuot}
-    (hsmall : ∀ k : Nat,
-      ¬ ltQuot (constQuot (eps k)) (absQuot (subQuot a b))) :
-    a = b := by
-  revert hsmall
-  refine Quotient.inductionOn₂ a b ?_
-  intro x y hsmall'
-  apply Quotient.sound
-  exact relEventually_of_no_const_lt_abs_sub x y hsmall'
 
-/-- Basic quotient `COFO` fields through `eq_of_small` and
-`mul_archimedean`. -/
-structure CRealQuotCOFOAfterEqSmallFieldData
-    (cof : BishopC.COF CRealQuot) : Type 1 extends
-    CRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegMulArchFieldData cof where
-  eq_of_small :
-    letI : BishopC.COF CRealQuot := cof
-    ∀ {a b : CRealQuot},
-      (∀ k : Nat, ¬ COF.lt (COF.halfPow (R := CRealQuot) k)
-        (COF.abs (a - b))) → a = b
 
-/-- Data-order/representative branch package including `eq_of_small`. -/
-def cRealQuotCOFOAfterEqSmallFieldDataWith
-    (A : ScalarMulArchimedeanData)
-    (rep : ∀ x : CRealQuot, CRealQuotRepWitness x)
-    (ltDataOf : ∀ {a b : CRealQuot}, ltQuot a b → ltQuotData a b) :
-    CRealQuotCOFOAfterEqSmallFieldData
-      (cRealQuotCOFConditionalWith A rep ltDataOf) where
-  toCRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegMulArchFieldData :=
-    cRealQuotCOFOBasicTransAbsSplitTriangleMulPosMaxMinArchAbsOrderMulNonnegMulArchFieldDataWith
-      A rep ltDataOf
-  eq_of_small := by
-    intro a b hsmall
-    apply eqQuot_of_no_const_lt_abs_sub
-    intro k
-    have hk := hsmall k
-    change ¬ ltQuot
-      (@COF.halfPow CRealQuot (cRealQuotCOFConditionalWith A rep ltDataOf) k)
-      (absQuot (addQuot a (negQuot b))) at hk
-    rw [halfPowQuot_eq_const_eps_with A rep ltDataOf k,
-      ← subQuot_eq_add_neg a b] at hk
-    exact hk
 
-/-- Frontier after quotient `eq_of_small` is closed. -/
-structure CRealQuotCOFOAfterEqSmallFrontier : Type where
-  positive_inverse : Prop
-  cauchy_completeness : Prop
 
-def cRealQuotCOFOAfterEqSmallFrontier :
-    CRealQuotCOFOAfterEqSmallFrontier where
-  positive_inverse := True
-  cauchy_completeness := True
 
 end BishopCReal
 

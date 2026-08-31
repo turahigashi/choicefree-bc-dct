@@ -85,91 +85,13 @@ theorem halfQuot_add_half : addQuot halfQuot halfQuot = oneQuot := by
   rw [scalarCOFOSeed.abs_zero]
   exact tol_nonneg n
 
-theorem maxQuotConcrete_halfsum
-    (A : ScalarMulArchimedeanData) (x y : CRealQuot) :
-    maxQuotConcreteWith A x y =
-      mulQuotConcreteWith A halfQuot
-        (addQuot (addQuot x y) (absQuot (subQuot x y))) :=
-  rfl
 
-theorem minQuotConcrete_halfsum
-    (A : ScalarMulArchimedeanData) (x y : CRealQuot) :
-    minQuotConcreteWith A x y =
-      mulQuotConcreteWith A halfQuot
-        (subQuot (addQuot x y) (absQuot (subQuot x y))) :=
-  rfl
 
-/-- Prop-level shadow of data-valued cotransitivity.  This proves that the
-already-closed quotient cotransitivity has the right alternatives, but it does
-not extract the `PSum` data required by the live `COF.lt_cotrans_data` field. -/
-theorem ltQuot_cotrans_data_nonempty {a b : CRealQuot}
-    (h : ltQuot a b) (c : CRealQuot) :
-    Nonempty (PSum (ltQuot a c) (ltQuot c b)) := by
-  rcases ltQuot_cotrans a b c h with hleft | hright
-  · exact ⟨PSum.inl hleft⟩
-  · exact ⟨PSum.inr hright⟩
 
-/-- COF-facing quotient package with every field now available except the
-data-valued cotransitivity function required for an actual `BishopC.COF`
-instance. -/
-structure CRealQuotCOFPreinstanceSeed
-    (A : ScalarMulArchimedeanData) : Type where
-  closedAlgebra : CRealQuotClosedAlgebraSeed A
-  commRing : CommRing CRealQuot
-  lt : CRealQuot → CRealQuot → Prop
-  lt_irrefl : ∀ x : CRealQuot, ¬ lt x x
-  lt_cotrans : ∀ {a b : CRealQuot}, lt a b → ∀ c : CRealQuot,
-    lt a c ∨ lt c b
-  lt_cotrans_data_nonempty : ∀ {a b : CRealQuot}, lt a b → ∀ c : CRealQuot,
-    Nonempty (PSum (lt a c) (lt c b))
-  lt_add_left : ∀ c a b : CRealQuot, lt a b → lt (addQuot c a) (addQuot c b)
-  abs : CRealQuot → CRealQuot
-  max : CRealQuot → CRealQuot → CRealQuot
-  min : CRealQuot → CRealQuot → CRealQuot
-  half : CRealQuot
-  half_add_half : addQuot half half = oneQuot
-  max_halfsum : ∀ x y : CRealQuot,
-    max x y =
-      mulQuotConcreteWith A half
-        (addQuot (addQuot x y) (abs (subQuot x y)))
-  min_halfsum : ∀ x y : CRealQuot,
-    min x y =
-      mulQuotConcreteWith A half
-        (subQuot (addQuot x y) (abs (subQuot x y)))
 
-def cRealQuotCOFPreinstanceSeedWith
-    (A : ScalarMulArchimedeanData) : CRealQuotCOFPreinstanceSeed A where
-  closedAlgebra := cRealQuotClosedAlgebraSeedWith A
-  commRing := cRealQuotCommRingConcreteWith A
-  lt := ltQuot
-  lt_irrefl := ltQuot_irrefl
-  lt_cotrans := fun {a b} h c => ltQuot_cotrans a b c h
-  lt_cotrans_data_nonempty := fun {_ _} h c => ltQuot_cotrans_data_nonempty h c
-  lt_add_left := ltQuot_add_left
-  abs := absQuot
-  max := maxQuotConcreteWith A
-  min := minQuotConcreteWith A
-  half := halfQuot
-  half_add_half := halfQuot_add_half
-  max_halfsum := maxQuotConcrete_halfsum A
-  min_halfsum := minQuotConcrete_halfsum A
 
-/-- The exact missing data-valued cotransitivity type. -/
-abbrev CRealQuotCOFDataCotransObligation : Type :=
-  ∀ {a b : CRealQuot}, ltQuot a b → ∀ c : CRealQuot,
-    PSum (ltQuot a c) (ltQuot c b)
 
-/-- Frontier marker for the missing data-valued cotransitivity field.  The
-`nonempty_shadow` field records the already-closed Prop-level cotransitivity,
-while `obligation` names the actual Type-valued field still needed by `COF`. -/
-structure CRealQuotCOFDataCotransFrontier : Type where
-  obligation : Prop
-  nonempty_shadow : ∀ {a b : CRealQuot}, ltQuot a b → ∀ c : CRealQuot,
-    Nonempty (PSum (ltQuot a c) (ltQuot c b))
 
-def cRealQuotCOFDataCotransFrontier : CRealQuotCOFDataCotransFrontier where
-  obligation := True
-  nonempty_shadow := fun h c => ltQuot_cotrans_data_nonempty h c
 
 end BishopCReal
 

@@ -24,31 +24,9 @@ theorem num_pos_of_pos {a : Q} (h : lt zero a) : 0 < a.num := by
   change 0 * a.den < a.num * 1 at h
   rwa [Int.zero_mul, Int.mul_one] at h
 
-/-- Reciprocal of a positive rational, with positivity supplied as data. -/
-def invOfPos (a : Q) (h : lt zero a) : Q :=
-  ⟨a.den, a.num, num_pos_of_pos h⟩
 
-/-- A positive rational times its reciprocal is rationally equal to one. -/
-theorem mul_invOfPos_cancel (a : Q) (h : lt zero a) :
-    rel (mul a (invOfPos a h)) one := by
-  unfold rel mul invOfPos one ofInt
-  ring
 
-/-- The reciprocal of a positive rational is positive. -/
-theorem invOfPos_pos (a : Q) (h : lt zero a) : lt zero (invOfPos a h) := by
-  unfold lt zero invOfPos ofInt
-  rw [Int.zero_mul, Int.mul_one]
-  exact a.den_pos
 
-/-- Positive reciprocal respects rational equality. -/
-theorem invOfPos_congr {a b : Q} (hab : rel a b)
-    (ha : lt zero a) (hb : lt zero b) :
-    rel (invOfPos a ha) (invOfPos b hb) := by
-  unfold rel invOfPos
-  calc
-    a.den * b.num = b.num * a.den := by ring
-    _ = a.num * b.den := by rw [← hab]
-    _ = b.den * a.num := by ring
 
 /-- Total positive reciprocal: positive rationals are inverted, other rationals
 are sent to zero. -/
@@ -124,16 +102,7 @@ theorem posInvOrZero_pos (x : CRat) (h : lt 0 x) : lt 0 (posInvOrZero x) := by
   | h q =>
       exact Q.posInvOrZero_pos q h
 
-/-- Audited scalar positive-reciprocal package. -/
-structure PositiveInverseSeed : Type where
-  inv : CRat → CRat
-  mul_inv_cancel : ∀ x : CRat, lt 0 x → x * inv x = 1
-  inv_pos : ∀ x : CRat, lt 0 x → lt 0 (inv x)
 
-def positiveInverseSeed : PositiveInverseSeed where
-  inv := posInvOrZero
-  mul_inv_cancel := mul_posInvOrZero_cancel
-  inv_pos := posInvOrZero_pos
 
 end CRat
 end BishopCRat
@@ -156,17 +125,7 @@ def scalarPositiveInverseSeed : ScalarPositiveInverseSeed where
   mul_inv_cancel := BishopCRat.CRat.mul_posInvOrZero_cancel
   inv_pos := BishopCRat.CRat.posInvOrZero_pos
 
-/-- Frontier after the scalar positive reciprocal is available. -/
-structure CRealQuotPositiveInverseScalarFrontier : Type where
-  representative_tail_reciprocal_regular : Prop
-  quotient_inverse_operator : Prop
-  quotient_inverse_laws : Prop
 
-def cRealQuotPositiveInverseScalarFrontier :
-    CRealQuotPositiveInverseScalarFrontier where
-  representative_tail_reciprocal_regular := True
-  quotient_inverse_operator := True
-  quotient_inverse_laws := True
 
 end BishopCReal
 
