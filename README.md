@@ -1,6 +1,6 @@
 # choicefree-bc-dct
 
-Version: 0.4.2
+Version: 0.5.0
 
 DOI (this version): reserved at deposit time; not yet assigned in this tree  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
@@ -233,7 +233,7 @@ This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from inva
 
 ### Current-worktree build status
 
-On 2026-08-30 a complete `./build_audit.sh` run from the v0.4.2 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0. The aggregate build `lake build Mathdemo` succeeded with all 2869 jobs, covering the mathematical facade, the Definition 1.1 transcription with its hypothesis-free adapter, and the point-evaluation model. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run. The 512 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots; the closure of the public theorem aliases alone is 502 of them, the remaining ten being the aggregation module, the three axiom-check modules, the supplementary check module, the two example modules, the reading interface, the Definition 1.1 transcription, and the point-evaluation model.
+On 2026-08-31 a complete `./build_audit.sh` run from the v0.5.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs in the shipped log), and the static source-closure audit passed with `closure_files: 512` — the same closure set as v0.3.0. The aggregate build `lake build Mathdemo` succeeded with all 2869 jobs, covering the mathematical facade, the Definition 1.1 transcription with its hypothesis-free adapter, and the point-evaluation model. The shipped logs `logs/build_audit.txt` and `logs/static_audit.txt` record that run. The 512 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots; the closure of the public theorem aliases alone is 502 of them, the remaining ten being the aggregation module, the three axiom-check modules, the supplementary check module, the two example modules, the reading interface, the Definition 1.1 transcription, and the point-evaluation model.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
