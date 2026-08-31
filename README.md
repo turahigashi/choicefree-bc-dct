@@ -300,7 +300,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.4.2 deposit DOI is assigned when the deposit is made.
+`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.5.1 deposit DOI is assigned when the deposit is made.
 
 ## Note on Lean warnings
 

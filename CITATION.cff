@@ -6,7 +6,7 @@ authors:
   - family-names: Urahigashi
     given-names: Toshihisa
 version: "0.5.1"
-date-released: "2026-08-28"
+date-released: "2026-08-31"
 doi: "10.5281/zenodo.21850965"
 license: MIT
 repository-code: "https://github.com/turahigashi/choicefree-bc-dct"
