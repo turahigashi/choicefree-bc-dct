@@ -56,6 +56,20 @@ noncomputable def profile_level_sets_integrable_apartC
         (t.sub (BishopSec3P.thm36ExceptionSeqC h hab ha n)).abs) :=
   BishopSec3P.thm_3_6_forall_apart_measureC h hab ha t hat htb hT
 
+/-- Theorem 3.6 on all positive levels.  The cover index and each local
+exception index are flattened into the single sequence by
+`BishopC.cellAt`. -/
+theorem profile_level_sets_integrable_apart_globalC
+    {X : Type u} {S : BishopSec1P.IntSpaceC X}
+    (h : BishopSec1P.IntegrableRepC3 S) :
+    ∃ T : Nat → BishopCReal.CReal,
+      ∀ t : BishopCReal.CReal, BishopCReal.PosEventuallyData t →
+        (∀ j : Nat,
+          BishopCReal.regularSeqLtProp BishopCReal.CReal.zero
+            (BishopCReal.CReal.abs (BishopCReal.CReal.sub t (T j)))) →
+        BishopSec3P.Thm36GlobalLevelSetsConclusionC h t :=
+  BishopSec3P.thm_3_6_all_posC h
+
 noncomputable def uniform_complement_from_profile_levelsC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -338,6 +352,7 @@ end ChoiceFreeMeasureDCT
 #check ChoiceFreeMeasureDCT.profile_partition_dataC
 #check ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
 #check ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
+#check ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
 #check ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #check ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
 #check ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
@@ -359,6 +374,7 @@ end ChoiceFreeMeasureDCT
 #print axioms ChoiceFreeMeasureDCT.profile_partition_dataC
 #print axioms ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
 #print axioms ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
+#print axioms ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
 #print axioms ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #print axioms ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
 #print axioms ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC

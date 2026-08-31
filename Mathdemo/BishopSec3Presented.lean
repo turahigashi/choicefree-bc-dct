@@ -16687,9 +16687,11 @@ def ProfileC.IsSmoothAtC {a b : CReal} {hab : regularSeqLtProp a b}
     ∀ eps : CReal, regularSeqLtProp CReal.zero eps →
       ∃ delta : CReal, regularSeqLtProp CReal.zero delta ∧
         (∀ f : P.Code, f ∈ P.F →
-          (∀ x : CReal, RegularSeqLe (CReal.add t delta) x →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe (CReal.add t delta) x →
             P.embed f x ≈ CReal.one) →
-          (∀ x : CReal, RegularSeqLe x (CReal.sub t delta) →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe x (CReal.sub t delta) →
             P.embed f x ≈ CReal.zero) →
           regularSeqLtProp
             (CReal.abs (CReal.sub (P.lambda f) lambdaBar)) eps)
@@ -16704,9 +16706,11 @@ noncomputable def thm_3_5_smooth_at_seq_specC {a b : CReal}
     ∀ eps : CReal, regularSeqLtProp CReal.zero eps →
       ∃ delta : CReal, regularSeqLtProp CReal.zero delta ∧
         (∀ f : P.Code, f ∈ P.F →
-          (∀ x : CReal, RegularSeqLe (CReal.add t delta) x →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe (CReal.add t delta) x →
             P.embed f x ≈ CReal.one) →
-          (∀ x : CReal, RegularSeqLe x (CReal.sub t delta) →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe x (CReal.sub t delta) →
             P.embed f x ≈ CReal.zero) →
           regularSeqLtProp
             (CReal.abs (CReal.sub (P.lambda f)
@@ -16749,7 +16753,7 @@ noncomputable def thm_3_5_smooth_at_seq_specC {a b : CReal}
     rcases regularSeqLtProp_cotrans
         (CReal.add t delta) (CReal.add t W.gamma) x htpδ with hxr | hxl
     · have hf1x : P.embed f x ≈ CReal.one :=
-        hf1 x (regularSeqLe_of_ltPropC hxr)
+        hf1 x hax hxb (regularSeqLe_of_ltPropC hxr)
       exact regularSeqLe_of_right_eventual (Setoid.symm hf1x)
         (P.bound W.lower W.lower_mem x hax hxb).2
     · have hl0 : P.embed W.lower x ≈ CReal.zero :=
@@ -16767,7 +16771,7 @@ noncomputable def thm_3_5_smooth_at_seq_specC {a b : CReal}
       exact regularSeqLe_of_right_eventual (Setoid.symm hu1)
         (P.bound f hf x hax hxb).2
     · have hf0x : P.embed f x ≈ CReal.zero :=
-        hf0 x (regularSeqLe_of_ltPropC hxl)
+        hf0 x hax hxb (regularSeqLe_of_ltPropC hxl)
       have hzero_upper : RegularSeqLe CReal.zero (P.embed W.upper x) :=
         regularSeqLe_zero_of_nonneg
           (P.bound W.upper W.upper_mem x hax hxb).1
@@ -16808,9 +16812,11 @@ noncomputable def thm_3_5_smooth_at_seq_dyadicSpecDataC {a b : CReal}
     { delta : CReal //
       regularSeqLtProp CReal.zero delta ∧
         (∀ f : P.Code, f ∈ P.F →
-          (∀ x : CReal, RegularSeqLe (CReal.add t delta) x →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe (CReal.add t delta) x →
             P.embed f x ≈ CReal.one) →
-          (∀ x : CReal, RegularSeqLe x (CReal.sub t delta) →
+          (∀ x : CReal, RegularSeqLe a x → RegularSeqLe x b →
+            RegularSeqLe x (CReal.sub t delta) →
             P.embed f x ≈ CReal.zero) →
           regularSeqLtProp
             (CReal.abs (CReal.sub (P.lambda f)
@@ -16851,7 +16857,7 @@ noncomputable def thm_3_5_smooth_at_seq_dyadicSpecDataC {a b : CReal}
     rcases regularSeqLtProp_cotrans
         (CReal.add t delta) (CReal.add t W.gamma) x htpδ with hxr | hxl
     · have hf1x : P.embed f x ≈ CReal.one :=
-        hf1 x (regularSeqLe_of_ltPropC hxr)
+        hf1 x hax hxb (regularSeqLe_of_ltPropC hxr)
       exact regularSeqLe_of_right_eventual (Setoid.symm hf1x)
         (P.bound W.lower W.lower_mem x hax hxb).2
     · have hl0 : P.embed W.lower x ≈ CReal.zero :=
@@ -16869,7 +16875,7 @@ noncomputable def thm_3_5_smooth_at_seq_dyadicSpecDataC {a b : CReal}
       exact regularSeqLe_of_right_eventual (Setoid.symm hu1)
         (P.bound f hf x hax hxb).2
     · have hf0x : P.embed f x ≈ CReal.zero :=
-        hf0 x (regularSeqLe_of_ltPropC hxl)
+        hf0 x hax hxb (regularSeqLe_of_ltPropC hxl)
       have hzero_upper : RegularSeqLe CReal.zero (P.embed W.upper x) :=
         regularSeqLe_zero_of_nonneg
           (P.bound W.upper W.upper_mem x hax hxb).1
@@ -17604,9 +17610,11 @@ theorem thm36C_lambdaBar_specC (eps : CReal)
       regularSeqLtProp CReal.zero delta ∧
         ∀ f ∈ (thm36A2_profileDefaultC h hab ha).F,
           (∀ x : CReal,
+            RegularSeqLe a x → RegularSeqLe x b →
             RegularSeqLe (CReal.add (thm36C_tC h a b hab ha spD) delta) x →
               (thm36A2_profileDefaultC h hab ha).embed f x ≈ CReal.one) →
           (∀ x : CReal,
+            RegularSeqLe a x → RegularSeqLe x b →
             RegularSeqLe x (CReal.sub (thm36C_tC h a b hab ha spD) delta) →
               (thm36A2_profileDefaultC h hab ha).embed f x ≈ CReal.zero) →
           regularSeqLtProp
@@ -17766,7 +17774,7 @@ theorem thm36C_rampLambdaL_eventually_closeC (k : Nat) :
     regularSeqLtProp_of_le_of_lt hgapLe hN
   apply hsmooth (thm36C_rampCodeLC h a b hab ha spD n)
     (thm36C_rampCodeL_memC h a b hab ha spD n)
-  · intro x htx
+  · intro x _hax _hxb htx
     change rampFnC (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n) ≈ CReal.one
@@ -17778,7 +17786,7 @@ theorem thm36C_rampLambdaL_eventually_closeC (k : Nat) :
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
       (regularSeqLe_trans ht_tdelta htx)
-  · intro x hxt
+  · intro x _hax _hxb hxt
     change rampFnC (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n) ≈ CReal.zero
@@ -17816,7 +17824,7 @@ theorem thm36C_rampLambdaR_eventually_closeC (k : Nat) :
     regularSeqLtProp_of_le_of_lt hgapLe hN
   apply hsmooth (thm36C_rampCodeRC h a b hab ha spD n)
     (thm36C_rampCodeR_memC h a b hab ha spD n)
-  · intro x htx
+  · intro x _hax _hxb htx
     change rampFnC (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n) ≈ CReal.one
@@ -17835,7 +17843,7 @@ theorem thm36C_rampLambdaR_eventually_closeC (k : Nat) :
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
       (regularSeqLe_trans hlevel_le_tdelta htx)
-  · intro x hxt
+  · intro x _hax _hxb hxt
     change rampFnC (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n) ≈ CReal.zero
@@ -17881,7 +17889,7 @@ noncomputable def thm36C_rampLambdaL_modDataC (k : Nat) :
     regularSeqLtProp_of_le_of_lt hgapLe W.property
   apply D.property.2 (thm36C_rampCodeLC h a b hab ha spD n)
     (thm36C_rampCodeL_memC h a b hab ha spD n)
-  · intro x htx
+  · intro x _hax _hxb htx
     change rampFnC (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n) ≈ CReal.one
@@ -17893,7 +17901,7 @@ noncomputable def thm36C_rampLambdaL_modDataC (k : Nat) :
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
       (regularSeqLe_trans ht_tdelta htx)
-  · intro x hxt
+  · intro x _hax _hxb hxt
     change rampFnC (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD) x
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n) ≈ CReal.zero
@@ -17941,7 +17949,7 @@ noncomputable def thm36C_rampLambdaR_modDataC (k : Nat) :
     regularSeqLtProp_of_le_of_lt hgapLe W.property
   apply D.property.2 (thm36C_rampCodeRC h a b hab ha spD n)
     (thm36C_rampCodeR_memC h a b hab ha spD n)
-  · intro x htx
+  · intro x _hax _hxb htx
     change rampFnC (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n) ≈ CReal.one
@@ -17960,7 +17968,7 @@ noncomputable def thm36C_rampLambdaR_modDataC (k : Nat) :
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
       (regularSeqLe_trans hlevel_le_tdelta htx)
-  · intro x hxt
+  · intro x _hax _hxb hxt
     change rampFnC (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) x
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n) ≈ CReal.zero
@@ -20754,6 +20762,266 @@ theorem thm_3_6_AB_measure_eqC {X : Type*} {S : IntSpaceC X}
   exact relEventually_trans _ _ _
     hA.2.2
     (Setoid.symm hB.2.2)
+
+/-! ### Theorem 3.6 on all positive levels -/
+
+/-- A constructive natural-number upper bound, made strict by one successor.
+This is the CReal counterpart of the generic `cover_nat_upper_arch`. -/
+noncomputable def thm36CoverNatUpperC (t : CReal) :
+    { n : Nat // regularSeqLtProp t (constSeq (Nat.cast n)) } := by
+  let M : Nat := CReal.mulArchBound t
+  have harch : RegularSeqLe
+      (CReal.mul (halfPow (0 + CReal.mulArchBound t)) t) (halfPow 0) :=
+    halfPow_mul_archBound_le t 0
+  have harch1 : RegularSeqLe (CReal.mul (halfPow M) t) CReal.one := by
+    have hM : 0 + CReal.mulArchBound t = M := by simp [M]
+    simpa [hM] using regularSeqLe_of_right_eventual halfPow_zero harch
+  have hmul : RegularSeqLe
+      (CReal.mul (CReal.mul (halfPow M) t) (twoPow M))
+      (CReal.mul CReal.one (twoPow M)) :=
+    regularSeqLe_mul_right_of_nonnegC harch1 (twoPow_nonnegC M)
+  have hcancel : CReal.mul (halfPow M) (twoPow M) ≈ CReal.one :=
+    Setoid.trans (CReal.mul_comm (halfPow M) (twoPow M))
+      (twoPow_mul_halfPow M)
+  have hleft : CReal.mul (CReal.mul (halfPow M) t) (twoPow M) ≈ t := by
+    calc
+      CReal.mul (CReal.mul (halfPow M) t) (twoPow M)
+          ≈ CReal.mul (halfPow M) (CReal.mul t (twoPow M)) :=
+            CReal.mul_assoc (halfPow M) t (twoPow M)
+      _ ≈ CReal.mul (halfPow M) (CReal.mul (twoPow M) t) :=
+            CReal.mul_respects_equiv _ _ _ _ (Setoid.refl (halfPow M))
+              (CReal.mul_comm t (twoPow M))
+      _ ≈ CReal.mul (CReal.mul (halfPow M) (twoPow M)) t :=
+            Setoid.symm (CReal.mul_assoc (halfPow M) (twoPow M) t)
+      _ ≈ CReal.mul CReal.one t :=
+            CReal.mul_respects_equiv _ _ _ _ hcancel (Setoid.refl t)
+      _ ≈ t := CReal.one_mul t
+  have hright : CReal.mul CReal.one (twoPow M) ≈ twoPow M :=
+    CReal.one_mul (twoPow M)
+  have ht_two : RegularSeqLe t (twoPow M) :=
+    (CReal.le_respects_equiv hleft hright).1 hmul
+  have ht_nat : RegularSeqLe t (constSeq (Nat.cast (2 ^ M))) :=
+    (CReal.le_respects_equiv (Setoid.refl t) (twoPow_natCastC M)).1 ht_two
+  refine ⟨2 ^ M + 1, regularSeqLtProp_of_le_of_lt ht_nat ?_⟩
+  exact natCast_ltC (2 ^ M) (2 ^ M + 1) (by omega)
+
+/-- Upper endpoint `n+2` of the positive-line cover. -/
+def thm36CoverHiC (n : Nat) : CReal :=
+  constSeq (Nat.cast ((n + 1) + 1))
+
+/-- Positivity data for the upper endpoint `n+2`. -/
+def thm36CoverHiPosDataC (n : Nat) : PosEventuallyData (thm36CoverHiC n) := by
+  exact natCast_succ_posDataC (n + 1)
+
+/-- Lower endpoint `(n+2)^{-1}` of the positive-line cover. -/
+noncomputable def thm36CoverLoC (n : Nat) : CReal :=
+  CReal.invPos (thm36CoverHiC n) (thm36CoverHiPosDataC n)
+
+/-- Positivity data for the lower endpoint `(n+2)^{-1}`. -/
+noncomputable def thm36CoverLoPosDataC (n : Nat) :
+    PosEventuallyData (thm36CoverLoC n) :=
+  CReal.invPos_posData (thm36CoverHiC n) (thm36CoverHiPosDataC n)
+
+theorem thm36CoverHiPosC (n : Nat) :
+    regularSeqLtProp CReal.zero (thm36CoverHiC n) :=
+  regularSeqLtProp_zero_of_posData (thm36CoverHiPosDataC n)
+
+theorem thm36CoverHiGtOneC (n : Nat) :
+    regularSeqLtProp CReal.one (thm36CoverHiC n) := by
+  simpa only [thm36CoverHiC, Nat.cast_one, Nat.cast_add] using
+    (natCast_ltC 1 ((n + 1) + 1) (by omega))
+
+theorem thm36CoverLoPosC (n : Nat) :
+    regularSeqLtProp CReal.zero (thm36CoverLoC n) :=
+  regularSeqLtProp_zero_of_posData (thm36CoverLoPosDataC n)
+
+/-- Positive inversion reverses strict order.  All inverse witnesses are
+supplied explicitly, so this uses neither choice nor a total inverse. -/
+theorem thm36InvPosAntitoneC {a b : CReal}
+    (ha : PosEventuallyData a) (hb : PosEventuallyData b)
+    (hab : regularSeqLtProp a b) :
+    regularSeqLtProp (CReal.invPos b hb) (CReal.invPos a ha) := by
+  let invA := CReal.invPos a ha
+  let invB := CReal.invPos b hb
+  have hinvA : regularSeqLtProp CReal.zero invA :=
+    regularSeqLtProp_zero_of_posData (CReal.invPos_posData a ha)
+  have hinvB : regularSeqLtProp CReal.zero invB :=
+    regularSeqLtProp_zero_of_posData (CReal.invPos_posData b hb)
+  have hprod : regularSeqLtProp CReal.zero (CReal.mul invA invB) :=
+    CReal.mul_pos_E hinvA hinvB
+  have hmul : regularSeqLtProp
+      (CReal.mul a (CReal.mul invA invB))
+      (CReal.mul b (CReal.mul invA invB)) :=
+    regularSeqLtProp_mul_right_of_posC hab hprod
+  have hleft : CReal.mul a (CReal.mul invA invB) ≈ invB := by
+    calc
+      CReal.mul a (CReal.mul invA invB)
+          ≈ CReal.mul (CReal.mul a invA) invB :=
+            Setoid.symm (CReal.mul_assoc a invA invB)
+      _ ≈ CReal.mul CReal.one invB :=
+            CReal.mul_respects_equiv _ _ _ _
+              (CReal.mul_invPos_eventually_one a ha) (Setoid.refl invB)
+      _ ≈ invB := CReal.one_mul invB
+  have hright : CReal.mul b (CReal.mul invA invB) ≈ invA := by
+    calc
+      CReal.mul b (CReal.mul invA invB)
+          ≈ CReal.mul b (CReal.mul invB invA) :=
+            CReal.mul_respects_equiv _ _ _ _ (Setoid.refl b)
+              (CReal.mul_comm invA invB)
+      _ ≈ CReal.mul (CReal.mul b invB) invA :=
+            Setoid.symm (CReal.mul_assoc b invB invA)
+      _ ≈ CReal.mul CReal.one invA :=
+            CReal.mul_respects_equiv _ _ _ _
+              (CReal.mul_invPos_eventually_one b hb) (Setoid.refl invA)
+      _ ≈ invA := CReal.one_mul invA
+  exact regularSeqLtProp_of_right_eventual hright
+    (regularSeqLtProp_of_left_eventual (Setoid.symm hleft) hmul)
+
+/-- Inverting twice, with the carried positivity witnesses, returns the
+original CReal up to Bishop equality. -/
+theorem thm36InvPosInvC (t : CReal) (ht : PosEventuallyData t) :
+    CReal.invPos (CReal.invPos t ht) (CReal.invPos_posData t ht) ≈ t := by
+  let it := CReal.invPos t ht
+  let hit := CReal.invPos_posData t ht
+  have hq : mkQuot (CReal.invPos it hit) = mkQuot t := by
+    letI : CommRing CRealQuot := cRealQuotCommRingConcreteWith cRatScalarMulArch
+    have hcancelT0 : mkQuot (CReal.mul t it) = mkQuot CReal.one :=
+      Quotient.sound (CReal.mul_invPos_eventually_one t ht)
+    have hcancelI0 : mkQuot (CReal.mul it (CReal.invPos it hit)) =
+        mkQuot CReal.one :=
+      Quotient.sound (CReal.mul_invPos_eventually_one it hit)
+    have hcancelT : mkQuot t * mkQuot it = (1 : CRealQuot) := by
+      simpa using hcancelT0
+    have hcancelI : mkQuot it * mkQuot (CReal.invPos it hit) =
+        (1 : CRealQuot) := by
+      simpa using hcancelI0
+    calc
+      mkQuot (CReal.invPos it hit)
+          = (1 : CRealQuot) * mkQuot (CReal.invPos it hit) := by ring
+      _ = (mkQuot t * mkQuot it) * mkQuot (CReal.invPos it hit) := by
+            rw [hcancelT]
+      _ = mkQuot t * (mkQuot it * mkQuot (CReal.invPos it hit)) := by ring
+      _ = mkQuot t * (1 : CRealQuot) := by rw [hcancelI]
+      _ = mkQuot t := by ring
+  exact Quotient.exact hq
+
+/-- The lower endpoint is strictly below the upper endpoint. -/
+theorem thm36CoverLoLtHiC (n : Nat) :
+    regularSeqLtProp (thm36CoverLoC n) (thm36CoverHiC n) := by
+  let hi := thm36CoverHiC n
+  let inv := thm36CoverLoC n
+  have h1 : regularSeqLtProp CReal.one hi := thm36CoverHiGtOneC n
+  have hinv : regularSeqLtProp CReal.zero inv := thm36CoverLoPosC n
+  have hmul : regularSeqLtProp (CReal.mul CReal.one inv) (CReal.mul hi inv) :=
+    regularSeqLtProp_mul_right_of_posC h1 hinv
+  have hinv_one : regularSeqLtProp inv CReal.one :=
+    regularSeqLtProp_of_right_eventual
+      (CReal.mul_invPos_eventually_one hi (thm36CoverHiPosDataC n))
+      (regularSeqLtProp_of_left_eventual
+        (Setoid.symm (CReal.one_mul inv)) hmul)
+  exact regularSeqLtProp_trans inv CReal.one hi hinv_one h1
+
+/-- Every positive CReal lies in one interval
+`((n+2)^{-1}, n+2)` of the countable cover. -/
+noncomputable def thm36CoverExistsC (t : CReal) (ht : PosEventuallyData t) :
+    { n : Nat //
+      regularSeqLtProp (thm36CoverLoC n) t ∧
+      regularSeqLtProp t (thm36CoverHiC n) } := by
+  let it := CReal.invPos t ht
+  let hit := CReal.invPos_posData t ht
+  let N := thm36CoverNatUpperC t
+  let M := thm36CoverNatUpperC it
+  let n : Nat := max N.val M.val
+  refine ⟨n, ?_, ?_⟩
+  · have hMle : RegularSeqLe
+        (constSeq (Nat.cast M.val)) (thm36CoverHiC n) := by
+      apply natCast_leC
+      simp [n]
+      omega
+    have hit_hi : regularSeqLtProp it (thm36CoverHiC n) :=
+      regularSeqLtProp_of_lt_of_le M.property hMle
+    have hanti : regularSeqLtProp
+        (CReal.invPos (thm36CoverHiC n) (thm36CoverHiPosDataC n))
+        (CReal.invPos it hit) :=
+      thm36InvPosAntitoneC hit (thm36CoverHiPosDataC n) hit_hi
+    exact regularSeqLtProp_of_right_eventual (thm36InvPosInvC t ht) hanti
+  · have hNle : RegularSeqLe
+        (constSeq (Nat.cast N.val)) (thm36CoverHiC n) := by
+      apply natCast_leC
+      simp [n]
+      omega
+    exact regularSeqLtProp_of_lt_of_le N.property hNle
+
+/-- The interval-`n`, local-index-`k` exception, with all proof-dependent
+arguments hidden behind an ordinary two-natural-number interface. -/
+noncomputable def thm36CoverExceptionC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) (n k : Nat) : CReal :=
+  thm36ExceptionSeqC h (thm36CoverLoLtHiC n)
+    (thm36CoverLoPosDataC n) k
+
+/-- One global exception sequence, obtained by flattening the cover index and
+the local Theorem 3.5 index through `BishopC.cellAt`. -/
+noncomputable def thm36GlobalExceptionSeqC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) : Nat → CReal :=
+  fun j =>
+    let nk := BishopC.cellAt j
+    thm36CoverExceptionC h nk.1 nk.2
+
+/-- The square-shell encoder's explicit right inverse recovers each local
+cover/exception pair without any search or choice. -/
+theorem thm36GlobalExceptionSeq_cellIdxC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) (n k : Nat) :
+    thm36GlobalExceptionSeqC h (BishopC.cellIdx n k) =
+      thm36CoverExceptionC h n k := by
+  simp only [thm36GlobalExceptionSeqC, BishopC.cellAt_cellIdx]
+
+/-- The global level-set conclusion used by the all-positive form of
+Theorem 3.6.  The four set equalities identify the two represented pairs with
+`({h ≥ t},{h < t})` and `({h > t},{h ≤ t})`. -/
+def Thm36GlobalLevelSetsConclusionC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) (t : CReal) : Prop :=
+  ∃ (A B : BishopC.BSet X)
+    (hA : IntegrableSet1C S A) (hB : IntegrableSet1C S B),
+      A.S1 = thm36D_upperSetC h t ∧
+      A.S2 = thm36D_lowerSetC h t ∧
+      B.S1 = thm36D_upperSetStrictC h t ∧
+      B.S2 = thm36D_lowerSetWeakC h t ∧
+      hA.rep.integral ≈ hB.rep.integral
+
+set_option maxHeartbeats 1200000 in
+-- Dependent cover witnesses and the flattened exception index require extra
+-- reduction when the local interval theorem is assembled.
+/-- CReal Theorem 3.6 on the whole positive line: outside one explicitly
+flattened countable exception sequence, both level-set pairs are integrable
+and have equal represented measures. -/
+theorem thm_3_6_all_posC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) :
+    ∃ T : Nat → CReal,
+      ∀ t : CReal, PosEventuallyData t →
+        (∀ j : Nat,
+          regularSeqLtProp CReal.zero
+            (CReal.abs (CReal.sub t (T j)))) →
+        Thm36GlobalLevelSetsConclusionC h t := by
+  refine ⟨thm36GlobalExceptionSeqC h, ?_⟩
+  intro t ht hT
+  let cover := thm36CoverExistsC t ht
+  let n : Nat := cover.val
+  have hlocalApart : ∀ k : Nat,
+      regularSeqLtProp CReal.zero
+        (CReal.abs (CReal.sub t
+          (thm36CoverExceptionC h n k))) := by
+    intro k
+    rw [← thm36GlobalExceptionSeq_cellIdxC h n k]
+    exact hT (BishopC.cellIdx n k)
+  let localPair := thm_3_6_forall_apart_measureC h
+    (thm36CoverLoLtHiC n) (thm36CoverLoPosDataC n) t
+    cover.property.1 cover.property.2 hlocalApart
+  let Adata := localPair.1
+  let Bdata := localPair.2
+  refine ⟨Adata.1.val, Bdata.1.val, Adata.2.1, Bdata.2.1,
+    Adata.1.property.1, Adata.1.property.2,
+    Bdata.1.property.1, Bdata.1.property.2, ?_⟩
+  exact relEventually_trans _ _ _ Adata.2.2 (Setoid.symm Bdata.2.2)
 
 /-! ### §4 Lemma 4.3 bridge: dyadic level-set data from Theorem 3.6 -/
 

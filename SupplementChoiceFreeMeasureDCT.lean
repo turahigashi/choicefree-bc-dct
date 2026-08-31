@@ -12,6 +12,7 @@ the paper, and prints their dependency profiles.
 
 #check ChoiceFreeMeasureDCT.profile_partition_dataC
 #check ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
+#check ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
 #check ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #check ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
 #check ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
@@ -50,6 +51,7 @@ the paper, and prints their dependency profiles.
 
 #print axioms ChoiceFreeMeasureDCT.profile_partition_dataC
 #print axioms ChoiceFreeMeasureDCT.profile_level_sets_integrable_apartC
+#print axioms ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
 #print axioms ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
 #print axioms ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
 #print axioms ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
