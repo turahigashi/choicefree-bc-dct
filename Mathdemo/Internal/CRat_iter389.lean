@@ -44,11 +44,13 @@ structure IntegrableSet1WithDef23PropAbs
     forall x : X, x ∈ A.S2 ->
       forall m : Nat, x ∈ (base.rep.fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ A.S1 ->
-      Nonempty (RSeq.SeriesSum (fun m => COF.abs (((base.rep.fn m).toFun x))))
+    forall (x : X) (hx : x ∈ A.S1),
+      Nonempty (RSeq.SeriesSum (fun m => COF.abs
+        (base.rep.valueAt x (dom_on_s1 x hx) m)))
   abs_on_s2 :
-    forall x : X, x ∈ A.S2 ->
-      Nonempty (RSeq.SeriesSum (fun m => COF.abs (((base.rep.fn m).toFun x))))
+    forall (x : X) (hx : x ∈ A.S2),
+      Nonempty (RSeq.SeriesSum (fun m => COF.abs
+        (base.rep.valueAt x (dom_on_s2 x hx) m)))
 
 
 namespace IntegrableSet1WithDef23PropAbs
@@ -100,11 +102,14 @@ theorem or_s1_left_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.or A B).S1) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HA.base.rep x) := by
   rcases hx with (hx11 | hx12) | hx21
-  · exact HA.abs_on_s1 x hx11.1
-  · exact HA.abs_on_s1 x hx12.1
-  · exact HA.abs_on_s2 x hx21.1
+  · rcases HA.abs_on_s1 x hx11.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s1 x hx11.1, habs⟩⟩
+  · rcases HA.abs_on_s1 x hx12.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s1 x hx12.1, habs⟩⟩
+  · rcases HA.abs_on_s2 x hx21.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s2 x hx21.1, habs⟩⟩
 
 
 theorem or_s1_right_abs_exists
@@ -113,11 +118,14 @@ theorem or_s1_right_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.or A B).S1) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HB.base.rep x) := by
   rcases hx with (hx11 | hx12) | hx21
-  · exact HB.abs_on_s1 x hx11.2
-  · exact HB.abs_on_s2 x hx12.2
-  · exact HB.abs_on_s1 x hx21.2
+  · rcases HB.abs_on_s1 x hx11.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s1 x hx11.2, habs⟩⟩
+  · rcases HB.abs_on_s2 x hx12.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s2 x hx12.2, habs⟩⟩
+  · rcases HB.abs_on_s1 x hx21.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s1 x hx21.2, habs⟩⟩
 
 
 /-! ## 3. Prop-level strengthened `or` constructor -/
@@ -155,24 +163,20 @@ noncomputable def or
     intro x hx
     rcases or_s1_left_abs_exists (S := S) HA HB hx with ⟨hAabs⟩
     rcases or_s1_right_abs_exists (S := S) HA HB hx with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs ((((HA.base.rep.add HB.base.rep).sub
-          (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-      exact sub_absSeriesSum_of_left_right
-        (add_absSeriesSum_of_left_right hAabs hBabs)
-        (min2_absSeriesSum_of_left_right hAabs hBabs)⟩
+    exact ⟨(sub_absSeriesSum_of_left_right
+      (add_absSeriesSum_of_left_right hAabs hBabs)
+      (min2_absSeriesSum_of_left_right hAabs hBabs)).snd⟩
   abs_on_s2 := by
     intro x hx
     rcases HA.abs_on_s2 x hx.1 with ⟨hAabs⟩
     rcases HB.abs_on_s2 x hx.2 with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs ((((HA.base.rep.add HB.base.rep).sub
-          (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-      exact sub_absSeriesSum_of_left_right
-        (add_absSeriesSum_of_left_right hAabs hBabs)
-        (min2_absSeriesSum_of_left_right hAabs hBabs)⟩
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s2 x hx.1, hAabs⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s2 x hx.2, hBabs⟩
+    exact ⟨(sub_absSeriesSum_of_left_right
+      (add_absSeriesSum_of_left_right hAat hBat)
+      (min2_absSeriesSum_of_left_right hAat hBat)).snd⟩
 
 
 @[simp] theorem or_base
@@ -219,11 +223,14 @@ theorem and_s2_left_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.and A B).S2) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HA.base.rep x) := by
   rcases hx with (hx12 | hx21) | hx22
-  · exact HA.abs_on_s1 x hx12.1
-  · exact HA.abs_on_s2 x hx21.1
-  · exact HA.abs_on_s2 x hx22.1
+  · rcases HA.abs_on_s1 x hx12.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s1 x hx12.1, habs⟩⟩
+  · rcases HA.abs_on_s2 x hx21.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s2 x hx21.1, habs⟩⟩
+  · rcases HA.abs_on_s2 x hx22.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s2 x hx22.1, habs⟩⟩
 
 
 theorem and_s2_right_abs_exists
@@ -232,11 +239,14 @@ theorem and_s2_right_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.and A B).S2) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HB.base.rep x) := by
   rcases hx with (hx12 | hx21) | hx22
-  · exact HB.abs_on_s2 x hx12.2
-  · exact HB.abs_on_s1 x hx21.2
-  · exact HB.abs_on_s2 x hx22.2
+  · rcases HB.abs_on_s2 x hx12.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s2 x hx12.2, habs⟩⟩
+  · rcases HB.abs_on_s1 x hx21.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s1 x hx21.2, habs⟩⟩
+  · rcases HB.abs_on_s2 x hx22.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s2 x hx22.2, habs⟩⟩
 
 
 /-! ## 5. Prop-level strengthened `and` constructor -/
@@ -268,18 +278,16 @@ noncomputable def and
     intro x hx
     rcases HA.abs_on_s1 x hx.1 with ⟨hAabs⟩
     rcases HB.abs_on_s1 x hx.2 with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs (((IntegrableRep.min2 HA.base.rep HB.base.rep).fn m).toFun x))
-      exact min2_absSeriesSum_of_left_right hAabs hBabs⟩
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s1 x hx.1, hAabs⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s1 x hx.2, hBabs⟩
+    exact ⟨(min2_absSeriesSum_of_left_right hAat hBat).snd⟩
   abs_on_s2 := by
     intro x hx
     rcases and_s2_left_abs_exists (S := S) HA HB hx with ⟨hAabs⟩
     rcases and_s2_right_abs_exists (S := S) HA HB hx with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs (((IntegrableRep.min2 HA.base.rep HB.base.rep).fn m).toFun x))
-      exact min2_absSeriesSum_of_left_right hAabs hBabs⟩
+    exact ⟨(min2_absSeriesSum_of_left_right hAabs hBabs).snd⟩
 
 
 @[simp] theorem and_base
@@ -326,11 +334,14 @@ theorem sub_s2_left_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.sub A B).S2) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HA.base.rep x) := by
   rcases hx with (hx11 | hx22) | hx21
-  · exact HA.abs_on_s1 x hx11.1
-  · exact HA.abs_on_s2 x hx22.1
-  · exact HA.abs_on_s2 x hx21.1
+  · rcases HA.abs_on_s1 x hx11.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s1 x hx11.1, habs⟩⟩
+  · rcases HA.abs_on_s2 x hx22.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s2 x hx22.1, habs⟩⟩
+  · rcases HA.abs_on_s2 x hx21.1 with ⟨habs⟩
+    exact ⟨⟨HA.dom_on_s2 x hx21.1, habs⟩⟩
 
 
 theorem sub_s2_right_abs_exists
@@ -339,11 +350,14 @@ theorem sub_s2_right_abs_exists
     (HB : IntegrableSet1WithDef23PropAbs (S := S) B)
     {x : X}
     (hx : x ∈ (BSet.sub A B).S2) :
-    Nonempty (RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x))) := by
+    Nonempty (Sec4RepAbsAt HB.base.rep x) := by
   rcases hx with (hx11 | hx22) | hx21
-  · exact HB.abs_on_s1 x hx11.2
-  · exact HB.abs_on_s2 x hx22.2
-  · exact HB.abs_on_s1 x hx21.2
+  · rcases HB.abs_on_s1 x hx11.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s1 x hx11.2, habs⟩⟩
+  · rcases HB.abs_on_s2 x hx22.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s2 x hx22.2, habs⟩⟩
+  · rcases HB.abs_on_s1 x hx21.2 with ⟨habs⟩
+    exact ⟨⟨HB.dom_on_s1 x hx21.2, habs⟩⟩
 
 
 /-! ## 7. Prop-level strengthened relative subtraction constructor -/
@@ -377,22 +391,18 @@ noncomputable def sub
     intro x hx
     rcases HA.abs_on_s1 x hx.1 with ⟨hAabs⟩
     rcases HB.abs_on_s2 x hx.2 with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs (((HA.base.rep.sub
-          (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-      exact sub_absSeriesSum_of_left_right hAabs
-        (min2_absSeriesSum_of_left_right hAabs hBabs)⟩
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s1 x hx.1, hAabs⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s2 x hx.2, hBabs⟩
+    exact ⟨(sub_absSeriesSum_of_left_right hAat
+      (min2_absSeriesSum_of_left_right hAat hBat)).snd⟩
   abs_on_s2 := by
     intro x hx
     rcases sub_s2_left_abs_exists (S := S) HA HB hx with ⟨hAabs⟩
     rcases sub_s2_right_abs_exists (S := S) HA HB hx with ⟨hBabs⟩
-    exact ⟨by
-      change RSeq.SeriesSum
-        (fun m => COF.abs (((HA.base.rep.sub
-          (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-      exact sub_absSeriesSum_of_left_right hAabs
-        (min2_absSeriesSum_of_left_right hAabs hBabs)⟩
+    exact ⟨(sub_absSeriesSum_of_left_right hAabs
+      (min2_absSeriesSum_of_left_right hAabs hBabs)).snd⟩
 
 
 @[simp] theorem sub_base

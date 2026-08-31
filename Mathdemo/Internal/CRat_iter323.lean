@@ -35,16 +35,17 @@ theorem theorem46_chi_value_zero_or_one
     {A : BishopC.BSet Y}
     (hA : BishopC.IntegrableSet1 S A)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x))) :
+      (fun m => COF.abs (hA.rep.valueAt x hADom m))) :
     (BishopC.seriesSum_of_abs hAabs).sum = 0 ∨
       (BishopC.seriesSum_of_abs hAabs).sum = 1 := by
-  rcases (hA.valid x hAabs).1 with hA1 | hA2
+  rcases (hA.valid x hADom hAabs).1 with hA1 | hA2
   · exact Or.inr
-      ((hA.valid x hAabs).2.1 hA1
+      ((hA.valid x hADom hAabs).2.1 hA1
         (BishopC.seriesSum_of_abs hAabs))
   · exact Or.inl
-      ((hA.valid x hAabs).2.2 hA2
+      ((hA.valid x hADom hAabs).2.2 hA2
         (BishopC.seriesSum_of_abs hAabs))
 
 /-- The tail `a - min(a,c)` is monotone in `a`. -/

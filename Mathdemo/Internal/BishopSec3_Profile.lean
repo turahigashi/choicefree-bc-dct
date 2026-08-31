@@ -7209,28 +7209,58 @@ theorem thm36A1_ramp_value_formula (u v y : R) (huv : COF.lt u v) :
   exact thm36A1_clamp_swap _
 
 
+/-- Domain transport through the representative implementing the ramp. -/
+theorem thm36A1_ramp_comp_memAt {S : IntSpaceRC X R}
+    (h : IntegrableRep S) (u v : R) (hu : Nonneg u) (huv : COF.lt u v)
+    {x : X} (hdom : h.MemAt x) :
+    (thm_3_6_ramp_comp h u v hu huv).MemAt x := by
+  have hone : Nonneg (1 : R) := le_of_lt COFO.one_pos
+  let hcutDom : (h.cutConstVal u hu).MemAt x :=
+    h.mem_cutConstVal_dom u hu hdom
+  let hsubDom : (h.sub (h.cutConstVal u hu)).MemAt x :=
+    IntegrableRep.add_memAt hdom (IntegrableRep.neg_memAt hcutDom)
+  let hsmulDom :
+      (IntegrableRep.smul (COFO.inv (v - u))
+        (h.sub (h.cutConstVal u hu))).MemAt x :=
+    IntegrableRep.smul_memAt hsubDom
+  simpa [thm_3_6_ramp_comp] using
+    ((IntegrableRep.smul (COFO.inv (v - u))
+      (h.sub (h.cutConstVal u hu))).mem_cutConstVal_dom 1 hone hsmulDom)
+
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36A1_ramp_comp_value_witness {S : IntSpaceRC X R}
     (h : IntegrableRep S) (u v : R) (hu : Nonneg u) (huv : COF.lt u v)
-    (x : X) (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)) :
+    (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)) :
     { hr : RSeq.SeriesSum
-        (fun n => ((thm_3_6_ramp_comp h u v hu huv).fn n).toFun x) //
+        (fun n => (thm_3_6_ramp_comp h u v hu huv).valueAt x
+          (thm36A1_ramp_comp_memAt h u v hu huv hdom) n) //
       hr.sum = thm_3_6_rampFn u v hx.sum } := by
-  let hcut := IntegrableRep.cutConstVal_signed_value h u hu x hx
+  let hcutDom : (h.cutConstVal u hu).MemAt x :=
+    h.mem_cutConstVal_dom u hu hdom
+  let hcut := IntegrableRep.cutConstVal_signed_value h u hu x hdom hx
+  let hnegDom : (h.cutConstVal u hu).neg.MemAt x :=
+    IntegrableRep.neg_memAt hcutDom
   let hneg : RSeq.SeriesSum
-      (fun n => (((h.cutConstVal u hu).neg.fn n).toFun x)) :=
-    neg_seriesSum_value hcut.val
+      (fun n => (h.cutConstVal u hu).neg.valueAt x hnegDom n) :=
+    neg_seriesSum_value hcutDom hcut.val
+  let hsubDom : (h.sub (h.cutConstVal u hu)).MemAt x :=
+    IntegrableRep.add_memAt hdom hnegDom
   let hsub : RSeq.SeriesSum
-      (fun n => ((h.sub (h.cutConstVal u hu)).fn n).toFun x) :=
-    add_seriesSum_value hx hneg
+      (fun n => (h.sub (h.cutConstVal u hu)).valueAt x hsubDom n) :=
+    add_seriesSum_value hdom hnegDom hx hneg
   have hsub_sum : hsub.sum = hx.sum - COF.min hx.sum u := by
     change hx.sum + (-hcut.val.sum) = hx.sum - COF.min hx.sum u
     rw [hcut.property]; ring
+  let hsmulDom :
+      (IntegrableRep.smul (COFO.inv (v - u))
+        (h.sub (h.cutConstVal u hu))).MemAt x :=
+    IntegrableRep.smul_memAt hsubDom
   let hsmul : RSeq.SeriesSum
       (fun n =>
-        ((IntegrableRep.smul (COFO.inv (v - u))
-          (h.sub (h.cutConstVal u hu))).fn n).toFun x) :=
-    smul_seriesSum_value (COFO.inv (v - u)) hsub
+        (IntegrableRep.smul (COFO.inv (v - u))
+          (h.sub (h.cutConstVal u hu))).valueAt x hsmulDom n) :=
+    smul_seriesSum_value (COFO.inv (v - u)) hsubDom hsub
   have hsmul_sum :
       hsmul.sum = (COFO.inv (v - u)) * (hx.sum - COF.min hx.sum u) := by
     change (COFO.inv (v - u)) * hsub.sum = _
@@ -7238,9 +7268,10 @@ noncomputable def thm36A1_ramp_comp_value_witness {S : IntSpaceRC X R}
   have hone : Nonneg (1 : R) := le_of_lt COFO.one_pos
   let hout := IntegrableRep.cutConstVal_signed_value
     (IntegrableRep.smul (COFO.inv (v - u))
-      (h.sub (h.cutConstVal u hu))) 1 hone x hsmul
+      (h.sub (h.cutConstVal u hu))) 1 hone x hsmulDom hsmul
   let hrout : RSeq.SeriesSum
-      (fun n => ((thm_3_6_ramp_comp h u v hu huv).fn n).toFun x) := by
+      (fun n => (thm_3_6_ramp_comp h u v hu huv).valueAt x
+        (thm36A1_ramp_comp_memAt h u v hu huv hdom) n) := by
     simpa [thm_3_6_ramp_comp] using hout.val
   refine ⟨hrout, ?_⟩
   calc
@@ -7255,11 +7286,13 @@ noncomputable def thm36A1_ramp_comp_value_witness {S : IntSpaceRC X R}
 /-- Technical lemma used in the public import closure. -/
 theorem thm36A1_ramp_comp_value {S : IntSpaceRC X R}
     (h : IntegrableRep S) (u v : R) (hu : Nonneg u) (huv : COF.lt u v)
-    (x : X) (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n))
+    (hrdom : (thm_3_6_ramp_comp h u v hu huv).MemAt x)
     (hr : RSeq.SeriesSum
-      (fun n => ((thm_3_6_ramp_comp h u v hu huv).fn n).toFun x)) :
+      (fun n => (thm_3_6_ramp_comp h u v hu huv).valueAt x hrdom n)) :
     hr.sum = thm_3_6_rampFn u v hx.sum := by
-  let hw := thm36A1_ramp_comp_value_witness h u v hu huv x hx
+  let hw := thm36A1_ramp_comp_value_witness h u v hu huv x hdom hx
   calc
     hr.sum = hw.val.sum := seriesSum_unique hr hw.val
     _ = thm_3_6_rampFn u v hx.sum := hw.property
@@ -7748,22 +7781,22 @@ theorem thm36A2_codeRep_integral_mono {S : IntSpaceRC X R}
   refine prop_1_11 (IntegrableRep.domain_isFull h)
     (thm36A2_codeRep h hab ha E c)
     (thm36A2_codeRep h hab ha E d) ?_
-  intro x hx hr hd
-  rcases hx.2 with ⟨hxabs⟩
-  let hxsum : RSeq.SeriesSum (fun n => (h.fn n).toFun x) :=
+  intro x hx hrcDom hrdDom hr hd
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hx
+  let hxsum : RSeq.SeriesSum (fun n => h.valueAt x hdom n) :=
     seriesSum_of_abs hxabs
   have hcval : hr.sum = thm36A2_codeRepFn E c hxsum.sum := by
     simpa [thm36A2_codeRep, thm36A2_codeRepFn] using
       (thm36A1_ramp_comp_value h
         (thm36A2_codeU E c) (thm36A2_codeV E c)
         (thm36A2_codeU_nonneg hab ha E c)
-        (thm36A2_codeUV_lt E c) x hxsum hr)
+        (thm36A2_codeUV_lt E c) x hdom hxsum hrcDom hr)
   have hdval : hd.sum = thm36A2_codeRepFn E d hxsum.sum := by
     simpa [thm36A2_codeRep, thm36A2_codeRepFn] using
       (thm36A1_ramp_comp_value h
         (thm36A2_codeU E d) (thm36A2_codeV E d)
         (thm36A2_codeU_nonneg hab ha E d)
-        (thm36A2_codeUV_lt E d) x hxsum hd)
+        (thm36A2_codeUV_lt E d) x hdom hxsum hrdDom hd)
   rw [hcval, hdval]
   exact thm36A2_codeRepFn_le_global hab E c d hcd hxsum.sum
 
@@ -9430,14 +9463,29 @@ theorem thm36Cb_rampFn_succ_le
     (thm36C_level_lt_t h a b hab ha spD (n + 1)) y
 
 
+/-- Domain transport from the source representative to a profile ramp. -/
+theorem thm36Cb_ramp_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36C_ramp h a b hab ha spD n).MemAt x := by
+  simpa [thm36C_ramp] using
+    (thm36A1_ramp_comp_memAt h
+      (thm36C_level h a b hab ha spD n)
+      (thm36C_t h a b hab ha spD)
+      (thm36C_level_nonneg h a b hab ha spD n)
+      (thm36C_level_lt_t h a b hab ha spD n) hdom)
+
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36Cb_ramp_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hr : RSeq.SeriesSum
-      (fun m => ((thm36C_ramp h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36C_ramp h a b hab ha spD n).valueAt x
+        (thm36Cb_ramp_memAt h a b hab ha spD n hdom) m) //
       hr.sum =
         thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
           (thm36C_t h a b hab ha spD) hx.sum} := by
@@ -9446,7 +9494,7 @@ noncomputable def thm36Cb_ramp_value_witness
       (thm36C_level h a b hab ha spD n)
       (thm36C_t h a b hab ha spD)
       (thm36C_level_nonneg h a b hab ha spD n)
-      (thm36C_level_lt_t h a b hab ha spD n) x hx)
+      (thm36C_level_lt_t h a b hab ha spD n) x hdom hx)
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -9458,24 +9506,43 @@ noncomputable def thm36Cb_decrement
     (thm36C_ramp h a b hab ha spD (n + 1))
 
 
+/-- Domain transport from the source representative to a ramp decrement. -/
+theorem thm36Cb_decrement_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_decrement h a b hab ha spD n).MemAt x := by
+  exact IntegrableRep.add_memAt
+    (thm36Cb_ramp_memAt h a b hab ha spD n hdom)
+    (IntegrableRep.neg_memAt
+      (thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom))
+
+
 /-- Technical lemma used in the public import closure. -/
 theorem thm36Cb_decrement_nonneg_on_domain
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hdDom : (thm36Cb_decrement h a b hab ha spD n).MemAt x)
     (hd : RSeq.SeriesSum
-      (fun m => ((thm36Cb_decrement h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36Cb_decrement h a b hab ha spD n).valueAt x hdDom m)) :
     Nonneg hd.sum := by
-  obtain ⟨hxabs⟩ := hxdom.2
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
   let hx := seriesSum_of_abs hxabs
-  let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hx
-  let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hx
+  let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hdom hx
+  let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hdom hx
+  let WnDom := thm36Cb_ramp_memAt h a b hab ha spD n hdom
+  let WsDom := thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom
+  let hnegDom := IntegrableRep.neg_memAt WsDom
   let hneg : RSeq.SeriesSum
-      (fun m => (((thm36C_ramp h a b hab ha spD (n + 1)).neg.fn m).toFun x)) :=
-    neg_seriesSum_value Ws.val
+      (fun m => (thm36C_ramp h a b hab ha spD (n + 1)).neg.valueAt x
+        hnegDom m) :=
+    neg_seriesSum_value WsDom Ws.val
+  let hcanDom := IntegrableRep.add_memAt WnDom hnegDom
   let hcan : RSeq.SeriesSum
-      (fun m => ((thm36Cb_decrement h a b hab ha spD n).fn m).toFun x) := by
-    exact add_seriesSum_value Wn.val hneg
+      (fun m => (thm36Cb_decrement h a b hab ha spD n).valueAt x hcanDom m) := by
+    exact add_seriesSum_value WnDom hnegDom Wn.val hneg
   have hsum : hd.sum = Wn.val.sum - Ws.val.sum := by
     calc
       hd.sum = hcan.sum := seriesSum_unique hd hcan
@@ -9491,10 +9558,11 @@ theorem thm36Cb_ramp_nonneg_on_domain
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hrDom : (thm36C_ramp h a b hab ha spD n).MemAt x)
     (hr : RSeq.SeriesSum
-      (fun m => ((thm36C_ramp h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36C_ramp h a b hab ha spD n).valueAt x hrDom m)) :
     Nonneg hr.sum := by
-  obtain ⟨hxabs⟩ := hxdom.2
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
   let hx := seriesSum_of_abs hxabs
   have hval : hr.sum =
       thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
@@ -9504,7 +9572,7 @@ theorem thm36Cb_ramp_nonneg_on_domain
         (thm36C_level h a b hab ha spD n)
         (thm36C_t h a b hab ha spD)
         (thm36C_level_nonneg h a b hab ha spD n)
-        (thm36C_level_lt_t h a b hab ha spD n) x hx hr)
+        (thm36C_level_lt_t h a b hab ha spD n) x hdom hx hrDom hr)
   rw [hval]
   exact (thm36A1_ramp_bound
     (thm36C_level h a b hab ha spD n)
@@ -9518,17 +9586,18 @@ theorem thm36Cb_normL1_eq_integral_on_full
     {S : IntSpaceRC X R} {r : IntegrableRep S} {A : Set X}
     (hA : IsFull S A)
     (hnn : ∀ x ∈ A,
-      ∀ hr : RSeq.SeriesSum (fun m => (r.fn m).toFun x),
+      ∀ (hrDom : r.MemAt x)
+        (hr : RSeq.SeriesSum (fun m => r.valueAt x hrDom m)),
         Nonneg hr.sum) :
     r.normL1 = r.integral := by
   show r.absVal.integral = r.integral
   refine cor_1_12 hA r.absVal r ?_
-  intro x hxA habs hr
-  let W := r.absVal_pointSum x hr
+  intro x hxA habsDom hrDom habs hr
+  let W := r.absVal_pointSum x hrDom hr
   calc
     habs.sum = W.1.sum := seriesSum_unique habs W.1
     _ = COF.abs hr.sum := W.2
-    _ = hr.sum := COFO.abs_of_nonneg (hnn x hxA hr)
+    _ = hr.sum := COFO.abs_of_nonneg (hnn x hxA hrDom hr)
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -9555,24 +9624,30 @@ theorem thm36Cb_signedDiff_normL1
   let d : IntegrableRep S := thm36Cb_decrement h a b hab ha spD n
   show s.absVal.integral = d.integral
   refine cor_1_12 (IntegrableRep.domain_isFull h) s.absVal d ?_
-  intro x hxdom habs hd
-  obtain ⟨hxabs⟩ := hxdom.2
+  intro x hxdom habsDom hdDom habs hd
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
   let hx := seriesSum_of_abs hxabs
-  let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hx
-  let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hx
+  let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hdom hx
+  let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hdom hx
+  let WnDom := thm36Cb_ramp_memAt h a b hab ha spD n hdom
+  let WsDom := thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom
+  let hnegNDom := IntegrableRep.neg_memAt WnDom
   let hnegN : RSeq.SeriesSum
-      (fun m => (((thm36C_ramp h a b hab ha spD n).neg.fn m).toFun x)) :=
-    neg_seriesSum_value Wn.val
-  let hs : RSeq.SeriesSum (fun m => (s.fn m).toFun x) := by
+      (fun m => (thm36C_ramp h a b hab ha spD n).neg.valueAt x hnegNDom m) :=
+    neg_seriesSum_value WnDom Wn.val
+  let hsDom : s.MemAt x := IntegrableRep.add_memAt WsDom hnegNDom
+  let hs : RSeq.SeriesSum (fun m => s.valueAt x hsDom m) := by
     dsimp [s, IntegrableRep.sub]
-    exact add_seriesSum_value Ws.val hnegN
+    exact add_seriesSum_value WsDom hnegNDom Ws.val hnegN
+  let hnegSDom := IntegrableRep.neg_memAt WsDom
   let hnegS : RSeq.SeriesSum
-      (fun m => (((thm36C_ramp h a b hab ha spD (n + 1)).neg.fn m).toFun x)) :=
-    neg_seriesSum_value Ws.val
-  let hd0 : RSeq.SeriesSum (fun m => (d.fn m).toFun x) := by
+      (fun m => (thm36C_ramp h a b hab ha spD (n + 1)).neg.valueAt x hnegSDom m) :=
+    neg_seriesSum_value WsDom Ws.val
+  let hd0Dom : d.MemAt x := IntegrableRep.add_memAt WnDom hnegSDom
+  let hd0 : RSeq.SeriesSum (fun m => d.valueAt x hd0Dom m) := by
     dsimp [d, thm36Cb_decrement, IntegrableRep.sub]
-    exact add_seriesSum_value Wn.val hnegS
-  let Wa := s.absVal_pointSum x hs
+    exact add_seriesSum_value WnDom hnegSDom Wn.val hnegS
+  let Wa := s.absVal_pointSum x hsDom hs
   have hs_sum : hs.sum = Ws.val.sum - Wn.val.sum := by
     calc
       hs.sum = Ws.val.sum + (-Wn.val.sum) := by rfl
@@ -9582,7 +9657,8 @@ theorem thm36Cb_signedDiff_normL1
       hd0.sum = Wn.val.sum + (-Ws.val.sum) := by rfl
       _ = Wn.val.sum - Ws.val.sum := by ring
   have hnn : Nonneg hd0.sum :=
-    thm36Cb_decrement_nonneg_on_domain h a b hab ha spD n x hxdom hd0
+    thm36Cb_decrement_nonneg_on_domain h a b hab ha spD n x
+      ⟨hdom, ⟨hxabs⟩⟩ hd0Dom hd0
   calc
     habs.sum = Wa.1.sum := seriesSum_unique habs Wa.1
     _ = COF.abs hs.sum := Wa.2
@@ -9616,6 +9692,21 @@ noncomputable def thm36Cb_signedTerm
       (thm36C_ramp h a b hab ha spD (n + 1)).sub (thm36C_ramp h a b hab ha spD n)
 
 
+theorem thm36Cb_signedTerm_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_signedTerm h a b hab ha spD n).MemAt x := by
+  cases n with
+  | zero => exact thm36Cb_ramp_memAt h a b hab ha spD 0 hdom
+  | succ n =>
+      exact IntegrableRep.add_memAt
+        (thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom)
+        (IntegrableRep.neg_memAt
+          (thm36Cb_ramp_memAt h a b hab ha spD n hdom))
+
+
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36Cb_term
     {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -9623,6 +9714,17 @@ noncomputable def thm36Cb_term
     (m : Nat) : IntegrableRep S :=
   (thm36Cb_signedTerm h a b hab ha spD m).collapseFirst
     ((thm36Cb_signedTerm h a b hab ha spD m).contNf m)
+
+
+theorem thm36Cb_term_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_term h a b hab ha spD n).MemAt x :=
+  (thm36Cb_signedTerm h a b hab ha spD n).collapseFirst_memAt
+    ((thm36Cb_signedTerm h a b hab ha spD n).contNf n)
+    (thm36Cb_signedTerm_memAt h a b hab ha spD n hdom)
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -9891,14 +9993,29 @@ theorem thm36Cb_rampBFn_succ_ge
     (thm36C_t_lt_levelB h a b hab ha spD (n + 1))
     (thm36C_t_lt_levelB h a b hab ha spD n) y
 
+/-- Domain transport from the source representative to an upper profile ramp. -/
+theorem thm36Cb_rampB_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36C_rampB h a b hab ha spD n).MemAt x := by
+  simpa [thm36C_rampB] using
+    (thm36A1_ramp_comp_memAt h
+      (thm36C_t h a b hab ha spD)
+      (thm36C_levelB h a b hab ha spD n)
+      (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
+      (thm36C_t_lt_levelB h a b hab ha spD n) hdom)
+
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36Cb_rampB_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hr : RSeq.SeriesSum
-      (fun m => ((thm36C_rampB h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36C_rampB h a b hab ha spD n).valueAt x
+        (thm36Cb_rampB_memAt h a b hab ha spD n hdom) m) //
       hr.sum =
         thm_3_6_rampFn (thm36C_t h a b hab ha spD)
           (thm36C_levelB h a b hab ha spD n) hx.sum} := by
@@ -9907,7 +10024,7 @@ noncomputable def thm36Cb_rampB_value_witness
       (thm36C_t h a b hab ha spD)
       (thm36C_levelB h a b hab ha spD n)
       (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-      (thm36C_t_lt_levelB h a b hab ha spD n) x hx)
+      (thm36C_t_lt_levelB h a b hab ha spD n) x hdom hx)
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36Cb_decrementB
@@ -9916,6 +10033,17 @@ noncomputable def thm36Cb_decrementB
     (n : Nat) : IntegrableRep S :=
   (thm36C_rampB h a b hab ha spD (n + 1)).sub
     (thm36C_rampB h a b hab ha spD n)
+
+theorem thm36Cb_decrementB_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_decrementB h a b hab ha spD n).MemAt x :=
+  IntegrableRep.add_memAt
+    (thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom)
+    (IntegrableRep.neg_memAt
+      (thm36Cb_rampB_memAt h a b hab ha spD n hdom))
 
 theorem thm36Cb_decrementB_integral
     {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -9931,10 +10059,11 @@ theorem thm36Cb_rampB_nonneg_on_domain
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hrDom : (thm36C_rampB h a b hab ha spD n).MemAt x)
     (hr : RSeq.SeriesSum
-      (fun m => ((thm36C_rampB h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36C_rampB h a b hab ha spD n).valueAt x hrDom m)) :
     Nonneg hr.sum := by
-  obtain ⟨hxabs⟩ := hxdom.2
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
   let hx := seriesSum_of_abs hxabs
   have hval : hr.sum =
       thm_3_6_rampFn (thm36C_t h a b hab ha spD)
@@ -9944,7 +10073,7 @@ theorem thm36Cb_rampB_nonneg_on_domain
         (thm36C_t h a b hab ha spD)
         (thm36C_levelB h a b hab ha spD n)
         (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-        (thm36C_t_lt_levelB h a b hab ha spD n) x hx hr)
+        (thm36C_t_lt_levelB h a b hab ha spD n) x hdom hx hrDom hr)
   rw [hval]
   exact (thm36A1_ramp_bound
     (thm36C_t h a b hab ha spD)
@@ -9954,19 +10083,24 @@ theorem thm36Cb_decrementB_nonneg_on_domain
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hdDom : (thm36Cb_decrementB h a b hab ha spD n).MemAt x)
     (hd : RSeq.SeriesSum
-      (fun m => ((thm36Cb_decrementB h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36Cb_decrementB h a b hab ha spD n).valueAt x hdDom m)) :
     Nonneg hd.sum := by
-  obtain ⟨hxabs⟩ := hxdom.2
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
   let hx := seriesSum_of_abs hxabs
-  let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hx
-  let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hx
+  let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hdom hx
+  let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hdom hx
+  let WnDom := thm36Cb_rampB_memAt h a b hab ha spD n hdom
+  let WsDom := thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom
+  let hnegDom := IntegrableRep.neg_memAt WnDom
   let hneg : RSeq.SeriesSum
-      (fun m => (((thm36C_rampB h a b hab ha spD n).neg.fn m).toFun x)) :=
-    neg_seriesSum_value Wn.val
+      (fun m => (thm36C_rampB h a b hab ha spD n).neg.valueAt x hnegDom m) :=
+    neg_seriesSum_value WnDom Wn.val
+  let hcanDom := IntegrableRep.add_memAt WsDom hnegDom
   let hcan : RSeq.SeriesSum
-      (fun m => ((thm36Cb_decrementB h a b hab ha spD n).fn m).toFun x) := by
-    exact add_seriesSum_value Ws.val hneg
+      (fun m => (thm36Cb_decrementB h a b hab ha spD n).valueAt x hcanDom m) := by
+    exact add_seriesSum_value WsDom hnegDom Ws.val hneg
   have hsum : hd.sum = Ws.val.sum - Wn.val.sum := by
     calc
       hd.sum = hcan.sum := seriesSum_unique hd hcan
@@ -9995,12 +10129,36 @@ noncomputable def thm36Cb_signedTermB
   | n + 1 =>
       (thm36C_rampB h a b hab ha spD (n + 1)).sub (thm36C_rampB h a b hab ha spD n)
 
+theorem thm36Cb_signedTermB_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_signedTermB h a b hab ha spD n).MemAt x := by
+  cases n with
+  | zero => exact thm36Cb_rampB_memAt h a b hab ha spD 0 hdom
+  | succ n =>
+      exact IntegrableRep.add_memAt
+        (thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom)
+        (IntegrableRep.neg_memAt
+          (thm36Cb_rampB_memAt h a b hab ha spD n hdom))
+
 noncomputable def thm36Cb_termB
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (m : Nat) : IntegrableRep S :=
   (thm36Cb_signedTermB h a b hab ha spD m).collapseFirst
     ((thm36Cb_signedTermB h a b hab ha spD m).contNf m)
+
+theorem thm36Cb_termB_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_termB h a b hab ha spD n).MemAt x :=
+  (thm36Cb_signedTermB h a b hab ha spD n).collapseFirst_memAt
+    ((thm36Cb_signedTermB h a b hab ha spD n).contNf n)
+    (thm36Cb_signedTermB_memAt h a b hab ha spD n hdom)
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36Cb_normL1ValueB
@@ -10175,26 +10333,32 @@ noncomputable def thm36Cb_pointTerm
 noncomputable def thm36Cb_signedTerm_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RSeq.SeriesSum
-      (fun m => ((thm36Cb_signedTerm h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_signedTerm h a b hab ha spD n).valueAt x
+        (thm36Cb_signedTerm_memAt h a b hab ha spD n hdom) m) //
       hv.sum = thm36Cb_pointTerm h a b hab ha spD hx.sum n} := by
   cases n with
   | zero =>
-      let W := thm36Cb_ramp_value_witness h a b hab ha spD 0 x hx
+      let W := thm36Cb_ramp_value_witness h a b hab ha spD 0 x hdom hx
       refine ⟨W.val, ?_⟩
       simpa [thm36Cb_signedTerm, thm36Cb_pointTerm] using W.property
   | succ n =>
-      let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hx
-      let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hx
+      let Wn := thm36Cb_ramp_value_witness h a b hab ha spD n x hdom hx
+      let Ws := thm36Cb_ramp_value_witness h a b hab ha spD (n + 1) x hdom hx
+      let WnDom := thm36Cb_ramp_memAt h a b hab ha spD n hdom
+      let WsDom := thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom
+      let hnegDom := IntegrableRep.neg_memAt WnDom
       let hneg : RSeq.SeriesSum
-          (fun m => (((thm36C_ramp h a b hab ha spD n).neg.fn m).toFun x)) :=
-        neg_seriesSum_value Wn.val
+          (fun m => (thm36C_ramp h a b hab ha spD n).neg.valueAt x hnegDom m) :=
+        neg_seriesSum_value WnDom Wn.val
+      let hsubDom := IntegrableRep.add_memAt WsDom hnegDom
       let hsub : RSeq.SeriesSum
-          (fun m => ((thm36Cb_signedTerm h a b hab ha spD (n + 1)).fn m).toFun x) := by
+          (fun m => (thm36Cb_signedTerm h a b hab ha spD (n + 1)).valueAt x
+            hsubDom m) := by
         dsimp [thm36Cb_signedTerm, IntegrableRep.sub]
-        exact add_seriesSum_value Ws.val hneg
+        exact add_seriesSum_value WsDom hnegDom Ws.val hneg
       refine ⟨hsub, ?_⟩
       change Ws.val.sum + (-Wn.val.sum) = _
       rw [Ws.property, Wn.property]
@@ -10206,14 +10370,16 @@ noncomputable def thm36Cb_signedTerm_value_witness
 noncomputable def thm36Cb_term_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RSeq.SeriesSum
-      (fun m => ((thm36Cb_term h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_term h a b hab ha spD n).valueAt x
+        (thm36Cb_term_memAt h a b hab ha spD n hdom) m) //
       hv.sum = thm36Cb_pointTerm h a b hab ha spD hx.sum n} := by
-  let Wsig := thm36Cb_signedTerm_value_witness h a b hab ha spD n x hx
+  let hsigDom := thm36Cb_signedTerm_memAt h a b hab ha spD n hdom
+  let Wsig := thm36Cb_signedTerm_value_witness h a b hab ha spD n x hdom hx
   let Wc := (thm36Cb_signedTerm h a b hab ha spD n).collapseFirst_toFun_seriesSum
-    ((thm36Cb_signedTerm h a b hab ha spD n).contNf n) x Wsig.val
+    ((thm36Cb_signedTerm h a b hab ha spD n).contNf n) x hsigDom Wsig.val
   exact ⟨Wc.val, by rw [Wc.property]; exact Wsig.property⟩
 
 
@@ -10238,19 +10404,20 @@ theorem thm36Cb_partialSum_pointTerm
 theorem thm36Cb_partialSum_term_values
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X) (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m))
     (n : Nat) :
     RSeq.partialSum
         (fun j => (thm36Cb_term_value_witness
-          h a b hab ha spD j x hx).val.sum) n =
+          h a b hab ha spD j x hdom hx).val.sum) n =
       thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
         (thm36C_t h a b hab ha spD) hx.sum := by
   have hterms :
       (fun j => (thm36Cb_term_value_witness
-        h a b hab ha spD j x hx).val.sum) =
+        h a b hab ha spD j x hdom hx).val.sum) =
       thm36Cb_pointTerm h a b hab ha spD hx.sum := by
     funext j
-    exact (thm36Cb_term_value_witness h a b hab ha spD j x hx).property
+    exact (thm36Cb_term_value_witness h a b hab ha spD j x hdom hx).property
   rw [hterms]
   exact thm36Cb_partialSum_pointTerm h a b hab ha spD hx.sum n
 
@@ -10263,10 +10430,11 @@ structure Thm36CIntegrableData
   f_eq : f = thm36Cb_f h a b hab ha spD
   integral_eq : f.integral = thm36C_lambdaBar h a b hab ha spD
   point_partial_sum :
-    ∀ x : X, ∀ hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x), ∀ n : Nat,
+    ∀ x : X, ∀ (hdom : h.MemAt x)
+      (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)), ∀ n : Nat,
       RSeq.partialSum
           (fun j => (thm36Cb_term_value_witness
-            h a b hab ha spD j x hx).val.sum) n =
+            h a b hab ha spD j x hdom hx).val.sum) n =
         thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
           (thm36C_t h a b hab ha spD) hx.sum
 
@@ -10287,17 +10455,17 @@ noncomputable def thm36C_integrableData
 
 /-- Technical lemma used in the public import closure. -/
 def thm36D_upperSet {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (_habs : RSeq.SeriesSum
-      (fun n => COF.abs ((h.fn n).toFun x)))
-      (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
+      (fun n => COF.abs (h.valueAt x hdom n)))
+      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
       Le t hx.sum}
 
 
 /-- Technical lemma used in the public import closure. -/
 def thm36D_lowerSet {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (_habs : RSeq.SeriesSum
-      (fun n => COF.abs ((h.fn n).toFun x)))
-      (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
+      (fun n => COF.abs (h.valueAt x hdom n)))
+      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
       COF.lt hx.sum t}
 
 
@@ -10307,8 +10475,8 @@ theorem thm36D_levelSets_disjoint {S : IntSpaceRC X R}
     ∀ x ∈ thm36D_upperSet h t, ∀ y ∈ thm36D_lowerSet h t, x ≠ y := by
   intro x hx y hy hxy
   subst y
-  rcases hx with ⟨_habsx, hxsum, hle⟩
-  rcases hy with ⟨_habsy, hysum, hlt⟩
+  rcases hx with ⟨_hdomx, _habsx, hxsum, hle⟩
+  rcases hy with ⟨_hdomy, _habsy, hysum, hlt⟩
   have hsum : hxsum.sum = hysum.sum := seriesSum_unique hxsum hysum
   rw [hsum] at hle
   exact hle hlt
@@ -10448,10 +10616,12 @@ theorem thm36D_ramp_always_one {S : IntSpaceRC X R}
 structure Thm36DPointData {S : IntSpaceRC X R}
     (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X) where
-  hAbs : RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x))
-  hSum : RSeq.SeriesSum (fun n => (h.fn n).toFun x)
+  hDom : h.MemAt x
+  hAbs : RSeq.SeriesSum (fun n => COF.abs (h.valueAt x hDom n))
+  hSum : RSeq.SeriesSum (fun n => h.valueAt x hDom n)
+  fDom : (thm36Cb_f h a b hab ha spD).MemAt x
   fSum : RSeq.SeriesSum
-    (fun n => ((thm36Cb_f h a b hab ha spD).fn n).toFun x)
+    (fun n => (thm36Cb_f h a b hab ha spD).valueAt x fDom n)
   ramp_tends : RSeq.TendstoHalf
     (fun n => thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
       (thm36C_t h a b hab ha spD) hSum.sum)
@@ -10463,8 +10633,10 @@ structure Thm36DPointBridge {S : IntSpaceRC X R}
     (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) : Prop where
   point : ∀ x : X,
+    ∀ fDom : (thm36Cb_f h a b hab ha spD).MemAt x,
     RSeq.SeriesSum
-      (fun n => COF.abs (((thm36Cb_f h a b hab ha spD).fn n).toFun x)) →
+      (fun n => COF.abs
+        ((thm36Cb_f h a b hab ha spD).valueAt x fDom n)) →
     Nonempty (Thm36DPointData h a b hab ha spD x)
 
 
@@ -10514,8 +10686,8 @@ theorem thm36D_point_mem_union {S : IntSpaceRC X R}
     x ∈ thm36D_upperSet h (thm36C_t h a b hab ha spD) ∪
       thm36D_lowerSet h (thm36C_t h a b hab ha spD) := by
   rcases thm36D_point_classify h a b hab ha spD x D with hup | hlo
-  · exact Or.inl ⟨D.hAbs, D.hSum, hup.1⟩
-  · exact Or.inr ⟨D.hAbs, D.hSum, hlo.1⟩
+  · exact Or.inl ⟨D.hDom, D.hAbs, D.hSum, hup.1⟩
+  · exact Or.inr ⟨D.hDom, D.hAbs, D.hSum, hlo.1⟩
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -10524,10 +10696,11 @@ theorem thm36D_upper_value {S : IntSpaceRC X R}
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
     (D : Thm36DPointData h a b hab ha spD x)
     (hx : x ∈ thm36D_upperSet h (thm36C_t h a b hab ha spD))
+    (hfDom : (thm36Cb_f h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun n => ((thm36Cb_f h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Cb_f h a b hab ha spD).valueAt x hfDom n)) :
     hf.sum = 1 := by
-  rcases hx with ⟨_habs, hxsum, hle⟩
+  rcases hx with ⟨_hdom, _habs, hxsum, hle⟩
   have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
   have hleD : Le (thm36C_t h a b hab ha spD) D.hSum.sum := by
     simpa [hsame] using hle
@@ -10546,10 +10719,11 @@ theorem thm36D_lower_value {S : IntSpaceRC X R}
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
     (D : Thm36DPointData h a b hab ha spD x)
     (hx : x ∈ thm36D_lowerSet h (thm36C_t h a b hab ha spD))
+    (hfDom : (thm36Cb_f h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun n => ((thm36Cb_f h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Cb_f h a b hab ha spD).valueAt x hfDom n)) :
     hf.sum = 0 := by
-  rcases hx with ⟨_habs, hxsum, hlt⟩
+  rcases hx with ⟨_hdom, _habs, hxsum, hlt⟩
   have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
   have hltD : COF.lt D.hSum.sum (thm36C_t h a b hab ha spD) := by
     simpa [hsame] using hlt
@@ -10581,30 +10755,32 @@ noncomputable def thm36D_integrableSet_of_bridge
       (thm36D_upperSet h (thm36C_t h a b hab ha spD) ∪
        thm36D_lowerSet h (thm36C_t h a b hab ha spD)) := by
     intro x hxdom
-    obtain ⟨hfabs⟩ := hxdom.2
-    obtain ⟨D⟩ := B.point x (by simpa [f] using hfabs)
+    obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxdom
+    obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
+      (by simpa [f] using hfabs)
     exact thm36D_point_mem_union h a b hab ha spD x D
   refine {
     full := thm36D_isFull_mono (IntegrableRep.domain_isFull f) hsub
     rep := f
     valid := ?_
   }
-  intro x hfabs
-  obtain ⟨D⟩ := B.point x (by simpa [f] using hfabs)
+  intro x hfDom hfabs
+  obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
+    (by simpa [f] using hfabs)
   change
     (x ∈ thm36D_upperSet h (thm36C_t h a b hab ha spD) ∪
       thm36D_lowerSet h (thm36C_t h a b hab ha spD)) ∧
     (x ∈ thm36D_upperSet h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x), hf.sum = 1) ∧
+      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 1) ∧
     (x ∈ thm36D_lowerSet h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x), hf.sum = 0)
+      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 0)
   refine ⟨thm36D_point_mem_union h a b hab ha spD x D, ?_, ?_⟩
   · intro hx hf
     exact thm36D_upper_value h a b hab ha spD x D hx
-      (by simpa [f] using hf)
+      (by simpa [f] using hfDom) (by simpa [f] using hf)
   · intro hx hf
     exact thm36D_lower_value h a b hab ha spD x D hx
-      (by simpa [f] using hf)
+      (by simpa [f] using hfDom) (by simpa [f] using hf)
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -10832,6 +11008,21 @@ noncomputable def thm36D_signedFubini
 
 /-! ## 2. Backward extraction through the Cβ-v2 representation -/
 
+/-- Recover every original component domain from a collapsed representative. -/
+theorem thm36D_collapseFirst_dom {S : IntSpaceRC X R}
+    {r : IntegrableRep S} {x : X}
+    (N : Nat) (hd : (r.collapseFirst N).MemAt x) : r.MemAt x := by
+  intro m
+  by_cases hm : m ≤ N
+  · have hzero := hd 0
+    have hsum : x ∈ (BFunR.seqSum r.fn N).dom := by
+      simpa [IntegrableRep.collapseFirst] using hzero
+    exact mem_seqSum_dom_le hsum m hm
+  · have hkpos : m - N ≠ 0 := by omega
+    have hk := hd (m - N)
+    have hindex : N + (m - N) = m := by omega
+    simpa [IntegrableRep.collapseFirst, hkpos, hindex] using hk
+
 /-- Cancel a positive scalar from an absolutely convergent scaled series. -/
 noncomputable def thm36D_absSeries_of_pos_smul
     (c : R) (hc : COF.lt 0 c) (u : Nat → R)
@@ -10859,13 +11050,37 @@ Recover absolute convergence of `h` from absolute convergence of the zeroth
 ramp. `cutConstVal_absSeries` exposes the pre-cut middle lane; positive-scalar
 cancellation exposes `h.sub (...)`; the even interleave lane is `h`.
 -/
+theorem thm36D_hDom_of_ramp0Dom
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X}
+    (hrampDom : (thm36C_ramp h a b hab ha spD 0).MemAt x) :
+    h.MemAt x := by
+  let u : R := thm36C_level h a b hab ha spD 0
+  let t : R := thm36C_t h a b hab ha spD
+  let hu : Nonneg u := thm36C_level_nonneg h a b hab ha spD 0
+  let c : R := COFO.inv (t - u)
+  let r : IntegrableRep S := h.sub (h.cutConstVal u hu)
+  let q : IntegrableRep S := IntegrableRep.smul c r
+  let hOne : Nonneg (1 : R) := le_of_lt COFO.one_pos
+  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
+    simpa [thm36C_ramp, thm_3_6_ramp_comp, u, t, hu, c, r, q]
+      using hrampDom
+  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
+  let hrDom : r.MemAt x := smul_dom hqDom
+  exact add_dom_left hrDom
+
 noncomputable def thm36D_hAbs_of_ramp0Abs
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (x : X)
+    (hrampDom : (thm36C_ramp h a b hab ha spD 0).MemAt x)
     (hramp : RSeq.SeriesSum
-      (fun n => COF.abs (((thm36C_ramp h a b hab ha spD 0).fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x)) := by
+      (fun n => COF.abs
+        ((thm36C_ramp h a b hab ha spD 0).valueAt x hrampDom n))) :
+    RSeq.SeriesSum (fun n => COF.abs
+      (h.valueAt x (thm36D_hDom_of_ramp0Dom h a b hab ha spD hrampDom) n)) := by
   let u : R := thm36C_level h a b hab ha spD 0
   let t : R := thm36C_t h a b hab ha spD
   let hu : Nonneg u := thm36C_level_nonneg h a b hab ha spD 0
@@ -10876,78 +11091,118 @@ noncomputable def thm36D_hAbs_of_ramp0Abs
   let hOne : Nonneg (1 : R) :=
     fun h10 => COF.lt_irrefl (0 : R) (COFO.lt_trans COFO.one_pos h10)
 
+  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
+    simpa [thm36C_ramp, thm_3_6_ramp_comp, u, t, hu, c, r, q]
+      using hrampDom
   let hcut : RSeq.SeriesSum
-      (fun n => COF.abs (((q.cutConstVal 1 hOne).fn n).toFun x)) := by
+      (fun n => COF.abs ((q.cutConstVal 1 hOne).valueAt x hcutDom n)) := by
     simpa [thm36C_ramp, thm_3_6_ramp_comp, u, t, c, r, q]
       using hramp
 
+  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
   let hq : RSeq.SeriesSum
-      (fun n => COF.abs ((q.fn n).toFun x)) :=
-    cutConstVal_absSeriesSum_mid 1 hOne hcut
+      (fun n => COF.abs (q.valueAt x hqDom n)) :=
+    cutConstVal_absSeriesSum_mid 1 hOne hcutDom hcut
 
+  let hrDom : r.MemAt x := smul_dom hqDom
   let hscaled : RSeq.SeriesSum
-      (fun n => COF.abs (c * ((r.fn n).toFun x))) :=
+      (fun n => COF.abs (c * r.valueAt x hrDom n)) :=
     seriesSum_congr (fun n => by rfl) hq
 
   have htu : COF.lt 0 (t - u) := thm36A1_sub_pos_of_lt hut
   have hc : COF.lt 0 c := COFO.inv_pos htu
 
   let hr : RSeq.SeriesSum
-      (fun n => COF.abs ((r.fn n).toFun x)) :=
+      (fun n => COF.abs (r.valueAt x hrDom n)) :=
     thm36D_absSeries_of_pos_smul c hc
-      (fun n => (r.fn n).toFun x) hscaled
+      (fun n => r.valueAt x hrDom n) hscaled
 
-  exact add_absSeriesSum_left hr
+  exact add_absSeriesSum_left hrDom hr
 
 
 /-- Undo the zeroth `collapseFirst` and recover the original ramp abs-series. -/
+theorem thm36D_ramp0Dom_of_term0Dom
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X} (htermDom : (thm36Cb_term h a b hab ha spD 0).MemAt x) :
+    (thm36C_ramp h a b hab ha spD 0).MemAt x := by
+  let s0 : IntegrableRep S := thm36Cb_signedTerm h a b hab ha spD 0
+  let N : Nat := s0.contNf 0
+  have hs0Dom : s0.MemAt x := by
+    apply thm36D_collapseFirst_dom N
+    simpa [thm36Cb_term, s0, N] using htermDom
+  simpa [s0, thm36Cb_signedTerm] using hs0Dom
+
 noncomputable def thm36D_ramp0Abs_of_term0Abs
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (x : X)
+    (htermDom : (thm36Cb_term h a b hab ha spD 0).MemAt x)
     (hterm : RSeq.SeriesSum
-      (fun n => COF.abs (((thm36Cb_term h a b hab ha spD 0).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((thm36Cb_term h a b hab ha spD 0).valueAt x htermDom n))) :
     RSeq.SeriesSum
-      (fun n => COF.abs (((thm36C_ramp h a b hab ha spD 0).fn n).toFun x)) := by
+      (fun n => COF.abs ((thm36C_ramp h a b hab ha spD 0).valueAt x
+        (thm36D_ramp0Dom_of_term0Dom h a b hab ha spD htermDom) n)) := by
   let s0 : IntegrableRep S := thm36Cb_signedTerm h a b hab ha spD 0
   let N : Nat := s0.contNf 0
+  let hs0Dom : s0.MemAt x := by
+    apply thm36D_collapseFirst_dom N
+    simpa [thm36Cb_term, s0, N] using htermDom
+  let hrampDom : (thm36C_ramp h a b hab ha spD 0).MemAt x := by
+    simpa [s0, thm36Cb_signedTerm] using hs0Dom
   let htail0 := seriesSum_tail hterm 0
   let htailRamp : RSeq.SeriesSum
       (fun k => COF.abs
-        (((thm36C_ramp h a b hab ha spD 0).fn (N + 1 + k)).toFun x)) :=
+        ((thm36C_ramp h a b hab ha spD 0).valueAt x hrampDom (N + 1 + k))) :=
     seriesSum_congr
       (fun k => by
-        simp [thm36Cb_term, thm36Cb_signedTerm,
+        simp [IntegrableRep.valueAt, thm36Cb_term, thm36Cb_signedTerm,
           IntegrableRep.collapseFirst, s0, N, Nat.add_assoc])
       htail0
   exact seriesSum_of_tail N htailRamp
 
 
 /-- Normalize `thm36Cb_f` abs convergence to its explicit `cellAt` flattening. -/
+theorem thm36D_f_row_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X} (hfDom : (thm36Cb_f h a b hab ha spD).MemAt x)
+    (i : Nat) : (thm36Cb_term h a b hab ha spD i).MemAt x := by
+  simpa [thm36Cb_f] using
+    (seriesIntegrable_row_memAt
+      (thm36Cb_term h a b hab ha spD)
+      (thm36Cb_termAbsSeries h a b hab ha spD) hfDom i)
+
 noncomputable def thm36D_fAbs_flat
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
+    (x : X) (hfDom : (thm36Cb_f h a b hab ha spD).MemAt x)
     (hfabs : RSeq.SeriesSum
-      (fun k => COF.abs (((thm36Cb_f h a b hab ha spD).fn k).toFun x))) :
+      (fun k => COF.abs
+        ((thm36Cb_f h a b hab ha spD).valueAt x hfDom k))) :
     RSeq.SeriesSum
       (fun k => COF.abs
-        (((thm36Cb_term h a b hab ha spD (cellAt k).1).fn
-          (cellAt k).2).toFun x)) := by
-  simpa [thm36Cb_f, seriesIntegrable] using hfabs
+        ((thm36Cb_term h a b hab ha spD (cellAt k).1).valueAt x
+          (thm36D_f_row_memAt h a b hab ha spD hfDom (cellAt k).1)
+          (cellAt k).2)) := by
+  simpa [thm36Cb_f, seriesIntegrable, IntegrableRep.valueAt] using hfabs
 
 
 /-- Normalize the signed value series of `thm36Cb_f` to the same flattening. -/
 noncomputable def thm36D_fSigned_flat
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
+    (x : X) (hfDom : (thm36Cb_f h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun k => ((thm36Cb_f h a b hab ha spD).fn k).toFun x)) :
+      (fun k => (thm36Cb_f h a b hab ha spD).valueAt x hfDom k)) :
     RSeq.SeriesSum
-      (fun k => ((thm36Cb_term h a b hab ha spD (cellAt k).1).fn
-        (cellAt k).2).toFun x) := by
-  simpa [thm36Cb_f, seriesIntegrable] using hf
+      (fun k => (thm36Cb_term h a b hab ha spD (cellAt k).1).valueAt x
+        (thm36D_f_row_memAt h a b hab ha spD hfDom (cellAt k).1)
+        (cellAt k).2) := by
+  simpa [thm36Cb_f, seriesIntegrable, IntegrableRep.valueAt] using hf
 
 
 /-! ## 3. Final bridge -/
@@ -10962,29 +11217,35 @@ noncomputable def thm36D_pointBridge
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
     Thm36DPointBridge h a b hab ha spD := {
   point := by
-    intro x hfabs
+    intro x hfDom hfabs
 
-    let hflatAbs := thm36D_fAbs_flat h a b hab ha spD x hfabs
+    let hflatAbs := thm36D_fAbs_flat h a b hab ha spD x hfDom hfabs
 
     let F := thm36D_signedFubini
-      (fun i j => ((thm36Cb_term h a b hab ha spD i).fn j).toFun x)
+      (fun i j => (thm36Cb_term h a b hab ha spD i).valueAt x
+        (thm36D_f_row_memAt h a b hab ha spD hfDom i) j)
       hflatAbs
 
+    let hterm0Dom := thm36D_f_row_memAt h a b hab ha spD hfDom 0
     let hramp0Abs := thm36D_ramp0Abs_of_term0Abs
-      h a b hab ha spD x (F.rowAbs 0)
+      h a b hab ha spD x hterm0Dom (F.rowAbs 0)
 
+    let hramp0Dom := thm36D_ramp0Dom_of_term0Dom
+      h a b hab ha spD hterm0Dom
     let hAbs := thm36D_hAbs_of_ramp0Abs
-      h a b hab ha spD x hramp0Abs
+      h a b hab ha spD x hramp0Dom hramp0Abs
 
+    let hDom := thm36D_hDom_of_ramp0Dom h a b hab ha spD hramp0Dom
     let hSum := seriesSum_of_abs hAbs
     let fSum := seriesSum_of_abs hfabs
-    let fSumFlat := thm36D_fSigned_flat h a b hab ha spD x fSum
+    let fSumFlat := thm36D_fSigned_flat h a b hab ha spD x hfDom fSum
 
     let rowValue : ∀ n : Nat,
         RSeq.SeriesSum
-          (fun j => ((thm36Cb_term h a b hab ha spD n).fn j).toFun x) :=
+          (fun j => (thm36Cb_term h a b hab ha spD n).valueAt x
+            (thm36D_f_row_memAt h a b hab ha spD hfDom n) j) :=
       fun n => (thm36Cb_term_value_witness
-        h a b hab ha spD n x hSum).val
+        h a b hab ha spD n x hDom hSum).val
 
     let rowTotals : RSeq.SeriesSum
         (fun n => (rowValue n).sum) :=
@@ -11009,14 +11270,16 @@ noncomputable def thm36D_pointBridge
         intro k n hn
         have hc := rowTotals.tends.close k n hn
         rw [(thm36C_integrableData h a b hab ha spD).point_partial_sum
-              x hSum n,
+              x hDom hSum n,
             hrowTotal] at hc
         exact hc
     }
 
     exact ⟨{
+      hDom := hDom
       hAbs := hAbs
       hSum := hSum
+      fDom := hfDom
       fSum := fSum
       ramp_tends := rampTends
     }⟩
@@ -11027,16 +11290,16 @@ noncomputable def thm36D_pointBridge
 
 /-- Technical lemma used in the public import closure. -/
 def thm36D_upperSetStrict {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (_habs : RSeq.SeriesSum
-      (fun n => COF.abs ((h.fn n).toFun x)))
-      (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
+      (fun n => COF.abs (h.valueAt x hdom n)))
+      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
       COF.lt t hx.sum}
 
 /-- Technical lemma used in the public import closure. -/
 def thm36D_lowerSetWeak {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (_habs : RSeq.SeriesSum
-      (fun n => COF.abs ((h.fn n).toFun x)))
-      (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
+      (fun n => COF.abs (h.valueAt x hdom n)))
+      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
       Le hx.sum t}
 
 theorem thm36D_levelSetsB_disjoint {S : IntSpaceRC X R}
@@ -11044,8 +11307,8 @@ theorem thm36D_levelSetsB_disjoint {S : IntSpaceRC X R}
     ∀ x ∈ thm36D_upperSetStrict h t, ∀ y ∈ thm36D_lowerSetWeak h t, x ≠ y := by
   intro x hx y hy hxy
   subst y
-  rcases hx with ⟨_habsx, hxsum, hlt⟩
-  rcases hy with ⟨_habsy, hysum, hle⟩
+  rcases hx with ⟨_hdomx, _habsx, hxsum, hlt⟩
+  rcases hy with ⟨_hdomy, _habsy, hysum, hle⟩
   have hsum : hxsum.sum = hysum.sum := seriesSum_unique hxsum hysum
   rw [hsum] at hlt
   exact hle hlt
@@ -11117,10 +11380,12 @@ noncomputable def thm36D_rampB_eventually_one {S : IntSpaceRC X R}
 structure Thm36DPointDataB {S : IntSpaceRC X R}
     (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X) where
-  hAbs : RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x))
-  hSum : RSeq.SeriesSum (fun n => (h.fn n).toFun x)
+  hDom : h.MemAt x
+  hAbs : RSeq.SeriesSum (fun n => COF.abs (h.valueAt x hDom n))
+  hSum : RSeq.SeriesSum (fun n => h.valueAt x hDom n)
+  fDom : (thm36Cb_fB h a b hab ha spD).MemAt x
   fSum : RSeq.SeriesSum
-    (fun n => ((thm36Cb_fB h a b hab ha spD).fn n).toFun x)
+    (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x fDom n)
   ramp_tends : RSeq.TendstoHalf
     (fun n => thm_3_6_rampFn (thm36C_t h a b hab ha spD)
       (thm36C_levelB h a b hab ha spD n) hSum.sum)
@@ -11130,8 +11395,10 @@ structure Thm36DPointBridgeB {S : IntSpaceRC X R}
     (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) : Prop where
   point : ∀ x : X,
+    ∀ fDom : (thm36Cb_fB h a b hab ha spD).MemAt x,
     RSeq.SeriesSum
-      (fun n => COF.abs (((thm36Cb_fB h a b hab ha spD).fn n).toFun x)) →
+      (fun n => COF.abs
+        ((thm36Cb_fB h a b hab ha spD).valueAt x fDom n)) →
     Nonempty (Thm36DPointDataB h a b hab ha spD x)
 
 /-- Technical lemma used in the public import closure. -/
@@ -11176,18 +11443,19 @@ theorem thm36D_pointB_mem_union {S : IntSpaceRC X R}
     x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
       thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD) := by
   rcases thm36D_point_classifyB h a b hab ha spD x D with hup | hlo
-  · exact Or.inl ⟨D.hAbs, D.hSum, hup.1⟩
-  · exact Or.inr ⟨D.hAbs, D.hSum, hlo.1⟩
+  · exact Or.inl ⟨D.hDom, D.hAbs, D.hSum, hup.1⟩
+  · exact Or.inr ⟨D.hDom, D.hAbs, D.hSum, hlo.1⟩
 
 theorem thm36D_upperB_value {S : IntSpaceRC X R}
     (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
     (D : Thm36DPointDataB h a b hab ha spD x)
     (hx : x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD))
+    (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun n => ((thm36Cb_fB h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom n)) :
     hf.sum = 1 := by
-  rcases hx with ⟨_habs, hxsum, hlt⟩
+  rcases hx with ⟨_hdom, _habs, hxsum, hlt⟩
   have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
   have hltD : COF.lt (thm36C_t h a b hab ha spD) D.hSum.sum := by
     simpa [hsame] using hlt
@@ -11203,10 +11471,11 @@ theorem thm36D_lowerB_value {S : IntSpaceRC X R}
     (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
     (D : Thm36DPointDataB h a b hab ha spD x)
     (hx : x ∈ thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD))
+    (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun n => ((thm36Cb_fB h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom n)) :
     hf.sum = 0 := by
-  rcases hx with ⟨_habs, hxsum, hle⟩
+  rcases hx with ⟨_hdom, _habs, hxsum, hle⟩
   have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
   have hleD : Le D.hSum.sum (thm36C_t h a b hab ha spD) := by
     simpa [hsame] using hle
@@ -11236,26 +11505,32 @@ noncomputable def thm36Cb_pointTermB
 noncomputable def thm36Cb_signedTermB_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RSeq.SeriesSum
-      (fun m => ((thm36Cb_signedTermB h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_signedTermB h a b hab ha spD n).valueAt x
+        (thm36Cb_signedTermB_memAt h a b hab ha spD n hdom) m) //
       hv.sum = thm36Cb_pointTermB h a b hab ha spD hx.sum n} := by
   cases n with
   | zero =>
-      let W := thm36Cb_rampB_value_witness h a b hab ha spD 0 x hx
+      let W := thm36Cb_rampB_value_witness h a b hab ha spD 0 x hdom hx
       refine ⟨W.val, ?_⟩
       simpa [thm36Cb_signedTermB, thm36Cb_pointTermB] using W.property
   | succ n =>
-      let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hx
-      let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hx
+      let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hdom hx
+      let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hdom hx
+      let WnDom := thm36Cb_rampB_memAt h a b hab ha spD n hdom
+      let WsDom := thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom
+      let hnegDom := IntegrableRep.neg_memAt WnDom
       let hneg : RSeq.SeriesSum
-          (fun m => (((thm36C_rampB h a b hab ha spD n).neg.fn m).toFun x)) :=
-        neg_seriesSum_value Wn.val
+          (fun m => (thm36C_rampB h a b hab ha spD n).neg.valueAt x hnegDom m) :=
+        neg_seriesSum_value WnDom Wn.val
+      let hsubDom := IntegrableRep.add_memAt WsDom hnegDom
       let hsub : RSeq.SeriesSum
-          (fun m => ((thm36Cb_signedTermB h a b hab ha spD (n + 1)).fn m).toFun x) := by
+          (fun m => (thm36Cb_signedTermB h a b hab ha spD (n + 1)).valueAt x
+            hsubDom m) := by
         dsimp [thm36Cb_signedTermB, IntegrableRep.sub]
-        exact add_seriesSum_value Ws.val hneg
+        exact add_seriesSum_value WsDom hnegDom Ws.val hneg
       refine ⟨hsub, ?_⟩
       change Ws.val.sum + (-Wn.val.sum) = _
       rw [Ws.property, Wn.property]
@@ -11265,14 +11540,16 @@ noncomputable def thm36Cb_signedTermB_value_witness
 noncomputable def thm36Cb_termB_value_witness
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x)) :
+    (n : Nat) (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RSeq.SeriesSum
-      (fun m => ((thm36Cb_termB h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_termB h a b hab ha spD n).valueAt x
+        (thm36Cb_termB_memAt h a b hab ha spD n hdom) m) //
       hv.sum = thm36Cb_pointTermB h a b hab ha spD hx.sum n} := by
-  let Wsig := thm36Cb_signedTermB_value_witness h a b hab ha spD n x hx
+  let hsigDom := thm36Cb_signedTermB_memAt h a b hab ha spD n hdom
+  let Wsig := thm36Cb_signedTermB_value_witness h a b hab ha spD n x hdom hx
   let Wc := (thm36Cb_signedTermB h a b hab ha spD n).collapseFirst_toFun_seriesSum
-    ((thm36Cb_signedTermB h a b hab ha spD n).contNf n) x Wsig.val
+    ((thm36Cb_signedTermB h a b hab ha spD n).contNf n) x hsigDom Wsig.val
   exact ⟨Wc.val, by rw [Wc.property]; exact Wsig.property⟩
 
 theorem thm36Cb_partialSum_pointTermB
@@ -11293,19 +11570,20 @@ theorem thm36Cb_partialSum_pointTermB
 theorem thm36Cb_partialSum_termB_values
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X) (hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m))
     (n : Nat) :
     RSeq.partialSum
         (fun j => (thm36Cb_termB_value_witness
-          h a b hab ha spD j x hx).val.sum) n =
+          h a b hab ha spD j x hdom hx).val.sum) n =
       thm_3_6_rampFn (thm36C_t h a b hab ha spD)
         (thm36C_levelB h a b hab ha spD n) hx.sum := by
   have hterms :
       (fun j => (thm36Cb_termB_value_witness
-        h a b hab ha spD j x hx).val.sum) =
+        h a b hab ha spD j x hdom hx).val.sum) =
       thm36Cb_pointTermB h a b hab ha spD hx.sum := by
     funext j
-    exact (thm36Cb_termB_value_witness h a b hab ha spD j x hx).property
+    exact (thm36Cb_termB_value_witness h a b hab ha spD j x hdom hx).property
   rw [hterms]
   exact thm36Cb_partialSum_pointTermB h a b hab ha spD hx.sum n
 
@@ -11316,10 +11594,11 @@ structure Thm36CIntegrableDataB
   f_eq : f = thm36Cb_fB h a b hab ha spD
   integral_eq : f.integral = thm36C_lambdaBar h a b hab ha spD
   point_partial_sum :
-    ∀ x : X, ∀ hx : RSeq.SeriesSum (fun m => (h.fn m).toFun x), ∀ n : Nat,
+    ∀ x : X, ∀ (hdom : h.MemAt x)
+      (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)), ∀ n : Nat,
       RSeq.partialSum
           (fun j => (thm36Cb_termB_value_witness
-            h a b hab ha spD j x hx).val.sum) n =
+            h a b hab ha spD j x hdom hx).val.sum) n =
         thm_3_6_rampFn (thm36C_t h a b hab ha spD)
           (thm36C_levelB h a b hab ha spD n) hx.sum
 
@@ -11344,30 +11623,32 @@ noncomputable def thm36D_integrableSetB_of_bridge
       (thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
        thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD)) := by
     intro x hxdom
-    obtain ⟨hfabs⟩ := hxdom.2
-    obtain ⟨D⟩ := B.point x (by simpa [f] using hfabs)
+    obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxdom
+    obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
+      (by simpa [f] using hfabs)
     exact thm36D_pointB_mem_union h a b hab ha spD x D
   refine {
     full := thm36D_isFull_mono (IntegrableRep.domain_isFull f) hsub
     rep := f
     valid := ?_
   }
-  intro x hfabs
-  obtain ⟨D⟩ := B.point x (by simpa [f] using hfabs)
+  intro x hfDom hfabs
+  obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
+    (by simpa [f] using hfabs)
   change
     (x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
       thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD)) ∧
     (x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x), hf.sum = 1) ∧
+      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 1) ∧
     (x ∈ thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x), hf.sum = 0)
+      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 0)
   refine ⟨thm36D_pointB_mem_union h a b hab ha spD x D, ?_, ?_⟩
   · intro hx hf
     exact thm36D_upperB_value h a b hab ha spD x D hx
-      (by simpa [f] using hf)
+      (by simpa [f] using hfDom) (by simpa [f] using hf)
   · intro hx hf
     exact thm36D_lowerB_value h a b hab ha spD x D hx
-      (by simpa [f] using hf)
+      (by simpa [f] using hfDom) (by simpa [f] using hf)
 
 noncomputable def thm36D_level_setsB_integrable_of_bridge
     {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -11391,11 +11672,17 @@ noncomputable def thm_3_6_level_sets_integrable {S : IntSpaceRC X R} (h : Integr
     { t : R // COF.lt a t ∧ COF.lt t b ∧
       ∃ A : BSet X,
         -- Technical note.
-        (A.S1 = {x | ∃ (_habs : RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x)))
-                       (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)), Le t hx.sum}) ∧
+        (A.S1 = {x | ∃ (hdom : h.MemAt x)
+                       (_habs : RSeq.SeriesSum
+                         (fun n => COF.abs (h.valueAt x hdom n)))
+                       (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
+                       Le t hx.sum}) ∧
         -- A.S2 = {x ∈ D(h) : h(x) < t}。
-        (A.S2 = {x | ∃ (_habs : RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x)))
-                       (hx : RSeq.SeriesSum (fun n => (h.fn n).toFun x)), COF.lt hx.sum t}) ∧
+        (A.S2 = {x | ∃ (hdom : h.MemAt x)
+                       (_habs : RSeq.SeriesSum
+                         (fun n => COF.abs (h.valueAt x hdom n)))
+                       (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
+                       COF.lt hx.sum t}) ∧
         Nonempty (IntegrableSet1 S A) } :=
   thm36D_level_sets_integrable_of_bridge h a b hab ha (thm36B_smoothPointData h a b hab ha)
     (thm36D_pointBridge h a b hab ha (thm36B_smoothPointData h a b hab ha))
@@ -11433,13 +11720,38 @@ noncomputable def thm_3_6_forall_apart_measure {S : IntSpaceRC X R} (h : Integra
 /-! Technical auxiliary material for the public import closure. -/
 
 /-- Technical lemma used in the public import closure. -/
+theorem thm36D_hDomB_of_rampB0Dom
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X}
+    (hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x) :
+    h.MemAt x := by
+  let lo : R := thm36C_t h a b hab ha spD
+  let up : R := thm36C_levelB h a b hab ha spD 0
+  let hlo : Nonneg lo :=
+    le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
+  let c : R := COFO.inv (up - lo)
+  let r : IntegrableRep S := h.sub (h.cutConstVal lo hlo)
+  let q : IntegrableRep S := IntegrableRep.smul c r
+  let hOne : Nonneg (1 : R) := le_of_lt COFO.one_pos
+  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
+    simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, hlo, c, r, q]
+      using hrampDom
+  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
+  let hrDom : r.MemAt x := smul_dom hqDom
+  exact add_dom_left hrDom
+
 noncomputable def thm36D_hAbsB_of_rampB0Abs
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (x : X)
+    (hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x)
     (hramp : RSeq.SeriesSum
-      (fun n => COF.abs (((thm36C_rampB h a b hab ha spD 0).fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((h.fn n).toFun x)) := by
+      (fun n => COF.abs
+        ((thm36C_rampB h a b hab ha spD 0).valueAt x hrampDom n))) :
+    RSeq.SeriesSum (fun n => COF.abs
+      (h.valueAt x (thm36D_hDomB_of_rampB0Dom h a b hab ha spD hrampDom) n)) := by
   let lo : R := thm36C_t h a b hab ha spD
   let up : R := thm36C_levelB h a b hab ha spD 0
   let hlo : Nonneg lo :=
@@ -11450,68 +11762,108 @@ noncomputable def thm36D_hAbsB_of_rampB0Abs
   let q : IntegrableRep S := IntegrableRep.smul c r
   let hOne : Nonneg (1 : R) :=
     fun h10 => COF.lt_irrefl (0 : R) (COFO.lt_trans COFO.one_pos h10)
+  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
+    simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, hlo, c, r, q]
+      using hrampDom
   let hcut : RSeq.SeriesSum
-      (fun n => COF.abs (((q.cutConstVal 1 hOne).fn n).toFun x)) := by
+      (fun n => COF.abs ((q.cutConstVal 1 hOne).valueAt x hcutDom n)) := by
     simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, c, r, q]
       using hramp
+  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
   let hq : RSeq.SeriesSum
-      (fun n => COF.abs ((q.fn n).toFun x)) :=
-    cutConstVal_absSeriesSum_mid 1 hOne hcut
+      (fun n => COF.abs (q.valueAt x hqDom n)) :=
+    cutConstVal_absSeriesSum_mid 1 hOne hcutDom hcut
+  let hrDom : r.MemAt x := smul_dom hqDom
   let hscaled : RSeq.SeriesSum
-      (fun n => COF.abs (c * ((r.fn n).toFun x))) :=
+      (fun n => COF.abs (c * r.valueAt x hrDom n)) :=
     seriesSum_congr (fun n => by rfl) hq
   have hloup' : COF.lt 0 (up - lo) := thm36A1_sub_pos_of_lt hloup
   have hc : COF.lt 0 c := COFO.inv_pos hloup'
   let hr : RSeq.SeriesSum
-      (fun n => COF.abs ((r.fn n).toFun x)) :=
+      (fun n => COF.abs (r.valueAt x hrDom n)) :=
     thm36D_absSeries_of_pos_smul c hc
-      (fun n => (r.fn n).toFun x) hscaled
-  exact add_absSeriesSum_left hr
+      (fun n => r.valueAt x hrDom n) hscaled
+  exact add_absSeriesSum_left hrDom hr
 
 /-- Technical lemma used in the public import closure. -/
+theorem thm36D_rampB0Dom_of_termB0Dom
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X} (htermDom : (thm36Cb_termB h a b hab ha spD 0).MemAt x) :
+    (thm36C_rampB h a b hab ha spD 0).MemAt x := by
+  let s0 : IntegrableRep S := thm36Cb_signedTermB h a b hab ha spD 0
+  let N : Nat := s0.contNf 0
+  have hs0Dom : s0.MemAt x := by
+    apply thm36D_collapseFirst_dom N
+    simpa [thm36Cb_termB, s0, N] using htermDom
+  simpa [s0, thm36Cb_signedTermB] using hs0Dom
+
 noncomputable def thm36D_rampB0Abs_of_termB0Abs
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
     (x : X)
+    (htermDom : (thm36Cb_termB h a b hab ha spD 0).MemAt x)
     (hterm : RSeq.SeriesSum
-      (fun n => COF.abs (((thm36Cb_termB h a b hab ha spD 0).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((thm36Cb_termB h a b hab ha spD 0).valueAt x htermDom n))) :
     RSeq.SeriesSum
-      (fun n => COF.abs (((thm36C_rampB h a b hab ha spD 0).fn n).toFun x)) := by
+      (fun n => COF.abs ((thm36C_rampB h a b hab ha spD 0).valueAt x
+        (thm36D_rampB0Dom_of_termB0Dom h a b hab ha spD htermDom) n)) := by
   let s0 : IntegrableRep S := thm36Cb_signedTermB h a b hab ha spD 0
   let N : Nat := s0.contNf 0
+  let hs0Dom : s0.MemAt x := by
+    apply thm36D_collapseFirst_dom N
+    simpa [thm36Cb_termB, s0, N] using htermDom
+  let hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x := by
+    simpa [s0, thm36Cb_signedTermB] using hs0Dom
   let htail0 := seriesSum_tail hterm 0
   let htailRamp : RSeq.SeriesSum
       (fun k => COF.abs
-        (((thm36C_rampB h a b hab ha spD 0).fn (N + 1 + k)).toFun x)) :=
+        ((thm36C_rampB h a b hab ha spD 0).valueAt x hrampDom (N + 1 + k))) :=
     seriesSum_congr
       (fun k => by
-        simp [thm36Cb_termB, thm36Cb_signedTermB,
+        simp [IntegrableRep.valueAt, thm36Cb_termB, thm36Cb_signedTermB,
           IntegrableRep.collapseFirst, s0, N, Nat.add_assoc])
       htail0
   exact seriesSum_of_tail N htailRamp
 
+theorem thm36D_fB_row_memAt
+    {S : IntSpaceRC X R} (h : IntegrableRep S)
+    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
+    (spD : Thm36BSmoothPointData h a b hab ha)
+    {x : X} (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
+    (i : Nat) : (thm36Cb_termB h a b hab ha spD i).MemAt x := by
+  simpa [thm36Cb_fB] using
+    (seriesIntegrable_row_memAt
+      (thm36Cb_termB h a b hab ha spD)
+      (thm36Cb_termAbsSeriesB h a b hab ha spD) hfDom i)
+
 noncomputable def thm36D_fAbsB_flat
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
+    (x : X) (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
     (hfabs : RSeq.SeriesSum
-      (fun k => COF.abs (((thm36Cb_fB h a b hab ha spD).fn k).toFun x))) :
+      (fun k => COF.abs
+        ((thm36Cb_fB h a b hab ha spD).valueAt x hfDom k))) :
     RSeq.SeriesSum
       (fun k => COF.abs
-        (((thm36Cb_termB h a b hab ha spD (cellAt k).1).fn
-          (cellAt k).2).toFun x)) := by
-  simpa [thm36Cb_fB, seriesIntegrable] using hfabs
+        ((thm36Cb_termB h a b hab ha spD (cellAt k).1).valueAt x
+          (thm36D_fB_row_memAt h a b hab ha spD hfDom (cellAt k).1)
+          (cellAt k).2)) := by
+  simpa [thm36Cb_fB, seriesIntegrable, IntegrableRep.valueAt] using hfabs
 
 noncomputable def thm36D_fSignedB_flat
     {S : IntSpaceRC X R} (h : IntegrableRep S)
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
+    (x : X) (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
     (hf : RSeq.SeriesSum
-      (fun k => ((thm36Cb_fB h a b hab ha spD).fn k).toFun x)) :
+      (fun k => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom k)) :
     RSeq.SeriesSum
-      (fun k => ((thm36Cb_termB h a b hab ha spD (cellAt k).1).fn
-        (cellAt k).2).toFun x) := by
-  simpa [thm36Cb_fB, seriesIntegrable] using hf
+      (fun k => (thm36Cb_termB h a b hab ha spD (cellAt k).1).valueAt x
+        (thm36D_fB_row_memAt h a b hab ha spD hfDom (cellAt k).1)
+        (cellAt k).2) := by
+  simpa [thm36Cb_fB, seriesIntegrable, IntegrableRep.valueAt] using hf
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36D_pointBridgeB
@@ -11519,23 +11871,29 @@ noncomputable def thm36D_pointBridgeB
     (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
     Thm36DPointBridgeB h a b hab ha spD := {
   point := by
-    intro x hfabs
-    let hflatAbs := thm36D_fAbsB_flat h a b hab ha spD x hfabs
+    intro x hfDom hfabs
+    let hflatAbs := thm36D_fAbsB_flat h a b hab ha spD x hfDom hfabs
     let F := thm36D_signedFubini
-      (fun i j => ((thm36Cb_termB h a b hab ha spD i).fn j).toFun x)
+      (fun i j => (thm36Cb_termB h a b hab ha spD i).valueAt x
+        (thm36D_fB_row_memAt h a b hab ha spD hfDom i) j)
       hflatAbs
+    let hterm0Dom := thm36D_fB_row_memAt h a b hab ha spD hfDom 0
     let hrampB0Abs := thm36D_rampB0Abs_of_termB0Abs
-      h a b hab ha spD x (F.rowAbs 0)
+      h a b hab ha spD x hterm0Dom (F.rowAbs 0)
+    let hrampB0Dom := thm36D_rampB0Dom_of_termB0Dom
+      h a b hab ha spD hterm0Dom
     let hAbs := thm36D_hAbsB_of_rampB0Abs
-      h a b hab ha spD x hrampB0Abs
+      h a b hab ha spD x hrampB0Dom hrampB0Abs
+    let hDom := thm36D_hDomB_of_rampB0Dom h a b hab ha spD hrampB0Dom
     let hSum := seriesSum_of_abs hAbs
     let fSum := seriesSum_of_abs hfabs
-    let fSumFlat := thm36D_fSignedB_flat h a b hab ha spD x fSum
+    let fSumFlat := thm36D_fSignedB_flat h a b hab ha spD x hfDom fSum
     let rowValue : ∀ n : Nat,
         RSeq.SeriesSum
-          (fun j => ((thm36Cb_termB h a b hab ha spD n).fn j).toFun x) :=
+          (fun j => (thm36Cb_termB h a b hab ha spD n).valueAt x
+            (thm36D_fB_row_memAt h a b hab ha spD hfDom n) j) :=
       fun n => (thm36Cb_termB_value_witness
-        h a b hab ha spD n x hSum).val
+        h a b hab ha spD n x hDom hSum).val
     let rowTotals : RSeq.SeriesSum
         (fun n => (rowValue n).sum) :=
       seriesSum_congr
@@ -11557,13 +11915,15 @@ noncomputable def thm36D_pointBridgeB
         intro k n hn
         have hc := rowTotals.tends.close k n hn
         rw [(thm36C_integrableDataB h a b hab ha spD).point_partial_sum
-              x hSum n,
+              x hDom hSum n,
             hrowTotal] at hc
         exact hc
     }
     exact ⟨{
+      hDom := hDom
       hAbs := hAbs
       hSum := hSum
+      fDom := hfDom
       fSum := fSum
       ramp_tends := rampTends
     }⟩

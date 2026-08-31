@@ -46,12 +46,12 @@ theorem sec4_genIBLocalSupport_full
 structure Sec4GenIBLocalWitness
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) (x : X) : Type _ where
-  gen_dom : forall m : Nat,
-    x ∈ ((genIB_rep_from_measurable B hB f hnn).fn m).dom
+  gen_dom : (genIB_rep_from_measurable B hB f hnn).MemAt x
   gen_abs : RSeq.SeriesSum
-    (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x))
-  f_dom : forall m : Nat, x ∈ (f.fn m).dom
-  f_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))
+    (fun m => COF.abs
+      ((genIB_rep_from_measurable B hB f hnn).valueAt x gen_dom m))
+  f_dom : f.MemAt x
+  f_abs : RSeq.SeriesSum (fun m => COF.abs (f.valueAt x f_dom m))
 
 
 namespace Sec4GenIBLocalWitness
@@ -72,7 +72,8 @@ noncomputable def genSigned
     {f : IntegrableRep S} {hnn : RepNonneg f} {x : X}
     (W : Sec4GenIBLocalWitness (S := S) B hB f hnn x) :
     RSeq.SeriesSum
-      (fun m => ((genIB_rep_from_measurable B hB f hnn).fn m).toFun x) :=
+      (fun m => (genIB_rep_from_measurable B hB f hnn).valueAt
+        x W.gen_dom m) :=
   seriesSum_of_abs W.gen_abs
 
 
@@ -81,7 +82,7 @@ noncomputable def fSigned
     {B : BSet X} {hB : IsMeasurableSet (S := S) B}
     {f : IntegrableRep S} {hnn : RepNonneg f} {x : X}
     (W : Sec4GenIBLocalWitness (S := S) B hB f hnn x) :
-    RSeq.SeriesSum (fun m => (f.fn m).toFun x) :=
+    RSeq.SeriesSum (fun m => f.valueAt x W.f_dom m) :=
   seriesSum_of_abs W.f_abs
 
 
@@ -119,13 +120,13 @@ noncomputable def sec4_genIBLocalValueBridge_of_valueBridge
     Sec4GenIBLocalValueBridge (S := S) B hB f hnn where
   domain := by
     intro x W
-    exact V.domain x W.gen_abs
+    exact V.domain x W.gen_dom W.gen_abs
   value_s1 := by
     intro x hxB W
-    exact V.value_s1 x hxB W.gen_abs W.f_abs
+    exact V.value_s1 x hxB W.gen_dom W.gen_abs W.f_dom W.f_abs
   value_s2 := by
     intro x hxB W
-    exact V.value_s2 x hxB W.gen_abs
+    exact V.value_s2 x hxB W.gen_dom W.gen_abs
 
 
 /-! ## 3. Already-integrable consistency from the local bridge -/
@@ -138,30 +139,34 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge
     (V : Sec4GenIBLocalValueBridge
       (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
     ∀ x ∈ Sec4ConsistencySupport (S := S) C hC f hnn,
+      ∀ (hgenDom : (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable hC) f hnn).MemAt x),
+      ∀ (hrelDom : (prop_4_2_chi_f_rep C hC f hnn).MemAt x),
       ∀ (hgen : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable C
-          (isMeasurableSet_of_integrable hC) f hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable hC) f hnn).valueAt x hgenDom n))
         (hrel : RSeq.SeriesSum
-        (fun n => ((prop_4_2_chi_f_rep C hC f hnn).fn n).toFun x)),
+        (fun n => (prop_4_2_chi_f_rep C hC f hnn).valueAt x hrelDom n)),
         hgen.sum = hrel.sum := by
-  intro x hx hgen hrel
-  rcases hx with ⟨⟨⟨hgenDom, hrelDom⟩, hχDom⟩, hfDom⟩
-  rcases hgenDom.2 with ⟨hgenabs⟩
-  rcases hrelDom.2 with ⟨hrelabs⟩
-  rcases hχDom.2 with ⟨hχabs⟩
-  rcases hfDom.2 with ⟨hfabs⟩
+  intro x hx hgenDom hrelDom hgen hrel
+  rcases hx with ⟨⟨⟨hgenAt, hrelAt⟩, hχAt⟩, hfAt⟩
+  rcases hgenAt with ⟨hgenSupportDom, ⟨hgenabs⟩⟩
+  rcases hrelAt with ⟨hrelSupportDom, ⟨hrelabs⟩⟩
+  rcases hχAt with ⟨hχSupportDom, ⟨hχabs⟩⟩
+  rcases hfAt with ⟨hfSupportDom, ⟨hfabs⟩⟩
   let W : Sec4GenIBLocalWitness
       (S := S) C (isMeasurableSet_of_integrable hC) f hnn x := {
-    gen_dom := hgenDom.1
+    gen_dom := hgenSupportDom
     gen_abs := hgenabs
-    f_dom := hfDom.1
+    f_dom := hfSupportDom
     f_abs := hfabs
   }
   have hrel_value :
       (seriesSum_of_abs hrelabs).sum =
         (seriesSum_of_abs hχabs).sum * (seriesSum_of_abs hfabs).sum :=
-    prop_4_2_chi_f_rep_value C hC f hnn (x := x) hrelabs hχabs hfabs
-  have hχvalid := hC.valid x hχabs
+    prop_4_2_chi_f_rep_value C hC f hnn (x := x)
+      hrelSupportDom hχSupportDom hfSupportDom hrelabs hχabs hfabs
+  have hχvalid := hC.valid x hχSupportDom hχabs
   cases hχvalid.1 with
   | inl hxC1 =>
       have hχ_one :

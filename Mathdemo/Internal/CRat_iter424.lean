@@ -28,16 +28,21 @@ noncomputable def repNonneg_left_of_sub_nonneg_and_right_nonneg_on_left_domain
     (h_nonneg : RepNonneg h)
     (h_right_at_left : forall {x : X}, RepDefinedAt (S := S) g x -> RepDefinedAt (S := S) h x) :
     RepNonneg g := by
-  intro x hg_abs hg_sum
-  have hh_abs : RepDefinedAt (S := S) h x := h_right_at_left (x := x) hg_abs
-  let hh_sum : RSeq.SeriesSum (fun n => (h.fn n).toFun x) := seriesSum_of_abs hh_abs
-  have hsub_abs :
-      RSeq.SeriesSum (fun n => COF.abs (((g.sub h).fn n).toFun x)) :=
-    sec4_sub_absSeriesSum_fwd hg_abs hh_abs
-  let hsub_sum : RSeq.SeriesSum (fun n => ((g.sub h).fn n).toFun x) :=
-    add_seriesSum_value hg_sum (neg_seriesSum_value hh_sum)
-  have hsub_nn : Nonneg hsub_sum.sum := hsub_nonneg x hsub_abs hsub_sum
-  have hh_nn : Nonneg hh_sum.sum := h_nonneg x hh_abs hh_sum
+  intro x hg_dom hg_abs hg_sum
+  have hh_abs : RepDefinedAt (S := S) h x :=
+    h_right_at_left (x := x) ⟨hg_dom, hg_abs⟩
+  let hh_sum : RSeq.SeriesSum (fun n => h.valueAt x hh_abs.dom n) :=
+    seriesSum_of_abs hh_abs.series
+  let hsub_abs : Sec4RepAbsAt (g.sub h) x :=
+    sec4_sub_absSeriesSum_fwd ⟨hg_dom, hg_abs⟩ ⟨hh_abs.dom, hh_abs.series⟩
+  let hsub_sum : RSeq.SeriesSum
+      (fun n => (g.sub h).valueAt x hsub_abs.fst n) :=
+    add_seriesSum_value hg_dom (IntegrableRep.neg_memAt hh_abs.dom) hg_sum
+      (neg_seriesSum_value hh_abs.dom hh_sum)
+  have hsub_nn : Nonneg hsub_sum.sum :=
+    hsub_nonneg x hsub_abs.fst hsub_abs.snd hsub_sum
+  have hh_nn : Nonneg hh_sum.sum :=
+    h_nonneg x hh_abs.dom hh_abs.series hh_sum
   have htotal : Nonneg (hsub_sum.sum + hh_sum.sum) := nonneg_add hsub_nn hh_nn
   have hEq : hsub_sum.sum + hh_sum.sum = hg_sum.sum := by
     change (hg_sum.sum + -hh_sum.sum) + hh_sum.sum = hg_sum.sum

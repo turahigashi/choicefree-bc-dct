@@ -93,70 +93,116 @@ Concrete layer-wise data for the final finite telescope.
 structure Sec4CanonicalCoverLayerTelescopeData
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) where
+  cover_chi_dom :
+    ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
+      ∀ hgenabs :
+        RSeq.SeriesSum
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ n : Nat,
+        (sec4CoverAnd_int B hB f n).rep.MemAt x
   cover_chi_abs :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
         RSeq.SeriesSum
-          (fun m => COF.abs ((((sec4CoverAnd_int B hB f n).rep.fn m).toFun x)))
+          (fun m => COF.abs
+            ((sec4CoverAnd_int B hB f n).rep.valueAt x
+              (cover_chi_dom x hgenDom hgenabs n) m))
   base_chi_abs :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
         RSeq.SeriesSum
-          (fun m => COF.abs ((((sec4CoverAnd_int B hB f 0).rep.fn m).toFun x)))
+          (fun m => COF.abs
+            ((sec4CoverAnd_int B hB f 0).rep.valueAt x
+              (cover_chi_dom x hgenDom hgenabs 0) m))
+  term_chi_dom :
+    ∀ k : Nat, ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
+      ∀ hgenabs :
+        RSeq.SeriesSum
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+        (sec4CoverDiff_int B hB f k).rep.MemAt x
   term_chi_abs :
     ∀ k : Nat, ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
         RSeq.SeriesSum
-          (fun m => COF.abs ((((sec4CoverDiff_int B hB f k).rep.fn m).toFun x)))
+          (fun m => COF.abs
+            ((sec4CoverDiff_int B hB f k).rep.valueAt x
+              (term_chi_dom k x hgenDom hgenabs) m))
   base_value_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
-        sec4_genIB_baseValue B hB f hnn x hgenabs =
-          (seriesSum_of_abs (base_chi_abs x hgenabs)).sum *
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
+        sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs =
+          (seriesSum_of_abs
+            (base_chi_abs x hgenDom hgenabs)).sum *
             (seriesSum_of_abs hfabs).sum
   row_value_s1 :
     ∀ k : Nat, ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
-        sec4_genIB_tailRowSeq B hB f hnn x hgenabs k =
-          (seriesSum_of_abs (term_chi_abs k x hgenabs)).sum *
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
+        sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs k =
+          (seriesSum_of_abs
+            (term_chi_abs k x hgenDom hgenabs)).sum *
             (seriesSum_of_abs hfabs).sum
   chi_telescope_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
-        (seriesSum_of_abs (base_chi_abs x hgenabs)).sum +
+        (seriesSum_of_abs (base_chi_abs x hgenDom hgenabs)).sum +
           RSeq.partialSum
-            (fun k => (seriesSum_of_abs (term_chi_abs k x hgenabs)).sum) n =
-        (seriesSum_of_abs (cover_chi_abs x hgenabs n)).sum
+            (fun k =>
+              (seriesSum_of_abs
+                (term_chi_abs k x hgenDom hgenabs)).sum) n =
+        (seriesSum_of_abs
+          (cover_chi_abs x hgenDom hgenabs n)).sum
   base_value_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
-        sec4_genIB_baseValue B hB f hnn x hgenabs = 0
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+        sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs = 0
   row_value_s2 :
     ∀ k : Nat, ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
-        sec4_genIB_tailRowSeq B hB f hnn x hgenabs k = 0
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+        sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs k = 0
 
 
 /-! ## 3. The actual final telescope equations -/
@@ -167,28 +213,37 @@ theorem sec4_cover_value_eq_chi_on_Bs1_of_layerTelescopeData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n =
-          (seriesSum_of_abs (T.cover_chi_abs x hgenabs n)).sum *
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n =
+          (seriesSum_of_abs
+            (T.cover_chi_abs x hgenDom hgenabs n)).sum *
             (seriesSum_of_abs hfabs).sum := by
-  intro x hxB hgenabs hfabs n
-  let baseχ : R := (seriesSum_of_abs (T.base_chi_abs x hgenabs)).sum
+  intro x hxB hgenDom hgenabs hfDom hfabs n
+  let baseχ : R :=
+    (seriesSum_of_abs (T.base_chi_abs x hgenDom hgenabs)).sum
   let termχ : Nat → R :=
-    fun k => (seriesSum_of_abs (T.term_chi_abs k x hgenabs)).sum
-  let coverχ : R := (seriesSum_of_abs (T.cover_chi_abs x hgenabs n)).sum
+    fun k =>
+      (seriesSum_of_abs (T.term_chi_abs k x hgenDom hgenabs)).sum
+  let coverχ : R :=
+    (seriesSum_of_abs (T.cover_chi_abs x hgenDom hgenabs n)).sum
   let fval : R := (seriesSum_of_abs hfabs).sum
   have hrow :
-      RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n =
+      RSeq.partialSum
+        (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n =
         RSeq.partialSum (fun k => termχ k * fval) n :=
     sec4_partialSum_congr
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenabs)
+      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs)
       (fun k => termχ k * fval)
-      (fun k => T.row_value_s1 k x hxB hgenabs hfabs)
+      (fun k => T.row_value_s1
+        k x hxB hgenDom hgenabs hfDom hfabs)
       n
   have hmul :
       RSeq.partialSum (fun k => termχ k * fval) n =
@@ -196,15 +251,17 @@ theorem sec4_cover_value_eq_chi_on_Bs1_of_layerTelescopeData
     sec4_partialSum_mul_right termχ fval n
   have hχ :
       baseχ + RSeq.partialSum termχ n = coverχ :=
-    T.chi_telescope_s1 x hxB hgenabs n
+    T.chi_telescope_s1 x hxB hgenDom hgenabs n
   calc
-    sec4_canonicalCoverValue B hB f hnn x hgenabs n
-        = sec4_genIB_baseValue B hB f hnn x hgenabs +
-            RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n := by
+    sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n
+        = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+            RSeq.partialSum
+              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
           rfl
     _ = baseχ * fval +
-            RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n := by
-          rw [T.base_value_s1 x hxB hgenabs hfabs]
+            RSeq.partialSum
+              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
+          rw [T.base_value_s1 x hxB hgenDom hgenabs hfDom hfabs]
     _ = baseχ * fval + RSeq.partialSum (fun k => termχ k * fval) n := by
           rw [hrow]
     _ = baseχ * fval + RSeq.partialSum termχ n * fval := by
@@ -221,27 +278,32 @@ theorem sec4_cover_value_on_Bs2_of_layerTelescopeData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n = 0 := by
-  intro x hxB hgenabs n
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n = 0 := by
+  intro x hxB hgenDom hgenabs n
   have hrow :
-      RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n =
+      RSeq.partialSum
+        (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n =
         RSeq.partialSum (fun _ : Nat => (0 : R)) n :=
     sec4_partialSum_congr
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenabs)
+      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs)
       (fun _ : Nat => (0 : R))
-      (fun k => T.row_value_s2 k x hxB hgenabs)
+      (fun k => T.row_value_s2 k x hxB hgenDom hgenabs)
       n
   calc
-    sec4_canonicalCoverValue B hB f hnn x hgenabs n
-        = sec4_genIB_baseValue B hB f hnn x hgenabs +
-            RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n := by
+    sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n
+        = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+            RSeq.partialSum
+              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
           rfl
-    _ = 0 + RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) n := by
-          rw [T.base_value_s2 x hxB hgenabs]
+    _ = 0 + RSeq.partialSum
+            (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
+          rw [T.base_value_s2 x hxB hgenDom hgenabs]
     _ = 0 + RSeq.partialSum (fun _ : Nat => (0 : R)) n := by
           rw [hrow]
     _ = 0 := by
@@ -257,6 +319,7 @@ noncomputable def sec4_telescopeData_of_layerTelescopeData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
     Sec4CanonicalCoverTelescopeData (S := S) B hB f hnn := {
+  cover_chi_dom := T.cover_chi_dom
   cover_chi_abs := T.cover_chi_abs
   cover_value_eq_chi_on_Bs1 :=
     sec4_cover_value_eq_chi_on_Bs1_of_layerTelescopeData B hB f hnn T

@@ -162,17 +162,33 @@ def seriesSum_mid_of_merge3_abs {u v w : Nat → R}
         (isCauchy_of_tendsto h.tends)))
 
 /-- Technical lemma used in the public import closure. -/
-def cutConstVal_absSeriesSum_mid {r : IntegrableRep S} {x : X} (a : R) (ha : ¬ COF.lt a 0)
-    (habs : RSeq.SeriesSum (fun n => COF.abs (((r.cutConstVal a ha).fn n).toFun x))) :
-    RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) :=
-  seriesSum_mid_of_merge3_abs
-    (seriesSum_congr (fun n => by
-      rw [show ((r.cutConstVal a ha).fn n).toFun x
-            = seqMerge3 (fun j => (r.cutConstDiffFn a j).toFun x)
-                (fun k => (r.fn k).toFun x)
-                (fun k => (BFunR.smul (-1) (r.fn k)).toFun x) n from
-          seqMerge3_map (fun g => g.toFun x) (r.cutConstDiffFn a) r.fn
-            (fun k => BFunR.smul (-1) (r.fn k)) n]) habs)
+theorem IntegrableRep.cutConstVal_base_memAt {r : IntegrableRep S} {x : X}
+    (a : R) (ha : ¬ COF.lt a 0) (hdom : (r.cutConstVal a ha).MemAt x) :
+    r.MemAt x := by
+  intro k
+  have hk := hdom (3 * k + 1)
+  simpa only [IntegrableRep.cutConstVal, seqMerge3_one] using hk
+
+/-- Extract the middle component of the absolute three-way merge while retaining
+the domain witness required by a genuine partial function. -/
+def cutConstVal_absSeriesSum_mid {r : IntegrableRep S} {x : X} (a : R)
+    (ha : ¬ COF.lt a 0) (hdom : (r.cutConstVal a ha).MemAt x)
+    (habs : RSeq.SeriesSum (fun n =>
+      COF.abs ((r.cutConstVal a ha).valueAt x hdom n))) :
+    RSeq.SeriesSum (fun k => COF.abs
+      (r.valueAt x (r.cutConstVal_base_memAt a ha hdom) k)) := by
+  let hbase : r.MemAt x := r.cutConstVal_base_memAt a ha hdom
+  apply seriesSum_mid_of_merge3_abs
+    (u := fun j => (r.cutConstDiffFn a j).toFun x
+      (r.mem_cutConstDiffFn_dom a hbase j))
+    (v := fun k => r.valueAt x hbase k)
+    (w := fun k => (BFunR.smul (-1) (r.fn k)).toFun x (hbase k))
+  refine RSeq.seriesSum_congr (fun n => ?_) habs
+  rcases natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+  · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, seqMerge3_zero]
+  · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, seqMerge3_one]
+  · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, BFunR.smul,
+      seqMerge3_two]
 
 /-- Technical lemma used in the public import closure. -/
 theorem min_nonneg {a b : R} (ha : Nonneg a) (hb : Nonneg b) : Nonneg (COF.min a b) := by
@@ -185,11 +201,12 @@ theorem min_nonneg {a b : R} (ha : Nonneg a) (hb : Nonneg b) : Nonneg (COF.min a
 /-- Technical lemma used in the public import closure. -/
 theorem repNonneg_cutConstVal (f : IntegrableRep S) (hf : RepNonneg f) (a : R) (ha : ¬ COF.lt a 0) :
     RepNonneg (f.cutConstVal a ha) := by
-  intro x habs hx
-  have hf_abs := cutConstVal_absSeriesSum_mid a ha habs
+  intro x hdom hx_abs hx
+  let hbase : f.MemAt x := f.cutConstVal_base_memAt a ha hdom
+  have hf_abs := cutConstVal_absSeriesSum_mid a ha hdom hx_abs
   have hfx := seriesSum_of_abs hf_abs
-  have hfx_nn : Nonneg hfx.sum := hf x hf_abs hfx
-  obtain ⟨hs, hseq⟩ := f.cutConstVal_signed_value a ha x hfx
+  have hfx_nn : Nonneg hfx.sum := hf x hbase hf_abs hfx
+  obtain ⟨hs, hseq⟩ := f.cutConstVal_signed_value a ha x hbase hfx
   rw [seriesSum_unique hx hs, hseq]
   exact min_nonneg hfx_nn ha
 
@@ -197,25 +214,44 @@ theorem repNonneg_cutConstVal (f : IntegrableRep S) (hf : RepNonneg f) (a : R) (
 theorem repNonneg_cutSmall_sub_cutConst (f : IntegrableRep S) (hf : RepNonneg f) (n : Nat)
     (a : R) (ha : ¬ COF.lt a 0) (hle : ¬ COF.lt (COF.halfPow n) a) :
     RepNonneg ((f.cutSmallVal n).sub (f.cutConstVal a ha)) := by
-  intro x habs hx
+  intro x hsubDom hx_abs hx
+  let haddDom : ((f.cutSmallVal n).add (f.cutConstVal a ha).neg).MemAt x := by
+    simpa only [IntegrableRep.sub] using hsubDom
+  let haddAbs : RSeq.SeriesSum (fun k => COF.abs
+      (((f.cutSmallVal n).add (f.cutConstVal a ha).neg).valueAt x haddDom k)) := by
+    simpa only [IntegrableRep.sub] using hx_abs
   -- de-interleave (sub = add ∘ neg): cutSmall abs / cutConst abs
-  have hcs_abs := add_absSeriesSum_left habs
-  have hcc_abs := neg_absSeriesSum (add_absSeriesSum_right habs)
+  let hsmallDom : (f.cutSmallVal n).MemAt x := add_dom_left haddDom
+  let hnegDom : (f.cutConstVal a ha).neg.MemAt x := add_dom_right haddDom
+  let hcutDom : (f.cutConstVal a ha).MemAt x := neg_dom hnegDom
+  have hcs_abs := add_absSeriesSum_left haddDom haddAbs
+  have hcc_neg_abs := add_absSeriesSum_right haddDom haddAbs
+  have hcc_abs := neg_absSeriesSum hnegDom hcc_neg_abs
   -- Technical note.
-  have hf_abs := cutConstVal_absSeriesSum_mid a ha hcc_abs
+  let hbase : f.MemAt x := f.cutConstVal_base_memAt a ha hcutDom
+  have hf_abs := cutConstVal_absSeriesSum_mid a ha hcutDom hcc_abs
   have hfx := seriesSum_of_abs hf_abs
-  have hfx_nn : Nonneg hfx.sum := hf x hf_abs hfx
+  have hfx_nn : Nonneg hfx.sum := hf x hbase hf_abs hfx
   -- Technical note.
-  have hg_abs := cutConstVal_absSeriesSum_mid (COF.halfPow n) (halfPow_nonneg n) hcs_abs
+  let habsValDom : f.absVal.MemAt x :=
+    f.absVal.cutConstVal_base_memAt (COF.halfPow n) (halfPow_nonneg n) hsmallDom
+  have hg_abs := cutConstVal_absSeriesSum_mid
+    (COF.halfPow n) (halfPow_nonneg n) hsmallDom hcs_abs
   have hgx := seriesSum_of_abs hg_abs
   -- hg.sum = |hf.sum| = hf.sum (f≥0)
-  obtain ⟨hav, haveq⟩ := f.absVal_signed_value x hfx
+  obtain ⟨hav, haveq⟩ := f.absVal_signed_value x hbase hfx
   have hg_eq : hgx.sum = hfx.sum := by
     rw [seriesSum_unique hgx hav, haveq, COFO.abs_of_nonneg hfx_nn]
   -- Technical note.
-  obtain ⟨hcs, hcseq⟩ := f.absVal.cutConstVal_signed_value (COF.halfPow n) (halfPow_nonneg n) x hgx
-  obtain ⟨hcc, hcceq⟩ := f.cutConstVal_signed_value a ha x hfx
-  rw [seriesSum_unique hx (add_seriesSum_value hcs (neg_seriesSum_value hcc))]
+  obtain ⟨hcs, hcseq⟩ := f.absVal.cutConstVal_signed_value
+    (COF.halfPow n) (halfPow_nonneg n) x habsValDom hgx
+  obtain ⟨hcc, hcceq⟩ := f.cutConstVal_signed_value a ha x hbase hfx
+  let hcsDom := f.absVal.mem_cutConstVal_dom
+    (COF.halfPow n) (halfPow_nonneg n) habsValDom
+  let hccDom := f.mem_cutConstVal_dom a ha hbase
+  let hnegSeries := neg_seriesSum_value hccDom hcc
+  rw [seriesSum_unique hx
+    (add_seriesSum_value hcsDom (IntegrableRep.neg_memAt hccDom) hcs hnegSeries)]
   show Nonneg (hcs.sum + (- hcc.sum))
   rw [hcseq, hcceq, hg_eq,
       show COF.min hfx.sum (COF.halfPow n) + (- COF.min hfx.sum a)

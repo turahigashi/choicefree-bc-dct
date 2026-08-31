@@ -60,12 +60,22 @@ structure IntegrableSet1CharacteristicWitness
     {S : BishopC.IntSpaceRC Y R}
     {A : BishopC.BSet Y}
     (hA : BishopC.IntegrableSet1 S A) : Type _ where
-  chi_abs_on_s1 :
+  chi_dom_on_s1 :
     ∀ x, x ∈ A.S1 ->
-      RSeq.SeriesSum (fun n => COF.abs (((integrableSet1_characteristic_definition16_witness hA).fn n).toFun x))
-  chi_abs_on_s2 :
+      (integrableSet1_characteristic_definition16_witness hA).MemAt x
+  chi_abs_on_s1 :
+    ∀ x (hx : x ∈ A.S1),
+      RSeq.SeriesSum (fun n => COF.abs
+        ((integrableSet1_characteristic_definition16_witness hA).valueAt
+          x (chi_dom_on_s1 x hx) n))
+  chi_dom_on_s2 :
     ∀ x, x ∈ A.S2 ->
-      RSeq.SeriesSum (fun n => COF.abs (((integrableSet1_characteristic_definition16_witness hA).fn n).toFun x))
+      (integrableSet1_characteristic_definition16_witness hA).MemAt x
+  chi_abs_on_s2 :
+    ∀ x (hx : x ∈ A.S2),
+      RSeq.SeriesSum (fun n => COF.abs
+        ((integrableSet1_characteristic_definition16_witness hA).valueAt
+          x (chi_dom_on_s2 x hx) n))
   characteristic_function_integrable_by_definition : Prop
   definition_16_witness_is_carried_rep_not_chosen_later : Prop
 
@@ -78,10 +88,18 @@ def prop412_integrable_set_source_from_characteristic_witness
     {hA : BishopC.IntegrableSet1 S A}
     (W : IntegrableSet1CharacteristicWitness hA) :
     Prop412IntegrableSetRepresentativeSource hA where
+  chi_dom_on_s1 := by
+    intro x hx
+    simpa [integrableSet1_characteristic_definition16_witness] using
+      W.chi_dom_on_s1 x hx
   chi_abs_on_s1 := by
     intro x hx
     simpa [integrableSet1_characteristic_definition16_witness] using
       W.chi_abs_on_s1 x hx
+  chi_dom_on_s2 := by
+    intro x hx
+    simpa [integrableSet1_characteristic_definition16_witness] using
+      W.chi_dom_on_s2 x hx
   chi_abs_on_s2 := by
     intro x hx
     simpa [integrableSet1_characteristic_definition16_witness] using

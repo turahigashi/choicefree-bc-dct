@@ -52,7 +52,8 @@ noncomputable def sec4_prop42LocalAbsPackOnS1_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4LambdaRowsAbsPackAt (S := S) A hA f x :=
   let W :=
     Sec4Prop42LocalWitness.ofDef23S1
@@ -70,7 +71,8 @@ noncomputable def sec4_prop42LocalAbsPackOnS2_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4LambdaRowsAbsPackAt (S := S) A hA f x :=
   let W :=
     Sec4Prop42LocalWitness.ofDef23S2
@@ -91,9 +93,9 @@ noncomputable def sec4_prop42FlatAbsOnS1_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) :=
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x :=
   let W :=
     Sec4Prop42LocalWitness.ofDef23S1
       (S := S) D hA hxA hf_dom hf_abs
@@ -111,9 +113,9 @@ noncomputable def sec4_prop42FlatAbsOnS2_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) :=
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x :=
   let W :=
     Sec4Prop42LocalWitness.ofDef23S2
       (S := S) D hA hxA hf_dom hf_abs
@@ -133,10 +135,11 @@ theorem sec4_prop42ValueOnS1_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbsOnS1_of_def23LocalOuter
-        (S := S) D O hA hnn hxA hf_dom hf_abs)).sum =
+        (S := S) D O hA hnn hxA hf_dom hf_abs).snd).sum =
       (seriesSum_of_abs hf_abs).sum := by
   let W :=
     Sec4Prop42LocalWitness.ofDef23S1
@@ -157,10 +160,11 @@ theorem sec4_prop42ValueOnS2_of_def23LocalOuter
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbsOnS2_of_def23LocalOuter
-        (S := S) D O hA hnn hxA hf_dom hf_abs)).sum = (0 : R) := by
+        (S := S) D O hA hnn hxA hf_dom hf_abs).snd).sum = (0 : R) := by
   let W :=
     Sec4Prop42LocalWitness.ofDef23S2
       (S := S) D hA hxA hf_dom hf_abs

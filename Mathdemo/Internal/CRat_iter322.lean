@@ -29,19 +29,20 @@ theorem theorem46_chi_value_nonneg
     {A : BishopC.BSet Y}
     (hA : BishopC.IntegrableSet1 S A)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x))) :
+      (fun m => COF.abs (hA.rep.valueAt x hADom m))) :
     BishopC.Nonneg (BishopC.seriesSum_of_abs hAabs).sum := by
-  rcases (hA.valid x hAabs).1 with hA1 | hA2
+  rcases (hA.valid x hADom hAabs).1 with hA1 | hA2
   · have h1 :
         (BishopC.seriesSum_of_abs hAabs).sum = 1 :=
-      (hA.valid x hAabs).2.1 hA1
+      (hA.valid x hADom hAabs).2.1 hA1
         (BishopC.seriesSum_of_abs hAabs)
     rw [h1]
     exact BishopC.le_of_lt COFO.one_pos
   · have h0 :
         (BishopC.seriesSum_of_abs hAabs).sum = 0 :=
-      (hA.valid x hAabs).2.2 hA2
+      (hA.valid x hADom hAabs).2.2 hA2
         (BishopC.seriesSum_of_abs hAabs)
     rw [h0]
     exact BishopC.le_refl 0
@@ -53,37 +54,42 @@ theorem theorem46_chi_or_left_value_le
     (hA : BishopC.IntegrableSet1 S A)
     (hB : BishopC.IntegrableSet1 S B)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
+    (hBDom : hB.rep.MemAt x)
+    (hOrDom : (BishopC.IntegrableSet1_or hA hB).rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)))
+      (fun m => COF.abs (hA.rep.valueAt x hADom m)))
     (hBabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hB.rep.fn m).toFun x)))
+      (fun m => COF.abs (hB.rep.valueAt x hBDom m)))
     (hOrabs : RSeq.SeriesSum
       (fun m =>
-        COF.abs (((BishopC.IntegrableSet1_or hA hB).rep.fn m).toFun x))) :
+        COF.abs ((BishopC.IntegrableSet1_or hA hB).rep.valueAt
+          x hOrDom m))) :
     BishopC.Le
       (BishopC.seriesSum_of_abs hAabs).sum
       (BishopC.seriesSum_of_abs hOrabs).sum := by
-  rcases (hA.valid x hAabs).1 with hA1 | hA2
+  rcases (hA.valid x hADom hAabs).1 with hA1 | hA2
   · have hAeq :
         (BishopC.seriesSum_of_abs hAabs).sum = 1 :=
-      (hA.valid x hAabs).2.1 hA1
+      (hA.valid x hADom hAabs).2.1 hA1
         (BishopC.seriesSum_of_abs hAabs)
     have hOr1 : x ∈ (BishopC.BSet.or A B).S1 := by
-      rcases (hB.valid x hBabs).1 with hB1 | hB2
+      rcases (hB.valid x hBDom hBabs).1 with hB1 | hB2
       · exact Or.inl (Or.inl ⟨hA1, hB1⟩)
       · exact Or.inl (Or.inr ⟨hA1, hB2⟩)
     have hOreq :
         (BishopC.seriesSum_of_abs hOrabs).sum = 1 :=
-      ((BishopC.IntegrableSet1_or hA hB).valid x hOrabs).2.1 hOr1
+      ((BishopC.IntegrableSet1_or hA hB).valid x hOrDom hOrabs).2.1 hOr1
         (BishopC.seriesSum_of_abs hOrabs)
     rw [hAeq, hOreq]
     exact BishopC.le_refl 1
   · have hAeq :
         (BishopC.seriesSum_of_abs hAabs).sum = 0 :=
-      (hA.valid x hAabs).2.2 hA2
+      (hA.valid x hADom hAabs).2.2 hA2
         (BishopC.seriesSum_of_abs hAabs)
     rw [hAeq]
-    exact theorem46_chi_value_nonneg (BishopC.IntegrableSet1_or hA hB) hOrabs
+    exact theorem46_chi_value_nonneg
+      (BishopC.IntegrableSet1_or hA hB) hOrDom hOrabs
 
 /-- `χ_B ≤ χ_(A∨B)` at the carried characteristic values. -/
 theorem theorem46_chi_or_right_value_le
@@ -92,37 +98,42 @@ theorem theorem46_chi_or_right_value_le
     (hA : BishopC.IntegrableSet1 S A)
     (hB : BishopC.IntegrableSet1 S B)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
+    (hBDom : hB.rep.MemAt x)
+    (hOrDom : (BishopC.IntegrableSet1_or hA hB).rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)))
+      (fun m => COF.abs (hA.rep.valueAt x hADom m)))
     (hBabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hB.rep.fn m).toFun x)))
+      (fun m => COF.abs (hB.rep.valueAt x hBDom m)))
     (hOrabs : RSeq.SeriesSum
       (fun m =>
-        COF.abs (((BishopC.IntegrableSet1_or hA hB).rep.fn m).toFun x))) :
+        COF.abs ((BishopC.IntegrableSet1_or hA hB).rep.valueAt
+          x hOrDom m))) :
     BishopC.Le
       (BishopC.seriesSum_of_abs hBabs).sum
       (BishopC.seriesSum_of_abs hOrabs).sum := by
-  rcases (hB.valid x hBabs).1 with hB1 | hB2
+  rcases (hB.valid x hBDom hBabs).1 with hB1 | hB2
   · have hBeq :
         (BishopC.seriesSum_of_abs hBabs).sum = 1 :=
-      (hB.valid x hBabs).2.1 hB1
+      (hB.valid x hBDom hBabs).2.1 hB1
         (BishopC.seriesSum_of_abs hBabs)
     have hOr1 : x ∈ (BishopC.BSet.or A B).S1 := by
-      rcases (hA.valid x hAabs).1 with hA1 | hA2
+      rcases (hA.valid x hADom hAabs).1 with hA1 | hA2
       · exact Or.inl (Or.inl ⟨hA1, hB1⟩)
       · exact Or.inr ⟨hA2, hB1⟩
     have hOreq :
         (BishopC.seriesSum_of_abs hOrabs).sum = 1 :=
-      ((BishopC.IntegrableSet1_or hA hB).valid x hOrabs).2.1 hOr1
+      ((BishopC.IntegrableSet1_or hA hB).valid x hOrDom hOrabs).2.1 hOr1
         (BishopC.seriesSum_of_abs hOrabs)
     rw [hBeq, hOreq]
     exact BishopC.le_refl 1
   · have hBeq :
         (BishopC.seriesSum_of_abs hBabs).sum = 0 :=
-      (hB.valid x hBabs).2.2 hB2
+      (hB.valid x hBDom hBabs).2.2 hB2
         (BishopC.seriesSum_of_abs hBabs)
     rw [hBeq]
-    exact theorem46_chi_value_nonneg (BishopC.IntegrableSet1_or hA hB) hOrabs
+    exact theorem46_chi_value_nonneg
+      (BishopC.IntegrableSet1_or hA hB) hOrDom hOrabs
 
 /-- Left set expansion, after multiplying by a nonnegative scalar value and
 applying `mid`. -/
@@ -132,21 +143,26 @@ theorem theorem46_scalarMid_or_left_expansion_mono
     (hA : BishopC.IntegrableSet1 S A)
     (hB : BishopC.IntegrableSet1 S B)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
+    (hBDom : hB.rep.MemAt x)
+    (hOrDom : (BishopC.IntegrableSet1_or hA hB).rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)))
+      (fun m => COF.abs (hA.rep.valueAt x hADom m)))
     (hBabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hB.rep.fn m).toFun x)))
+      (fun m => COF.abs (hB.rep.valueAt x hBDom m)))
     (hOrabs : RSeq.SeriesSum
       (fun m =>
-        COF.abs (((BishopC.IntegrableSet1_or hA hB).rep.fn m).toFun x)))
+        COF.abs ((BishopC.IntegrableSet1_or hA hB).rep.valueAt
+          x hOrDom m)))
     (n : Nat) {v : R} (hv : BishopC.Nonneg v) :
     BishopC.Le
       (prop412ScalarMid n ((BishopC.seriesSum_of_abs hAabs).sum * v))
       (prop412ScalarMid n ((BishopC.seriesSum_of_abs hOrabs).sum * v)) := by
   have hχA : BishopC.Nonneg (BishopC.seriesSum_of_abs hAabs).sum :=
-    theorem46_chi_value_nonneg hA hAabs
+    theorem46_chi_value_nonneg hA hADom hAabs
   have hχOr : BishopC.Nonneg (BishopC.seriesSum_of_abs hOrabs).sum :=
-    theorem46_chi_value_nonneg (BishopC.IntegrableSet1_or hA hB) hOrabs
+    theorem46_chi_value_nonneg
+      (BishopC.IntegrableSet1_or hA hB) hOrDom hOrabs
   have hleft_nonneg :
       BishopC.Nonneg ((BishopC.seriesSum_of_abs hAabs).sum * v) :=
     COFO.mul_nonneg hχA hv
@@ -157,7 +173,8 @@ theorem theorem46_scalarMid_or_left_expansion_mono
       BishopC.Le
         (BishopC.seriesSum_of_abs hAabs).sum
         (BishopC.seriesSum_of_abs hOrabs).sum :=
-    theorem46_chi_or_left_value_le hA hB hAabs hBabs hOrabs
+    theorem46_chi_or_left_value_le hA hB
+      hADom hBDom hOrDom hAabs hBabs hOrabs
   have hmul :
       BishopC.Le
         ((BishopC.seriesSum_of_abs hAabs).sum * v)
@@ -174,21 +191,26 @@ theorem theorem46_scalarMid_or_right_expansion_mono
     (hA : BishopC.IntegrableSet1 S A)
     (hB : BishopC.IntegrableSet1 S B)
     {x : Y}
+    (hADom : hA.rep.MemAt x)
+    (hBDom : hB.rep.MemAt x)
+    (hOrDom : (BishopC.IntegrableSet1_or hA hB).rep.MemAt x)
     (hAabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)))
+      (fun m => COF.abs (hA.rep.valueAt x hADom m)))
     (hBabs : RSeq.SeriesSum
-      (fun m => COF.abs ((hB.rep.fn m).toFun x)))
+      (fun m => COF.abs (hB.rep.valueAt x hBDom m)))
     (hOrabs : RSeq.SeriesSum
       (fun m =>
-        COF.abs (((BishopC.IntegrableSet1_or hA hB).rep.fn m).toFun x)))
+        COF.abs ((BishopC.IntegrableSet1_or hA hB).rep.valueAt
+          x hOrDom m)))
     (n : Nat) {v : R} (hv : BishopC.Nonneg v) :
     BishopC.Le
       (prop412ScalarMid n ((BishopC.seriesSum_of_abs hBabs).sum * v))
       (prop412ScalarMid n ((BishopC.seriesSum_of_abs hOrabs).sum * v)) := by
   have hχB : BishopC.Nonneg (BishopC.seriesSum_of_abs hBabs).sum :=
-    theorem46_chi_value_nonneg hB hBabs
+    theorem46_chi_value_nonneg hB hBDom hBabs
   have hχOr : BishopC.Nonneg (BishopC.seriesSum_of_abs hOrabs).sum :=
-    theorem46_chi_value_nonneg (BishopC.IntegrableSet1_or hA hB) hOrabs
+    theorem46_chi_value_nonneg
+      (BishopC.IntegrableSet1_or hA hB) hOrDom hOrabs
   have hleft_nonneg :
       BishopC.Nonneg ((BishopC.seriesSum_of_abs hBabs).sum * v) :=
     COFO.mul_nonneg hχB hv
@@ -199,7 +221,8 @@ theorem theorem46_scalarMid_or_right_expansion_mono
       BishopC.Le
         (BishopC.seriesSum_of_abs hBabs).sum
         (BishopC.seriesSum_of_abs hOrabs).sum :=
-    theorem46_chi_or_right_value_le hA hB hAabs hBabs hOrabs
+    theorem46_chi_or_right_value_le hA hB
+      hADom hBDom hOrDom hAabs hBabs hOrabs
   have hmul :
       BishopC.Le
         ((BishopC.seriesSum_of_abs hBabs).sum * v)

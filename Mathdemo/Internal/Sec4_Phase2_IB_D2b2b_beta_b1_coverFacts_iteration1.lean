@@ -65,45 +65,59 @@ structure Sec4CanonicalCoverFacts
   domain : Sec4CCD_domain (S := S) B hB f hnn
   cover_case_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ n : Nat, x ∈ (coverSet f n).S1 ∨ x ∈ (coverSet f n).S2
   cover_value_on_cover_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ n : Nat, x ∈ (coverSet f n).S1 →
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n =
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n =
           (seriesSum_of_abs hfabs).sum
   cover_value_on_cover_s2 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ n : Nat, x ∈ (coverSet f n).S2 →
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n = 0
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n = 0
   cover_value_on_B_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n = 0
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n = 0
   cover_small_s2 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ k n : Nat, k ≤ n →
         x ∈ (coverSet f n).S2 →
           COF.Close k 0 (seriesSum_of_abs hfabs).sum
@@ -117,14 +131,17 @@ theorem sec4_close_s1_of_canonicalCoverFacts
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverFacts (S := S) B hB f hnn) :
     Sec4CCD_close_s1 (S := S) B hB f hnn := by
-  intro x hxB hgenabs hfabs k n hn
-  cases T.cover_case_s1 x hxB hgenabs hfabs n with
+  intro x hxB hgenDom hgenabs hfDom hfabs k n hn
+  cases T.cover_case_s1 x hxB hgenDom hgenabs hfDom hfabs n with
   | inl hcover1 =>
-      rw [T.cover_value_on_cover_s1 x hxB hgenabs hfabs n hcover1]
+      rw [T.cover_value_on_cover_s1
+        x hxB hgenDom hgenabs hfDom hfabs n hcover1]
       exact sec4_Close_refl k (seriesSum_of_abs hfabs).sum
   | inr hcover2 =>
-      rw [T.cover_value_on_cover_s2 x hxB hgenabs hfabs n hcover2]
-      exact T.cover_small_s2 x hxB hgenabs hfabs k n hn hcover2
+      rw [T.cover_value_on_cover_s2
+        x hxB hgenDom hgenabs hfDom hfabs n hcover2]
+      exact T.cover_small_s2
+        x hxB hgenDom hgenabs hfDom hfabs k n hn hcover2
 
 
 /-- `B.S2` close estimate from canonical cover facts. -/
@@ -133,8 +150,8 @@ theorem sec4_close_s2_of_canonicalCoverFacts
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverFacts (S := S) B hB f hnn) :
     Sec4CCD_close_s2 (S := S) B hB f hnn := by
-  intro x hxB hgenabs k n hn
-  rw [T.cover_value_on_B_s2 x hxB hgenabs n]
+  intro x hxB hgenDom hgenabs k n hn
+  rw [T.cover_value_on_B_s2 x hxB hgenDom hgenabs n]
   exact sec4_Close_refl k (0 : R)
 
 

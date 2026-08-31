@@ -174,23 +174,24 @@ def seriesSum_merge3_second_of_nonneg {u v w : Nat -> R}
 /-- The absolute-value representative is nonnegative at every point of its
 own absolute-convergence domain. -/
 theorem repNonneg_absVal (r : IntegrableRep S) : RepNonneg r.absVal := by
-  intro x habs hx
-  let u : Nat -> R := fun j => COF.abs ((r.absDiffFn j).toFun x)
-  let v : Nat -> R := fun k => COF.abs ((r.fn k).toFun x)
-  let w : Nat -> R := fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)
+  intro x habsDom habs hx
+  let hrDom : r.MemAt x := fun k => by
+    have hk := habsDom (3 * k + 1)
+    simpa only [IntegrableRep.absVal, seqMerge3_one] using hk
+  let u : Nat -> R := fun j =>
+    COF.abs ((r.absDiffFn j).toFun x (r.absDiffFn_memAt hrDom j))
+  let v : Nat -> R := fun k => COF.abs (r.valueAt x hrDom k)
+  let w : Nat -> R := fun k =>
+    COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x (hrDom k))
   have hmerge : RSeq.SeriesSum (seqMerge3 u v w) := by
     refine seriesSum_congr (fun n => ?_) habs
     dsimp [u, v, w]
-    change COF.abs
-        (((seqMerge3 r.absDiffFn r.fn
-          (fun k => BFunR.smul (-1) (r.fn k)) n).toFun x)) =
-      seqMerge3
-        (fun j => COF.abs ((r.absDiffFn j).toFun x))
-        (fun k => COF.abs ((r.fn k).toFun x))
-        (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) n
-    exact seqMerge3_map (fun g : BFunR X R => COF.abs (g.toFun x))
-      r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) n
-  have hfabs : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) := by
+    rcases natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_zero]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_one]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_two]
+  have hfabs : RSeq.SeriesSum
+      (fun k => COF.abs (r.valueAt x hrDom k)) := by
     dsimp [v] at hmerge ⊢
     exact seriesSum_merge3_second_of_nonneg
       (u := u) (v := v) (w := w)
@@ -198,8 +199,10 @@ theorem repNonneg_absVal (r : IntegrableRep S) : RepNonneg r.absVal := by
       (fun _ => abs_nonneg _)
       (fun _ => abs_nonneg _)
       hmerge
-  let hfsum : RSeq.SeriesSum (fun k => (r.fn k).toFun x) := seriesSum_of_abs hfabs
-  obtain ⟨habsValSum, habsValEq⟩ := r.absVal_pointSum x hfsum
+  let hfsum : RSeq.SeriesSum (fun k => r.valueAt x hrDom k) :=
+    seriesSum_of_abs hfabs
+  obtain ⟨habsValSum, habsValEq⟩ :=
+    r.absVal_signed_value x hrDom hfsum
   have hx_eq : hx.sum = COF.abs hfsum.sum := by
     rw [seriesSum_unique hx habsValSum, habsValEq]
   rw [hx_eq]
@@ -224,27 +227,31 @@ noncomputable def lemma_4_15_abs_error_represents_from_pfun_sources
     Lemma414RepresentsPFunR (S := S)
       ((r.sub s).absVal) ((PFunR.sub p q).absVal) where
   value := by
-    intro x hp habsAbsVal
+    intro x hp habsAbsValDom habsAbsVal
     let subRep : IntegrableRep S := r.sub s
-    let u : Nat -> R := fun j => COF.abs ((subRep.absDiffFn j).toFun x)
-    let v : Nat -> R := fun k => COF.abs ((subRep.fn k).toFun x)
+    let hsubDom : subRep.MemAt x := fun k => by
+      have hk := habsAbsValDom (3 * k + 1)
+      simpa only [IntegrableRep.absVal, seqMerge3_one] using hk
+    let hrDom : r.MemAt x := add_dom_left hsubDom
+    let hnegSDom : s.neg.MemAt x := add_dom_right hsubDom
+    let hsDom : s.MemAt x := neg_dom hnegSDom
+    let u : Nat -> R := fun j =>
+      COF.abs ((subRep.absDiffFn j).toFun x
+        (subRep.absDiffFn_memAt hsubDom j))
+    let v : Nat -> R := fun k =>
+      COF.abs (subRep.valueAt x hsubDom k)
     let w : Nat -> R := fun k =>
-      COF.abs ((BFunR.smul (-1) (subRep.fn k)).toFun x)
+      COF.abs ((BFunR.smul (-1) (subRep.fn k)).toFun x (hsubDom k))
     have hmerge : RSeq.SeriesSum (seqMerge3 u v w) := by
       refine seriesSum_congr (fun n => ?_) habsAbsVal
       dsimp [u, v, w, subRep]
-      change COF.abs
-          (((seqMerge3 (r.sub s).absDiffFn (r.sub s).fn
-            (fun k => BFunR.smul (-1) ((r.sub s).fn k)) n).toFun x)) =
-        seqMerge3
-          (fun j => COF.abs (((r.sub s).absDiffFn j).toFun x))
-          (fun k => COF.abs (((r.sub s).fn k).toFun x))
-          (fun k => COF.abs ((BFunR.smul (-1) ((r.sub s).fn k)).toFun x)) n
-      exact seqMerge3_map (fun g : BFunR X R => COF.abs (g.toFun x))
-        (r.sub s).absDiffFn (r.sub s).fn
-        (fun k => BFunR.smul (-1) ((r.sub s).fn k)) n
+      rcases natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+      · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_zero]
+      · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_one]
+      · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_two]
     have hsub_abs :
-        RSeq.SeriesSum (fun k => COF.abs (((r.sub s).fn k).toFun x)) := by
+        RSeq.SeriesSum (fun k => COF.abs
+          ((r.sub s).valueAt x hsubDom k)) := by
       dsimp [v] at hmerge ⊢
       exact seriesSum_merge3_second_of_nonneg
         (u := u) (v := v) (w := w)
@@ -252,31 +259,35 @@ noncomputable def lemma_4_15_abs_error_represents_from_pfun_sources
         (fun _ => abs_nonneg _)
         (fun _ => abs_nonneg _)
         hmerge
-    have hr_abs : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) :=
-      add_absSeriesSum_left hsub_abs
-    have hs_abs : RSeq.SeriesSum (fun k => COF.abs ((s.fn k).toFun x)) :=
-      neg_absSeriesSum (add_absSeriesSum_right hsub_abs)
-    let hsub_sum : RSeq.SeriesSum (fun k => ((r.sub s).fn k).toFun x) :=
+    have hr_abs : RSeq.SeriesSum
+        (fun k => COF.abs (r.valueAt x hrDom k)) :=
+      add_absSeriesSum_left hsubDom hsub_abs
+    have hs_abs : RSeq.SeriesSum
+        (fun k => COF.abs (s.valueAt x hsDom k)) :=
+      neg_absSeriesSum hnegSDom (add_absSeriesSum_right hsubDom hsub_abs)
+    let hsub_sum : RSeq.SeriesSum
+        (fun k => (r.sub s).valueAt x hsubDom k) :=
       seriesSum_of_abs hsub_abs
-    let hr_sum : RSeq.SeriesSum (fun k => (r.fn k).toFun x) :=
+    let hr_sum : RSeq.SeriesSum (fun k => r.valueAt x hrDom k) :=
       seriesSum_of_abs hr_abs
-    let hs_sum : RSeq.SeriesSum (fun k => (s.fn k).toFun x) :=
+    let hs_sum : RSeq.SeriesSum (fun k => s.valueAt x hsDom k) :=
       seriesSum_of_abs hs_abs
     have hsub_eq : hsub_sum.sum = hr_sum.sum - hs_sum.sum := by
       have heq :=
         seriesSum_unique hsub_sum
-          (add_seriesSum_value hr_sum (neg_seriesSum_value hs_sum))
+          (add_seriesSum_value hrDom hnegSDom hr_sum
+            (neg_seriesSum_value hsDom hs_sum))
       change hsub_sum.sum = hr_sum.sum + -hs_sum.sum at heq
       rwa [sub_eq_add_neg]
     obtain ⟨habsValSum, habsValEq⟩ :=
-      (r.sub s).absVal_pointSum x hsub_sum
+      (r.sub s).absVal_signed_value x hsubDom hsub_sum
     have habs_eq :
         (seriesSum_of_abs habsAbsVal).sum = COF.abs hsub_sum.sum := by
       rw [seriesSum_unique (seriesSum_of_abs habsAbsVal) habsValSum, habsValEq]
     have hp_dom : x ∈ p.dom := hp.1
     have hq_dom : x ∈ q.dom := hp.2
-    have hr_val := hr.value x hp_dom hr_abs
-    have hs_val := hs.value x hq_dom hs_abs
+    have hr_val := hr.value x hp_dom hrDom hr_abs
+    have hs_val := hs.value x hq_dom hsDom hs_abs
     calc
       (seriesSum_of_abs habsAbsVal).sum = COF.abs hsub_sum.sum := habs_eq
       _ = COF.abs (hr_sum.sum - hs_sum.sum) := by rw [hsub_eq]

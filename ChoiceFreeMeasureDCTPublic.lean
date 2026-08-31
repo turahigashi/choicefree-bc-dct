@@ -64,8 +64,9 @@ noncomputable def uniform_complement_from_profile_levelsC
     (hgnn : BishopSec1P.RepNonnegC g)
     (D : BishopSec3P.Lemma43LevelSetSeqDataC g)
     (hdom : forall (n : Nat) (x : X)
-      (fv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe fv.sum gv.sum)
     (eps : BishopCReal.CReal)
     (heps : BishopCReal.regularSeqLtProp BishopCReal.CReal.zero eps) :=
@@ -82,9 +83,11 @@ noncomputable def l1_error_convergence_from_majorant_measure_convergenceC
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : BishopSec3P.Lemma43DyadicSmoothDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -101,9 +104,11 @@ noncomputable def integral_convergence_from_majorant_measure_convergenceC
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : BishopSec3P.Lemma43DyadicSmoothDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -117,9 +122,11 @@ noncomputable def dominated_convergence_from_error_majorant_profileC
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : BishopSec3P.Lemma43DyadicSmoothDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -133,8 +140,9 @@ noncomputable def dominated_convergence_from_pointwise_majorant_profileC
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : BishopSec3P.Lemma43DyadicSmoothDataC (g.add f.absVal))
     (hfn_bound : forall (n : Nat) (x : X)
-      (hfnv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum)
     (hconv : BishopSec3P.Lemma415ConvergeInMeasureDataC fn f) :=
   BishopSec3P.goalB_classical_dominated_convergence_dataC
@@ -147,8 +155,9 @@ noncomputable def dominated_convergence_from_pointwise_majorant_good_set_profile
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : BishopSec3P.Lemma43DyadicSmoothDataC (g.add f.absVal))
     (hfn_bound : forall (n : Nat) (x : X)
-      (hfnv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum)
     (hconv : BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC fn f) :=
   BishopSec3P.goalB_pointwise_majorant_goodSet_convergence_dataC
@@ -163,9 +172,11 @@ noncomputable def l1_error_convergence_from_majorant_measure_convergence_autoC
     (g : BishopSec1P.IntegrableRepC3 S)
     (hgnn : BishopSec1P.RepNonnegC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -182,9 +193,11 @@ noncomputable def integral_convergence_from_majorant_measure_convergence_autoC
     (g : BishopSec1P.IntegrableRepC3 S)
     (hgnn : BishopSec1P.RepNonnegC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -198,9 +211,11 @@ noncomputable def dominated_convergence_from_error_majorant_profile_autoC
     (f g : BishopSec1P.IntegrableRepC3 S)
     (hgnn : BishopSec1P.RepNonnegC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :=
@@ -213,8 +228,9 @@ noncomputable def dominated_convergence_from_pointwise_majorant_profile_autoC
     (f g : BishopSec1P.IntegrableRepC3 S)
     (hgnn : BishopSec1P.RepNonnegC g)
     (hfn_bound : forall (n : Nat) (x : X)
-      (hfnv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum)
     (hconv : BishopSec3P.Lemma415ConvergeInMeasureDataC fn f) :=
   dominated_convergence_from_pointwise_majorant_profileC
@@ -228,8 +244,9 @@ noncomputable def dominated_convergence_from_pointwise_majorant_good_set_profile
     (f g : BishopSec1P.IntegrableRepC3 S)
     (hgnn : BishopSec1P.RepNonnegC g)
     (hfn_bound : forall (n : Nat) (x : X)
-      (hfnv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe hfnv.sum.abs hgv.sum)
     (hconv : BishopSec3P.Lemma415ConvergeInMeasureGoodSetDataC fn f) :=
   dominated_convergence_from_pointwise_majorant_good_set_profileC

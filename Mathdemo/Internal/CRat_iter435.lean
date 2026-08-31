@@ -23,11 +23,12 @@ structure Cor47CutoffLeDominatingRepData (f : DataPFunR X R)
     (A : BSet X) (hA : IntegrableSet1 S A) : Type _ where
   cutoff_le_g :
     forall n x,
-      x ∈ (thm46CutoffSeq hm A hA n).domain ∩ g.domain ->
+      forall (hcutDom : (thm46CutoffSeq hm A hA n).MemAt x)
+        (hgDom : g.MemAt x),
       forall
         (hcut : RSeq.SeriesSum
-          (fun m => ((thm46CutoffSeq hm A hA n).fn m).toFun x))
-        (hg : RSeq.SeriesSum (fun m => (g.fn m).toFun x)),
+          (fun m => (thm46CutoffSeq hm A hA n).valueAt x hcutDom m))
+        (hg : RSeq.SeriesSum (fun m => g.valueAt x hgDom m)),
         Le hcut.sum hg.sum
 
 /-- Discharge of the 4.7 cutoff integral bound from point order, using
@@ -41,7 +42,8 @@ theorem cor_4_7_dominates_cutoffs_discharged
   exact prop_1_11
     (isFull_inter (thm46CutoffSeq hm A hA n).domain_isFull g.domain_isFull)
     (thm46CutoffSeq hm A hA n) g
-    (fun x hx hcut hg => D.cutoff_le_g n x hx hcut hg)
+    (fun x _hx hcutDom hgDom hcut hg =>
+      D.cutoff_le_g n x hcutDom hgDom hcut hg)
 
 /-- Rebuild the 4.7 frontier package with `dominates_cutoffs` supplied by the
 discharge lemma above.  The remaining 4.6 MCT frontier data is passed through. -/

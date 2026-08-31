@@ -57,15 +57,18 @@ noncomputable def sec4_coverChiFBaseAbs_from_genIB
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x))) :
-    RSeq.SeriesSum
       (fun m => COF.abs
-        (((prop_4_2_chi_f_rep
-            (sec4CoverAnd B f 0)
-            (sec4CoverAnd_int B hB f 0)
-            f hnn).fn m).toFun x)) :=
-  sec4_genIB_baseAbs_of_abs B hB f hnn x hgenabs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt
+          x hgenDom m))) :
+    Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverAnd B f 0)
+        (sec4CoverAnd_int B hB f 0)
+        f hnn) x :=
+  ⟨sec4_genIB_baseMemAt B hB f hnn hgenDom,
+    sec4_genIB_baseAbs_of_abs B hB f hnn x hgenDom hgenabs⟩
 
 
 /--
@@ -76,15 +79,18 @@ noncomputable def sec4_coverChiFTermAbs_from_genIB
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (k : Nat) (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x))) :
-    RSeq.SeriesSum
       (fun m => COF.abs
-        (((prop_4_2_chi_f_rep
-            (sec4CoverDiff B f k)
-            (sec4CoverDiff_int B hB f k)
-            f hnn).fn m).toFun x)) :=
-  (sec4_genIB_tailPointBridge B hB f hnn x hgenabs).rowAbs k
+        ((genIB_rep_from_measurable B hB f hnn).valueAt
+          x hgenDom m))) :
+    Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverDiff B f k)
+        (sec4CoverDiff_int B hB f k)
+        f hnn) x :=
+  let PB := sec4_genIB_tailPointBridge B hB f hnn x hgenDom hgenabs
+  ⟨PB.rowDom k, PB.rowAbs k⟩
 
 
 /-! ## 2. The single remaining local assembly lemma -/
@@ -103,24 +109,21 @@ def Sec4CoverChiFStepAbs
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ k : Nat, ∀ x : X,
-    RSeq.SeriesSum
-      (fun m => COF.abs
-        (((prop_4_2_chi_f_rep
-            (sec4CoverAnd B f k)
-            (sec4CoverAnd_int B hB f k)
-            f hnn).fn m).toFun x)) →
-    RSeq.SeriesSum
-      (fun m => COF.abs
-        (((prop_4_2_chi_f_rep
-            (sec4CoverDiff B f k)
-            (sec4CoverDiff_int B hB f k)
-            f hnn).fn m).toFun x)) →
-    RSeq.SeriesSum
-      (fun m => COF.abs
-        (((prop_4_2_chi_f_rep
-            (sec4CoverAnd B f (k + 1))
-            (sec4CoverAnd_int B hB f (k + 1))
-            f hnn).fn m).toFun x))
+    Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverAnd B f k)
+        (sec4CoverAnd_int B hB f k)
+        f hnn) x →
+    Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverDiff B f k)
+        (sec4CoverDiff_int B hB f k)
+        f hnn) x →
+    Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverAnd B f (k + 1))
+        (sec4CoverAnd_int B hB f (k + 1))
+        f hnn) x
 
 
 /-! ## 3. Iterating the one-step assembly gives the final primitive -/
@@ -134,15 +137,18 @@ noncomputable def sec4_coverChiFAbsSucc_of_stepAbs
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (Step : Sec4CoverChiFStepAbs (S := S) B hB f hnn) :
     Sec4CoverChiFAbsSucc (S := S) B hB f hnn := by
-  intro x hgenabs n
+  intro x hgenDom hgenabs n
   induction n with
   | zero =>
       exact Step 0 x
-        (sec4_coverChiFBaseAbs_from_genIB B hB f hnn x hgenabs)
-        (sec4_coverChiFTermAbs_from_genIB B hB f hnn 0 x hgenabs)
+        (sec4_coverChiFBaseAbs_from_genIB
+          B hB f hnn x hgenDom hgenabs)
+        (sec4_coverChiFTermAbs_from_genIB
+          B hB f hnn 0 x hgenDom hgenabs)
   | succ n ih =>
       exact Step (n + 1) x ih
-        (sec4_coverChiFTermAbs_from_genIB B hB f hnn (n + 1) x hgenabs)
+        (sec4_coverChiFTermAbs_from_genIB
+          B hB f hnn (n + 1) x hgenDom hgenabs)
 
 
 /-! ## 4. Final bridges from the one-step assembly -/

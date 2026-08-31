@@ -6,8 +6,8 @@ import Mathdemo.BishopSec3Presented
 This file gives a clause-by-clause transcription of the four displayed clauses
 of Definition 1.1 of E. Bishop and H. Cheng, *Constructive Measure Theory*
 (Memoirs AMS 116, 1972), Section 1, relative to the development's encoding of
-the ambient notions.  In particular, partial functions are represented by total
-operations together with domains, `I` is ambient-total, and the source's
+the ambient notions.  In particular, partial functions carry values only on
+their domains, `I` carries values only on `L`, and the source's
 apartness and strong-extensionality structures are not represented here.  The
 file then derives, without additional hypotheses, all fourteen fields of the
 working interface `BishopSec1P.IntSpaceC`.
@@ -171,11 +171,12 @@ structure IntegrationSpaceDef11 (X : Type u) where
   /-- `L` is a subset of `F(X)`, the partial functions on `X`. -/
   L : Set (BFunC X)
   /-- `I` is a function from `L` to `ℝ`. -/
-  I : BFunC X → CReal
+  I : ∀ f : BFunC X, f ∈ L → CReal
   /-- `L` respects the equality of `F(X)`.  (Ambient convention, see header.) -/
   L_resp : ∀ {f g : BFunC X}, f ∈ L → BFunC.BEquiv f g → g ∈ L
   /-- `I` respects the equality of `F(X)`.  (Ambient convention, see header.) -/
-  I_resp : ∀ {f g : BFunC X}, f ∈ L → BFunC.BEquiv f g → I f ≈ I g
+  I_resp : ∀ {f g : BFunC X} (hf : f ∈ L) (hfg : BFunC.BEquiv f g),
+    I f hf ≈ I g (L_resp hf hfg)
   /-- (1) `αf + βg ∈ L`. -/
   lin_mem : ∀ (α β : CReal) {f g : BFunC X}, f ∈ L → g ∈ L →
     BFunC.add (BFunC.smul α f) (BFunC.smul β g) ∈ L
@@ -184,30 +185,35 @@ structure IntegrationSpaceDef11 (X : Type u) where
   /-- (1) `min{f,1} ∈ L`.  Note that the constant is `1`, and only `1`. -/
   cutOne_mem : ∀ {f : BFunC X}, f ∈ L → BFunC.minC f oneSeq ∈ L
   /-- (1) `I(αf + βg) = αI(f) + βI(g)`. -/
-  I_lin : ∀ (α β : CReal) {f g : BFunC X}, f ∈ L → g ∈ L →
-    I (BFunC.add (BFunC.smul α f) (BFunC.smul β g)) ≈
-      CReal.add (CReal.mul α (I f)) (CReal.mul β (I g))
+  I_lin : ∀ (α β : CReal) {f g : BFunC X} (hf : f ∈ L) (hg : g ∈ L),
+    I (BFunC.add (BFunC.smul α f) (BFunC.smul β g))
+        (lin_mem α β hf hg) ≈
+      CReal.add (CReal.mul α (I f hf)) (CReal.mul β (I g hg))
   /-- (2) The constructive continuity property.  See the header on why the
   conclusion is data. -/
-  continuity : ∀ {f : BFunC X} {fs : Nat → BFunC X},
-    f ∈ L → (∀ n, fs n ∈ L) → (∀ n, BFunC.PointwiseNonneg (fs n)) →
-    (hI : RepSeriesSum (fun n => I (fs n))) → CReal.ltE hI.sum (I f) →
+  continuity : ∀ {f : BFunC X} {fs : Nat → BFunC X}
+    (hf : f ∈ L) (hfs : ∀ n, fs n ∈ L),
+    (∀ n, BFunC.PointwiseNonneg (fs n)) →
+    (hI : RepSeriesSum (fun n => I (fs n) (hfs n))) →
+    CReal.ltE hI.sum (I f hf) →
     PointwiseSeriesBelowC fs f
   /-- (3) A distinguished function of `L`. -/
   p : BFunC X
   /-- (3) It belongs to `L`. -/
   p_mem : p ∈ L
   /-- (3) Its integral is `1`.  This is the normalization clause. -/
-  I_p : I p ≈ oneSeq
+  I_p : I p p_mem ≈ oneSeq
   /-- (4) `limₙ I(min{f,n}) = I(f)`, with a modulus. -/
-  cutNat_tendsto : ∀ {f : BFunC X}, f ∈ L →
-    RepSeriesTendsto (fun n => I (BFunC.cutNat n f)) (I f)
+  cutNat_tendsto : ∀ {f : BFunC X} (hf : f ∈ L)
+    (hcut : ∀ n, BFunC.cutNat n f ∈ L),
+    RepSeriesTendsto (fun n => I (BFunC.cutNat n f) (hcut n)) (I f hf)
   /-- (4) `limₙ I(min{|f|,n⁻¹}) = 0`, with a modulus.  The cut is at the
   source's own gauge `1/(n+1)` (`cutSmallSrc`), not at the development's
   dyadic gauge; the two are related by the machine-checked theorem
   `cutSmall_tendsto_of_src`. -/
-  cutSmallSrc_tendsto : ∀ {f : BFunC X}, f ∈ L →
-    RepSeriesTendsto (fun n => I (cutSmallSrc n f)) CReal.zero
+  cutSmallSrc_tendsto : ∀ {f : BFunC X} (hf : f ∈ L)
+    (hcut : ∀ n, cutSmallSrc n f ∈ L),
+    RepSeriesTendsto (fun n => I (cutSmallSrc n f) (hcut n)) CReal.zero
 
 /-! ## Consequences of clause (1)
 
@@ -302,63 +308,71 @@ variable {X : Type u} (D : IntegrationSpaceDef11 X)
 theorem add_mem {f g : BFunC X} (hf : f ∈ D.L) (hg : g ∈ D.L) :
     BFunC.add f g ∈ D.L := by
   refine D.L_resp (D.lin_mem CReal.one CReal.one hf hg) ⟨rfl, ?_⟩
-  intro x _
+  intro x hx
   exact addSeq_respects_eventually _ _ _ _
-    (one_mul_equivC (f.toFun x)) (one_mul_equivC (g.toFun x))
+    (one_mul_equivC (f.toFun x hx.1)) (one_mul_equivC (g.toFun x hx.2))
 
 /-- Closure under scalar multiplication: clause (1) at `β = 0` and `g = f`. -/
 theorem smul_mem (a : CReal) {f : BFunC X} (hf : f ∈ D.L) :
     BFunC.smul a f ∈ D.L := by
   refine D.L_resp (D.lin_mem a CReal.zero hf hf) ⟨Set.inter_self _, ?_⟩
-  intro x _
-  calc CReal.add (CReal.mul a (f.toFun x)) (CReal.mul CReal.zero (f.toFun x))
-      ≈ CReal.add (CReal.mul a (f.toFun x)) CReal.zero :=
+  intro x hx
+  calc CReal.add (CReal.mul a (f.toFun x hx.1))
+        (CReal.mul CReal.zero (f.toFun x hx.2))
+      ≈ CReal.add (CReal.mul a (f.toFun x hx.1)) CReal.zero :=
         addSeq_respects_eventually _ _ _ _
-          (Setoid.refl (CReal.mul a (f.toFun x))) (zero_mul_equivC (f.toFun x))
-    _ ≈ CReal.mul a (f.toFun x) := CReal.add_zero _
+          (Setoid.refl (CReal.mul a (f.toFun x hx.1)))
+          (zero_mul_equivC (f.toFun x hx.2))
+    _ ≈ CReal.mul a (f.toFun x (by simpa using hx.1)) := CReal.add_zero _
 
 /-- Additivity of the integral: clause (1) at `α = β = 1`. -/
 theorem I_add {f g : BFunC X} (hf : f ∈ D.L) (hg : g ∈ D.L) :
-    D.I (BFunC.add f g) ≈ CReal.add (D.I f) (D.I g) := by
+    D.I (BFunC.add f g) (D.add_mem hf hg) ≈
+      CReal.add (D.I f hf) (D.I g hg) := by
   have hEq : BFunC.BEquiv (BFunC.add f g)
       (BFunC.add (BFunC.smul CReal.one f) (BFunC.smul CReal.one g)) := by
     refine ⟨rfl, ?_⟩
-    intro x _
+    intro x hx
     exact addSeq_respects_eventually _ _ _ _
-      (Setoid.symm (one_mul_equivC (f.toFun x)))
-      (Setoid.symm (one_mul_equivC (g.toFun x)))
-  calc D.I (BFunC.add f g)
-      ≈ D.I (BFunC.add (BFunC.smul CReal.one f) (BFunC.smul CReal.one g)) :=
+      (Setoid.symm (one_mul_equivC (f.toFun x hx.1)))
+      (Setoid.symm (one_mul_equivC (g.toFun x hx.2)))
+  calc D.I (BFunC.add f g) (D.add_mem hf hg)
+      ≈ D.I (BFunC.add (BFunC.smul CReal.one f) (BFunC.smul CReal.one g))
+          (D.lin_mem CReal.one CReal.one hf hg) :=
         D.I_resp (D.add_mem hf hg) hEq
-    _ ≈ CReal.add (CReal.mul CReal.one (D.I f)) (CReal.mul CReal.one (D.I g)) :=
+    _ ≈ CReal.add (CReal.mul CReal.one (D.I f hf))
+          (CReal.mul CReal.one (D.I g hg)) :=
         D.I_lin CReal.one CReal.one hf hg
-    _ ≈ CReal.add (D.I f) (D.I g) :=
+    _ ≈ CReal.add (D.I f hf) (D.I g hg) :=
         addSeq_respects_eventually _ _ _ _
-          (one_mul_equivC (D.I f)) (one_mul_equivC (D.I g))
+          (one_mul_equivC (D.I f hf)) (one_mul_equivC (D.I g hg))
 
 /-- Homogeneity of the integral: clause (1) at `β = 0` and `g = f`. -/
 theorem I_smul (a : CReal) {f : BFunC X} (hf : f ∈ D.L) :
-    D.I (BFunC.smul a f) ≈ CReal.mul a (D.I f) := by
+    D.I (BFunC.smul a f) (D.smul_mem a hf) ≈ CReal.mul a (D.I f hf) := by
   have hEq : BFunC.BEquiv (BFunC.smul a f)
       (BFunC.add (BFunC.smul a f) (BFunC.smul CReal.zero f)) := by
     refine ⟨(Set.inter_self _).symm, ?_⟩
-    intro x _
-    calc CReal.mul a (f.toFun x)
-        ≈ CReal.add (CReal.mul a (f.toFun x)) CReal.zero :=
+    intro x hx
+    calc CReal.mul a (f.toFun x hx)
+        ≈ CReal.add (CReal.mul a (f.toFun x hx)) CReal.zero :=
           Setoid.symm (CReal.add_zero _)
-      _ ≈ CReal.add (CReal.mul a (f.toFun x)) (CReal.mul CReal.zero (f.toFun x)) :=
+      _ ≈ CReal.add (CReal.mul a (f.toFun x hx))
+            (CReal.mul CReal.zero (f.toFun x hx)) :=
           addSeq_respects_eventually _ _ _ _
-            (Setoid.refl (CReal.mul a (f.toFun x)))
-            (Setoid.symm (zero_mul_equivC (f.toFun x)))
-  calc D.I (BFunC.smul a f)
-      ≈ D.I (BFunC.add (BFunC.smul a f) (BFunC.smul CReal.zero f)) :=
+            (Setoid.refl (CReal.mul a (f.toFun x hx)))
+            (Setoid.symm (zero_mul_equivC (f.toFun x hx)))
+  calc D.I (BFunC.smul a f) (D.smul_mem a hf)
+      ≈ D.I (BFunC.add (BFunC.smul a f) (BFunC.smul CReal.zero f))
+          (D.lin_mem a CReal.zero hf hf) :=
         D.I_resp (D.smul_mem a hf) hEq
-    _ ≈ CReal.add (CReal.mul a (D.I f)) (CReal.mul CReal.zero (D.I f)) :=
+    _ ≈ CReal.add (CReal.mul a (D.I f hf))
+          (CReal.mul CReal.zero (D.I f hf)) :=
         D.I_lin a CReal.zero hf hf
-    _ ≈ CReal.add (CReal.mul a (D.I f)) CReal.zero :=
+    _ ≈ CReal.add (CReal.mul a (D.I f hf)) CReal.zero :=
         addSeq_respects_eventually _ _ _ _
-          (Setoid.refl (CReal.mul a (D.I f))) (zero_mul_equivC (D.I f))
-    _ ≈ CReal.mul a (D.I f) := CReal.add_zero _
+          (Setoid.refl (CReal.mul a (D.I f hf))) (zero_mul_equivC (D.I f hf))
+    _ ≈ CReal.mul a (D.I f hf) := CReal.add_zero _
 
 /-! ## Corollary 1.3 of the source
 
@@ -375,21 +389,21 @@ them: apply (2) with the zero function as the sequence. -/
 positive at some point of its domain.  Proved from clause (2) with the constant
 zero function in the role of the sequence, as in the source. -/
 theorem pos_witness {g : BFunC X} (hg : g ∈ D.L)
-    (hpos : CReal.ltE CReal.zero (D.I g)) :
-    ∃ x : X, x ∈ g.dom ∧ CReal.ltE CReal.zero (g.toFun x) := by
+    (hpos : CReal.ltE CReal.zero (D.I g hg)) :
+    ∃ x : X, ∃ hx : x ∈ g.dom, CReal.ltE CReal.zero (g.toFun x hx) := by
   -- The zero function on the domain of `g`, obtained as `0 · g`.
-  let z : BFunC X := ⟨fun _ => CReal.zero, g.dom⟩
+  let z : BFunC X := ⟨g.dom, fun _ _ => CReal.zero⟩
   have hsmul : BFunC.smul CReal.zero g ∈ D.L := D.smul_mem CReal.zero hg
   have hzequiv : BFunC.BEquiv (BFunC.smul CReal.zero g) z :=
-    ⟨rfl, fun x _ => zero_mul_equivC (g.toFun x)⟩
+    ⟨rfl, fun x hx => zero_mul_equivC (g.toFun x hx)⟩
   have hzmem : z ∈ D.L := D.L_resp hsmul hzequiv
   have hznn : BFunC.PointwiseNonneg z := fun x _ => regularSeqLe_refl CReal.zero
-  have hIz : D.I z ≈ CReal.zero := by
-    calc D.I z ≈ CReal.mul CReal.zero (D.I g) :=
+  have hIz : D.I z hzmem ≈ CReal.zero := by
+    calc D.I z hzmem ≈ CReal.mul CReal.zero (D.I g hg) :=
           Setoid.trans (Setoid.symm (D.I_resp hsmul hzequiv)) (D.I_smul CReal.zero hg)
-      _ ≈ CReal.zero := zero_mul_equivC (D.I g)
+      _ ≈ CReal.zero := zero_mul_equivC (D.I g hg)
   -- The series of integrals is the zero series, so it sums to zero.
-  let hI : RepSeriesSum (fun _ : Nat => D.I z) :=
+  let hI : RepSeriesSum (fun _ : Nat => D.I z hzmem) :=
     repSeriesSum_congr (repSeriesSum_single CReal.zero) (fun n => by
       by_cases hn : n = 0
       · rw [if_pos hn]; exact hIz
@@ -411,32 +425,37 @@ has nonnegative integral.  This is the statement the source records immediately
 after Corollary 1.3, and it is what `IntSpaceC` carries as the field
 `I_nonneg`; the present proof shows that carrying it is not necessary. -/
 theorem I_nonneg {f : BFunC X} (hf : f ∈ D.L)
-    (hnn : BFunC.PointwiseNonneg f) : RegularSeqLe zeroSeq (D.I f) := by
+    (hnn : BFunC.PointwiseNonneg f) : RegularSeqLe zeroSeq (D.I f hf) := by
   intro hneg
-  have hsymI : relEventually (D.I f) (subSeq (D.I f) zeroSeq) :=
-    relEventually_symm _ _ (subSeq_zero_right_eventually (D.I f))
-  have hIneg : regularSeqLtProp (D.I f) CReal.zero :=
+  have hsymI : relEventually (D.I f hf) (subSeq (D.I f hf) zeroSeq) :=
+    relEventually_symm _ _ (subSeq_zero_right_eventually (D.I f hf))
+  have hIneg : regularSeqLtProp (D.I f hf) CReal.zero :=
     regularSeqLtProp_of_left_eventual hsymI hneg
   have hnfmem : BFunC.smul (CReal.neg CReal.one) f ∈ D.L :=
     D.smul_mem (CReal.neg CReal.one) hf
-  have hInf : D.I (BFunC.smul (CReal.neg CReal.one) f) ≈ CReal.neg (D.I f) :=
-    Setoid.trans (D.I_smul (CReal.neg CReal.one) hf) (neg_one_mul_equivC (D.I f))
-  have hsymF : relEventually (CReal.neg (D.I f))
-      (D.I (BFunC.smul (CReal.neg CReal.one) f)) := relEventually_symm _ _ hInf
-  have hpos : CReal.ltE CReal.zero (D.I (BFunC.smul (CReal.neg CReal.one) f)) :=
+  have hInf : D.I (BFunC.smul (CReal.neg CReal.one) f) hnfmem ≈
+      CReal.neg (D.I f hf) :=
+    Setoid.trans (D.I_smul (CReal.neg CReal.one) hf)
+      (neg_one_mul_equivC (D.I f hf))
+  have hsymF : relEventually (CReal.neg (D.I f hf))
+      (D.I (BFunC.smul (CReal.neg CReal.one) f) hnfmem) :=
+    relEventually_symm _ _ hInf
+  have hpos : CReal.ltE CReal.zero
+      (D.I (BFunC.smul (CReal.neg CReal.one) f) hnfmem) :=
     regularSeqLtProp_of_right_eventual hsymF
       (BishopSec3P.regularSeqLtProp_zero_lt_negC hIneg)
   obtain ⟨x, hxdom, hxpos⟩ := D.pos_witness hnfmem hpos
-  have hxneg : regularSeqLtProp CReal.zero (CReal.neg (f.toFun x)) :=
-    regularSeqLtProp_of_right_eventual (neg_one_mul_equivC (f.toFun x)) hxpos
-  have hsymN : relEventually (f.toFun x) (CReal.neg (CReal.neg (f.toFun x))) :=
-    relEventually_symm _ _ (negSeq_negSeq_eventually (f.toFun x))
-  have hfx : regularSeqLtProp (f.toFun x) CReal.zero :=
+  have hxneg : regularSeqLtProp CReal.zero (CReal.neg (f.toFun x hxdom)) :=
+    regularSeqLtProp_of_right_eventual (neg_one_mul_equivC (f.toFun x hxdom)) hxpos
+  have hsymN : relEventually (f.toFun x hxdom)
+      (CReal.neg (CReal.neg (f.toFun x hxdom))) :=
+    relEventually_symm _ _ (negSeq_negSeq_eventually (f.toFun x hxdom))
+  have hfx : regularSeqLtProp (f.toFun x hxdom) CReal.zero :=
     regularSeqLtProp_of_left_eventual hsymN
       (BishopSec3P.regularSeqLtProp_neg_lt_zeroC hxneg)
   exact hnn x hxdom
     (regularSeqLtProp_of_left_eventual
-      (subSeq_zero_right_eventually (f.toFun x)) hfx)
+      (subSeq_zero_right_eventually (f.toFun x hxdom)) hfx)
 
 /-! ## The source's own truncation remark
 
@@ -463,27 +482,27 @@ theorem cutPos_mem (a : CReal) (h : PosEventuallyData a) {f : BFunC X}
   have hres : BFunC.smul a (BFunC.minC (BFunC.smul inv f) CReal.one) ∈ D.L :=
     D.smul_mem a (D.cutOne_mem (D.smul_mem inv hf))
   refine D.L_resp hres ⟨rfl, ?_⟩
-  intro x _
-  show CReal.mul a (CReal.min (CReal.mul inv (f.toFun x)) CReal.one) ≈
-    CReal.min (f.toFun x) a
+  intro x hx
+  show CReal.mul a (CReal.min (CReal.mul inv (f.toFun x hx)) CReal.one) ≈
+    CReal.min (f.toFun x hx) a
   calc
-    CReal.mul a (CReal.min (CReal.mul inv (f.toFun x)) CReal.one)
-        ≈ CReal.min (CReal.mul a (CReal.mul inv (f.toFun x)))
+    CReal.mul a (CReal.min (CReal.mul inv (f.toFun x hx)) CReal.one)
+        ≈ CReal.min (CReal.mul a (CReal.mul inv (f.toFun x hx)))
             (CReal.mul a CReal.one) :=
-          mul_min_distribC a (CReal.mul inv (f.toFun x)) CReal.one hnn
-    _ ≈ CReal.min (f.toFun x) a := by
+          mul_min_distribC a (CReal.mul inv (f.toFun x hx)) CReal.one hnn
+    _ ≈ CReal.min (f.toFun x hx) a := by
           refine minSeqWith_respects_eventually cRatScalarMulArch _ _ _ _
             ?_ (CReal.mul_one a)
           calc
-            CReal.mul a (CReal.mul inv (f.toFun x))
-                ≈ CReal.mul (CReal.mul a inv) (f.toFun x) :=
-                  Setoid.symm (CReal.mul_assoc a inv (f.toFun x))
-            _ ≈ CReal.mul CReal.one (f.toFun x) :=
+            CReal.mul a (CReal.mul inv (f.toFun x hx))
+                ≈ CReal.mul (CReal.mul a inv) (f.toFun x hx) :=
+                  Setoid.symm (CReal.mul_assoc a inv (f.toFun x hx))
+            _ ≈ CReal.mul CReal.one (f.toFun x hx) :=
                   mulSeqConcrete_respects_eventually cRatScalarMulArch
-                    (CReal.mul a inv) CReal.one (f.toFun x) (f.toFun x)
+                    (CReal.mul a inv) CReal.one (f.toFun x hx) (f.toFun x hx)
                     (CReal.mul_invPos_eventually_one a h)
-                    (Setoid.refl (f.toFun x))
-            _ ≈ f.toFun x := one_mul_equivC (f.toFun x)
+                    (Setoid.refl (f.toFun x hx))
+            _ ≈ f.toFun x hx := one_mul_equivC (f.toFun x hx)
 
 /-! ## The gauge bridge
 
@@ -531,24 +550,29 @@ theorem le_abs_sub_zero (z : CReal) :
 
 /-- `I(f + (-1)·g) ≈ I f - I g`. -/
 theorem I_sub {f g : BFunC X} (hf : f ∈ D.L) (hg : g ∈ D.L) :
-    D.I (BFunC.add f (BFunC.smul (CReal.neg CReal.one) g)) ≈
-      CReal.sub (D.I f) (D.I g) := by
-  have hsmul : D.I (BFunC.smul (CReal.neg CReal.one) g) ≈
-      CReal.mul (CReal.neg CReal.one) (D.I g) :=
+    D.I (BFunC.add f (BFunC.smul (CReal.neg CReal.one) g))
+        (D.add_mem hf (D.smul_mem (CReal.neg CReal.one) hg)) ≈
+      CReal.sub (D.I f hf) (D.I g hg) := by
+  have hsmul : D.I (BFunC.smul (CReal.neg CReal.one) g)
+        (D.smul_mem (CReal.neg CReal.one) hg) ≈
+      CReal.mul (CReal.neg CReal.one) (D.I g hg) :=
     D.I_smul (CReal.neg CReal.one) hg
   calc
     D.I (BFunC.add f (BFunC.smul (CReal.neg CReal.one) g))
-        ≈ CReal.add (D.I f) (D.I (BFunC.smul (CReal.neg CReal.one) g)) :=
+        (D.add_mem hf (D.smul_mem (CReal.neg CReal.one) hg))
+        ≈ CReal.add (D.I f hf)
+            (D.I (BFunC.smul (CReal.neg CReal.one) g)
+              (D.smul_mem (CReal.neg CReal.one) hg)) :=
           D.I_add hf (D.smul_mem (CReal.neg CReal.one) hg)
-    _ ≈ CReal.add (D.I f) (CReal.mul (CReal.neg CReal.one) (D.I g)) :=
-          addC_congr (Setoid.refl (D.I f)) hsmul
-    _ ≈ CReal.sub (D.I f) (D.I g) :=
-          addC_negOne_mul_right_sub (D.I f) (D.I g)
+    _ ≈ CReal.add (D.I f hf) (CReal.mul (CReal.neg CReal.one) (D.I g hg)) :=
+          addC_congr (Setoid.refl (D.I f hf)) hsmul
+    _ ≈ CReal.sub (D.I f hf) (D.I g hg) :=
+          addC_negOne_mul_right_sub (D.I f hf) (D.I g hg)
 
 /-- Monotonicity of `I`, from clause (2) through `I_nonneg`. -/
 theorem I_mono {f g : BFunC X}
     (hf : f ∈ D.L) (hg : g ∈ D.L) (hfg : BFunC.PointwiseLE f g) :
-    RegularSeqLe (D.I f) (D.I g) := by
+    RegularSeqLe (D.I f hf) (D.I g hg) := by
   let neg_f : BFunC X := BFunC.smul (CReal.neg CReal.one) f
   let diff : BFunC X := BFunC.add g neg_f
   have hneg_mem : neg_f ∈ D.L := by
@@ -557,34 +581,36 @@ theorem I_mono {f g : BFunC X}
     simpa [diff] using D.add_mem hg hneg_mem
   have hdiff_nn : BFunC.PointwiseNonneg diff := by
     intro x hx
-    have hxf : x ∈ f.dom := by
-      have hx' : x ∈ g.dom ∩ f.dom := by
-        simpa [diff, neg_f, BFunC.add, BFunC.smul] using hx
-      exact hx'.2
+    have hx' : x ∈ g.dom ∩ f.dom := by
+      simpa [diff, neg_f, BFunC.add, BFunC.smul] using hx
+    have hxg : x ∈ g.dom := hx'.1
+    have hxf : x ∈ f.dom := hx'.2
     have hdiff_val :
-        relEventually (diff.toFun x) (subSeq (g.toFun x) (f.toFun x)) := by
+        relEventually (diff.toFun x hx)
+          (subSeq (g.toFun x hxg) (f.toFun x hxf)) := by
       change relEventually
-        (addSeq (g.toFun x)
-          (mulSeqConcreteWith cRatScalarMulArch (negSeq oneSeq) (f.toFun x)))
-        (subSeq (g.toFun x) (f.toFun x))
+        (addSeq (g.toFun x hxg)
+          (mulSeqConcreteWith cRatScalarMulArch (negSeq oneSeq) (f.toFun x hxf)))
+        (subSeq (g.toFun x hxg) (f.toFun x hxf))
       exact addSeq_negOneMul_right_eventually_subSeq
-        cRatScalarMulArch (g.toFun x) (f.toFun x)
+        cRatScalarMulArch (g.toFun x hxg) (f.toFun x hxf)
     have hdiff_zero_to_sub :
-        relEventually (subSeq (diff.toFun x) zeroSeq)
-          (subSeq (g.toFun x) (f.toFun x)) :=
+        relEventually (subSeq (diff.toFun x hx) zeroSeq)
+          (subSeq (g.toFun x hxg) (f.toFun x hxf)) :=
       relEventually_trans
-        (subSeq (diff.toFun x) zeroSeq) (diff.toFun x)
-        (subSeq (g.toFun x) (f.toFun x))
-        (subSeq_zero_right_eventually (diff.toFun x)) hdiff_val
-    change RegularSeqNonneg (subSeq (diff.toFun x) zeroSeq)
+        (subSeq (diff.toFun x hx) zeroSeq) (diff.toFun x hx)
+        (subSeq (g.toFun x hxg) (f.toFun x hxf))
+        (subSeq_zero_right_eventually (diff.toFun x hx)) hdiff_val
+    change RegularSeqNonneg (subSeq (diff.toFun x hx) zeroSeq)
     exact regularSeqNonneg_of_eventual hdiff_zero_to_sub (hfg.le_val x hxf)
-  have hI_diff_nonneg : RegularSeqLe zeroSeq (D.I diff) :=
+  have hI_diff_nonneg : RegularSeqLe zeroSeq (D.I diff hdiff_mem) :=
     D.I_nonneg hdiff_mem hdiff_nn
-  have hI_to_sub : relEventually (D.I diff) (subSeq (D.I g) (D.I f)) := by
+  have hI_to_sub : relEventually (D.I diff hdiff_mem)
+      (subSeq (D.I g hg) (D.I f hf)) := by
     simpa [diff, neg_f] using D.I_sub hg hf
-  have hzero_sub : RegularSeqLe zeroSeq (subSeq (D.I g) (D.I f)) :=
+  have hzero_sub : RegularSeqLe zeroSeq (subSeq (D.I g hg) (D.I f hf)) :=
     regularSeqLe_of_right_eventual hI_to_sub hI_diff_nonneg
-  change RegularSeqNonneg (subSeq (D.I g) (D.I f))
+  change RegularSeqNonneg (subSeq (D.I g hg) (D.I f hf))
   exact regularSeqNonneg_of_zero_le hzero_sub
 
 /-- `min{|f|, 1/(n+1)} ∈ L`, by clause (1) through `cutPos_mem`. -/
@@ -607,27 +633,35 @@ theorem cutSmall_succ_le_cutSmallSrc (f : BFunC X) (n : Nat) :
 the interface's clause at the dyadic gauge `2⁻ⁿ`, with the modulus
 reindexed. -/
 def cutSmall_tendsto_of_src {f : BFunC X} (hf : f ∈ D.L)
-    (h : RepSeriesTendsto (fun n => D.I (cutSmallSrc n f)) CReal.zero) :
-    RepSeriesTendsto (fun n => D.I (BFunC.cutSmall n f)) CReal.zero where
+    (h : RepSeriesTendsto
+      (fun n => D.I (cutSmallSrc n f) (D.cutSmallSrc_mem hf n)) CReal.zero) :
+    RepSeriesTendsto
+      (fun n => D.I (BFunC.cutSmall n f) (D.cutSmall_mem hf n)) CReal.zero where
   mod := fun k => h.mod (k + 1) + 1
   close := by
     intro k n hn
     obtain ⟨m, rfl⟩ : ∃ m, n = m + 1 := ⟨n - 1, by omega⟩
     have hm : h.mod (k + 1) ≤ m := by omega
-    have hclose : RepCloseAtGauge (k + 1 + 1) (D.I (cutSmallSrc m f)) CReal.zero :=
+    have hclose : RepCloseAtGauge (k + 1 + 1)
+        (D.I (cutSmallSrc m f) (D.cutSmallSrc_mem hf m)) CReal.zero :=
       h.close (k + 1) m hm
     have hy : regularSeqLtProp
-        (CReal.abs (CReal.sub (D.I (cutSmallSrc m f)) CReal.zero)) (halfPow (k + 1)) :=
+        (CReal.abs (CReal.sub
+          (D.I (cutSmallSrc m f) (D.cutSmallSrc_mem hf m)) CReal.zero))
+        (halfPow (k + 1)) :=
       ltProp_abs_sub_of_repClose_succ hclose
     have hnn : BFunC.PointwiseNonneg (BFunC.cutSmall (m + 1) f) := by
       intro x hx
       exact regularSeqLe_zero_of_nonneg
-        (lemma43Min_nonnegC (absSeq_regularSeqNonneg (f.toFun x))
+        (lemma43Min_nonnegC (absSeq_regularSeqNonneg (f.toFun x hx))
           (regularSeqNonneg_of_zero_le
             (regularSeqLe_of_ltPropC (regularSeqLtProp_zero_halfPow (m + 1)))))
-    have hx : RegularSeqNonneg (D.I (BFunC.cutSmall (m + 1) f)) :=
+    have hx : RegularSeqNonneg
+        (D.I (BFunC.cutSmall (m + 1) f) (D.cutSmall_mem hf (m + 1))) :=
       regularSeqNonneg_of_zero_le (D.I_nonneg (D.cutSmall_mem hf (m + 1)) hnn)
-    have hcmp : RegularSeqLe (D.I (BFunC.cutSmall (m + 1) f)) (D.I (cutSmallSrc m f)) :=
+    have hcmp : RegularSeqLe
+        (D.I (BFunC.cutSmall (m + 1) f) (D.cutSmall_mem hf (m + 1)))
+        (D.I (cutSmallSrc m f) (D.cutSmallSrc_mem hf m)) :=
       D.I_mono (D.cutSmall_mem hf (m + 1)) (D.cutSmallSrc_mem hf m)
         (cutSmall_succ_le_cutSmallSrc f m)
     exact repCloseAtGauge_zero_of_nonneg_le_ltC hx
@@ -657,8 +691,10 @@ def toIntSpaceC : IntSpaceC X where
   cutPos_mem := fun a h {_f} hf => D.cutPos_mem a h hf
   I_add := D.I_add
   I_smul := D.I_smul
-  cutNat_tendsto := D.cutNat_tendsto
-  cutSmall_tendsto := fun {_f} hf => D.cutSmall_tendsto_of_src hf (D.cutSmallSrc_tendsto hf)
+  cutNat_tendsto_raw := fun {_f} hf hcut => D.cutNat_tendsto hf hcut
+  cutSmall_tendsto_raw := fun {_f} hf _hcut =>
+    D.cutSmall_tendsto_of_src hf
+      (D.cutSmallSrc_tendsto hf (D.cutSmallSrc_mem hf))
   I_nonneg := D.I_nonneg
   continuity := D.continuity
 

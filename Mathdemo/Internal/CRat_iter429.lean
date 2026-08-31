@@ -22,13 +22,13 @@ variable {X R : Type*} [COFOC R] {S : IntSpaceRC X R}
 
 /-- Full-domain data with the pointwise absolute SeriesSum witness exposed. -/
 structure IntegrableRep.PointwiseDomainData (r : IntegrableRep S) (x : X) where
-  mem : forall n : Nat, x ∈ (r.fn n).dom
-  absWitness : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x))
+  mem : r.MemAt x
+  absWitness : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x mem n))
 
 /-- The requested pointwise witness is just a projection once it is carried as data. -/
 def IntegrableRep.pointwiseWitnessData (r : IntegrableRep S) :
-    forall x : X, r.PointwiseDomainData x ->
-      RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) :=
+    forall (x : X) (hx : r.PointwiseDomainData x),
+      RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hx.mem n)) :=
   fun _x hx => hx.absWitness
 
 /-- The data package implies membership in the existing plain domain. -/
@@ -39,7 +39,7 @@ theorem IntegrableRep.pointwiseDomainData_mem (r : IntegrableRep S) {x : X}
 /-- Signed convergence at a point, obtained from the exposed absolute witness. -/
 def IntegrableRep.signedWitnessData (r : IntegrableRep S) (x : X)
     (hx : r.PointwiseDomainData x) :
-    RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+    RSeq.SeriesSum (fun n => r.valueAt x hx.mem n) :=
   seriesSum_of_abs (r.pointwiseWitnessData x hx)
 
 /-- A data-carrying partial function whose domain argument keeps Type-data. -/
@@ -55,7 +55,7 @@ def IntegrableRep.toDataPFunRSeries (r : IntegrableRep S) : DataPFunR X R where
 /-- Any supplied absolute witness gives the same signed value as the data projection. -/
 theorem IntegrableRep.toDataPFunRSeries_represents (r : IntegrableRep S)
     (x : X) (hx : (r.toDataPFunRSeries).domData x)
-    (hrabs : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x))) :
+    (hrabs : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hx.mem n))) :
     (seriesSum_of_abs hrabs).sum = (r.toDataPFunRSeries).toFun x hx := by
   unfold IntegrableRep.toDataPFunRSeries IntegrableRep.signedWitnessData
     IntegrableRep.pointwiseWitnessData

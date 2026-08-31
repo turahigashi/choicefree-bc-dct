@@ -41,11 +41,17 @@ theorem prop412_bad_set_relIntegral_lt_for_common_good_set
     (n : Nat) {eps : R}
     (hbound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom :
+          (prop412_bad_set_integrable hA
+            (BishopC.IntegrableSet1_and hB hC)).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
           (fun m => COF.abs
-            ((((prop412_bad_set_integrable hA
-              (BishopC.IntegrableSet1_and hB hC)).rep.fn m).toFun x)))),
+            ((prop412_bad_set_integrable hA
+              (BishopC.IntegrableSet1_and hB hC)).rep.valueAt
+                x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (hnpos : COF.lt 0 (n : R))

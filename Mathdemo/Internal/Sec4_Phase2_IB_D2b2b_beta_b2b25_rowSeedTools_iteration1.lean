@@ -31,8 +31,8 @@ set_option linter.unusedVariables false
 def Sec4Prop42ChiAbsOnS1OfFAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))) →
-    RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+    Sec4RepAbsAt f x →
+    Sec4RepAbsAt hA.rep x
 
 
 /-- Corrected abs-outer row-sum witness on `A.S1`, once per-row abs witnesses
@@ -40,7 +40,7 @@ def Sec4Prop42ChiAbsOnS1OfFAbs
 def Sec4Prop42AbsOuterOnS1OfRows
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    ∀ hfabs : RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+    ∀ hfabs : Sec4RepAbsAt f x,
     ∀ hrows : Sec4LambdaRowsAbsAt (S := S) A hA f x,
       Sec4LambdaRowsAbsOuterSumAt (S := S) A hA f x hrows
 

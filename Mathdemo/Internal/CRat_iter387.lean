@@ -45,11 +45,13 @@ structure IntegrableSet1WithDef23
     forall x : X, x ∈ A.S2 ->
       forall m : Nat, x ∈ (base.rep.fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ A.S1 ->
-      RSeq.SeriesSum (fun m => COF.abs (((base.rep.fn m).toFun x)))
+    forall (x : X) (hx : x ∈ A.S1),
+      RSeq.SeriesSum (fun m => COF.abs
+        (base.rep.valueAt x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ A.S2 ->
-      RSeq.SeriesSum (fun m => COF.abs (((base.rep.fn m).toFun x)))
+    forall (x : X) (hx : x ∈ A.S2),
+      RSeq.SeriesSum (fun m => COF.abs
+        (base.rep.valueAt x (dom_on_s2 x hx) m))
 
 
 namespace IntegrableSet1WithDef23
@@ -77,12 +79,15 @@ noncomputable def Sec4Prop42ProductLocalWitness.ofWithDef23S1
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A H.base f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A H.base f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A H.base f hnn).valueAt
+            x hprod_dom m))) :
     Sec4Prop42ProductLocalWitness (S := S) A H.base f hnn x where
   chi_dom := H.dom_on_s1 x hxA
   chi_abs := H.abs_on_s1 x hxA
@@ -100,12 +105,15 @@ noncomputable def Sec4Prop42ProductLocalWitness.ofWithDef23S2
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A H.base f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A H.base f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A H.base f hnn).valueAt
+            x hprod_dom m))) :
     Sec4Prop42ProductLocalWitness (S := S) A H.base f hnn x where
   chi_dom := H.dom_on_s2 x hxA
   chi_abs := H.abs_on_s2 x hxA
@@ -125,23 +133,29 @@ theorem sec4_prop42ProductValueOnS1_of_withDef23ProductWitness
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A H.base f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A H.base f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A H.base f hnn).valueAt
+            x hprod_dom m))) :
     (seriesSum_of_abs hprod_abs).sum = (seriesSum_of_abs hf_abs).sum := by
+  let hchi_dom : H.base.rep.MemAt x := H.dom_on_s1 x hxA
   let hchi_abs : RSeq.SeriesSum
-      (fun m => COF.abs ((H.base.rep.fn m).toFun x)) :=
+      (fun m => COF.abs (H.base.rep.valueAt x hchi_dom m)) :=
     H.abs_on_s1 x hxA
   have hval :
       (seriesSum_of_abs hprod_abs).sum =
         (seriesSum_of_abs hchi_abs).sum * (seriesSum_of_abs hf_abs).sum :=
-    prop_4_2_chi_f_rep_value A H.base f hnn hprod_abs hchi_abs hf_abs
+    prop_4_2_chi_f_rep_value A H.base f hnn
+      hprod_dom hchi_dom hf_dom hprod_abs hchi_abs hf_abs
   have hchi_one :
       (seriesSum_of_abs hchi_abs).sum = (1 : R) :=
-    (H.base.valid x hchi_abs).2.1 hxA (seriesSum_of_abs hchi_abs)
+    (H.base.valid x hchi_dom hchi_abs).2.1 hxA
+      (seriesSum_of_abs hchi_abs)
   rw [hval, hchi_one]
   ring
 
@@ -154,23 +168,29 @@ theorem sec4_prop42ProductValueOnS2_of_withDef23ProductWitness
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A H.base f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A H.base f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A H.base f hnn).valueAt
+            x hprod_dom m))) :
     (seriesSum_of_abs hprod_abs).sum = (0 : R) := by
+  let hchi_dom : H.base.rep.MemAt x := H.dom_on_s2 x hxA
   let hchi_abs : RSeq.SeriesSum
-      (fun m => COF.abs ((H.base.rep.fn m).toFun x)) :=
+      (fun m => COF.abs (H.base.rep.valueAt x hchi_dom m)) :=
     H.abs_on_s2 x hxA
   have hval :
       (seriesSum_of_abs hprod_abs).sum =
         (seriesSum_of_abs hchi_abs).sum * (seriesSum_of_abs hf_abs).sum :=
-    prop_4_2_chi_f_rep_value A H.base f hnn hprod_abs hchi_abs hf_abs
+    prop_4_2_chi_f_rep_value A H.base f hnn
+      hprod_dom hchi_dom hf_dom hprod_abs hchi_abs hf_abs
   have hchi_zero :
       (seriesSum_of_abs hchi_abs).sum = (0 : R) :=
-    (H.base.valid x hchi_abs).2.2 hxA (seriesSum_of_abs hchi_abs)
+    (H.base.valid x hchi_dom hchi_abs).2.2 hxA
+      (seriesSum_of_abs hchi_abs)
   rw [hval, hchi_zero]
   ring
 
@@ -186,31 +206,37 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_withDef23ProductWit
     (V : Sec4GenIBLocalValueBridge
       (S := S) C (isMeasurableSet_of_integrable H.base) f hnn) :
     ∀ x ∈ Sec4ConsistencySupport (S := S) C H.base f hnn,
+      ∀ (hgenDom : (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable H.base) f hnn).MemAt x),
+      ∀ (hrelDom : (prop_4_2_chi_f_rep C H.base f hnn).MemAt x),
       ∀ (hgen : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable C
-          (isMeasurableSet_of_integrable H.base) f hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable H.base) f hnn).valueAt
+            x hgenDom n))
         (hrel : RSeq.SeriesSum
-        (fun n => ((prop_4_2_chi_f_rep C H.base f hnn).fn n).toFun x)),
+        (fun n => (prop_4_2_chi_f_rep C H.base f hnn).valueAt
+          x hrelDom n)),
         hgen.sum = hrel.sum := by
-  intro x hx hgen hrel
-  rcases hx with ⟨⟨⟨hgenDom, hrelDom⟩, hχDom⟩, hfDom⟩
-  rcases hgenDom.2 with ⟨hgenabs⟩
-  rcases hrelDom.2 with ⟨hrelabs⟩
-  rcases hχDom.2 with ⟨hχabs⟩
-  rcases hfDom.2 with ⟨hfabs⟩
+  intro x hx hgenDom hrelDom hgen hrel
+  rcases hx with ⟨⟨⟨hgenAt, hrelAt⟩, hχAt⟩, hfAt⟩
+  rcases hgenAt with ⟨hgenSupportDom, ⟨hgenabs⟩⟩
+  rcases hrelAt with ⟨hrelSupportDom, ⟨hrelabs⟩⟩
+  rcases hχAt with ⟨hχSupportDom, ⟨hχabs⟩⟩
+  rcases hfAt with ⟨hfSupportDom, ⟨hfabs⟩⟩
   let Wgen : Sec4GenIBLocalWitness
       (S := S) C (isMeasurableSet_of_integrable H.base) f hnn x := {
-    gen_dom := hgenDom.1
+    gen_dom := hgenSupportDom
     gen_abs := hgenabs
-    f_dom := hfDom.1
+    f_dom := hfSupportDom
     f_abs := hfabs
   }
-  have hχvalid := H.base.valid x hχabs
+  have hχvalid := H.base.valid x hχSupportDom hχabs
   cases hχvalid.1 with
   | inl hxC1 =>
       let Wprod : Sec4Prop42ProductLocalWitness (S := S) C H.base f hnn x :=
         Sec4Prop42ProductLocalWitness.ofWithDef23S1
-          (S := S) H hnn hxC1 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) H hnn hxC1 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       have hgen_value :
           (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum =
             (Sec4GenIBLocalWitness.fSigned (S := S) Wgen).sum :=
@@ -219,7 +245,8 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_withDef23ProductWit
           (Sec4Prop42ProductLocalWitness.prodSigned (S := S) Wprod).sum =
             (Sec4Prop42ProductLocalWitness.fSigned (S := S) Wprod).sum :=
         sec4_prop42ProductValueOnS1_of_withDef23ProductWitness
-          (S := S) H hnn hxC1 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) H hnn hxC1 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       calc
         hgen.sum = (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum :=
           seriesSum_unique hgen
@@ -235,7 +262,8 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_withDef23ProductWit
   | inr hxC2 =>
       let Wprod : Sec4Prop42ProductLocalWitness (S := S) C H.base f hnn x :=
         Sec4Prop42ProductLocalWitness.ofWithDef23S2
-          (S := S) H hnn hxC2 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) H hnn hxC2 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       have hgen_value :
           (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum = (0 : R) :=
         V.value_s2 x hxC2 Wgen
@@ -243,7 +271,8 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_withDef23ProductWit
           (Sec4Prop42ProductLocalWitness.prodSigned (S := S) Wprod).sum =
             (0 : R) :=
         sec4_prop42ProductValueOnS2_of_withDef23ProductWitness
-          (S := S) H hnn hxC2 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) H hnn hxC2 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       calc
         hgen.sum = (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum :=
           seriesSum_unique hgen

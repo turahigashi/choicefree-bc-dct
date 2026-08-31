@@ -71,31 +71,36 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_productWitness
     (V : Sec4GenIBLocalValueBridge
       (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
     ∀ x ∈ Sec4ConsistencySupport (S := S) C hC f hnn,
+      ∀ (hgenDom : (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable hC) f hnn).MemAt x),
+      ∀ (hrelDom : (prop_4_2_chi_f_rep C hC f hnn).MemAt x),
       ∀ (hgen : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable C
-          (isMeasurableSet_of_integrable hC) f hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable hC) f hnn).valueAt x hgenDom n))
         (hrel : RSeq.SeriesSum
-        (fun n => ((prop_4_2_chi_f_rep C hC f hnn).fn n).toFun x)),
+        (fun n => (prop_4_2_chi_f_rep C hC f hnn).valueAt
+          x hrelDom n)),
         hgen.sum = hrel.sum := by
-  intro x hx hgen hrel
-  rcases hx with ⟨⟨⟨hgenDom, hrelDom⟩, hχDom⟩, hfDom⟩
-  rcases hgenDom.2 with ⟨hgenabs⟩
-  rcases hrelDom.2 with ⟨hrelabs⟩
-  rcases hχDom.2 with ⟨hχabs⟩
-  rcases hfDom.2 with ⟨hfabs⟩
+  intro x hx hgenDom hrelDom hgen hrel
+  rcases hx with ⟨⟨⟨hgenAt, hrelAt⟩, hχAt⟩, hfAt⟩
+  rcases hgenAt with ⟨hgenSupportDom, ⟨hgenabs⟩⟩
+  rcases hrelAt with ⟨hrelSupportDom, ⟨hrelabs⟩⟩
+  rcases hχAt with ⟨hχSupportDom, ⟨hχabs⟩⟩
+  rcases hfAt with ⟨hfSupportDom, ⟨hfabs⟩⟩
   let Wgen : Sec4GenIBLocalWitness
       (S := S) C (isMeasurableSet_of_integrable hC) f hnn x := {
-    gen_dom := hgenDom.1
+    gen_dom := hgenSupportDom
     gen_abs := hgenabs
-    f_dom := hfDom.1
+    f_dom := hfSupportDom
     f_abs := hfabs
   }
-  have hχvalid := hC.valid x hχabs
+  have hχvalid := hC.valid x hχSupportDom hχabs
   cases hχvalid.1 with
   | inl hxC1 =>
       let Wprod : Sec4Prop42ProductLocalWitness (S := S) C hC f hnn x :=
         Sec4Prop42ProductLocalWitness.ofDef23S1
-          (S := S) D hC hnn hxC1 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) D hC hnn hxC1 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       have hgen_value :
           (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum =
             (Sec4GenIBLocalWitness.fSigned (S := S) Wgen).sum :=
@@ -120,7 +125,8 @@ theorem sec4_genIB_value_eq_relRep_on_support_of_localBridge_productWitness
   | inr hxC2 =>
       let Wprod : Sec4Prop42ProductLocalWitness (S := S) C hC f hnn x :=
         Sec4Prop42ProductLocalWitness.ofDef23S2
-          (S := S) D hC hnn hxC2 hfDom.1 hfabs hrelDom.1 hrelabs
+          (S := S) D hC hnn hxC2 hfSupportDom hfabs
+            hrelSupportDom hrelabs
       have hgen_value :
           (Sec4GenIBLocalWitness.genSigned (S := S) Wgen).sum = (0 : R) :=
         V.value_s2 x hxC2 Wgen

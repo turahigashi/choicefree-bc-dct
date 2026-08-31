@@ -26,18 +26,23 @@ theorem sec4_genIB_complement_value_eq_subRep_on_support_of_localBridge
     (V : Sec4GenIBLocalValueBridge (S := S) (BSet.neg C)
       (isMeasurableSet_neg_of_integrable (S := S) hC) f hnn) :
     ∀ x ∈ Sec4ComplementConsistencySupport (S := S) C hC f hnn,
+      ∀ (hgenDom : (genIB_rep_from_measurable (BSet.neg C)
+        (isMeasurableSet_neg_of_integrable (S := S) hC) f hnn).MemAt x),
+      ∀ (hcompDom : (f.sub (prop_4_2_chi_f_rep C hC f hnn)).MemAt x),
       ∀ (hgen : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable (BSet.neg C)
-          (isMeasurableSet_neg_of_integrable (S := S) hC) f hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable (BSet.neg C)
+          (isMeasurableSet_neg_of_integrable (S := S) hC) f hnn).valueAt
+            x hgenDom n))
         (hcomp : RSeq.SeriesSum
-        (fun n => (((f.sub (prop_4_2_chi_f_rep C hC f hnn)).fn n).toFun x))),
+        (fun n => (f.sub (prop_4_2_chi_f_rep C hC f hnn)).valueAt
+          x hcompDom n)),
         hgen.sum = hcomp.sum := by
-  intro x hx hgen hcomp
+  intro x hx _hgenArgDom _hcompArgDom hgen hcomp
   rcases hx with ⟨⟨⟨⟨hgenDom, hcompDom⟩, hchiFDom⟩, hχDom⟩, hfDom⟩
   rcases hgenDom with ⟨hgenDomAll, ⟨hgenabs⟩⟩
-  rcases hcompDom.2 with ⟨_hcompabs⟩
-  rcases hchiFDom.2 with ⟨hchiFabs⟩
-  rcases hχDom.2 with ⟨hχabs⟩
+  rcases hcompDom with ⟨_hcompSupportDom, ⟨_hcompabs⟩⟩
+  rcases hchiFDom with ⟨hchiFDomAll, ⟨hchiFabs⟩⟩
+  rcases hχDom with ⟨hχDomAll, ⟨hχabs⟩⟩
   rcases hfDom with ⟨hfDomAll, ⟨hfabs⟩⟩
   let W : Sec4GenIBLocalWitness
       (S := S) (BSet.neg C)
@@ -48,14 +53,16 @@ theorem sec4_genIB_complement_value_eq_subRep_on_support_of_localBridge
     f_abs := hfabs
   }
   let hcompValue :=
-    add_seriesSum_value (seriesSum_of_abs hfabs)
-      (neg_seriesSum_value (seriesSum_of_abs hchiFabs))
+    add_seriesSum_value hfDomAll (IntegrableRep.neg_memAt hchiFDomAll)
+      (seriesSum_of_abs hfabs)
+      (neg_seriesSum_value hchiFDomAll (seriesSum_of_abs hchiFabs))
   have hcomp_value :
       hcompValue.sum =
         (1 - (seriesSum_of_abs hχabs).sum) *
           (seriesSum_of_abs hfabs).sum :=
-    prop_4_2_complement_value C hC f hnn hchiFabs hχabs hfabs
-  have hχvalid := hC.valid x hχabs
+    prop_4_2_complement_value C hC f hnn
+      hchiFDomAll hχDomAll hfDomAll hchiFabs hχabs hfabs
+  have hχvalid := hC.valid x hχDomAll hχabs
   cases hχvalid.1 with
   | inl hxC1 =>
       have hχ_one :

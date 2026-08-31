@@ -38,10 +38,12 @@ theorem prop412_chi_value_cases_from_valid
     {C : BishopC.BSet Y}
     (hC : BishopC.IntegrableSet1 S C)
     {x : Y}
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x))) :
+    (hχDom : hC.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hC.rep.valueAt x hχDom n))) :
     (BishopC.seriesSum_of_abs hχabs).sum = 0 ∨
       (BishopC.seriesSum_of_abs hχabs).sum = 1 := by
-  have hvalid := hC.valid x hχabs
+  have hvalid := hC.valid x hχDom hχabs
   rcases hvalid.1 with hxC1 | hxC2
   · exact Or.inr (hvalid.2.1 hxC1 (BishopC.seriesSum_of_abs hχabs))
   · exact Or.inl (hvalid.2.2 hxC2 (BishopC.seriesSum_of_abs hχabs))
@@ -52,10 +54,12 @@ theorem prop412_chi_one_mem_s1_from_valid
     {C : BishopC.BSet Y}
     (hC : BishopC.IntegrableSet1 S C)
     {x : Y}
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x)))
+    (hχDom : hC.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hC.rep.valueAt x hχDom n)))
     (hone : (BishopC.seriesSum_of_abs hχabs).sum = 1) :
     x ∈ C.S1 := by
-  have hvalid := hC.valid x hχabs
+  have hvalid := hC.valid x hχDom hχabs
   rcases hvalid.1 with hxC1 | hxC2
   · exact hxC1
   · exfalso
@@ -75,10 +79,12 @@ theorem prop412_chi_zero_mem_s2_from_valid
     {C : BishopC.BSet Y}
     (hC : BishopC.IntegrableSet1 S C)
     {x : Y}
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x)))
+    (hχDom : hC.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hC.rep.valueAt x hχDom n)))
     (hzero : (BishopC.seriesSum_of_abs hχabs).sum = 0) :
     x ∈ C.S2 := by
-  have hvalid := hC.valid x hχabs
+  have hvalid := hC.valid x hχDom hχabs
   rcases hvalid.1 with hxC1 | hxC2
   · exfalso
     have hone :
@@ -98,10 +104,12 @@ theorem prop412_chi_one_of_mem_s1_from_valid
     {C : BishopC.BSet Y}
     (hC : BishopC.IntegrableSet1 S C)
     {x : Y}
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x)))
+    (hχDom : hC.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hC.rep.valueAt x hχDom n)))
     (hxC1 : x ∈ C.S1) :
     (BishopC.seriesSum_of_abs hχabs).sum = 1 :=
-  (hC.valid x hχabs).2.1 hxC1 (BishopC.seriesSum_of_abs hχabs)
+  (hC.valid x hχDom hχabs).2.1 hxC1 (BishopC.seriesSum_of_abs hχabs)
 
 /-- `S2` membership gives value `0` for the characteristic representative. -/
 theorem prop412_chi_zero_of_mem_s2_from_valid
@@ -109,10 +117,12 @@ theorem prop412_chi_zero_of_mem_s2_from_valid
     {C : BishopC.BSet Y}
     (hC : BishopC.IntegrableSet1 S C)
     {x : Y}
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x)))
+    (hχDom : hC.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hC.rep.valueAt x hχDom n)))
     (hxC2 : x ∈ C.S2) :
     (BishopC.seriesSum_of_abs hχabs).sum = 0 :=
-  (hC.valid x hχabs).2.2 hxC2 (BishopC.seriesSum_of_abs hχabs)
+  (hC.valid x hχDom hχabs).2.2 hxC2 (BishopC.seriesSum_of_abs hχabs)
 
 /-- Build the G179 chi-membership data directly from `IntegrableSet1.valid`
 for `A`, `E`, and `A-E`. -/
@@ -122,27 +132,32 @@ def prop412_chi_membership_value_data_from_valid
     (hA : BishopC.IntegrableSet1 S A)
     (hE : BishopC.IntegrableSet1 S E)
     {x : Y}
-    (hχAabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x)))
-    (hχEabs : RSeq.SeriesSum (fun n => COF.abs ((hE.rep.fn n).toFun x)))
+    (hχADom : hA.rep.MemAt x) (hχEDom : hE.rep.MemAt x)
+    (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+    (hχAabs : RSeq.SeriesSum (fun n => COF.abs
+      (hA.rep.valueAt x hχADom n)))
+    (hχEabs : RSeq.SeriesSum (fun n => COF.abs
+      (hE.rep.valueAt x hχEDom n)))
     (hχBadAbs : RSeq.SeriesSum
-      (fun n => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn n).toFun x))) :
+      (fun n => COF.abs
+        ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom n))) :
     Prop412ChiMembershipValueData A E x
       (BishopC.seriesSum_of_abs hχAabs).sum
       (BishopC.seriesSum_of_abs hχEabs).sum
       (BishopC.seriesSum_of_abs hχBadAbs).sum where
-  chiA_cases := prop412_chi_value_cases_from_valid hA hχAabs
-  chiE_cases := prop412_chi_value_cases_from_valid hE hχEabs
-  chiA_one_mem_s1 := prop412_chi_one_mem_s1_from_valid hA hχAabs
-  chiA_zero_mem_s2 := prop412_chi_zero_mem_s2_from_valid hA hχAabs
-  chiA_one_of_mem_s1 := prop412_chi_one_of_mem_s1_from_valid hA hχAabs
-  chiE_one_mem_s1 := prop412_chi_one_mem_s1_from_valid hE hχEabs
-  chiE_zero_mem_s2 := prop412_chi_zero_mem_s2_from_valid hE hχEabs
+  chiA_cases := prop412_chi_value_cases_from_valid hA hχADom hχAabs
+  chiE_cases := prop412_chi_value_cases_from_valid hE hχEDom hχEabs
+  chiA_one_mem_s1 := prop412_chi_one_mem_s1_from_valid hA hχADom hχAabs
+  chiA_zero_mem_s2 := prop412_chi_zero_mem_s2_from_valid hA hχADom hχAabs
+  chiA_one_of_mem_s1 := prop412_chi_one_of_mem_s1_from_valid hA hχADom hχAabs
+  chiE_one_mem_s1 := prop412_chi_one_mem_s1_from_valid hE hχEDom hχEabs
+  chiE_zero_mem_s2 := prop412_chi_zero_mem_s2_from_valid hE hχEDom hχEabs
   chiBad_one_of_mem_s1 :=
     prop412_chi_one_of_mem_s1_from_valid
-      (prop412_bad_set_integrable hA hE) hχBadAbs
+      (prop412_bad_set_integrable hA hE) hχBadDom hχBadAbs
   chiBad_zero_of_mem_s2 :=
     prop412_chi_zero_of_mem_s2_from_valid
-      (prop412_bad_set_integrable hA hE) hχBadAbs
+      (prop412_bad_set_integrable hA hE) hχBadDom hχBadAbs
 
 /-- Representative-level pointwise witnesses for the G179 chi-membership
 datum.  The only remaining non-automatic support fact is the source property
@@ -155,21 +170,30 @@ structure Prop412RepresentativeValueWitnessData
     (hE : BishopC.IntegrableSet1 S E)
     (d : BishopC.IntegrableRep S) (hdnn : BishopC.RepNonneg d)
     (x : Y) : Type _ where
+  hχADom : hA.rep.MemAt x
   hχAabs :
-    RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x))
+    RSeq.SeriesSum (fun n => COF.abs (hA.rep.valueAt x hχADom n))
+  hχEDom : hE.rep.MemAt x
   hχEabs :
-    RSeq.SeriesSum (fun n => COF.abs ((hE.rep.fn n).toFun x))
+    RSeq.SeriesSum (fun n => COF.abs (hE.rep.valueAt x hχEDom n))
+  hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x
   hχBadAbs :
     RSeq.SeriesSum
-      (fun n => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn n).toFun x))
+      (fun n => COF.abs
+        ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom n))
+  hdDom : d.MemAt x
   hdabs :
-    RSeq.SeriesSum (fun n => COF.abs ((d.fn n).toFun x))
+    RSeq.SeriesSum (fun n => COF.abs (d.valueAt x hdDom n))
+  hχE_d_Dom : (BishopC.prop_4_2_chi_f_rep E hE d hdnn).MemAt x
   hχE_d_abs :
     RSeq.SeriesSum
-      (fun n => COF.abs (((BishopC.prop_4_2_chi_f_rep E hE d hdnn).fn n).toFun x))
+      (fun n => COF.abs
+        ((BishopC.prop_4_2_chi_f_rep E hE d hdnn).valueAt x hχE_d_Dom n))
+  hχBad_d_Dom : (prop412BadRelRep hA hE d hdnn).MemAt x
   hχBad_d_abs :
     RSeq.SeriesSum
-      (fun n => COF.abs (((prop412BadRelRep hA hE d hdnn).fn n).toFun x))
+      (fun n => COF.abs
+        ((prop412BadRelRep hA hE d hdnn).valueAt x hχBad_d_Dom n))
   outside_A_zero :
     (BishopC.seriesSum_of_abs hχAabs).sum = 0 ->
       (BishopC.seriesSum_of_abs hdabs).sum = 0
@@ -183,10 +207,12 @@ noncomputable def prop412_pointwise_chi_membership_datum_from_rep_witnesses
     (hE : BishopC.IntegrableSet1 S E)
     (d : BishopC.IntegrableRep S) (hdnn : BishopC.RepNonneg d)
     {x : Y}
+    (hcompDom : (prop412ComplementRep hE d hdnn).MemAt x)
+    (hbadDom : (prop412BadRelRep hA hE d hdnn).MemAt x)
     (hcomp : RSeq.SeriesSum
-      (fun n => ((prop412ComplementRep hE d hdnn).fn n).toFun x))
+      (fun n => (prop412ComplementRep hE d hdnn).valueAt x hcompDom n))
     (hbad : RSeq.SeriesSum
-      (fun n => ((prop412BadRelRep hA hE d hdnn).fn n).toFun x))
+      (fun n => (prop412BadRelRep hA hE d hdnn).valueAt x hbadDom n))
     (W : Prop412RepresentativeValueWitnessData A E hA hE d hdnn x) :
     Prop412PointwiseChiMembershipDatum A E x hcomp.sum hbad.sum := by
   let chiA := (BishopC.seriesSum_of_abs W.hχAabs).sum
@@ -197,13 +223,15 @@ noncomputable def prop412_pointwise_chi_membership_datum_from_rep_witnesses
       hcomp.sum = (1 - chiE) * dval := by
     let hdv := BishopC.seriesSum_of_abs W.hdabs
     let hχEdv := BishopC.seriesSum_of_abs W.hχE_d_abs
-    let hcompValue := BishopC.add_seriesSum_value hdv
-      (BishopC.neg_seriesSum_value hχEdv)
+    let hcompValue := BishopC.add_seriesSum_value W.hdDom
+      (BishopC.IntegrableRep.neg_memAt W.hχE_d_Dom) hdv
+      (BishopC.neg_seriesSum_value W.hχE_d_Dom hχEdv)
     have hsum : hcomp.sum = hcompValue.sum := by
       exact BishopC.seriesSum_unique hcomp hcompValue
     have hval :
         hcompValue.sum = (1 - chiE) * dval := by
       exact BishopC.prop_4_2_complement_value E hE d hdnn
+        W.hχE_d_Dom W.hχEDom W.hdDom
         W.hχE_d_abs W.hχEabs W.hdabs
     exact hsum.trans hval
   have hbadEqForActual :
@@ -217,6 +245,7 @@ noncomputable def prop412_pointwise_chi_membership_datum_from_rep_witnesses
           chiBad * dval :=
       BishopC.prop_4_2_chi_f_rep_value (prop412BadSet A E)
         (prop412_bad_set_integrable hA hE) d hdnn
+        W.hχBad_d_Dom W.hχBadDom W.hdDom
         W.hχBad_d_abs W.hχBadAbs W.hdabs
     exact hsum.trans hval
   exact
@@ -228,7 +257,8 @@ noncomputable def prop412_pointwise_chi_membership_datum_from_rep_witnesses
       bad_eq := hbadEqForActual
       chi_membership :=
         prop412_chi_membership_value_data_from_valid
-          hA hE W.hχAabs W.hχEabs W.hχBadAbs
+          hA hE W.hχADom W.hχEDom W.hχBadDom
+          W.hχAabs W.hχEabs W.hχBadAbs
       outside_A_zero := W.outside_A_zero }
 
 /-- Pointwise representative witnesses over the common domain. -/
@@ -242,10 +272,12 @@ structure Prop412ComplementPointwiseRepresentativeValueData
     ∀ x ∈
       (prop412ComplementRep hE d hdnn).domain ∩
         (prop412BadRelRep hA hE d hdnn).domain,
-      ∀ (hcomp : RSeq.SeriesSum
-          (fun m => ((prop412ComplementRep hE d hdnn).fn m).toFun x))
+      ∀ (hcompDom : (prop412ComplementRep hE d hdnn).MemAt x)
+        (hbadDom : (prop412BadRelRep hA hE d hdnn).MemAt x)
+        (hcomp : RSeq.SeriesSum
+          (fun m => (prop412ComplementRep hE d hdnn).valueAt x hcompDom m))
         (hbad : RSeq.SeriesSum
-          (fun m => ((prop412BadRelRep hA hE d hdnn).fn m).toFun x)),
+          (fun m => (prop412BadRelRep hA hE d hdnn).valueAt x hbadDom m)),
         Prop412RepresentativeValueWitnessData A E hA hE d hdnn x
 
 /-- Representative-level witnesses imply the G179 chi-membership pointwise
@@ -259,9 +291,10 @@ noncomputable def prop412_chi_membership_data_from_rep_witnesses
     (RData : Prop412ComplementPointwiseRepresentativeValueData A E hA hE d hdnn) :
     Prop412ComplementPointwiseChiMembershipData A E hA hE d hdnn where
   data := by
-    intro x hx hcomp hbad
+    intro x hx hcompDom hbadDom hcomp hbad
     exact prop412_pointwise_chi_membership_datum_from_rep_witnesses
-      hA hE d hdnn hcomp hbad (RData.data x hx hcomp hbad)
+      hA hE d hdnn hcompDom hbadDom hcomp hbad
+      (RData.data x hx hcompDom hbadDom hcomp hbad)
 
 /-- The current full estimate can now be driven by representative-level value
 witnesses. -/
@@ -283,9 +316,13 @@ theorem prop412_full_integral_le_from_value_bound_rep_witness_data
           eps)
     (hbadBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (RData : Prop412ComplementPointwiseRepresentativeValueData A E hA hE d hdnn) :

@@ -103,13 +103,15 @@ structure Prop412MidRepresentativePointwiseBoundData
     (F : Prop412MidRepresentativeSupportData A hA n h) : Type _ where
   lower_bound :
     ∀ x
+      (hmidDom : F.mid.rep.MemAt x)
       (hmidabs : RSeq.SeriesSum
-        (fun m => COF.abs ((F.mid.rep.fn m).toFun x))),
+        (fun m => COF.abs (F.mid.rep.valueAt x hmidDom m))),
       BishopC.Le (-(n : R)) (BishopC.seriesSum_of_abs hmidabs).sum
   upper_bound :
     ∀ x
+      (hmidDom : F.mid.rep.MemAt x)
       (hmidabs : RSeq.SeriesSum
-        (fun m => COF.abs ((F.mid.rep.fn m).toFun x))),
+        (fun m => COF.abs (F.mid.rep.valueAt x hmidDom m))),
       BishopC.Le (BishopC.seriesSum_of_abs hmidabs).sum (n : R)
 
 /-- Two pointwise bounded `mid` representatives give the concrete G190 bad-set
@@ -128,43 +130,58 @@ def prop412_concrete_bad_set_two_nat_cap_bound_from_mid_bounds
     Prop412ConcreteBadSetCapBoundData A E hA hE n
       ((n : R) + (n : R)) F G where
   bound := by
-    intro x hdfabs _hχBadAbs _hχBadOne
+    intro x hdfDom _hχBadDom hdfabs _hχBadAbs _hχBadOne
     let subRep := F.mid.rep.sub G.mid.rep
+    let hsubAt : BishopC.Sec4RepAbsAt subRep x :=
+      prop412_absVal_absSeries_to_inner_absSeries subRep hdfDom hdfabs
+    let hsubDom : subRep.MemAt x := hsubAt.fst
     have hsubAbs :
-        RSeq.SeriesSum (fun m => COF.abs ((subRep.fn m).toFun x)) :=
-      prop412_absVal_absSeries_to_inner_absSeries subRep hdfabs
+        RSeq.SeriesSum (fun m => COF.abs
+          (subRep.valueAt x hsubDom m)) :=
+      hsubAt.snd
+    let hFDom : F.mid.rep.MemAt x := BishopC.add_dom_left hsubDom
+    let hGnegDom : G.mid.rep.neg.MemAt x := BishopC.add_dom_right hsubDom
+    let hGDom : G.mid.rep.MemAt x := BishopC.neg_dom hGnegDom
     have hFabs :
-        RSeq.SeriesSum (fun m => COF.abs ((F.mid.rep.fn m).toFun x)) := by
-      simpa [subRep, BishopC.IntegrableRep.sub] using
+        RSeq.SeriesSum (fun m => COF.abs
+          (F.mid.rep.valueAt x hFDom m)) := by
+      simpa only [hFDom] using
         (BishopC.add_absSeriesSum_left
-          (r := F.mid.rep) (r' := G.mid.rep.neg) hsubAbs)
+          (r := F.mid.rep) (r' := G.mid.rep.neg) hsubDom hsubAbs)
     have hGnegAbs :
-        RSeq.SeriesSum (fun m => COF.abs (((G.mid.rep.neg).fn m).toFun x)) := by
-      simpa [subRep, BishopC.IntegrableRep.sub] using
+        RSeq.SeriesSum (fun m => COF.abs
+          (G.mid.rep.neg.valueAt x hGnegDom m)) := by
+      simpa only [hGnegDom] using
         (BishopC.add_absSeriesSum_right
-          (r := F.mid.rep) (r' := G.mid.rep.neg) hsubAbs)
+          (r := F.mid.rep) (r' := G.mid.rep.neg) hsubDom hsubAbs)
     have hGabs :
-        RSeq.SeriesSum (fun m => COF.abs ((G.mid.rep.fn m).toFun x)) :=
-      BishopC.neg_absSeriesSum hGnegAbs
-    let hFsum : RSeq.SeriesSum (fun m => (F.mid.rep.fn m).toFun x) :=
+        RSeq.SeriesSum (fun m => COF.abs
+          (G.mid.rep.valueAt x hGDom m)) := by
+      simpa only [hGDom] using BishopC.neg_absSeriesSum hGnegDom hGnegAbs
+    let hFsum : RSeq.SeriesSum
+        (fun m => F.mid.rep.valueAt x hFDom m) :=
       BishopC.seriesSum_of_abs hFabs
-    let hGsum : RSeq.SeriesSum (fun m => (G.mid.rep.fn m).toFun x) :=
+    let hGsum : RSeq.SeriesSum
+        (fun m => G.mid.rep.valueAt x hGDom m) :=
       BishopC.seriesSum_of_abs hGabs
-    let hSubSum : RSeq.SeriesSum (fun m => (subRep.fn m).toFun x) :=
-      BishopC.add_seriesSum_value hFsum
-        (BishopC.neg_seriesSum_value hGsum)
-    obtain ⟨hdSigned, hdSignedEq⟩ := subRep.absVal_signed_value x hSubSum
+    let hSubSum : RSeq.SeriesSum
+        (fun m => subRep.valueAt x hsubDom m) := by
+      simpa only [subRep] using
+        BishopC.add_seriesSum_value hFDom hGnegDom hFsum
+          (BishopC.neg_seriesSum_value hGDom hGsum)
+    obtain ⟨hdSigned, hdSignedEq⟩ :=
+      subRep.absVal_signed_value x hsubDom hSubSum
     have hdf_eq :
         (BishopC.seriesSum_of_abs hdfabs).sum = hdSigned.sum := by
       exact BishopC.seriesSum_unique (BishopC.seriesSum_of_abs hdfabs) hdSigned
     have hFup : BishopC.Le hFsum.sum (n : R) :=
-      FBound.upper_bound x hFabs
+      FBound.upper_bound x hFDom hFabs
     have hFlow : BishopC.Le (-(n : R)) hFsum.sum :=
-      FBound.lower_bound x hFabs
+      FBound.lower_bound x hFDom hFabs
     have hGup : BishopC.Le hGsum.sum (n : R) :=
-      GBound.upper_bound x hGabs
+      GBound.upper_bound x hGDom hGabs
     have hGlow : BishopC.Le (-(n : R)) hGsum.sum :=
-      GBound.lower_bound x hGabs
+      GBound.lower_bound x hGDom hGabs
     have hposRaw :
         BishopC.Le (hFsum.sum - hGsum.sum) ((n : R) - (-(n : R))) :=
       BishopC.lemma33_sub_le_sub hFup hGlow

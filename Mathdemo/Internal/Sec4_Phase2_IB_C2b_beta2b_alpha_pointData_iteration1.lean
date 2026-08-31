@@ -93,8 +93,9 @@ structure Sec4RepValueEq (r r' : IntegrableRep S) where
   support_full : IsFull S support
   value_eq :
     ∀ x ∈ support,
-      ∀ (hr : RSeq.SeriesSum (fun n => (r.fn n).toFun x))
-        (hr' : RSeq.SeriesSum (fun n => (r'.fn n).toFun x)),
+      ∀ (hrDom : r.MemAt x) (hr'Dom : r'.MemAt x)
+        (hr : RSeq.SeriesSum (fun n => r.valueAt x hrDom n))
+        (hr' : RSeq.SeriesSum (fun n => r'.valueAt x hr'Dom n)),
         hr.sum = hr'.sum
 
 
@@ -142,33 +143,39 @@ theorem relIntegral_mono_of_s1_subset {S : IntSpaceRC X R} (D D' : BSet X)
       (prop_4_2_chi_f_rep D hD f hnn).domain_isFull (prop_4_2_chi_f_rep D' hD' f hnn).domain_isFull)
       f.domain_isFull) hD.rep.domain_isFull) hD'.rep.domain_isFull)
     (prop_4_2_chi_f_rep D hD f hnn) (prop_4_2_chi_f_rep D' hD' f hnn) ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨hxD, hxD'⟩, hxf⟩, hxχD⟩, hxχD'⟩ := hx
-  obtain ⟨_, ⟨hflat_D⟩⟩ := hxD
-  obtain ⟨_, ⟨hflat_D'⟩⟩ := hxD'
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχ_D⟩⟩ := hxχD
-  obtain ⟨_, ⟨hχ_D'⟩⟩ := hxχD'
-  have hval_D := prop_4_2_chi_f_rep_value D hD f hnn hflat_D hχ_D hfabs
-  have hval_D' := prop_4_2_chi_f_rep_value D' hD' f hnn hflat_D' hχ_D' hfabs
+  obtain ⟨hflat_DDom, ⟨hflat_D⟩⟩ := hxD
+  obtain ⟨hflat_D'Dom, ⟨hflat_D'⟩⟩ := hxD'
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχ_DDom, ⟨hχ_D⟩⟩ := hxχD
+  obtain ⟨hχ_D'Dom, ⟨hχ_D'⟩⟩ := hxχD'
+  have hval_D := prop_4_2_chi_f_rep_value D hD f hnn
+    hflat_DDom hχ_DDom hfDom hflat_D hχ_D hfabs
+  have hval_D' := prop_4_2_chi_f_rep_value D' hD' f hnn
+    hflat_D'Dom hχ_D'Dom hfDom hflat_D' hχ_D' hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflat_D),
       seriesSum_unique hr' (seriesSum_of_abs hflat_D'), hval_D, hval_D']
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
-  rcases (hD.valid x hχ_D).1 with hS1 | hS2
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
+  rcases (hD.valid x hχ_DDom hχ_D).1 with hS1 | hS2
   · have hD1 : (seriesSum_of_abs hχ_D).sum = 1 :=
-      (hD.valid x hχ_D).2.1 hS1 (seriesSum_of_abs hχ_D)
+      (hD.valid x hχ_DDom hχ_D).2.1 hS1 (seriesSum_of_abs hχ_D)
     have hD'1 : (seriesSum_of_abs hχ_D').sum = 1 :=
-      (hD'.valid x hχ_D').2.1 (hsub x hS1) (seriesSum_of_abs hχ_D')
+      (hD'.valid x hχ_D'Dom hχ_D').2.1
+        (hsub x hS1) (seriesSum_of_abs hχ_D')
     rw [hD1, hD'1]; exact le_refl _
   · have hD0 : (seriesSum_of_abs hχ_D).sum = 0 :=
-      (hD.valid x hχ_D).2.2 hS2 (seriesSum_of_abs hχ_D)
+      (hD.valid x hχ_DDom hχ_D).2.2 hS2 (seriesSum_of_abs hχ_D)
     rw [hD0, zero_mul]
-    rcases (hD'.valid x hχ_D').1 with hS1' | hS2'
+    rcases (hD'.valid x hχ_D'Dom hχ_D').1 with hS1' | hS2'
     · have hD'1 : (seriesSum_of_abs hχ_D').sum = 1 :=
-        (hD'.valid x hχ_D').2.1 hS1' (seriesSum_of_abs hχ_D')
+        (hD'.valid x hχ_D'Dom hχ_D').2.1 hS1'
+          (seriesSum_of_abs hχ_D')
       rw [hD'1, one_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
     · have hD'0 : (seriesSum_of_abs hχ_D').sum = 0 :=
-        (hD'.valid x hχ_D').2.2 hS2' (seriesSum_of_abs hχ_D')
+        (hD'.valid x hχ_D'Dom hχ_D').2.2 hS2'
+          (seriesSum_of_abs hχ_D')
       rw [hD'0, zero_mul]; exact le_refl _
 
 /-- Technical lemma used in the public import closure. -/

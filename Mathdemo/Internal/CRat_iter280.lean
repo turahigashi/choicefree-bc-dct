@@ -42,8 +42,10 @@ structure Prop412MidRepresentativeData
   rep : BishopC.IntegrableRep S
   value_eq :
     ∀ x (hxh : x ∈ h.dom)
-      (hχAabs : RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x)))
-      (hrep : RSeq.SeriesSum (fun m => (rep.fn m).toFun x)),
+      (hχADom : hA.rep.MemAt x) (hrepDom : rep.MemAt x)
+      (hχAabs : RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x hχADom m)))
+      (hrep : RSeq.SeriesSum (fun m => rep.valueAt x hrepDom m)),
       hrep.sum =
         prop412ScalarMid n
           ((BishopC.seriesSum_of_abs hχAabs).sum * h.toFun x hxh)
@@ -86,11 +88,15 @@ structure Prop412ConcreteTruncatedAbsDiffData
       rep_nonneg
   bad_set_n_bound :
     ∀ (x : Y)
+      (hdDom : (prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).MemAt x)
+      (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
       (hdfabs : RSeq.SeriesSum
         (fun m => COF.abs
-          (((prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).fn m).toFun x)))
+          ((prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).valueAt
+            x hdDom m)))
       (hχBadAbs : RSeq.SeriesSum
-        (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+        (fun m => COF.abs
+          ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
       (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
         BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)
 

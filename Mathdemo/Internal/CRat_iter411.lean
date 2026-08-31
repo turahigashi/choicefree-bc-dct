@@ -32,8 +32,8 @@ def integrableSet1WithDef23_repDefinedAt_of_side
     (side : PSum (x ∈ A.S1) (x ∈ A.S2)) :
     RepDefinedAt (S := S) H.base.rep x :=
   match side with
-  | PSum.inl h => H.abs_on_s1 x h
-  | PSum.inr h => H.abs_on_s2 x h
+  | PSum.inl h => ⟨H.dom_on_s1 x h, H.abs_on_s1 x h⟩
+  | PSum.inr h => ⟨H.dom_on_s2 x h, H.abs_on_s2 x h⟩
 
 
 /-! ## 2. Union point-level API -/
@@ -223,7 +223,8 @@ noncomputable def cleanRepDefinedAt
       (prop_2_10_c_rep_clean (S := S) Sel A HA clean_hsum) x :=
   prop_2_10_c_rep_clean_definedAt_of_pointwiseFlattenable
     (S := S) Sel A HA clean_hsum
-    ((HA 0).abs_on_s1 x (D.all_s1 0))
+    ⟨(HA 0).dom_on_s1 x (D.all_s1 0),
+      (HA 0).abs_on_s1 x (D.all_s1 0)⟩
     (D.toPointwiseFlattenable (S := S) (Sel := Sel) (HA := HA)
       clean_rows)
 

@@ -58,7 +58,7 @@ def Sec4LambdaRowsAbsOuterSumAt
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (x : X)
     (hrows : Sec4LambdaRowsAbsAt (S := S) A hA f x) : Type _ :=
-  RSeq.SeriesSum (fun k => (hrows k).sum)
+  RSeq.SeriesSum (fun k => (hrows k).snd.sum)
 
 
 /--
@@ -103,10 +103,9 @@ def Sec4SeriesSumRepL1FlatAbsOfAbsRows : Type _ :=
     (hsum : RSeq.SeriesSum (fun k => (F k).normL1))
     (x : X),
     ∀ hrows : ∀ k : Nat,
-      RSeq.SeriesSum (fun m => COF.abs (((F k).fn m).toFun x)),
-    RSeq.SeriesSum (fun k => (hrows k).sum) →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((seriesSumRep_L1 F hsum).fn m).toFun x))
+      Sec4RepAbsAt (F k) x,
+    RSeq.SeriesSum (fun k => (hrows k).snd.sum) →
+    Sec4RepAbsAt (seriesSumRep_L1 F hsum) x
 
 
 /--
@@ -118,8 +117,7 @@ noncomputable def sec4_prop42FlatAbs_of_absPack
     (rowToFlat : Sec4SeriesSumRepL1FlatAbsOfAbsRows (S := S)) :
     ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
       Sec4LambdaRowsAbsPackAt (S := S) A hA f x →
-      RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) := by
+      Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x := by
   intro A hA x P
   unfold prop_4_2_chi_f_rep
   exact rowToFlat
@@ -147,7 +145,7 @@ Construct the correct abs-outer row package on `A.S1` from an `f` abs witness.
 def Sec4LambdaRowsAbsPackOnS1OfFAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))) →
+    Sec4RepAbsAt f x →
     Sec4LambdaRowsAbsPackAt (S := S) A hA f x
 
 

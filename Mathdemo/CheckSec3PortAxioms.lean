@@ -922,7 +922,6 @@ import Mathdemo.BishopSec3Presented
 #print axioms BishopSec3P.thm36Ca_partialSum_termA_integralC
 #print axioms BishopSec3P.thm36Ca_termIntegralSeriesAC
 #print axioms BishopSec3P.thm36Ca_fA_integralC
-#print axioms BishopSec3P.thm36Ca_fA_value_seriesC
 #print axioms BishopSec3P.thm36D_termA0Abs_of_fAAbsC
 #print axioms BishopSec3P.thm36D_hAbsA_of_rampA0AbsC
 #print axioms BishopSec3P.thm36D_hAbsA_of_fAAbsC
@@ -958,7 +957,6 @@ import Mathdemo.BishopSec3Presented
 #print axioms BishopSec3P.thm36Cb_normSeriesBC
 #print axioms BishopSec3P.thm36Cb_fBC
 #print axioms BishopSec3P.thm36Cb_fB_integralC
-#print axioms BishopSec3P.thm36Cb_fB_value_seriesC
 #print axioms BishopSec3P.thm36D_termB0Abs_of_fBAbsC
 #print axioms BishopSec3P.thm36D_hAbsB_of_rampB0AbsC
 #print axioms BishopSec3P.thm36D_hAbsB_of_fBAbsC

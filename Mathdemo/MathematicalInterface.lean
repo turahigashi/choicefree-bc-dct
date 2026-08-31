@@ -350,8 +350,9 @@ noncomputable abbrev uniformComplementEstimate
     (g : IntegrableFunction S) (hgnn : IsNonnegative g)
     (D : DyadicLevelSetData g)
     (hdom : ∀ (n : Nat) (x : X)
-      (fv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fv : RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe fv.sum gv.sum)
     (eps : CReal) (heps : regularSeqLtProp CReal.zero eps) :=
   BishopSec3P.lemma43UniformComplementData_of_majorantC

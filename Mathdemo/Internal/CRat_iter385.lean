@@ -39,15 +39,17 @@ are not inferred from the two input representatives. -/
 structure Sec4Prop42ProductLocalWitness
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (hnn : RepNonneg f) (x : X) : Type _ where
-  chi_dom : forall m : Nat, x ∈ (hA.rep.fn m).dom
-  chi_abs : RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
-  f_dom : forall m : Nat, x ∈ (f.fn m).dom
-  f_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))
-  prod_dom :
-    forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A hA f hnn).fn m).dom
+  chi_dom : hA.rep.MemAt x
+  chi_abs : RSeq.SeriesSum (fun m => COF.abs
+    (hA.rep.valueAt x chi_dom m))
+  f_dom : f.MemAt x
+  f_abs : RSeq.SeriesSum (fun m => COF.abs
+    (f.valueAt x f_dom m))
+  prod_dom : (prop_4_2_chi_f_rep A hA f hnn).MemAt x
   prod_abs :
     RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))
+      (fun m => COF.abs
+        ((prop_4_2_chi_f_rep A hA f hnn).valueAt x prod_dom m))
 
 
 namespace Sec4Prop42ProductLocalWitness
@@ -58,7 +60,8 @@ noncomputable def prodSigned
     {f : IntegrableRep S} {hnn : RepNonneg f} {x : X}
     (W : Sec4Prop42ProductLocalWitness (S := S) A hA f hnn x) :
     RSeq.SeriesSum
-      (fun m => ((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x) :=
+      (fun m =>
+        (prop_4_2_chi_f_rep A hA f hnn).valueAt x W.prod_dom m) :=
   seriesSum_of_abs W.prod_abs
 
 
@@ -67,7 +70,7 @@ noncomputable def fSigned
     {A : BSet X} {hA : IntegrableSet1 S A}
     {f : IntegrableRep S} {hnn : RepNonneg f} {x : X}
     (W : Sec4Prop42ProductLocalWitness (S := S) A hA f hnn x) :
-    RSeq.SeriesSum (fun m => (f.fn m).toFun x) :=
+    RSeq.SeriesSum (fun m => f.valueAt x W.f_dom m) :=
   seriesSum_of_abs W.f_abs
 
 
@@ -84,12 +87,14 @@ noncomputable def Sec4Prop42ProductLocalWitness.ofDef23S1
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A hA f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A hA f hnn).valueAt x hprod_dom m))) :
     Sec4Prop42ProductLocalWitness (S := S) A hA f hnn x where
   chi_dom := (D.data A hA).dom_on_s1 x hxA
   chi_abs := (D.data A hA).abs_on_s1 x hxA
@@ -108,12 +113,14 @@ noncomputable def Sec4Prop42ProductLocalWitness.ofDef23S2
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A hA f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A hA f hnn).valueAt x hprod_dom m))) :
     Sec4Prop42ProductLocalWitness (S := S) A hA f hnn x where
   chi_dom := (D.data A hA).dom_on_s2 x hxA
   chi_abs := (D.data A hA).abs_on_s2 x hxA
@@ -134,23 +141,29 @@ theorem sec4_prop42ProductValueOnS1_of_def23ProductWitness
     {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A hA f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A hA f hnn).valueAt x hprod_dom m))) :
     (seriesSum_of_abs hprod_abs).sum = (seriesSum_of_abs hf_abs).sum := by
+  let hchi_dom : hA.rep.MemAt x :=
+    (D.data A hA).dom_on_s1 x hxA
   let hchi_abs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)) :=
+      (fun m => COF.abs (hA.rep.valueAt x hchi_dom m)) :=
     (D.data A hA).abs_on_s1 x hxA
   have hval :
       (seriesSum_of_abs hprod_abs).sum =
         (seriesSum_of_abs hchi_abs).sum * (seriesSum_of_abs hf_abs).sum :=
-    prop_4_2_chi_f_rep_value A hA f hnn hprod_abs hchi_abs hf_abs
+    prop_4_2_chi_f_rep_value A hA f hnn
+      hprod_dom hchi_dom hf_dom hprod_abs hchi_abs hf_abs
   have hchi_one :
       (seriesSum_of_abs hchi_abs).sum = (1 : R) :=
-    (hA.valid x hchi_abs).2.1 hxA (seriesSum_of_abs hchi_abs)
+    (hA.valid x hchi_dom hchi_abs).2.1 hxA
+      (seriesSum_of_abs hchi_abs)
   rw [hval, hchi_one]
   ring
 
@@ -164,23 +177,29 @@ theorem sec4_prop42ProductValueOnS2_of_def23ProductWitness
     {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x)))
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m)))
     (hprod_dom :
       forall m : Nat, x ∈ ((prop_4_2_chi_f_rep A hA f hnn).fn m).dom)
     (hprod_abs :
       RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+        (fun m => COF.abs
+          ((prop_4_2_chi_f_rep A hA f hnn).valueAt x hprod_dom m))) :
     (seriesSum_of_abs hprod_abs).sum = (0 : R) := by
+  let hchi_dom : hA.rep.MemAt x :=
+    (D.data A hA).dom_on_s2 x hxA
   let hchi_abs : RSeq.SeriesSum
-      (fun m => COF.abs ((hA.rep.fn m).toFun x)) :=
+      (fun m => COF.abs (hA.rep.valueAt x hchi_dom m)) :=
     (D.data A hA).abs_on_s2 x hxA
   have hval :
       (seriesSum_of_abs hprod_abs).sum =
         (seriesSum_of_abs hchi_abs).sum * (seriesSum_of_abs hf_abs).sum :=
-    prop_4_2_chi_f_rep_value A hA f hnn hprod_abs hchi_abs hf_abs
+    prop_4_2_chi_f_rep_value A hA f hnn
+      hprod_dom hchi_dom hf_dom hprod_abs hchi_abs hf_abs
   have hchi_zero :
       (seriesSum_of_abs hchi_abs).sum = (0 : R) :=
-    (hA.valid x hchi_abs).2.2 hxA (seriesSum_of_abs hchi_abs)
+    (hA.valid x hchi_dom hchi_abs).2.2 hxA
+      (seriesSum_of_abs hchi_abs)
   rw [hval, hchi_zero]
   ring
 

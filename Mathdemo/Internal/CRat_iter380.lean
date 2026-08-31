@@ -44,11 +44,13 @@ structure IntegrableSet1Def23Data
     forall x : X, x ∈ A.S2 ->
       forall m : Nat, x ∈ (hA.rep.fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ A.S1 ->
-      RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+    forall (x : X) (hx : x ∈ A.S1),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ A.S2 ->
-      RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+    forall (x : X) (hx : x ∈ A.S2),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (dom_on_s2 x hx) m))
 
 
 /-- Global compatibility convention: every currently available
@@ -68,9 +70,11 @@ def Sec4Prop42CharacteristicDomainWitness.ofDef23Surface
     (D : IntegrableSet1Def23Surface (S := S)) :
     Sec4Prop42CharacteristicDomainWitness (S := S) where
   abs_on_s1 := fun A hA x hx =>
-    (D.data A hA).abs_on_s1 x hx
+    { fst := (D.data A hA).dom_on_s1 x hx
+      snd := (D.data A hA).abs_on_s1 x hx }
   abs_on_s2 := fun A hA x hx =>
-    (D.data A hA).abs_on_s2 x hx
+    { fst := (D.data A hA).dom_on_s2 x hx
+      snd := (D.data A hA).abs_on_s2 x hx }
 
 
 /-! ## 2. Row-seed provider with the characteristic field discharged -/

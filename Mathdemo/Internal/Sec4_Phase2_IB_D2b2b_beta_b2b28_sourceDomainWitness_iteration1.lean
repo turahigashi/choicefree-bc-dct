@@ -31,11 +31,11 @@ structure Sec4Prop42CharacteristicDomainWitness : Type _ where
   abs_on_s1 :
     forall (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
       x ∈ A.S1 →
-      RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+      Sec4RepAbsAt hA.rep x
   abs_on_s2 :
     forall (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
       x ∈ A.S2 →
-      RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+      Sec4RepAbsAt hA.rep x
 
 
 /-- The first residual field is immediate once the source-domain witness for

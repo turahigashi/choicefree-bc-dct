@@ -53,9 +53,13 @@ theorem prop412_bad_set_relIntegral_le
     (n : Nat)
     (hbound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)) :
     BishopC.Le
@@ -79,9 +83,13 @@ theorem prop412_bad_set_relIntegral_lt_of_measure_lt
     (n : Nat) {eta : R}
     (hbound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (hnpos : COF.lt 0 (n : R))
@@ -160,9 +168,13 @@ theorem prop412_full_integral_le_from_value_bound_split_data
           eps)
     (hbadBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (Split : Prop412FullSplitData A E hA hE d hdnn) :

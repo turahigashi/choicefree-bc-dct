@@ -80,19 +80,21 @@ structure Prop210BSourceRepSideWitness
         x ∈ ((prop_2_10_rep A (fun k => (HA k).base)
           (measure_limit_of_sumWithDef23 (S := S) A HA h_conv)).fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ (BSet.bigOr A).S1 ->
+    forall (x : X) (hx : x ∈ (BSet.bigOr A).S1),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_rep A (fun k => (HA k).base)
-              (measure_limit_of_sumWithDef23 (S := S) A HA h_conv)).fn m).toFun x))
+            ((prop_2_10_rep A (fun k => (HA k).base)
+              (measure_limit_of_sumWithDef23 (S := S) A HA h_conv)).valueAt
+                x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ (BSet.bigOr A).S2 ->
+    forall (x : X) (hx : x ∈ (BSet.bigOr A).S2),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_rep A (fun k => (HA k).base)
-              (measure_limit_of_sumWithDef23 (S := S) A HA h_conv)).fn m).toFun x))
+            ((prop_2_10_rep A (fun k => (HA k).base)
+              (measure_limit_of_sumWithDef23 (S := S) A HA h_conv)).valueAt
+                x (dom_on_s2 x hx) m))
 
 
 /-- Sidewise Definition-2.3 data for the exact source representative used in
@@ -114,17 +116,19 @@ structure Prop210CSourceRepSideWitness
       forall m : Nat,
         x ∈ ((prop_2_10_c_rep A (fun k => (HA k).base) h_lim).fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ (BSet.bigAnd A).S1 ->
+    forall (x : X) (hx : x ∈ (BSet.bigAnd A).S1),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_c_rep A (fun k => (HA k).base) h_lim).fn m).toFun x))
+            ((prop_2_10_c_rep A (fun k => (HA k).base) h_lim).valueAt
+              x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ (BSet.bigAnd A).S2 ->
+    forall (x : X) (hx : x ∈ (BSet.bigAnd A).S2),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_c_rep A (fun k => (HA k).base) h_lim).fn m).toFun x))
+            ((prop_2_10_c_rep A (fun k => (HA k).base) h_lim).valueAt
+              x (dom_on_s2 x hx) m))
 
 
 namespace Prop210BSourceRepSideWitness

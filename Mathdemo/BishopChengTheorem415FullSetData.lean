@@ -13,8 +13,9 @@ structure RepLeOnFullDataC
   carrier : Set X
   full : IsFullC S carrier
   bound : forall x : X, x ∈ carrier ->
-    forall (hu : RepSeriesSum (fun k => (u.fn k).toFun x))
-      (hv : RepSeriesSum (fun k => (v.fn k).toFun x)),
+    forall (hudom : u.MemAt x) (hvdom : v.MemAt x)
+      (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
+      (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
       RegularSeqLe hu.sum hv.sum
 
 /-- Proof-relevant domination `|u| <= v` on an explicitly supplied full set. -/
@@ -24,8 +25,9 @@ structure RepAbsLeOnFullDataC
   carrier : Set X
   full : IsFullC S carrier
   bound : forall x : X, x ∈ carrier ->
-    forall (hu : RepSeriesSum (fun k => (u.fn k).toFun x))
-      (hv : RepSeriesSum (fun k => (v.fn k).toFun x)),
+    forall (hudom : u.MemAt x) (hvdom : v.MemAt x)
+      (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
+      (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
       RegularSeqLe (CReal.abs hu.sum) hv.sum
 
 /-- A single majorant together with an explicit full-set witness for every index. -/
@@ -45,13 +47,14 @@ the right-hand representative supplies a canonical full carrier. -/
 def RepLeOnFullDataC.ofGlobal
     {X : Type u} {S : IntSpaceC X} {u v : IntegrableRepC3 S}
     (h : forall x : X,
-      forall (hu : RepSeriesSum (fun k => (u.fn k).toFun x))
-        (hv : RepSeriesSum (fun k => (v.fn k).toFun x)),
+      forall (hudom : u.MemAt x) (hvdom : v.MemAt x)
+        (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
+        (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
         RegularSeqLe hu.sum hv.sum) : RepLeOnFullDataC u v :=
   {
     carrier := v.domain
     full := v.domain_isFull
-    bound := fun x _ hu hv => h x hu hv
+    bound := fun x _ hudom hvdom hu hv => h x hudom hvdom hu hv
   }
 
 def RepAbsLeOnFullDataC.toProp
@@ -63,14 +66,15 @@ def RepAbsLeOnFullDataC.toProp
 def RepAbsLeOnFullDataC.ofGlobal
     {X : Type u} {S : IntSpaceC X} {u v : IntegrableRepC3 S}
     (h : forall x : X,
-      forall (hu : RepSeriesSum (fun k => (u.fn k).toFun x))
-        (hv : RepSeriesSum (fun k => (v.fn k).toFun x)),
+      forall (hudom : u.MemAt x) (hvdom : v.MemAt x)
+        (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
+        (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
         RegularSeqLe (CReal.abs hu.sum) hv.sum) :
     RepAbsLeOnFullDataC u v :=
   {
     carrier := v.domain
     full := v.domain_isFull
-    bound := fun x _ hu hv => h x hu hv
+    bound := fun x _ hudom hvdom hu hv => h x hudom hvdom hu hv
   }
 
 def DominatedOnFullDataC.toProp
@@ -85,8 +89,9 @@ def DominatedOnFullDataC.ofGlobal
     {X : Type u} {S : IntSpaceC X}
     {fn : Nat -> IntegrableRepC3 S} {g : IntegrableRepC3 S}
     (h : forall n : Nat, forall x : X,
-      forall (hfn : RepSeriesSum (fun k => ((fn n).fn k).toFun x))
-        (hg : RepSeriesSum (fun k => (g.fn k).toFun x)),
+      forall (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+        (hfn : RepSeriesSum (fun k => (fn n).valueAt x hfndom k))
+        (hg : RepSeriesSum (fun k => g.valueAt x hgdom k)),
         RegularSeqLe (CReal.abs hfn.sum) hg.sum) :
     DominatedOnFullDataC fn g :=
   { atIndex := fun n => RepAbsLeOnFullDataC.ofGlobal (h n) }
@@ -131,13 +136,13 @@ noncomputable def lemma43UniformComplementData_of_majorantOnFullData_halfPowC
     simpa [compFn, compH_C] using
       lemma43ComplementIntegral_le_of_le_funWithAbsOnFullC hC (fn n) H
         (hnn n) hHnn hnDom.full
-        (fun x hxF fvabs Hvabs fv Hv => by
-          let fv0 : RepSeriesSum (fun k => ((fn n).fn k).toFun x) :=
+        (fun x hxF hfndom hHdom fvabs Hvabs fv Hv => by
+          let fv0 : RepSeriesSum (fun k => (fn n).valueAt x hfndom k) :=
             seriesSum_of_absC fvabs
-          let Hv0 : RepSeriesSum (fun k => (H.fn k).toFun x) :=
+          let Hv0 : RepSeriesSum (fun k => H.valueAt x hHdom k) :=
             seriesSum_of_absC Hvabs
           have hle0 : RegularSeqLe fv0.sum Hv0.sum :=
-            hnDom.bound x hxF fv0 Hv0
+            hnDom.bound x hxF hfndom hHdom fv0 Hv0
           have hfv : fv.sum ≈ fv0.sum := repSeriesSum_unique fv fv0
           have hHv : Hv.sum ≈ Hv0.sum := repSeriesSum_unique Hv Hv0
           exact regularSeqLe_of_left_eventual hfv
@@ -247,49 +252,78 @@ noncomputable def absError_le_absMajorant_add_absLimit_onFullDataC
       (isFull_interC hdom.full err.domain_isFull) H.domain_isFull
     bound := ?_
   }
-  intro x hx herrv hHv
+  intro x hx herrdom hHdom herrv hHv
   obtain ⟨⟨hxF, hxErrDom⟩, hxHDom⟩ := hx
-  obtain ⟨_, ⟨herrabs⟩⟩ := hxErrDom
-  obtain ⟨_, ⟨hHabs⟩⟩ := hxHDom
+  obtain ⟨_herrdom0, ⟨herrabs0⟩⟩ := hxErrDom
+  obtain ⟨_hHdom0, ⟨hHabs0⟩⟩ := hxHDom
+  let herrabs : RepSeriesSum
+      (fun m => absSeq (err.valueAt x herrdom m)) := by
+    simpa [IntegrableRepC3.valueAt, err] using herrabs0
+  let hHabs : RepSeriesSum
+      (fun m => absSeq (H.valueAt x hHdom m)) := by
+    simpa [IntegrableRepC3.valueAt, H] using hHabs0
   let r : IntegrableRepC3 S := (fn n).sub f
-  let hsubabs : RepSeriesSum (fun m => absSeq ((r.fn m).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC r x herrabs
-  let hfnabs : RepSeriesSum (fun m => absSeq (((fn n).fn m).toFun x)) :=
-    add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x) hsubabs
-  let hfnegabs : RepSeriesSum (fun m => absSeq (((f.neg).fn m).toFun x)) :=
-    add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x) hsubabs
-  let hfabs_from_err : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)) :=
-    neg_absSeriesSumC (r := f) (x := x) hfnegabs
-  let hfnv : RepSeriesSum (fun m => ((fn n).fn m).toFun x) :=
+  let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC herrdom
+  let herrAddDom : ((fn n).add f.neg).MemAt x := by
+    simpa [r, IntegrableRepC3.sub] using hrdom
+  let hfndom : (fn n).MemAt x := IntegrableRepC3.add_left_memAt herrAddDom
+  let hfnegdom : f.neg.MemAt x := IntegrableRepC3.add_right_memAt herrAddDom
+  let hfdomErr : f.MemAt x := IntegrableRepC3.of_neg_memAt hfnegdom
+  let hgAbsValDom : g.absVal.MemAt x := IntegrableRepC3.add_left_memAt hHdom
+  let hfAbsValDom : f.absVal.MemAt x := IntegrableRepC3.add_right_memAt hHdom
+  let hgdom : g.MemAt x := IntegrableRepC3_of_absVal_memAtC hgAbsValDom
+  let hfdomH : f.MemAt x := IntegrableRepC3_of_absVal_memAtC hfAbsValDom
+  let hsubabs : RepSeriesSum (fun m => absSeq (r.valueAt x hrdom m)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC r x herrdom herrabs
+  let hfnabs : RepSeriesSum
+      (fun m => absSeq ((fn n).valueAt x hfndom m)) :=
+    add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x)
+      herrAddDom hsubabs
+  let hfnegabs : RepSeriesSum
+      (fun m => absSeq (f.neg.valueAt x hfnegdom m)) :=
+    add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x)
+      herrAddDom hsubabs
+  let hfabs_from_err : RepSeriesSum
+      (fun m => absSeq (f.valueAt x hfdomErr m)) :=
+    neg_absSeriesSumC (r := f) (x := x) hfdomErr hfnegabs
+  let hfnv : RepSeriesSum (fun m => (fn n).valueAt x hfndom m) :=
     seriesSum_of_absC hfnabs
-  let hfv_from_err : RepSeriesSum (fun m => (f.fn m).toFun x) :=
+  let hfv_from_err : RepSeriesSum (fun m => f.valueAt x hfdomErr m) :=
     seriesSum_of_absC hfabs_from_err
   let hgAbsValAbs :
-      RepSeriesSum (fun m => absSeq (((g.absVal).fn m).toFun x)) :=
-    add_absSeriesSum_leftC (r := g.absVal) (r' := f.absVal) (x := x) hHabs
+      RepSeriesSum (fun m => absSeq (g.absVal.valueAt x hgAbsValDom m)) :=
+    add_absSeriesSum_leftC (r := g.absVal) (r' := f.absVal) (x := x)
+      hHdom hHabs
   let hfAbsValAbs :
-      RepSeriesSum (fun m => absSeq (((f.absVal).fn m).toFun x)) :=
-    add_absSeriesSum_rightC (r := g.absVal) (r' := f.absVal) (x := x) hHabs
-  let hgvabs : RepSeriesSum (fun m => absSeq ((g.fn m).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC g x hgAbsValAbs
-  let hgv : RepSeriesSum (fun m => (g.fn m).toFun x) :=
+      RepSeriesSum (fun m => absSeq (f.absVal.valueAt x hfAbsValDom m)) :=
+    add_absSeriesSum_rightC (r := g.absVal) (r' := f.absVal) (x := x)
+      hHdom hHabs
+  let hgvabs : RepSeriesSum (fun m => absSeq (g.valueAt x hgdom m)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC g x hgAbsValDom hgAbsValAbs
+  let hgv : RepSeriesSum (fun m => g.valueAt x hgdom m) :=
     seriesSum_of_absC hgvabs
-  let hfabs_from_H : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC f x hfAbsValAbs
-  let hfv_from_H : RepSeriesSum (fun m => (f.fn m).toFun x) :=
+  let hfabs_from_H : RepSeriesSum (fun m => absSeq (f.valueAt x hfdomH m)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC f x hfAbsValDom hfAbsValAbs
+  let hfv_from_H : RepSeriesSum (fun m => f.valueAt x hfdomH m) :=
     seriesSum_of_absC hfabs_from_H
-  let hgAbsValV : RepSeriesSum (fun m => ((g.absVal).fn m).toFun x) :=
+  let hgAbsValV : RepSeriesSum
+      (fun m => g.absVal.valueAt x hgAbsValDom m) :=
     seriesSum_of_absC hgAbsValAbs
-  let hfAbsValV : RepSeriesSum (fun m => ((f.absVal).fn m).toFun x) :=
+  let hfAbsValV : RepSeriesSum
+      (fun m => f.absVal.valueAt x hfAbsValDom m) :=
     seriesSum_of_absC hfAbsValAbs
-  let hHmodel : RepSeriesSum (fun m => ((H.fn m).toFun x)) :=
+  let hHmodel : RepSeriesSum (fun m => H.valueAt x hHdom m) :=
     add_seriesSum_valueC3 (r := g.absVal) (r' := f.absVal) (x := x)
-      hgAbsValV hfAbsValV
-  let herrSubV : RepSeriesSum (fun m => (r.fn m).toFun x) :=
-    sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x) hfnv hfv_from_err
-  obtain ⟨herrAbsModel, herrAbs_eq⟩ := r.absVal_signed_value x herrSubV
-  obtain ⟨hgAbsModel, hgAbs_eq⟩ := g.absVal_signed_value x hgv
-  obtain ⟨hfAbsModel, hfAbs_eq⟩ := f.absVal_signed_value x hfv_from_H
+      hgAbsValDom hfAbsValDom hgAbsValV hfAbsValV
+  let herrSubV : RepSeriesSum (fun m => r.valueAt x hrdom m) :=
+    sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x)
+      hfndom hfdomErr hfnv hfv_from_err
+  obtain ⟨herrAbsModel, herrAbs_eq⟩ :=
+    r.absVal_signed_value x hrdom herrSubV
+  obtain ⟨hgAbsModel, hgAbs_eq⟩ :=
+    g.absVal_signed_value x hgdom hgv
+  obtain ⟨hfAbsModel, hfAbs_eq⟩ :=
+    f.absVal_signed_value x hfdomH hfv_from_H
   have herr_to_abs_sub :
       herrv.sum ≈ CReal.abs (CReal.sub hfnv.sum hfv_from_err.sum) := by
     have huniq : herrv.sum ≈ herrAbsModel.sum := by
@@ -314,7 +348,7 @@ noncomputable def absError_le_absMajorant_add_absLimit_onFullDataC
     repSeriesSum_unique hfv_from_err hfv_from_H
   have hfn_le_abs_g : RegularSeqLe (CReal.abs hfnv.sum) hgAbsValV.sum := by
     have hle_g : RegularSeqLe (CReal.abs hfnv.sum) hgv.sum :=
-      hdom.bound x hxF hfnv hgv
+      hdom.bound x hxF hfndom hgdom hfnv hgv
     have hg_le_abs : RegularSeqLe hgv.sum (CReal.abs hgv.sum) :=
       base_le_abs_base_regularSeqLe hgv.sum
     exact regularSeqLe_trans hle_g

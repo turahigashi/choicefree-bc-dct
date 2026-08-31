@@ -52,19 +52,22 @@ noncomputable def sec4_make_pointBridge_from_rows
     (F : Nat → IntegrableRep S)
     (hsum : RSeq.SeriesSum (fun m => (F m).normL1))
     (x : X)
+    (hflatDom : (seriesSumRep_L1 F hsum).MemAt x)
     (hflatabs : RSeq.SeriesSum
-      (fun n => COF.abs (((seriesSumRep_L1 F hsum).fn n).toFun x)))
+      (fun n => COF.abs ((seriesSumRep_L1 F hsum).valueAt x hflatDom n)))
+    (rowDom : ∀ m : Nat, (F m).MemAt x)
     (rowAbs : ∀ m : Nat,
-      RSeq.SeriesSum (fun n => COF.abs (((F m).fn n).toFun x)))
+      RSeq.SeriesSum (fun n => COF.abs ((F m).valueAt x (rowDom m) n)))
     (rows : RSeq.SeriesSum
       (fun m => (seriesSum_of_abs (rowAbs m)).sum))
     (value_eq : (seriesSum_of_abs hflatabs).sum = rows.sum) :
-    Sec4SeriesSumRepL1PointBridge (S := S) F hsum x hflatabs := {
+    { B : Sec4SeriesSumRepL1PointBridge (S := S) F hsum x //
+      (seriesSum_of_abs hflatabs).sum = B.rows.sum } := ⟨{
+  rowDom := rowDom
   rowAbs := rowAbs
   rowVal := fun m => seriesSum_of_abs (rowAbs m)
   rows := rows
-  value_eq := value_eq
-}
+}, value_eq⟩
 
 
 /--
@@ -79,32 +82,49 @@ noncomputable def sec4_make_pointBridge
     (F : Nat → IntegrableRep S)
     (hsum : RSeq.SeriesSum (fun m => (F m).normL1))
     (x : X)
+    (hflatDom : (seriesSumRep_L1 F hsum).MemAt x)
     (hflatabs : RSeq.SeriesSum
-      (fun n => COF.abs (((seriesSumRep_L1 F hsum).fn n).toFun x))) :
-    Sec4SeriesSumRepL1PointBridge (S := S) F hsum x hflatabs := by
+      (fun n => COF.abs ((seriesSumRep_L1 F hsum).valueAt x hflatDom n))) :
+    { B : Sec4SeriesSumRepL1PointBridge (S := S) F hsum x //
+      (seriesSum_of_abs hflatabs).sum = B.rows.sum } := by
   -- Technical note.
   -- Technical note.
+  let rowDom : ∀ m : Nat, (F m).MemAt x :=
+    fun m => seriesSumRep_L1_F_memAt F hsum hflatDom m
   let rowAbs : ∀ m : Nat,
-      RSeq.SeriesSum (fun n => COF.abs (((F m).fn n).toFun x)) :=
-    fun m => seriesSumRep_L1_row_absConv F hsum (x := x) hflatabs m
+      RSeq.SeriesSum (fun n => COF.abs ((F m).valueAt x (rowDom m) n)) :=
+    fun m => seriesSumRep_L1_row_absConv F hsum (x := x)
+      hflatDom hflatabs m
+  let rowVal : ∀ m : Nat,
+      RSeq.SeriesSum (fun n => (F m).valueAt x (rowDom m) n) :=
+    fun m => seriesSum_of_abs (rowAbs m)
   -- Technical note.
   -- Technical note.
   -- Technical note.
-  obtain ⟨hV, eV⟩ := seriesSumRep_L1_value F hsum (x := x) hflatabs
-  exact sec4_make_pointBridge_from_rows F hsum x hflatabs rowAbs
-    (seriesSum_congr (fun m => by
-        rw [show (seriesSum_of_abs (row_seriesSum
-                (fun i j => abs_nonneg (((G_m F i).fn j).toFun x))
-                (add_absSeriesSum_left hflatabs) m)).sum
-              = (IntegrableRep.ofL_value (psi_m_mem F m) x).val.sum from seriesSum_unique _ _,
-            show (seriesSum_of_abs (row_seriesSum
-                (fun i j => abs_nonneg (((tail_m F i).fn j).toFun x))
-                (add_absSeriesSum_right hflatabs) m)).sum
-              = (IntegrableRep.tailFrom_value (F m) (Nm F m) x
-                  (seriesSum_of_abs (rowAbs m))).val.sum from seriesSum_unique _ _]
-        exact seriesSumRep_L1_hsplit_value F m (seriesSum_of_abs (rowAbs m)))
-      hV)
-    eV
+  obtain ⟨hV, eV⟩ :=
+    seriesSumRep_L1_value F hsum hflatDom hflatabs
+  let rows : RSeq.SeriesSum (fun m => (rowVal m).sum) :=
+    seriesSum_congr (fun m => by
+      let hprefix := IntegrableRep.ofL_value (psi_m_mem F m) x
+        (BFunR.seqSum_mem (F m).fn x (rowDom m) (Nm F m))
+      let htail := IntegrableRep.tailFrom_value
+        (F m) (Nm F m) x (rowDom m) (rowVal m)
+      calc
+        (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg
+          ((G_m F i).valueAt x
+            (seriesSumRep_L1_Grow_memAt F hsum hflatDom i) j))
+          (add_absSeriesSum_left hflatDom hflatabs) m)).sum
+            + (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg
+              ((tail_m F i).valueAt x
+                (seriesSumRep_L1_tailRow_memAt F hsum hflatDom i) j))
+              (add_absSeriesSum_right hflatDom hflatabs) m)).sum
+          = hprefix.val.sum + htail.val.sum := by
+              rw [seriesSum_unique _ hprefix.val,
+                seriesSum_unique _ htail.val]
+        _ = (rowVal m).sum :=
+          seriesSumRep_L1_hsplit_value F m (rowDom m) (rowVal m)) hV
+  exact sec4_make_pointBridge_from_rows F hsum x hflatDom hflatabs
+    rowDom rowAbs rows eV
 
 
 /--
@@ -117,7 +137,8 @@ noncomputable def sec4_seriesSumRep_L1_repNonneg
     (hFnn : ∀ m : Nat, RepNonneg (F m)) :
     RepNonneg (seriesSumRep_L1 F hsum) :=
   sec4_seriesSumRep_L1_repNonneg_of_bridge F hsum hFnn
-    (fun x hflatabs => sec4_make_pointBridge F hsum x hflatabs)
+    (fun x hflatDom hflatabs =>
+      sec4_make_pointBridge F hsum x hflatDom hflatabs)
 
 
 /--

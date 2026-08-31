@@ -30,29 +30,34 @@ theorem repNonneg_sub_self_from_definition
     {S : BishopC.IntSpaceRC Y R}
     (r : BishopC.IntegrableRep S) :
     BishopC.RepNonneg (r.sub r) := by
-  intro x habs hx
+  intro x hsubDom habs hx
+  let hleftDom : r.MemAt x := BishopC.add_dom_left hsubDom
+  let hrightNegDom : r.neg.MemAt x := BishopC.add_dom_right hsubDom
+  let hrightDom : r.MemAt x := BishopC.neg_dom hrightNegDom
   have hleft_abs :
-      RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) := by
-    simpa [BishopC.IntegrableRep.sub] using
+      RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hleftDom n)) := by
+    simpa only [hleftDom, BishopC.IntegrableRep.sub] using
       (BishopC.add_absSeriesSum_left
-        (r := r) (r' := r.neg) (x := x) habs)
+        (r := r) (r' := r.neg) (x := x) hsubDom habs)
   have hright_neg_abs :
-      RSeq.SeriesSum (fun n => COF.abs ((r.neg.fn n).toFun x)) := by
-    simpa [BishopC.IntegrableRep.sub] using
+      RSeq.SeriesSum
+        (fun n => COF.abs (r.neg.valueAt x hrightNegDom n)) := by
+    simpa only [hrightNegDom, BishopC.IntegrableRep.sub] using
       (BishopC.add_absSeriesSum_right
-        (r := r) (r' := r.neg) (x := x) habs)
+        (r := r) (r' := r.neg) (x := x) hsubDom habs)
   have hright_abs :
-      RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) :=
-    BishopC.neg_absSeriesSum hright_neg_abs
-  let hleft_sum : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+      RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hrightDom n)) := by
+    simpa only [hrightDom] using
+      BishopC.neg_absSeriesSum hrightNegDom hright_neg_abs
+  let hleft_sum : RSeq.SeriesSum (fun n => r.valueAt x hleftDom n) :=
     BishopC.seriesSum_of_abs hleft_abs
-  let hright_sum : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+  let hright_sum : RSeq.SeriesSum (fun n => r.valueAt x hrightDom n) :=
     BishopC.seriesSum_of_abs hright_abs
   let hsub_sum :
-      RSeq.SeriesSum (fun n => ((r.sub r).fn n).toFun x) := by
-    simpa [BishopC.IntegrableRep.sub] using
-      (BishopC.add_seriesSum_value hleft_sum
-        (BishopC.neg_seriesSum_value hright_sum))
+      RSeq.SeriesSum (fun n => (r.sub r).valueAt x hsubDom n) := by
+    simpa only [BishopC.IntegrableRep.sub] using
+      (BishopC.add_seriesSum_value hleftDom hrightNegDom hleft_sum
+        (BishopC.neg_seriesSum_value hrightDom hright_sum))
   have hx_eq : hx.sum = hsub_sum.sum :=
     BishopC.seriesSum_unique hx hsub_sum
   have hsame : hleft_sum.sum = hright_sum.sum :=

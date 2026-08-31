@@ -95,11 +95,12 @@ noncomputable def sec4_absSeries_of_pos_smul
 
 /-- The point-value series for a zero scalar multiple is the zero series. -/
 noncomputable def sec4_smul_zero_value
-    (r : IntegrableRep S) (x : X) :
-    RSeq.SeriesSum (fun n => ((r.smul (0 : R)).fn n).toFun x) :=
+    (r : IntegrableRep S) (x : X) (hdom : r.MemAt x) :
+    RSeq.SeriesSum (fun n => (r.smul (0 : R)).valueAt x
+      (IntegrableRep.smul_memAt (a := (0 : R)) hdom) n) :=
   seriesSum_congr
     (fun n => by
-      change (0 : R) = (0 : R) * ((r.fn n).toFun x)
+      change (0 : R) = (0 : R) * r.valueAt x hdom n
       ring)
     (sec4_seriesSum_zero_const (R := R))
 
@@ -112,17 +113,26 @@ This is the exact scalar preservation needed by `prop_4_2_lambda_k`.
 noncomputable def sec4_nat_smul_repNonneg
     (m : Nat) (r : IntegrableRep S) (hrnn : RepNonneg r) :
     RepNonneg (r.smul ((m : Nat) : R)) := by
-  intro x habs hx
+  intro x hdom habs hx
+  let hrDom : r.MemAt x := smul_dom hdom
   by_cases hm : m = 0
   · subst hm
     -- Technical note.
     -- Technical note.
     -- Technical note.
-    let hz : RSeq.SeriesSum (fun n => ((IntegrableRep.smul ((0 : Nat) : R) r).fn n).toFun x) :=
-      seriesSum_congr (fun n => by rw [smul_fn_toFun, Nat.cast_zero]; ring)
-        (show RSeq.SeriesSum (fun _ : Nat => (0 : R)) from
-          seriesSum_congr (fun n => by by_cases hn : n = 0 <;> simp [hn]) (seriesSum_single (0 : R)))
-    have hz0 : hz.sum = 0 := rfl
+    let hzero : RSeq.SeriesSum (fun _ : Nat => (0 : R)) :=
+      sec4_seriesSum_zero_const (R := R)
+    let hz : RSeq.SeriesSum (fun n =>
+        (IntegrableRep.smul ((0 : Nat) : R) r).valueAt x hdom n) :=
+      seriesSum_congr (fun n => by
+        change (0 : R) = ((0 : Nat) : R) * r.valueAt x hrDom n
+        rw [Nat.cast_zero, zero_mul]) hzero
+    have hzero_sum : hzero.sum = 0 := by
+      dsimp [hzero, sec4_seriesSum_zero_const, BishopC.seriesSum_congr,
+        BishopC.seriesSum_single]
+    have hz0 : hz.sum = 0 := by
+      change hzero.sum = 0
+      exact hzero_sum
     have hx0 : hx.sum = 0 := (seriesSum_unique hx hz).trans hz0
     rw [hx0]
     exact nonneg_zero
@@ -130,45 +140,48 @@ noncomputable def sec4_nat_smul_repNonneg
     have hc : COF.lt 0 (((m : Nat) : R)) :=
       sec4_natCast_pos (R := R) hmpos
     let hscaled : RSeq.SeriesSum
-        (fun n => COF.abs ((((m : Nat) : R) * ((r.fn n).toFun x)))) :=
+        (fun n => COF.abs ((((m : Nat) : R) * r.valueAt x hrDom n))) :=
       seriesSum_congr
         (fun n => by
-          rw [smul_fn_toFun (((m : Nat) : R)) r n x])
+          rw [smul_fn_toFun (((m : Nat) : R)) r n x hrDom])
         habs
     let hrAbs : RSeq.SeriesSum
-        (fun n => COF.abs ((r.fn n).toFun x)) :=
+        (fun n => COF.abs (r.valueAt x hrDom n)) :=
       sec4_absSeries_of_pos_smul (((m : Nat) : R)) hc
-        (fun n => (r.fn n).toFun x) hscaled
-    let hrVal : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+        (fun n => r.valueAt x hrDom n) hscaled
+    let hrVal : RSeq.SeriesSum (fun n => r.valueAt x hrDom n) :=
       seriesSum_of_abs hrAbs
     let hsmul : RSeq.SeriesSum
-        (fun n => ((r.smul (((m : Nat) : R))).fn n).toFun x) :=
-      smul_seriesSum_value (((m : Nat) : R)) hrVal
+        (fun n => (r.smul (((m : Nat) : R))).valueAt x hdom n) :=
+      smul_seriesSum_value (((m : Nat) : R)) hrDom hrVal
     have hx_eq : hx.sum = hsmul.sum := seriesSum_unique hx hsmul
     rw [hx_eq]
     show Nonneg ((((m : Nat) : R) * hrVal.sum))
-    exact COFO.mul_nonneg (le_of_lt hc) (hrnn x hrAbs hrVal)
+    exact COFO.mul_nonneg (le_of_lt hc) (hrnn x hrDom hrAbs hrVal)
 
 
 /-- Addition preserves representation non-negativity. -/
 noncomputable def sec4_add_repNonneg
     (r s : IntegrableRep S) (hrnn : RepNonneg r) (hsnn : RepNonneg s) :
     RepNonneg (r.add s) := by
-  intro x habs hx
-  let hrAbs : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) :=
-    add_absSeriesSum_left habs
-  let hsAbs : RSeq.SeriesSum (fun n => COF.abs ((s.fn n).toFun x)) :=
-    add_absSeriesSum_right habs
-  let hrVal : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+  intro x hdom habs hx
+  let hrDom : r.MemAt x := add_dom_left hdom
+  let hsDom : s.MemAt x := add_dom_right hdom
+  let hrAbs : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hrDom n)) :=
+    add_absSeriesSum_left hdom habs
+  let hsAbs : RSeq.SeriesSum (fun n => COF.abs (s.valueAt x hsDom n)) :=
+    add_absSeriesSum_right hdom habs
+  let hrVal : RSeq.SeriesSum (fun n => r.valueAt x hrDom n) :=
     seriesSum_of_abs hrAbs
-  let hsVal : RSeq.SeriesSum (fun n => (s.fn n).toFun x) :=
+  let hsVal : RSeq.SeriesSum (fun n => s.valueAt x hsDom n) :=
     seriesSum_of_abs hsAbs
-  let hadd : RSeq.SeriesSum (fun n => ((r.add s).fn n).toFun x) :=
-    add_seriesSum_value hrVal hsVal
+  let hadd : RSeq.SeriesSum (fun n => (r.add s).valueAt x hdom n) :=
+    add_seriesSum_value hrDom hsDom hrVal hsVal
   have hx_eq : hx.sum = hadd.sum := seriesSum_unique hx hadd
   rw [hx_eq]
   show Nonneg (hrVal.sum + hsVal.sum)
-  exact nonneg_add (hrnn x hrAbs hrVal) (hsnn x hsAbs hsVal)
+  exact nonneg_add
+    (hrnn x hrDom hrAbs hrVal) (hsnn x hsDom hsAbs hsVal)
 
 
 /-! ## 2. Proposition 4.2 preservation chain -/

@@ -53,7 +53,7 @@ def Sec4LambdaRowsOuterSumAt
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (x : X)
     (hrows : Sec4LambdaRowsAbsAt (S := S) A hA f x) : Type _ :=
-  RSeq.SeriesSum (fun k => (seriesSum_of_abs (hrows k)).sum)
+  RSeq.SeriesSum (fun k => (seriesSum_of_abs (hrows k).snd).sum)
 
 
 /--
@@ -95,16 +95,17 @@ noncomputable def sec4_lambdaRowsPack_of_chiFFlatAbs
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
-    (hflatabs :
-      RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+    (hflat : Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x) :
     Sec4LambdaRowsPackAt (S := S) A hA f x := by
-  unfold prop_4_2_chi_f_rep at hflatabs
+  let hflatDom := hflat.fst
+  let hflatabs := hflat.snd
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
   let F : Nat → IntegrableRep S :=
     prop_4_2_lambda_k A hA f (prop_4_2_n_k f)
-  let PB := sec4_make_pointBridge F _ x hflatabs
+  let PBData := sec4_make_pointBridge F _ x hflatDom hflatabs
+  let PB := PBData.val
   let hrows : Sec4LambdaRowsAbsAt (S := S) A hA f x :=
-    fun k => PB.rowAbs k
+    fun k => ⟨PB.rowDom k, PB.rowAbs k⟩
   let houter : Sec4LambdaRowsOuterSumAt (S := S) A hA f x hrows :=
     seriesSum_congr
       (fun k => by
@@ -122,7 +123,7 @@ def Sec4FAbsOfLambdaRowsPackOnS1
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
     Sec4LambdaRowsPackAt (S := S) A hA f x →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x)))
+    Sec4RepAbsAt f x
 
 
 /--
@@ -131,7 +132,7 @@ Positive-side construction of packed row data from an `f` abs witness.
 def Sec4LambdaRowsPackOnS1OfFAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))) →
+    Sec4RepAbsAt f x →
     Sec4LambdaRowsPackAt (S := S) A hA f x
 
 
@@ -153,8 +154,7 @@ def Sec4ChiFFlatAbsOfRowsPack
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
     Sec4LambdaRowsPackAt (S := S) A hA f x →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x
 
 
 /--

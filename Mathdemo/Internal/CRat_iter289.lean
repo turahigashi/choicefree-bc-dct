@@ -35,9 +35,13 @@ theorem prop412_bad_set_relIntegral_le_cap
     (badCap : R)
     (hbound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum
+          (fun m => COF.abs (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum badCap) :
     BishopC.Le
@@ -92,9 +96,13 @@ theorem prop412_full_integral_le_from_value_cap_rep_witness_data
           eps)
     (hbadCapBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum
+          (fun m => COF.abs (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum badCap)
     (RData : Prop412ComplementPointwiseRepresentativeValueData A E hA hE d hdnn) :
@@ -127,11 +135,15 @@ structure Prop412ConcreteBadSetCapBoundData
     (G : Prop412MidRepresentativeSupportData A hA n g) : Type _ where
   bound :
     ∀ (x : Y)
+      (hdfDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x)
+      (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
       (hdfabs : RSeq.SeriesSum
         (fun m => COF.abs
-          (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x)))
+          ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+            x hdfDom m)))
       (hχBadAbs : RSeq.SeriesSum
-        (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+        (fun m => COF.abs
+          ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
       (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
         BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum badCap
 

@@ -35,39 +35,52 @@ set_option linter.unusedVariables false
 /-! ## 1. Public pointwise representative API -/
 
 /-- A representative is defined at `x` in the Definition-2.3 pointwise sense:
-its representing series is absolutely convergent at `x`. -/
-def RepDefinedAt (r : IntegrableRep S) (x : X) : Type _ :=
-  RSeq.SeriesSum (fun m => COF.abs (((r.fn m).toFun x)))
+all components are defined there and its representing series is absolutely
+convergent at `x`. -/
+structure RepDefinedAt (r : IntegrableRep S) (x : X) : Type _ where
+  dom : r.MemAt x
+  series : RSeq.SeriesSum (fun m => COF.abs (r.valueAt x dom m))
 
 /-- The signed value series associated with a pointwise-defined representative. -/
-def RepValueSeries (r : IntegrableRep S) (x : X) (_h : RepDefinedAt (S := S) r x) :
+def RepValueSeries (r : IntegrableRep S) (x : X) (h : RepDefinedAt (S := S) r x) :
     Type _ :=
-  RSeq.SeriesSum (fun m => ((r.fn m).toFun x))
+  RSeq.SeriesSum (fun m => r.valueAt x h.dom m)
 
 
 namespace RepDefinedAt
+
+/-- Absolute-series sum, retained as the projection-level public API. -/
+abbrev sum {r : IntegrableRep S} {x : X}
+    (h : RepDefinedAt (S := S) r x) : R := h.series.sum
+
+/-- Absolute-series convergence modulus. -/
+abbrev tends {r : IntegrableRep S} {x : X}
+    (h : RepDefinedAt (S := S) r x) := h.series.tends
 
 /-- Pointwise absolute convergence is stable under representative addition. -/
 def add {r r' : IntegrableRep S} {x : X}
     (hr : RepDefinedAt (S := S) r x)
     (hr' : RepDefinedAt (S := S) r' x) :
-    RepDefinedAt (S := S) (r.add r') x :=
-  seriesSum_congr
+    RepDefinedAt (S := S) (r.add r') x := by
+  let haddDom := IntegrableRep.add_memAt hr.dom hr'.dom
+  refine { dom := haddDom, series := ?_ }
+  exact seriesSum_congr
     (fun n => by
-      rw [add_fn_toFun r r' n x,
+      rw [add_fn_toFun r r' n x hr.dom hr'.dom,
         seqInterleave_map COF.abs
-          (fun k => (r.fn k).toFun x)
-          (fun k => (r'.fn k).toFun x) n])
-    (seriesSum_interleave hr hr')
+          (fun k => r.valueAt x hr.dom k)
+          (fun k => r'.valueAt x hr'.dom k) n])
+    (seriesSum_interleave hr.series hr'.series)
 
 
 /-- Pointwise absolute convergence is stable under representative negation. -/
 def neg {r : IntegrableRep S} {x : X}
     (hr : RepDefinedAt (S := S) r x) :
-    RepDefinedAt (S := S) (r.neg) x :=
-  seriesSum_congr
-    (fun n => by rw [neg_fn_toFun r n x, COFO.abs_neg])
-    hr
+    RepDefinedAt (S := S) (r.neg) x := by
+  refine { dom := IntegrableRep.neg_memAt hr.dom, series := ?_ }
+  exact seriesSum_congr
+    (fun n => by rw [neg_fn_toFun r n x hr.dom, COFO.abs_neg])
+    hr.series
 
 
 /-- Pointwise absolute convergence is stable under representative subtraction. -/
@@ -107,8 +120,8 @@ def rowAbsSum
   seriesSum_comparison
     (fun i =>
       seriesSum_nonneg
-        (fun j => abs_nonneg (((F i).fn j).toFun x))
-        (P.row_abs i))
+        (fun j => abs_nonneg ((F i).valueAt x (P.row_abs i).dom j))
+        (P.row_abs i).series)
     P.row_abs_le
     P.majorant_sum
 
@@ -125,15 +138,20 @@ def seriesIntegrable_definedAt_of_pointwiseFlattenable
     {x : X}
     (P : PointwiseFlattenable (S := S) F x) :
     RepDefinedAt (S := S) (seriesIntegrable F hsum) x := by
-  change
-    RSeq.SeriesSum
-      (fun m => COF.abs (((F (cellAt m).1).fn (cellAt m).2).toFun x))
+  let hflatDom : (seriesIntegrable F hsum).MemAt x :=
+    fun m => (P.row_abs (cellAt m).1).dom (cellAt m).2
+  refine { dom := hflatDom, series := ?_ }
+  change RSeq.SeriesSum
+    (fun m => COF.abs ((F (cellAt m).1).valueAt x
+      (P.row_abs (cellAt m).1).dom (cellAt m).2))
   exact cellAt_seriesSum
-    (fun i j => abs_nonneg (((F i).fn j).toFun x))
-    P.row_abs
+    (fun i j => abs_nonneg ((F i).valueAt x (P.row_abs i).dom j))
+    (fun i => (P.row_abs i).series)
     P.rowAbsSum
 
 
+set_option maxHeartbeats 800000 in
+-- Universe elaboration for the two split-family fields exceeds the default limit.
 /-- Pointwise data for the actual split used by `seriesSumRep_L1`.
 
 The definition of `seriesSumRep_L1 F` is not a direct flattening of `F`; it is

@@ -62,7 +62,7 @@ noncomputable def sec4_absOuterOnS2_of_rowsAbsZero
   exact
     seriesSum_congr
       (fun k => by
-        have hz : (hrows k).sum = 0 := by
+        have hz : (hrows k).snd.sum = 0 := by
           dsimp [hrows]
           exact Zero A hA x hxA k
         exact hz.symm)

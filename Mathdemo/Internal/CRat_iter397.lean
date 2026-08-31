@@ -39,17 +39,19 @@ structure Prop210BWithDef23OutputWitness
       forall m : Nat,
         x ∈ ((prop_2_10_b_ofWithDef23 (S := S) A HA h_conv).rep.fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ (BSet.bigOr A).S1 ->
+    forall (x : X) (hx : x ∈ (BSet.bigOr A).S1),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_b_ofWithDef23 (S := S) A HA h_conv).rep.fn m).toFun x))
+            ((prop_2_10_b_ofWithDef23 (S := S) A HA h_conv).rep.valueAt
+              x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ (BSet.bigOr A).S2 ->
+    forall (x : X) (hx : x ∈ (BSet.bigOr A).S2),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_b_ofWithDef23 (S := S) A HA h_conv).rep.fn m).toFun x))
+            ((prop_2_10_b_ofWithDef23 (S := S) A HA h_conv).rep.valueAt
+              x (dom_on_s2 x hx) m))
 
 
 /-- The missing Definition-2.3 side data for the Proposition-2.10(c) countable
@@ -71,17 +73,19 @@ structure Prop210CWithDef23OutputWitness
       forall m : Nat,
         x ∈ ((prop_2_10_c_ofWithDef23 (S := S) A HA h_lim).rep.fn m).dom
   abs_on_s1 :
-    forall x : X, x ∈ (BSet.bigAnd A).S1 ->
+    forall (x : X) (hx : x ∈ (BSet.bigAnd A).S1),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_c_ofWithDef23 (S := S) A HA h_lim).rep.fn m).toFun x))
+            ((prop_2_10_c_ofWithDef23 (S := S) A HA h_lim).rep.valueAt
+              x (dom_on_s1 x hx) m))
   abs_on_s2 :
-    forall x : X, x ∈ (BSet.bigAnd A).S2 ->
+    forall (x : X) (hx : x ∈ (BSet.bigAnd A).S2),
       RSeq.SeriesSum
         (fun m =>
           COF.abs
-            (((prop_2_10_c_ofWithDef23 (S := S) A HA h_lim).rep.fn m).toFun x))
+            ((prop_2_10_c_ofWithDef23 (S := S) A HA h_lim).rep.valueAt
+              x (dom_on_s2 x hx) m))
 
 
 /-! ## 2. Conditional strong outputs -/

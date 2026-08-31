@@ -58,22 +58,29 @@ structure Sec4GenIBValueBridge
     (f : IntegrableRep S) (hnn : RepNonneg f) : Prop where
   domain :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)) →
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) →
       x ∈ B.S1 ∪ B.S2
   value_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x))),
+        RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n)),
       (seriesSum_of_abs hgenabs).sum = (seriesSum_of_abs hfabs).sum
   value_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
       (seriesSum_of_abs hgenabs).sum = 0
 
 
@@ -130,23 +137,27 @@ theorem sec4_genIB_value_eq_relRep_on_support
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (V : Sec4GenIBValueBridge (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
     ∀ x ∈ Sec4ConsistencySupport (S := S) C hC f hnn,
-      ∀ (hgen : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable C
-          (isMeasurableSet_of_integrable hC) f hnn).fn n).toFun x))
-        (hrel : RSeq.SeriesSum
-        (fun n => ((prop_4_2_chi_f_rep C hC f hnn).fn n).toFun x)),
+      ∀ (hgenDom : (genIB_rep_from_measurable C
+          (isMeasurableSet_of_integrable hC) f hnn).MemAt x)
+        (hrelDom : (prop_4_2_chi_f_rep C hC f hnn).MemAt x)
+        (hgen : RSeq.SeriesSum (fun n =>
+          (genIB_rep_from_measurable C
+            (isMeasurableSet_of_integrable hC) f hnn).valueAt x hgenDom n))
+        (hrel : RSeq.SeriesSum (fun n =>
+          (prop_4_2_chi_f_rep C hC f hnn).valueAt x hrelDom n)),
         hgen.sum = hrel.sum := by
-  intro x hx hgen hrel
-  rcases hx with ⟨⟨⟨hgenDom, hrelDom⟩, hχDom⟩, hfDom⟩
-  rcases hgenDom.2 with ⟨hgenabs⟩
-  rcases hrelDom.2 with ⟨hrelabs⟩
-  rcases hχDom.2 with ⟨hχabs⟩
-  rcases hfDom.2 with ⟨hfabs⟩
+  intro x hx hgenDom hrelDom hgen hrel
+  rcases hx with ⟨⟨⟨hxgen, hxrel⟩, hχDom⟩, hfDom⟩
+  rcases hxgen with ⟨hgenAt, ⟨hgenabs⟩⟩
+  rcases hxrel with ⟨hrelAt, ⟨hrelabs⟩⟩
+  rcases hχDom with ⟨hχAt, ⟨hχabs⟩⟩
+  rcases hfDom with ⟨hfAt, ⟨hfabs⟩⟩
   have hrel_value :
       (seriesSum_of_abs hrelabs).sum =
         (seriesSum_of_abs hχabs).sum * (seriesSum_of_abs hfabs).sum :=
-    prop_4_2_chi_f_rep_value C hC f hnn (x := x) hrelabs hχabs hfabs
-  have hχvalid := hC.valid x hχabs
+    prop_4_2_chi_f_rep_value C hC f hnn (x := x)
+      hrelAt hχAt hfAt hrelabs hχabs hfabs
+  have hχvalid := hC.valid x hχAt hχabs
   cases hχvalid.1 with
   | inl hxC1 =>
       have hχ_one :
@@ -155,7 +166,7 @@ theorem sec4_genIB_value_eq_relRep_on_support
       have hgen_value :
           (seriesSum_of_abs hgenabs).sum =
             (seriesSum_of_abs hfabs).sum :=
-        V.value_s1 x hxC1 hgenabs hfabs
+        V.value_s1 x hxC1 hgenAt hgenabs hfAt hfabs
       calc
         hgen.sum = (seriesSum_of_abs hgenabs).sum :=
           seriesSum_unique hgen (seriesSum_of_abs hgenabs)
@@ -173,7 +184,7 @@ theorem sec4_genIB_value_eq_relRep_on_support
         hχvalid.2.2 hxC2 (seriesSum_of_abs hχabs)
       have hgen_value :
           (seriesSum_of_abs hgenabs).sum = 0 :=
-        V.value_s2 x hxC2 hgenabs
+        V.value_s2 x hxC2 hgenAt hgenabs
       calc
         hgen.sum = (seriesSum_of_abs hgenabs).sum :=
           seriesSum_unique hgen (seriesSum_of_abs hgenabs)

@@ -37,7 +37,7 @@ def Sec4LambdaRowsAbsZeroOnS2ForRows
     (Rows : Sec4Prop42RowsOnS2 (S := S) f hnn) : Prop :=
   forall (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
     forall hxA : x ∈ A.S2,
-      forall k : Nat, ((Rows A hA x hxA) k).sum = 0
+      forall k : Nat, ((Rows A hA x hxA) k).snd.sum = 0
 
 
 /-- Build the corrected `A.S2` abs-pack once standard rows and their corrected
@@ -53,7 +53,7 @@ noncomputable def sec4_packOnS2_of_rowsAbsZero
   let houter : Sec4LambdaRowsAbsOuterSumAt (S := S) A hA f x hrows :=
     seriesSum_congr
       (fun k => by
-        have hz : (hrows k).sum = 0 := by
+        have hz : (hrows k).snd.sum = 0 := by
           dsimp [hrows]
           exact Zero A hA x hxA k
         exact hz.symm)

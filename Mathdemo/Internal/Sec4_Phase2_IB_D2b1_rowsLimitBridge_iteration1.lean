@@ -36,10 +36,12 @@ noncomputable def sec4_genIB_baseValue
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) : R :=
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) : R :=
   (seriesSum_of_abs
-    (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenabs)).sum
+    (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenDom hgenabs)).sum
 
 
 /-- The tail row-value sequence associated to the D2a point bridge. -/
@@ -47,10 +49,13 @@ noncomputable def sec4_genIB_tailRowSeq
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     Nat → R :=
-  fun k => ((sec4_genIB_tailPointBridge B hB f hnn x hgenabs).rowVal k).sum
+  fun k =>
+    ((sec4_genIB_tailPointBridge B hB f hnn x hgenDom hgenabs).rowVal k).sum
 
 
 /-- The tail row series supplied by D2a, with a stable sequence name. -/
@@ -58,10 +63,13 @@ noncomputable def sec4_genIB_tailRows
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
-    RSeq.SeriesSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) :=
-  (sec4_genIB_tailPointBridge B hB f hnn x hgenabs).rows
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
+    RSeq.SeriesSum
+      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) :=
+  (sec4_genIB_tailPointBridge B hB f hnn x hgenDom hgenabs).rows
 
 
 /--
@@ -71,14 +79,16 @@ theorem sec4_genIB_value_eq_baseValue_add_tailRows
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     (seriesSum_of_abs hgenabs).sum =
-      sec4_genIB_baseValue B hB f hnn x hgenabs +
-      (sec4_genIB_tailRows B hB f hnn x hgenabs).sum := by
+      sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+      (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs).sum := by
   unfold sec4_genIB_baseValue sec4_genIB_tailRows
   simpa [sec4_genIB_tailRowSeq] using
-    sec4_genIB_value_eq_base_add_tailRows B hB f hnn x hgenabs
+    sec4_genIB_value_eq_base_add_tailRows B hB f hnn x hgenDom hgenabs
 
 
 /-! ## 2. The remaining row-limit data -/
@@ -95,28 +105,37 @@ structure Sec4GenIBRowsLimitData
     (f : IntegrableRep S) (hnn : RepNonneg f) where
   domain :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)) →
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) →
       x ∈ B.S1 ∪ B.S2
   rows_tendsto_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x))),
+        RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n)),
       RSeq.TendstoHalf
-        (RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs))
+        (RSeq.partialSum
+          (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs))
         ((seriesSum_of_abs hfabs).sum -
-          sec4_genIB_baseValue B hB f hnn x hgenabs)
+          sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs)
   rows_tendsto_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
       RSeq.TendstoHalf
-        (RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs))
-        (0 - sec4_genIB_baseValue B hB f hnn x hgenabs)
+        (RSeq.partialSum
+          (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs))
+        (0 - sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs)
 
 
 /-! ## 3. Value bridge from row-limit data -/
@@ -127,31 +146,36 @@ theorem sec4_genIB_value_s1_of_rowsLimit
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4GenIBRowsLimitData (S := S) B hB f hnn)
     (x : X) (hxB : x ∈ B.S1)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)))
-    (hfabs : RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x)))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)))
+    (hfDom : f.MemAt x)
+    (hfabs : RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n))) :
     (seriesSum_of_abs hgenabs).sum = (seriesSum_of_abs hfabs).sum := by
   let htarget : RSeq.SeriesSum
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) := {
+      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) := {
     sum := (seriesSum_of_abs hfabs).sum -
-      sec4_genIB_baseValue B hB f hnn x hgenabs
-    tends := T.rows_tendsto_s1 x hxB hgenabs hfabs
+      sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs
+    tends := T.rows_tendsto_s1 x hxB hgenDom hgenabs hfDom hfabs
   }
   have hrows :
-      (sec4_genIB_tailRows B hB f hnn x hgenabs).sum =
+      (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs).sum =
         (seriesSum_of_abs hfabs).sum -
-          sec4_genIB_baseValue B hB f hnn x hgenabs :=
+          sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs :=
     seriesSum_unique
-      (sec4_genIB_tailRows B hB f hnn x hgenabs)
+      (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs)
       htarget
   calc
     (seriesSum_of_abs hgenabs).sum =
-        sec4_genIB_baseValue B hB f hnn x hgenabs +
-          (sec4_genIB_tailRows B hB f hnn x hgenabs).sum :=
-      sec4_genIB_value_eq_baseValue_add_tailRows B hB f hnn x hgenabs
-    _ = sec4_genIB_baseValue B hB f hnn x hgenabs +
+        sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+          (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs).sum :=
+      sec4_genIB_value_eq_baseValue_add_tailRows
+        B hB f hnn x hgenDom hgenabs
+    _ = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
           ((seriesSum_of_abs hfabs).sum -
-            sec4_genIB_baseValue B hB f hnn x hgenabs) := by rw [hrows]
+            sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs) := by
+      rw [hrows]
     _ = (seriesSum_of_abs hfabs).sum := by ring
 
 
@@ -161,27 +185,31 @@ theorem sec4_genIB_value_s2_of_rowsLimit
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4GenIBRowsLimitData (S := S) B hB f hnn)
     (x : X) (hxB : x ∈ B.S2)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     (seriesSum_of_abs hgenabs).sum = 0 := by
   let htarget : RSeq.SeriesSum
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) := {
-    sum := 0 - sec4_genIB_baseValue B hB f hnn x hgenabs
-    tends := T.rows_tendsto_s2 x hxB hgenabs
+      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) := {
+    sum := 0 - sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs
+    tends := T.rows_tendsto_s2 x hxB hgenDom hgenabs
   }
   have hrows :
-      (sec4_genIB_tailRows B hB f hnn x hgenabs).sum =
-        0 - sec4_genIB_baseValue B hB f hnn x hgenabs :=
+      (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs).sum =
+        0 - sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs :=
     seriesSum_unique
-      (sec4_genIB_tailRows B hB f hnn x hgenabs)
+      (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs)
       htarget
   calc
     (seriesSum_of_abs hgenabs).sum =
-        sec4_genIB_baseValue B hB f hnn x hgenabs +
-          (sec4_genIB_tailRows B hB f hnn x hgenabs).sum :=
-      sec4_genIB_value_eq_baseValue_add_tailRows B hB f hnn x hgenabs
-    _ = sec4_genIB_baseValue B hB f hnn x hgenabs +
-          (0 - sec4_genIB_baseValue B hB f hnn x hgenabs) := by rw [hrows]
+        sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+          (sec4_genIB_tailRows B hB f hnn x hgenDom hgenabs).sum :=
+      sec4_genIB_value_eq_baseValue_add_tailRows
+        B hB f hnn x hgenDom hgenabs
+    _ = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+          (0 - sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs) := by
+      rw [hrows]
     _ = 0 := by ring
 
 
@@ -195,11 +223,13 @@ noncomputable def sec4_genIBValueBridge_of_rowsLimitData
     Sec4GenIBValueBridge (S := S) B hB f hnn := {
   domain := T.domain
   value_s1 := by
-    intro x hxB hgenabs hfabs
-    exact sec4_genIB_value_s1_of_rowsLimit B hB f hnn T x hxB hgenabs hfabs
+    intro x hxB hgenDom hgenabs hfDom hfabs
+    exact sec4_genIB_value_s1_of_rowsLimit
+      B hB f hnn T x hxB hgenDom hgenabs hfDom hfabs
   value_s2 := by
-    intro x hxB hgenabs
-    exact sec4_genIB_value_s2_of_rowsLimit B hB f hnn T x hxB hgenabs
+    intro x hxB hgenDom hgenabs
+    exact sec4_genIB_value_s2_of_rowsLimit
+      B hB f hnn T x hxB hgenDom hgenabs
 }
 
 

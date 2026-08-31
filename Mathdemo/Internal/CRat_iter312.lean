@@ -97,20 +97,20 @@ noncomputable def prop412_complement_to_bad_data_from_mid_support_full_definitio
       (prop412ComplementRep hE d hdnn)
       (prop412BadRelRep hA hE d hdnn)
       ?_
-    intro x hx hcomp hbad
+    intro x hx hcompDom hbadDom hcomp hbad
     unfold prop412_definition_witness_full_set at hx
     obtain ⟨hx0, hxχE_d⟩ := hx
     obtain ⟨hx1, hxd⟩ := hx0
     obtain ⟨hx2, hxBadχ⟩ := hx1
     obtain ⟨hx3, hxEχ⟩ := hx2
     obtain ⟨hxCompBad, hxAχ⟩ := hx3
-    obtain ⟨_, ⟨hχAabs⟩⟩ := hxAχ
-    obtain ⟨_, ⟨hχEabs⟩⟩ := hxEχ
-    obtain ⟨_, ⟨hχBadAbs⟩⟩ := hxBadχ
-    obtain ⟨_, ⟨hdabs⟩⟩ := hxd
-    obtain ⟨_, ⟨hχE_d_abs⟩⟩ := hxχE_d
+    obtain ⟨hχADom, ⟨hχAabs⟩⟩ := hxAχ
+    obtain ⟨hχEDom, ⟨hχEabs⟩⟩ := hxEχ
+    obtain ⟨hχBadDom, ⟨hχBadAbs⟩⟩ := hxBadχ
+    obtain ⟨hdDom, ⟨hdabs⟩⟩ := hxd
+    obtain ⟨hχE_d_Dom, ⟨hχE_d_abs⟩⟩ := hxχE_d
     obtain ⟨_, hxBadRel⟩ := hxCompBad
-    obtain ⟨_, ⟨hχBad_d_abs⟩⟩ := hxBadRel
+    obtain ⟨hχBad_d_Dom, ⟨hχBad_d_abs⟩⟩ := hxBadRel
     let chiA := (BishopC.seriesSum_of_abs hχAabs).sum
     let chiE := (BishopC.seriesSum_of_abs hχEabs).sum
     let chiBad := (BishopC.seriesSum_of_abs hχBadAbs).sum
@@ -119,13 +119,14 @@ noncomputable def prop412_complement_to_bad_data_from_mid_support_full_definitio
         hcomp.sum = (1 - chiE) * dval := by
       let hdv := BishopC.seriesSum_of_abs hdabs
       let hχEdv := BishopC.seriesSum_of_abs hχE_d_abs
-      let hcompValue := BishopC.add_seriesSum_value hdv
-        (BishopC.neg_seriesSum_value hχEdv)
+      let hcompValue := BishopC.add_seriesSum_value hdDom
+        (BishopC.IntegrableRep.neg_memAt hχE_d_Dom) hdv
+        (BishopC.neg_seriesSum_value hχE_d_Dom hχEdv)
       have hsum : hcomp.sum = hcompValue.sum :=
         BishopC.seriesSum_unique hcomp hcompValue
       have hval : hcompValue.sum = (1 - chiE) * dval :=
         BishopC.prop_4_2_complement_value E hE d hdnn
-          hχE_d_abs hχEabs hdabs
+          hχE_d_Dom hχEDom hdDom hχE_d_abs hχEabs hdabs
       exact hsum.trans hval
     have hbadEq :
         hbad.sum = chiBad * dval := by
@@ -138,17 +139,17 @@ noncomputable def prop412_complement_to_bad_data_from_mid_support_full_definitio
             chiBad * dval :=
         BishopC.prop_4_2_chi_f_rep_value (prop412BadSet A E)
           (prop412_bad_set_integrable hA hE) d hdnn
-          hχBad_d_abs hχBadAbs hdabs
+          hχBad_d_Dom hχBadDom hdDom hχBad_d_abs hχBadAbs hdabs
       exact hsum.trans hval
     have hmembership :
         Prop412ChiMembershipValueData A E x chiA chiE chiBad :=
       prop412_chi_membership_value_data_from_valid
-        hA hE hχAabs hχEabs hχBadAbs
+        hA hE hχADom hχEDom hχBadDom hχAabs hχEabs hχBadAbs
     have houtside : chiA = 0 -> dval = 0 := by
       intro hχAzero
       exact
         prop412_abs_truncated_diff_outside_A_zero_from_mid_support
-          F G hχAabs hdabs hχAzero
+          F G hχADom hdDom hχAabs hdabs hχAzero
     rw [hcompEq, hbadEq]
     exact
       prop412_scalar_complement_le_bad_from_support_cases
@@ -176,11 +177,15 @@ theorem prop412_full_integral_le_from_concrete_truncated_abs_diff_full_definitio
           eps)
     (hbadBound :
       ∀ (x : Y)
+        (hdfDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
         (hdfabs : RSeq.SeriesSum
           (fun m => COF.abs
-            (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x)))
+            ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+              x hdfDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)) :
     BishopC.Le

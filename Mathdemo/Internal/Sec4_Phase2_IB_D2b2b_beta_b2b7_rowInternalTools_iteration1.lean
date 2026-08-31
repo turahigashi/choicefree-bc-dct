@@ -51,11 +51,13 @@ level than `Sec4SetChiAbsOfChiFAbs`: it talks about the first row of the
 def Sec4Lambda0ChiAbsOfAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
+    ∀ hrowDom :
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).MemAt x,
     RSeq.SeriesSum
       (fun m => COF.abs
-        ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).fn m).toFun x))) →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+        ((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).valueAt
+          x hrowDom m)) →
+    Sec4RepAbsAt hA.rep x
 
 
 /--
@@ -69,10 +71,13 @@ def Sec4LambdaRowZeroOnS2
     (f : IntegrableRep S) (hnn : RepNonneg f) : Prop :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S2 →
     ∀ k : Nat,
+      ∀ hrowDom :
+        (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) k).MemAt x,
       ∀ hrowabs :
         RSeq.SeriesSum
           (fun m => COF.abs
-            ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) k).fn m).toFun x))),
+            ((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) k).valueAt
+              x hrowDom m)),
         (seriesSum_of_abs hrowabs).sum = 0
 
 
@@ -140,19 +145,27 @@ noncomputable def sec4_setChiAbsOfChiFAbs_of_rowTools
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4Prop42RowInternalTools (S := S) B hB f hnn) :
     Sec4SetChiAbsOfChiFAbs (S := S) f hnn := by
-  intro A hA x hflatabs
-  unfold prop_4_2_chi_f_rep at hflatabs
+  intro A hA x hflatDom hflatabs
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
+  let hrow0Dom :
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).MemAt x :=
+    seriesSumRep_L1_F_memAt
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
+      _ hflatDom 0
   let hrow0 :
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).fn m).toFun x))) :=
+          ((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 0).valueAt
+            x hrow0Dom m)) :=
     seriesSumRep_L1_row_absConv
       (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
       _
       (x := x)
+      hflatDom
       hflatabs
       0
-  exact Sec4Prop42RowInternalTools.lambda0_chi_abs T A hA x hrow0
+  exact Sec4Prop42RowInternalTools.lambda0_chi_abs T
+    A hA x hrow0Dom hrow0
 
 
 /-! ## 3. Zero of the completed `χ_A·f` representative on `A.S2` -/
@@ -177,11 +190,12 @@ noncomputable def sec4_chiFZeroOnS2_of_rowTools
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4Prop42RowInternalTools (S := S) B hB f hnn) :
     Sec4ChiFZeroOnS2 (S := S) f hnn := by
-  intro A hA x hxA hflatabs
-  unfold prop_4_2_chi_f_rep at hflatabs
+  intro A hA x hxA hflatDom hflatabs
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
   let F : Nat → IntegrableRep S :=
     prop_4_2_lambda_k A hA f (prop_4_2_n_k f)
-  let PB := sec4_make_pointBridge F _ x hflatabs
+  let PBData := sec4_make_pointBridge F _ x hflatDom hflatabs
+  let PB := PBData.val
   let hzeroRows : RSeq.SeriesSum (fun k => (PB.rowVal k).sum) :=
     seriesSum_congr
       (fun k => by
@@ -189,12 +203,12 @@ noncomputable def sec4_chiFZeroOnS2_of_rowTools
         -- Technical note.
         change (0 : R) = (PB.rowVal k).sum
         exact (Sec4Prop42RowInternalTools.lambda_row_zero_on_s2 T
-          A hA x hxA k (PB.rowAbs k)).symm)
+          A hA x hxA k (PB.rowDom k) (PB.rowAbs k)).symm)
       (sec4_zeroSeries_transparent (R := R))
   have hrows0 : PB.rows.sum = 0 :=
     (seriesSum_unique PB.rows hzeroRows).trans (by rfl)
   calc
-    (seriesSum_of_abs hflatabs).sum = PB.rows.sum := PB.value_eq
+    (seriesSum_of_abs hflatabs).sum = PB.rows.sum := PBData.property
     _ = 0 := hrows0
 
 
