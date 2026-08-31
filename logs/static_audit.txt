@@ -1,5 +1,5 @@
 audit_roots: ChoiceFreeMeasureDCTPublic, SupplementChoiceFreeMeasureDCT, Mathdemo.CheckSec3PortAxioms, Mathdemo.CheckDCTV2Axioms, Mathdemo.CheckBishopChengTheorem415PropAxioms, Mathdemo
-closure_files: 512
+closure_files: 513
 closure: ChoiceFreeMeasureDCTPublic.lean
 closure: Mathdemo/BishopSec3PresentedEnhancementsC.lean
 closure: Mathdemo/BishopSec3PresentedEnhancements.lean
@@ -512,5 +512,6 @@ closure: Mathdemo.lean
 closure: Mathdemo/MathematicalInterface.lean
 closure: Mathdemo/SourceIntegrationSpaceDef11.lean
 closure: Mathdemo/DiracIntegrationSpace.lean
-tracked_lean_files: 512
+closure: Mathdemo/FiniteWeightedIntegrationSpace.lean
+tracked_lean_files: 513
 STATIC AUDIT PASSED

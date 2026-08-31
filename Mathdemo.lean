@@ -15,5 +15,6 @@ import Mathdemo.ChoiceFreeDCTConcreteExamples
 import Mathdemo.MathematicalInterface
 import Mathdemo.SourceIntegrationSpaceDef11
 import Mathdemo.DiracIntegrationSpace
+import Mathdemo.FiniteWeightedIntegrationSpace
 
 import ChoiceFreeMeasureDCTPublic
