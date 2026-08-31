@@ -98,26 +98,34 @@ structure Theorem46MidPointwiseOneStepData
   monotone :
     ∀ x
       (hx : x ∈ support)
+      (hφtDom : (theorem46_mid_source Mφ t).rep.MemAt x)
+      (hφuDom : (theorem46_mid_source Mφ u).rep.MemAt x)
+      (hψtDom : (theorem46_mid_source Mψ t).rep.MemAt x)
+      (hψuDom : (theorem46_mid_source Mψ u).rep.MemAt x)
       (hφt : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mφ t).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mφ t).rep.valueAt x hφtDom m))
       (hφu : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mφ u).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mφ u).rep.valueAt x hφuDom m))
       (_hψt : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mψ t).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mψ t).rep.valueAt x hψtDom m))
       (_hψu : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mψ u).rep.fn m).toFun x)),
+        (fun m => (theorem46_mid_source Mψ u).rep.valueAt x hψuDom m)),
       BishopC.Le hφt.sum hφu.sum
   increment_bound :
     ∀ x
       (hx : x ∈ support)
+      (hφtDom : (theorem46_mid_source Mφ t).rep.MemAt x)
+      (hφuDom : (theorem46_mid_source Mφ u).rep.MemAt x)
+      (hψtDom : (theorem46_mid_source Mψ t).rep.MemAt x)
+      (hψuDom : (theorem46_mid_source Mψ u).rep.MemAt x)
       (hφt : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mφ t).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mφ t).rep.valueAt x hφtDom m))
       (hφu : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mφ u).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mφ u).rep.valueAt x hφuDom m))
       (hψt : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mψ t).rep.fn m).toFun x))
+        (fun m => (theorem46_mid_source Mψ t).rep.valueAt x hψtDom m))
       (hψu : RSeq.SeriesSum
-        (fun m => ((theorem46_mid_source Mψ u).rep.fn m).toFun x)),
+        (fun m => (theorem46_mid_source Mψ u).rep.valueAt x hψuDom m)),
       BishopC.Le (hφu.sum - hφt.sum) (hψu.sum - hψt.sum)
 
 /-- Pointwise monotonicity lifts to monotonicity of the carried mid integrals. -/
@@ -140,16 +148,17 @@ theorem theorem46_mid_integral_mono_from_pointwise_one_step_data
     (theorem46_mid_source Mφ t).rep
     (theorem46_mid_source Mφ u).rep
     ?_
-  intro x hx hφt hφu
+  intro x hx hφtDom hφuDom hφt hφu
   have hxMid := D.support_subset_mid_domains hx
   unfold theorem46_pointwise_oneStep_fullSet at hxMid
   obtain ⟨hx123, hxψu⟩ := hxMid
   obtain ⟨_, hxψt⟩ := hx123
-  obtain ⟨_, ⟨hψt_abs⟩⟩ := hxψt
-  obtain ⟨_, ⟨hψu_abs⟩⟩ := hxψu
+  obtain ⟨hψtDom, ⟨hψt_abs⟩⟩ := hxψt
+  obtain ⟨hψuDom, ⟨hψu_abs⟩⟩ := hxψu
   let hψt := BishopC.seriesSum_of_abs hψt_abs
   let hψu := BishopC.seriesSum_of_abs hψu_abs
-  exact D.monotone x hx hφt hφu hψt hψu
+  exact D.monotone x hx hφtDom hφuDom hψtDom hψuDom
+    hφt hφu hψt hψu
 
 /-- Pointwise domination of increments lifts to domination of integral
 increments. -/
@@ -184,16 +193,16 @@ theorem theorem46_mid_integral_increment_bound_from_pointwise_one_step_data
       ((theorem46_mid_source Mψ u).rep.add
         (theorem46_mid_source Mφ t).rep)
       ?_
-    intro x hx hleft hright
+    intro x hx hleftDom hrightDom hleft hright
     have hxMid := D.support_subset_mid_domains hx
     unfold theorem46_pointwise_oneStep_fullSet at hxMid
     obtain ⟨hx123, hxψu⟩ := hxMid
     obtain ⟨hx12, hxψt⟩ := hx123
     obtain ⟨hxφt, hxφu⟩ := hx12
-    obtain ⟨_, ⟨hφt_abs⟩⟩ := hxφt
-    obtain ⟨_, ⟨hφu_abs⟩⟩ := hxφu
-    obtain ⟨_, ⟨hψt_abs⟩⟩ := hxψt
-    obtain ⟨_, ⟨hψu_abs⟩⟩ := hxψu
+    obtain ⟨hφtDom, ⟨hφt_abs⟩⟩ := hxφt
+    obtain ⟨hφuDom, ⟨hφu_abs⟩⟩ := hxφu
+    obtain ⟨hψtDom, ⟨hψt_abs⟩⟩ := hxψt
+    obtain ⟨hψuDom, ⟨hψu_abs⟩⟩ := hxψu
     let hφt := BishopC.seriesSum_of_abs hφt_abs
     let hφu := BishopC.seriesSum_of_abs hφu_abs
     let hψt := BishopC.seriesSum_of_abs hψt_abs
@@ -201,13 +210,14 @@ theorem theorem46_mid_integral_increment_bound_from_pointwise_one_step_data
     have hleft_eq :
         hleft.sum = hφu.sum + hψt.sum := by
       exact BishopC.seriesSum_unique hleft
-        (BishopC.add_seriesSum_value hφu hψt)
+        (BishopC.add_seriesSum_value hφuDom hψtDom hφu hψt)
     have hright_eq :
         hright.sum = hψu.sum + hφt.sum := by
       exact BishopC.seriesSum_unique hright
-        (BishopC.add_seriesSum_value hψu hφt)
+        (BishopC.add_seriesSum_value hψuDom hφtDom hψu hφt)
     rw [hleft_eq, hright_eq]
-    have hdelta := D.increment_bound x hx hφt hφu hψt hψu
+    have hdelta := D.increment_bound x hx
+      hφtDom hφuDom hψtDom hψuDom hφt hφu hψt hψu
     exact BishopC.le_of_nonneg_sub (by
       rw [show (hψu.sum + hφt.sum) - (hφu.sum + hψt.sum)
           = (hψu.sum - hψt.sum) - (hφu.sum - hφt.sum) by ring]

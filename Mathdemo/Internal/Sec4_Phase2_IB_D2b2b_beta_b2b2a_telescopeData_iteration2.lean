@@ -45,20 +45,21 @@ This is the numerical branch needed in `close_s1`.
 theorem sec4_cover_small_s2_from_coverSet
     (f : IntegrableRep S) (hnn : RepNonneg f) :
     ∀ x : X,
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ k n : Nat, k ≤ n →
         x ∈ (coverSet f n).S2 →
           COF.Close k 0 (seriesSum_of_abs hfabs).sum := by
-  intro x hfabs k n hkn hcover
+  intro x hfDom hfabs k n hkn hcover
   -- `coverSet f n` is the level set of `f` at `(coverApart f n).t`.
   -- Its S2 side provides a signed value witness and a strict upper bound.
-  rcases hcover with ⟨_habs0, hx0, hlt0⟩
+  rcases hcover with ⟨_hfDom0, _habs0, hx0, hlt0⟩
   have hx_eq : hx0.sum = (seriesSum_of_abs hfabs).sum :=
     seriesSum_unique hx0 (seriesSum_of_abs hfabs)
   rw [hx_eq] at hlt0
   have hnnx : Nonneg (seriesSum_of_abs hfabs).sum :=
-    hnn x hfabs (seriesSum_of_abs hfabs)
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
   have hthreshold :
       Le (coverApart f n).t (COF.halfPow k) :=
     le_trans (coverApart_t_le_halfPow f n)
@@ -84,32 +85,51 @@ coverApart estimate alone.
 structure Sec4CanonicalCoverTelescopeData
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) where
+  cover_chi_dom :
+    ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
+      ∀ hgenabs :
+        RSeq.SeriesSum
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ n : Nat,
+        (sec4CoverAnd_int B hB f n).rep.MemAt x
   cover_chi_abs :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
         RSeq.SeriesSum
-          (fun m => COF.abs ((((sec4CoverAnd_int B hB f n).rep.fn m).toFun x)))
+          (fun m => COF.abs
+            ((sec4CoverAnd_int B hB f n).rep.valueAt x
+              (cover_chi_dom x hgenDom hgenabs n) m))
   cover_value_eq_chi_on_Bs1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
       ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n =
-          (seriesSum_of_abs (cover_chi_abs x hgenabs n)).sum *
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n =
+          (seriesSum_of_abs
+            (cover_chi_abs x hgenDom hgenabs n)).sum *
             (seriesSum_of_abs hfabs).sum
   cover_value_on_B_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun m => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn m).toFun x)),
+          (fun m => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
       ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenabs n = 0
+        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n = 0
 
 
 /--
@@ -123,13 +143,14 @@ noncomputable def sec4_coreData_of_telescopeData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4CanonicalCoverTelescopeData (S := S) B hB f hnn) :
     Sec4CanonicalCoverCoreData (S := S) B hB f hnn := {
+  cover_chi_dom := T.cover_chi_dom
   cover_chi_abs := T.cover_chi_abs
   cover_value_eq_chi_on_Bs1 := T.cover_value_eq_chi_on_Bs1
   cover_value_on_B_s2 := T.cover_value_on_B_s2
   cover_small_s2 := by
-    intro x hxB hgenabs hfabs k n hkn hcover
+    intro x hxB hgenDom hgenabs hfDom hfabs k n hkn hcover
     exact sec4_cover_small_s2_from_coverSet (S := S) f hnn
-      x hfabs k n hkn hcover
+      x hfDom hfabs k n hkn hcover
 }
 
 

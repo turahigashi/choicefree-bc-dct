@@ -117,18 +117,51 @@ theorem sec4_genIB_from_measurable_eq_add
 
 /-! ## 2. Extract base and tail absolute convergence at a point -/
 
+/-- Transport a point domain witness to the explicit base-plus-tail form. -/
+def sec4_genIB_addMemAt
+    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
+    (f : IntegrableRep S) (hnn : RepNonneg f)
+    {x : X}
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x) :
+    ((sec4MeasurableBaseRep B hB f hnn).add
+      (sec4MeasurableTailRep B hB f hnn)).MemAt x := by
+  simpa only [sec4_genIB_from_measurable_eq_add] using hgenDom
+
+
+/-- Recover the base domain from a direct-representative domain witness. -/
+def sec4_genIB_baseMemAt
+    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
+    (f : IntegrableRep S) (hnn : RepNonneg f)
+    {x : X}
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x) :
+    (sec4MeasurableBaseRep B hB f hnn).MemAt x :=
+  add_dom_left (sec4_genIB_addMemAt B hB f hnn hgenDom)
+
+
+/-- Recover the tail domain from a direct-representative domain witness. -/
+def sec4_genIB_tailMemAt
+    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
+    (f : IntegrableRep S) (hnn : RepNonneg f)
+    {x : X}
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x) :
+    (sec4MeasurableTailRep B hB f hnn).MemAt x :=
+  add_dom_right (sec4_genIB_addMemAt B hB f hnn hgenDom)
+
 /-- Cast a point abs-series for `genIB` to the explicit add representative. -/
 noncomputable def sec4_genIB_abs_as_add
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     RSeq.SeriesSum
       (fun n => COF.abs
-        ((((sec4MeasurableBaseRep B hB f hnn).add
-          (sec4MeasurableTailRep B hB f hnn)).fn n).toFun x)) := by
-  simpa [sec4_genIB_from_measurable_eq_add B hB f hnn] using hgenabs
+        (((sec4MeasurableBaseRep B hB f hnn).add
+          (sec4MeasurableTailRep B hB f hnn)).valueAt x
+            (sec4_genIB_addMemAt B hB f hnn hgenDom) n)) := by
+  simpa only [sec4_genIB_from_measurable_eq_add] using hgenabs
 
 
 /-- Extract the base absolute convergence from a `genIB` absolute convergence. -/
@@ -136,15 +169,19 @@ noncomputable def sec4_genIB_baseAbs_of_abs
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     RSeq.SeriesSum
       (fun n => COF.abs
-        (((sec4MeasurableBaseRep B hB f hnn).fn n).toFun x)) :=
+        ((sec4MeasurableBaseRep B hB f hnn).valueAt x
+          (sec4_genIB_baseMemAt B hB f hnn hgenDom) n)) :=
   add_absSeriesSum_left
     (r := sec4MeasurableBaseRep B hB f hnn)
     (r' := sec4MeasurableTailRep B hB f hnn)
-    (sec4_genIB_abs_as_add B hB f hnn x hgenabs)
+    (sec4_genIB_addMemAt B hB f hnn hgenDom)
+    (sec4_genIB_abs_as_add B hB f hnn x hgenDom hgenabs)
 
 
 /-- Extract the tail absolute convergence from a `genIB` absolute convergence. -/
@@ -152,15 +189,19 @@ noncomputable def sec4_genIB_tailAbs_of_abs
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     RSeq.SeriesSum
       (fun n => COF.abs
-        (((sec4MeasurableTailRep B hB f hnn).fn n).toFun x)) :=
+        ((sec4MeasurableTailRep B hB f hnn).valueAt x
+          (sec4_genIB_tailMemAt B hB f hnn hgenDom) n)) :=
   add_absSeriesSum_right
     (r := sec4MeasurableBaseRep B hB f hnn)
     (r' := sec4MeasurableTailRep B hB f hnn)
-    (sec4_genIB_abs_as_add B hB f hnn x hgenabs)
+    (sec4_genIB_addMemAt B hB f hnn hgenDom)
+    (sec4_genIB_abs_as_add B hB f hnn x hgenDom hgenabs)
 
 
 /--
@@ -170,32 +211,35 @@ theorem sec4_genIB_value_eq_base_add_tail
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     (seriesSum_of_abs hgenabs).sum =
       (seriesSum_of_abs
-        (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenabs)).sum +
+        (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenDom hgenabs)).sum +
       (seriesSum_of_abs
-        (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenabs)).sum := by
+        (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenDom hgenabs)).sum := by
+  let hAddDom := sec4_genIB_addMemAt B hB f hnn hgenDom
+  let hBaseDom := sec4_genIB_baseMemAt B hB f hnn hgenDom
+  let hTailDom := sec4_genIB_tailMemAt B hB f hnn hgenDom
   let hgenSignedAdd : RSeq.SeriesSum
-      (fun n =>
-        (((sec4MeasurableBaseRep B hB f hnn).add
-          (sec4MeasurableTailRep B hB f hnn)).fn n).toFun x) := by
-    simpa [sec4_genIB_from_measurable_eq_add B hB f hnn]
+      (fun n => ((sec4MeasurableBaseRep B hB f hnn).add
+        (sec4MeasurableTailRep B hB f hnn)).valueAt x hAddDom n) := by
+    simpa only [sec4_genIB_from_measurable_eq_add]
       using (seriesSum_of_abs hgenabs)
   let hbaseSigned : RSeq.SeriesSum
-      (fun n => ((sec4MeasurableBaseRep B hB f hnn).fn n).toFun x) :=
+      (fun n => (sec4MeasurableBaseRep B hB f hnn).valueAt x hBaseDom n) :=
     seriesSum_of_abs
-      (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenabs)
+      (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenDom hgenabs)
   let htailSigned : RSeq.SeriesSum
-      (fun n => ((sec4MeasurableTailRep B hB f hnn).fn n).toFun x) :=
+      (fun n => (sec4MeasurableTailRep B hB f hnn).valueAt x hTailDom n) :=
     seriesSum_of_abs
-      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenabs)
+      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenDom hgenabs)
   let hadd : RSeq.SeriesSum
-      (fun n =>
-        (((sec4MeasurableBaseRep B hB f hnn).add
-          (sec4MeasurableTailRep B hB f hnn)).fn n).toFun x) :=
-    add_seriesSum_value hbaseSigned htailSigned
+      (fun n => ((sec4MeasurableBaseRep B hB f hnn).add
+        (sec4MeasurableTailRep B hB f hnn)).valueAt x hAddDom n) :=
+    add_seriesSum_value hBaseDom hTailDom hbaseSigned htailSigned
   have huniq : hgenSignedAdd.sum = hadd.sum :=
     seriesSum_unique hgenSignedAdd hadd
   simpa [hgenSignedAdd, hbaseSigned, htailSigned, hadd]
@@ -211,18 +255,20 @@ noncomputable def sec4_genIB_tailPointBridge
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     Sec4SeriesSumRepL1PointBridge (S := S)
       (fun k => sec4IB_termRep B hB f hnn k)
       (sec4MeasurableTailData B hB f hnn)
-      x
-      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenabs) :=
-  sec4_make_pointBridge
+      x :=
+  (sec4_make_pointBridge
     (fun k => sec4IB_termRep B hB f hnn k)
     (sec4MeasurableTailData B hB f hnn)
     x
-    (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenabs)
+    (sec4_genIB_tailMemAt B hB f hnn hgenDom)
+    (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenDom hgenabs)).val
 
 
 /--
@@ -232,12 +278,20 @@ theorem sec4_genIB_tail_value_eq_rows
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     (seriesSum_of_abs
-      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenabs)).sum =
-      (sec4_genIB_tailPointBridge B hB f hnn x hgenabs).rows.sum :=
-  (sec4_genIB_tailPointBridge B hB f hnn x hgenabs).value_eq
+      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenDom hgenabs)).sum =
+      (sec4_genIB_tailPointBridge B hB f hnn x hgenDom hgenabs).rows.sum := by
+  simpa [sec4_genIB_tailPointBridge] using
+    (sec4_make_pointBridge
+      (fun k => sec4IB_termRep B hB f hnn k)
+      (sec4MeasurableTailData B hB f hnn)
+      x
+      (sec4_genIB_tailMemAt B hB f hnn hgenDom)
+      (sec4_genIB_tailAbs_of_abs B hB f hnn x hgenDom hgenabs)).property
 
 
 /--
@@ -248,14 +302,16 @@ theorem sec4_genIB_value_eq_base_add_tailRows
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     (seriesSum_of_abs hgenabs).sum =
       (seriesSum_of_abs
-        (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenabs)).sum +
-      (sec4_genIB_tailPointBridge B hB f hnn x hgenabs).rows.sum := by
-  rw [sec4_genIB_value_eq_base_add_tail B hB f hnn x hgenabs,
-      sec4_genIB_tail_value_eq_rows B hB f hnn x hgenabs]
+        (sec4_genIB_baseAbs_of_abs B hB f hnn x hgenDom hgenabs)).sum +
+      (sec4_genIB_tailPointBridge B hB f hnn x hgenDom hgenabs).rows.sum := by
+  rw [sec4_genIB_value_eq_base_add_tail B hB f hnn x hgenDom hgenabs,
+      sec4_genIB_tail_value_eq_rows B hB f hnn x hgenDom hgenabs]
 
 
 end BishopC

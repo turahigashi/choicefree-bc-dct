@@ -92,22 +92,24 @@ theorem sec4_relIntegral_zero_of_s1_empty
       (sec4RelZeroSupport_full C hC f hnn)
       (sec4RelRep C hC f hnn)
       (f.smul (0 : R)) ?_
-    intro x hx hr hz
+    intro x hx hrSeriesDom hzSeriesDom hr hz
     rcases hx with ⟨⟨⟨hrDom, hzDom⟩, hχDom⟩, hfDom⟩
-    rcases hrDom.2 with ⟨hflat⟩
-    rcases hχDom.2 with ⟨hχ⟩
-    rcases hfDom.2 with ⟨hfabs⟩
-    let hfval : RSeq.SeriesSum (fun n => (f.fn n).toFun x) :=
+    rcases hrDom with ⟨hflatDom, ⟨hflat⟩⟩
+    rcases hzDom with ⟨hzDom', _hzabs⟩
+    rcases hχDom with ⟨hχDom', ⟨hχ⟩⟩
+    rcases hfDom with ⟨hfDom', ⟨hfabs⟩⟩
+    let hfval : RSeq.SeriesSum (fun n => f.valueAt x hfDom' n) :=
       seriesSum_of_abs hfabs
     let hz0 : RSeq.SeriesSum
-        (fun n => ((f.smul (0 : R)).fn n).toFun x) :=
-      smul_seriesSum_value (0 : R) hfval
+        (fun n => (f.smul (0 : R)).valueAt x hzDom' n) :=
+      smul_seriesSum_value (0 : R) hfDom' hfval
     have hval :
         (seriesSum_of_abs hflat).sum =
           (seriesSum_of_abs hχ).sum * hfval.sum :=
-      prop_4_2_chi_f_rep_value C hC f hnn hflat hχ hfabs
+      prop_4_2_chi_f_rep_value C hC f hnn
+        hflatDom hχDom' hfDom' hflat hχ hfabs
     have hχzero : (seriesSum_of_abs hχ).sum = 0 := by
-      have vC := hC.valid x hχ
+      have vC := hC.valid x hχDom' hχ
       cases vC.1 with
       | inl hxC1 =>
           exact False.elim (hempty x hxC1)

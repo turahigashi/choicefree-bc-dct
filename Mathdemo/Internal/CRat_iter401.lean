@@ -75,21 +75,21 @@ noncomputable def toSourceRepSideWitness
   abs_on_s1 := by
     intro x hx
     simpa [prop_2_10_rep] using
-      seriesSumRep_L1_definedAt_of_pointwiseData
+      (seriesSumRep_L1_definedAt_of_pointwiseData
         (S := S)
         (prop_2_10_F A (fun k => (HA k).base))
         (prop_2_10_F_norm_sum A (fun k => (HA k).base)
           (measure_limit_of_sumWithDef23 (S := S) A HA h_conv))
-        (W.split_pointwise_on_s1 x hx)
+        (W.split_pointwise_on_s1 x hx)).series
   abs_on_s2 := by
     intro x hx
     simpa [prop_2_10_rep] using
-      seriesSumRep_L1_definedAt_of_pointwiseData
+      (seriesSumRep_L1_definedAt_of_pointwiseData
         (S := S)
         (prop_2_10_F A (fun k => (HA k).base))
         (prop_2_10_F_norm_sum A (fun k => (HA k).base)
           (measure_limit_of_sumWithDef23 (S := S) A HA h_conv))
-        (W.split_pointwise_on_s2 x hx)
+        (W.split_pointwise_on_s2 x hx)).series
 
 
 end Prop210BSourceSplitPointwiseWitness
@@ -150,8 +150,9 @@ noncomputable def toSourceRepSideWitness
   dom_on_s2 := W.dom_on_s2
   abs_on_s1 := by
     intro x hx
+    let hx0 : x ∈ (A 0).S1 := Set.mem_iInter.mp hx 0
     have h0 : RepDefinedAt (S := S) (HA 0).base.rep x :=
-      (HA 0).abs_on_s1 x (Set.mem_iInter.mp hx 0)
+      ⟨(HA 0).dom_on_s1 x hx0, (HA 0).abs_on_s1 x hx0⟩
     have hG :
         RepDefinedAt (S := S)
           (seriesSumRep_L1
@@ -164,7 +165,7 @@ noncomputable def toSourceRepSideWitness
         (prop_2_10_G_norm_sum A (fun k => (HA k).base) h_lim)
         (W.split_pointwise_on_s1 x hx)
     simpa [prop_2_10_c_rep, IntegrableRep.sub] using
-      RepDefinedAt.sub h0 hG
+      (RepDefinedAt.sub h0 hG).series
   abs_on_s2 := by
     intro x hx
     have h0 : RepDefinedAt (S := S) (HA 0).base.rep x :=
@@ -181,7 +182,7 @@ noncomputable def toSourceRepSideWitness
         (prop_2_10_G_norm_sum A (fun k => (HA k).base) h_lim)
         (W.split_pointwise_on_s2 x hx)
     simpa [prop_2_10_c_rep, IntegrableRep.sub] using
-      RepDefinedAt.sub h0 hG
+      (RepDefinedAt.sub h0 hG).series
 
 
 end Prop210CSourceSplitPointwiseWitness

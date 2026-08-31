@@ -24,18 +24,24 @@ noncomputable def sec4_fabsOfLambdaAbsRowsOnS1_of_row0Right_general
     (u : IntegrableRep S) (unn : RepNonneg u) :
     Sec4FAbsOfLambdaAbsRowsOnS1 (S := S) u unn := by
   intro A hA x _hxA hrows
-  have hrow0 :
+  let hrow0Dom :
+      (prop_4_2_lambda_k A hA u (prop_4_2_n_k u) 0).MemAt x :=
+    (hrows 0).fst
+  let hrow0 :
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((prop_4_2_lambda_k A hA u (prop_4_2_n_k u) 0).fn m).toFun x))) :=
-    hrows 0
-  dsimp [prop_4_2_lambda_k] at hrow0
+          ((prop_4_2_lambda_k A hA u (prop_4_2_n_k u) 0).valueAt
+            x hrow0Dom m)) :=
+    (hrows 0).snd
+  dsimp [prop_4_2_lambda_k] at hrow0Dom hrow0
+  let hrightDom := min2_dom_right hrow0Dom
   have hright :
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((u.sub (prop_4_2_min_f_n u 0)).fn m).toFun x))) :=
-    min2_absSeriesSum_right hrow0
-  exact add_absSeriesSum_left hright
+          ((u.sub (prop_4_2_min_f_n u 0)).valueAt x hrightDom m)) :=
+    min2_absSeriesSum_right hrow0Dom hrow0
+  exact ⟨add_dom_left hrightDom,
+    add_absSeriesSum_left hrightDom hright⟩
 
 
 /-- The three residual row-seed fields after the row-0-right field has been

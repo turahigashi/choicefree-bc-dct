@@ -51,9 +51,8 @@ witness for `f`.
 def Sec4ChiFFAbsOfS1Data
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x)))
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x →
+    Sec4RepAbsAt f x
 
 
 /--
@@ -63,9 +62,8 @@ side of `A`.
 def Sec4ChiFAbsOnS1Data
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))) →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))
+    Sec4RepAbsAt f x →
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x
 
 
 /--
@@ -75,8 +73,7 @@ extracting an `f` witness.
 def Sec4ChiFAbsOnS2Data
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S2 →
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x
 
 
 /--
@@ -137,7 +134,7 @@ constructing Type-valued witnesses such as `RSeq.SeriesSum`.
 def Sec4IntegrableSetDichotomy
     (A : BSet X) (hA : IntegrableSet1 S A) : Type _ :=
   ∀ x : X,
-    RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x))) →
+    Sec4RepAbsAt hA.rep x →
       PSum (x ∈ A.S1) (x ∈ A.S2)
 
 
@@ -210,20 +207,18 @@ noncomputable def sec4_coverAndCase_from_dichotomyData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (D : Sec4CoverDichotomyData (S := S) B hB f)
     (k : Nat) (x : X)
-    (hVflat :
-      RSeq.SeriesSum
-        (fun m => COF.abs
-          (((prop_4_2_chi_f_rep
-              (sec4CoverAnd B f k)
-              (sec4CoverAnd_int B hB f k)
-              f hnn).fn m).toFun x))) :
+    (hVflat : Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverAnd B f k)
+        (sec4CoverAnd_int B hB f k)
+        f hnn) x) :
     PSum (x ∈ (sec4CoverAnd B f k).S1)
          (x ∈ (sec4CoverAnd B f k).S2) := by
   let hVχ :=
     sec4_setChiAbsOfChiFAbs_of_row1 (S := S) f hnn
       (sec4CoverAnd B f k)
       (sec4CoverAnd_int B hB f k)
-      x hVflat
+      x hVflat.fst hVflat.snd
   exact (Sec4CoverDichotomyData.coverAnd_case D k) x hVχ
 
 
@@ -236,20 +231,18 @@ noncomputable def sec4_coverDiffCase_from_dichotomyData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (D : Sec4CoverDichotomyData (S := S) B hB f)
     (k : Nat) (x : X)
-    (hDflat :
-      RSeq.SeriesSum
-        (fun m => COF.abs
-          (((prop_4_2_chi_f_rep
-              (sec4CoverDiff B f k)
-              (sec4CoverDiff_int B hB f k)
-              f hnn).fn m).toFun x))) :
+    (hDflat : Sec4RepAbsAt
+      (prop_4_2_chi_f_rep
+        (sec4CoverDiff B f k)
+        (sec4CoverDiff_int B hB f k)
+        f hnn) x) :
     PSum (x ∈ (sec4CoverDiff B f k).S1)
          (x ∈ (sec4CoverDiff B f k).S2) := by
   let hDχ :=
     sec4_setChiAbsOfChiFAbs_of_row1 (S := S) f hnn
       (sec4CoverDiff B f k)
       (sec4CoverDiff_int B hB f k)
-      x hDflat
+      x hDflat.fst hDflat.snd
   exact (Sec4CoverDichotomyData.coverDiff_case D k) x hDχ
 
 

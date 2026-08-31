@@ -64,11 +64,15 @@ theorem sec4_chiValue_eq_of_valueMap
     (hA : IntegrableSet1 S A) (hA' : IntegrableSet1 S A')
     (M : Sec4BSetValueMap A A')
     (x : X)
-    (hChi : RSeq.SeriesSum (fun n => COF.abs (((hA.rep).fn n).toFun x)))
-    (hChi' : RSeq.SeriesSum (fun n => COF.abs (((hA'.rep).fn n).toFun x))) :
+    (hChiDom : hA.rep.MemAt x)
+    (hChi : RSeq.SeriesSum
+      (fun n => COF.abs (hA.rep.valueAt x hChiDom n)))
+    (hChi'Dom : hA'.rep.MemAt x)
+    (hChi' : RSeq.SeriesSum
+      (fun n => COF.abs (hA'.rep.valueAt x hChi'Dom n))) :
     (seriesSum_of_abs hChi).sum = (seriesSum_of_abs hChi').sum := by
-  have vA := hA.valid x hChi
-  have vA' := hA'.valid x hChi'
+  have vA := hA.valid x hChiDom hChi
+  have vA' := hA'.valid x hChi'Dom hChi'
   cases vA.1 with
   | inl hxA1 =>
       have hxA'1 : x ∈ A'.S1 := M.s1 x hxA1
@@ -137,13 +141,15 @@ noncomputable def sec4RelRepChiEqInput_of_valueMap
     ⟨sec4RelRepChiSupport_full A A' hA hA' f hnn, ?_⟩⟩
   intro x hx
   rcases hx with ⟨⟨⟨⟨hr, hr'⟩, hChiDom⟩, hChiDom'⟩, hfDom⟩
-  rcases hr.2 with ⟨hflat⟩
-  rcases hr'.2 with ⟨hflat'⟩
-  rcases hChiDom.2 with ⟨hChi⟩
-  rcases hChiDom'.2 with ⟨hChi'⟩
-  rcases hfDom.2 with ⟨hfabs⟩
-  exact ⟨hflat, hflat', hChi, hChi', hfabs,
-    sec4_chiValue_eq_of_valueMap A A' hA hA' M x hChi hChi'⟩
+  rcases hr with ⟨hrDom, ⟨hflat⟩⟩
+  rcases hr' with ⟨hr'Dom, ⟨hflat'⟩⟩
+  rcases hChiDom with ⟨hChiAt, ⟨hChi⟩⟩
+  rcases hChiDom' with ⟨hChiAt', ⟨hChi'⟩⟩
+  rcases hfDom with ⟨hfAt, ⟨hfabs⟩⟩
+  exact ⟨hrDom, hflat, hr'Dom, hflat', hChiAt, hChi,
+    hChiAt', hChi', hfAt, hfabs,
+    sec4_chiValue_eq_of_valueMap A A' hA hA' M x
+      hChiAt hChi hChiAt' hChi'⟩
 
 
 /-! ## 3. Layer set-map data -/

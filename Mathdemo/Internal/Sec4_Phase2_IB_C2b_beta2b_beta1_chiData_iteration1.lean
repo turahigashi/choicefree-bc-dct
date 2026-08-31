@@ -53,21 +53,28 @@ def Sec4RelRepChiEqInput
   Sigma (fun support : Set X =>
     PProd (IsFull S support)
       (∀ x ∈ support,
+        ∃ hflatDom : (sec4RelRep A hA f hnn).MemAt x,
         ∃ hflat :
           RSeq.SeriesSum
-            (fun n => COF.abs (((sec4RelRep A hA f hnn).fn n).toFun x)),
+            (fun n => COF.abs
+              ((sec4RelRep A hA f hnn).valueAt x hflatDom n)),
+        ∃ hflat'Dom : (sec4RelRep A' hA' f hnn).MemAt x,
         ∃ hflat' :
           RSeq.SeriesSum
-            (fun n => COF.abs (((sec4RelRep A' hA' f hnn).fn n).toFun x)),
+            (fun n => COF.abs
+              ((sec4RelRep A' hA' f hnn).valueAt x hflat'Dom n)),
+        ∃ hχDom : hA.rep.MemAt x,
         ∃ hχ :
           RSeq.SeriesSum
-            (fun n => COF.abs (((hA.rep).fn n).toFun x)),
+            (fun n => COF.abs (hA.rep.valueAt x hχDom n)),
+        ∃ hχ'Dom : hA'.rep.MemAt x,
         ∃ hχ' :
           RSeq.SeriesSum
-            (fun n => COF.abs (((hA'.rep).fn n).toFun x)),
+            (fun n => COF.abs (hA'.rep.valueAt x hχ'Dom n)),
+        ∃ hfDom : f.MemAt x,
         ∃ hfabs :
           RSeq.SeriesSum
-            (fun n => COF.abs (((f.fn n).toFun x))),
+            (fun n => COF.abs (f.valueAt x hfDom n)),
           (seriesSum_of_abs hχ).sum = (seriesSum_of_abs hχ').sum))
 
 
@@ -100,21 +107,28 @@ def witnesses
     {f : IntegrableRep S} {hnn : RepNonneg f}
     (G : Sec4RelRepChiEqInput (S := S) A A' hA hA' f hnn) :
     ∀ x ∈ G.support,
+      ∃ hflatDom : (sec4RelRep A hA f hnn).MemAt x,
       ∃ hflat :
         RSeq.SeriesSum
-          (fun n => COF.abs (((sec4RelRep A hA f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((sec4RelRep A hA f hnn).valueAt x hflatDom n)),
+      ∃ hflat'Dom : (sec4RelRep A' hA' f hnn).MemAt x,
       ∃ hflat' :
         RSeq.SeriesSum
-          (fun n => COF.abs (((sec4RelRep A' hA' f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((sec4RelRep A' hA' f hnn).valueAt x hflat'Dom n)),
+      ∃ hχDom : hA.rep.MemAt x,
       ∃ hχ :
         RSeq.SeriesSum
-          (fun n => COF.abs (((hA.rep).fn n).toFun x)),
+          (fun n => COF.abs (hA.rep.valueAt x hχDom n)),
+      ∃ hχ'Dom : hA'.rep.MemAt x,
       ∃ hχ' :
         RSeq.SeriesSum
-          (fun n => COF.abs (((hA'.rep).fn n).toFun x)),
+          (fun n => COF.abs (hA'.rep.valueAt x hχ'Dom n)),
+      ∃ hfDom : f.MemAt x,
       ∃ hfabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((f.fn n).toFun x))),
+          (fun n => COF.abs (f.valueAt x hfDom n)),
         (seriesSum_of_abs hχ).sum = (seriesSum_of_abs hχ').sum :=
   G.2.2
 
@@ -133,17 +147,20 @@ noncomputable def sec4_repValueEq_of_chiEqInput
   support := G.support
   support_full := G.support_full
   value_eq := by
-    intro x hx hr hr'
-    obtain ⟨hflat, hflat', hχ, hχ', hfabs, hχeq⟩ :=
+    intro x hx hrDom hr'Dom hr hr'
+    obtain ⟨hflatDom, hflat, hflat'Dom, hflat',
+      hχDom, hχ, hχ'Dom, hχ', hfDom, hfabs, hχeq⟩ :=
       G.witnesses x hx
     have hval :
         (seriesSum_of_abs hflat).sum =
           (seriesSum_of_abs hχ).sum * (seriesSum_of_abs hfabs).sum :=
-      prop_4_2_chi_f_rep_value A hA f hnn hflat hχ hfabs
+      prop_4_2_chi_f_rep_value A hA f hnn
+        hflatDom hχDom hfDom hflat hχ hfabs
     have hval' :
         (seriesSum_of_abs hflat').sum =
           (seriesSum_of_abs hχ').sum * (seriesSum_of_abs hfabs).sum :=
-      prop_4_2_chi_f_rep_value A' hA' f hnn hflat' hχ' hfabs
+      prop_4_2_chi_f_rep_value A' hA' f hnn
+        hflat'Dom hχ'Dom hfDom hflat' hχ' hfabs
     calc
       hr.sum = (seriesSum_of_abs hflat).sum :=
         seriesSum_unique hr (seriesSum_of_abs hflat)

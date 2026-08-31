@@ -85,39 +85,52 @@ structure Sec4GenIBCoverEstimateData
     (f : IntegrableRep S) (hnn : RepNonneg f) where
   coverValue :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)) →
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) →
       Nat → R
   domain :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)) →
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) →
       x ∈ B.S1 ∪ B.S2
   finite_telescope :
     ∀ x : X,
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
       ∀ N : Nat,
-        sec4_genIB_baseValue B hB f hnn x hgenabs +
-          RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) N =
-        coverValue x hgenabs N
+        sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+          RSeq.partialSum
+            (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) N =
+        coverValue x hgenDom hgenabs N
   cover_close_s1 :
     ∀ x : X, x ∈ B.S1 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
+      ∀ hfDom : f.MemAt x,
       ∀ hfabs :
-        RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x))),
+        RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n)),
       ∀ k n : Nat, k ≤ n →
-        COF.Close k (coverValue x hgenabs n) (seriesSum_of_abs hfabs).sum
+        COF.Close k
+          (coverValue x hgenDom hgenabs n) (seriesSum_of_abs hfabs).sum
   cover_close_s2 :
     ∀ x : X, x ∈ B.S2 →
+      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
       ∀ hgenabs :
         RSeq.SeriesSum
-          (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+          (fun n => COF.abs
+            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
       ∀ k n : Nat, k ≤ n →
-        COF.Close k (coverValue x hgenabs n) 0
+        COF.Close k (coverValue x hgenDom hgenabs n) 0
 
 
 /-! ## 3. Estimate data gives cover-limit data -/
@@ -128,14 +141,19 @@ noncomputable def sec4_cover_tendsto_s1_of_estimateData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4GenIBCoverEstimateData (S := S) B hB f hnn)
     (x : X) (hxB : x ∈ B.S1)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs :
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)))
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)))
+    (hfDom : f.MemAt x)
     (hfabs :
-      RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x)))) :
-    RSeq.TendstoHalf (T.coverValue x hgenabs) (seriesSum_of_abs hfabs).sum :=
+      RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n))) :
+    RSeq.TendstoHalf
+      (T.coverValue x hgenDom hgenabs) (seriesSum_of_abs hfabs).sum :=
   sec4_tendstoHalf_of_close_self
-    (fun k n hn => T.cover_close_s1 x hxB hgenabs hfabs k n hn)
+    (fun k n hn =>
+      T.cover_close_s1 x hxB hgenDom hgenabs hfDom hfabs k n hn)
 
 
 /-- The `B.S2` cover convergence extracted from close estimates. -/
@@ -144,12 +162,14 @@ noncomputable def sec4_cover_tendsto_s2_of_estimateData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4GenIBCoverEstimateData (S := S) B hB f hnn)
     (x : X) (hxB : x ∈ B.S2)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs :
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
-    RSeq.TendstoHalf (T.coverValue x hgenabs) 0 :=
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
+    RSeq.TendstoHalf (T.coverValue x hgenDom hgenabs) 0 :=
   sec4_tendstoHalf_of_close_self
-    (fun k n hn => T.cover_close_s2 x hxB hgenabs k n hn)
+    (fun k n hn => T.cover_close_s2 x hxB hgenDom hgenabs k n hn)
 
 
 /--
@@ -164,13 +184,13 @@ noncomputable def sec4_coverLimitData_of_estimateData
   domain := T.domain
   finite_telescope := T.finite_telescope
   cover_tendsto_s1 := by
-    intro x hxB hgenabs hfabs
+    intro x hxB hgenDom hgenabs hfDom hfabs
     exact sec4_cover_tendsto_s1_of_estimateData B hB f hnn T
-      x hxB hgenabs hfabs
+      x hxB hgenDom hgenabs hfDom hfabs
   cover_tendsto_s2 := by
-    intro x hxB hgenabs
+    intro x hxB hgenDom hgenabs
     exact sec4_cover_tendsto_s2_of_estimateData B hB f hnn T
-      x hxB hgenabs
+      x hxB hgenDom hgenabs
 }
 
 

@@ -33,8 +33,7 @@ def Sec4Prop42StandardAbsOuterOnS1OfFAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   forall (A : BSet X) (hA : IntegrableSet1 S A) (x : X)
       (hxA : x ∈ A.S1),
-    forall hfabs : RSeq.SeriesSum
-      (fun m => COF.abs (((f.fn m).toFun x))),
+    forall hfabs : Sec4RepAbsAt f x,
       Sec4LambdaRowsAbsOuterSumAt (S := S) A hA f x
         (sec4_lambdaRowAbs_of_chiF_fabs
           A hA f (prop_4_2_n_k f) x

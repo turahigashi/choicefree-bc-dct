@@ -113,9 +113,10 @@ theorem prop412_chiA_value_one_on_good_set
     (hA : BishopC.IntegrableSet1 S A)
     (hEsubA : E.S1 ⊆ A.S1)
     {x : Y} (hxE : x ∈ E.S1)
-    (hχAabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x))) :
+    (hχADom : hA.rep.MemAt x)
+    (hχAabs : RSeq.SeriesSum (fun n => COF.abs (hA.rep.valueAt x hχADom n))) :
     (BishopC.seriesSum_of_abs hχAabs).sum = 1 :=
-  (hA.valid x hχAabs).2.1 (hEsubA hxE)
+  (hA.valid x hχADom hχAabs).2.1 (hEsubA hxE)
     (BishopC.seriesSum_of_abs hχAabs)
 
 /-- Source-line pointwise bridge on the good set:
@@ -128,7 +129,8 @@ theorem prop412_scalar_mid_chiA_lt_on_good_set
     (hA : BishopC.IntegrableSet1 S A)
     (hEsubA : E.S1 ⊆ A.S1)
     {x : Y} (hxE : x ∈ E.S1)
-    (hχAabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x)))
+    (hχADom : hA.rep.MemAt x)
+    (hχAabs : RSeq.SeriesSum (fun n => COF.abs (hA.rep.valueAt x hχADom n)))
     {fv gv eps : R} (n : Nat)
     (hfg : COF.lt (COF.abs (fv - gv)) eps) :
     COF.lt
@@ -139,7 +141,7 @@ theorem prop412_scalar_mid_chiA_lt_on_good_set
             ((BishopC.seriesSum_of_abs hχAabs).sum * gv)))
       eps :=
   prop412_chi_one_scalarMid_lt n
-    (prop412_chiA_value_one_on_good_set hA hEsubA hxE hχAabs)
+    (prop412_chiA_value_one_on_good_set hA hEsubA hxE hχADom hχAabs)
     hfg
 
 /-- Residual shape after G172: the scalar `mid` part of the displayed

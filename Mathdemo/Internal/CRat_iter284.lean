@@ -42,11 +42,15 @@ structure Prop412ConcreteBadSetNBoundData
     (G : Prop412MidRepresentativeSupportData A hA n g) : Type _ where
   bound :
     ∀ (x : Y)
+      (hdfDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x)
+      (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
       (hdfabs : RSeq.SeriesSum
         (fun m => COF.abs
-          (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x)))
+          ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+            x hdfDom m)))
       (hχBadAbs : RSeq.SeriesSum
-        (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+        (fun m => COF.abs
+          ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
       (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
         BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)
 

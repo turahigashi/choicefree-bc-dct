@@ -41,29 +41,50 @@ export COF_core
 end COF
 
 structure BFunR (X R : Type*) where
-  toFun : X → R
   dom : Set X
+  toFun : ∀ x, x ∈ dom → R
 
 namespace BFunR
 variable {X R : Type*} [COF R]
-def BEquiv (f g : BFunR X R) : Prop := f.dom = g.dom ∧ ∀ x ∈ f.dom, f.toFun x = g.toFun x
-theorem BEquiv.refl (f : BFunR X R) : BEquiv f f := ⟨rfl, fun _ _ => rfl⟩
-def absf (f : BFunR X R) : BFunR X R := ⟨fun x => COF.abs (f.toFun x), f.dom⟩
-def smul (a : R) (f : BFunR X R) : BFunR X R := ⟨fun x => a * f.toFun x, f.dom⟩
-def add (f g : BFunR X R) : BFunR X R := ⟨fun x => f.toFun x + g.toFun x, f.dom ∩ g.dom⟩
-def maxConst (f : BFunR X R) (a : R) : BFunR X R := ⟨fun x => COF.max (f.toFun x) a, f.dom⟩
+def BEquiv (f g : BFunR X R) : Prop :=
+  ∃ hdom : f.dom = g.dom,
+    ∀ x (hx : x ∈ f.dom), f.toFun x hx = g.toFun x (hdom ▸ hx)
+theorem BEquiv.refl (f : BFunR X R) : BEquiv f f :=
+  ⟨rfl, fun _ _ => rfl⟩
+def absf (f : BFunR X R) : BFunR X R where
+  dom := f.dom
+  toFun := fun x hx => COF.abs (f.toFun x hx)
+def smul (a : R) (f : BFunR X R) : BFunR X R where
+  dom := f.dom
+  toFun := fun x hx => a * f.toFun x hx
+def add (f g : BFunR X R) : BFunR X R where
+  dom := f.dom ∩ g.dom
+  toFun := fun x hx => f.toFun x hx.1 + g.toFun x hx.2
+def maxConst (f : BFunR X R) (a : R) : BFunR X R where
+  dom := f.dom
+  toFun := fun x hx => COF.max (f.toFun x hx) a
 def posPart (f : BFunR X R) : BFunR X R := maxConst f 0
-def negPart (f : BFunR X R) : BFunR X R := ⟨fun x => - COF.min (f.toFun x) 0, f.dom⟩
-def cutConst (f : BFunR X R) (a : R) : BFunR X R := ⟨fun x => COF.min (f.toFun x) a, f.dom⟩
+def negPart (f : BFunR X R) : BFunR X R where
+  dom := f.dom
+  toFun := fun x hx => - COF.min (f.toFun x hx) 0
+def cutConst (f : BFunR X R) (a : R) : BFunR X R where
+  dom := f.dom
+  toFun := fun x hx => COF.min (f.toFun x hx) a
 def cutNat (n : Nat) (f : BFunR X R) : BFunR X R := cutConst f (n : R)
 /-- Technical lemma used in the public import closure. -/
 def seqSum (u : Nat → BFunR X R) : Nat → BFunR X R
   | 0 => u 0
   | Nat.succ n => add (seqSum u n) (u (Nat.succ n))
-def PointwiseNonneg (f : BFunR X R) : Prop := ∀ x : X, x ∈ f.dom → ¬ COF.lt (f.toFun x) 0
+def seqSum_mem (u : Nat → BFunR X R) (x : X)
+    (hx : ∀ n, x ∈ (u n).dom) : ∀ n, x ∈ (seqSum u n).dom
+  | 0 => hx 0
+  | n + 1 => ⟨seqSum_mem u x hx n, hx (n + 1)⟩
+def PointwiseNonneg (f : BFunR X R) : Prop :=
+  ∀ x : X, ∀ hx : x ∈ f.dom, ¬ COF.lt (f.toFun x hx) 0
 structure PointwiseLE (f g : BFunR X R) : Prop where
   dom_eq : f.dom = g.dom
-  le_val : ∀ x : X, x ∈ f.dom → ¬ COF.lt (g.toFun x) (f.toFun x)
+  le_val : ∀ x : X, ∀ hx : x ∈ f.dom,
+    ¬ COF.lt (g.toFun x (dom_eq ▸ hx)) (f.toFun x hx)
 end BFunR
 
 namespace COF
@@ -98,13 +119,17 @@ structure SeriesSum (u : Nat → R) where
 end RSeq
 
 /-- Technical lemma used in the public import closure. -/
-theorem BFunR.seqSum_toFun {X R : Type*} [COF R] (u : Nat → BFunR X R) (x : X) :
-    ∀ n, (BFunR.seqSum u n).toFun x = RSeq.partialSum (fun n => (u n).toFun x) n := by
+theorem BFunR.seqSum_toFun {X R : Type*} [COF R] (u : Nat → BFunR X R)
+    (x : X) (hx : ∀ n, x ∈ (u n).dom) :
+    ∀ n, (BFunR.seqSum u n).toFun x (BFunR.seqSum_mem u x hx n) =
+      RSeq.partialSum (fun n => (u n).toFun x (hx n)) n := by
   intro n; induction n with
   | zero => rfl
   | succ n ih =>
-      show (BFunR.seqSum u n).toFun x + (u (n+1)).toFun x
-         = RSeq.partialSum (fun n => (u n).toFun x) n + (u (n+1)).toFun x
+      show (BFunR.seqSum u n).toFun x (BFunR.seqSum_mem u x hx n) +
+          (u (n+1)).toFun x (hx (n + 1)) =
+        RSeq.partialSum (fun n => (u n).toFun x (hx n)) n +
+          (u (n+1)).toFun x (hx (n + 1))
       rw [ih]
 
 structure PointwiseSeriesBelow {X R : Type*} [COF R]
@@ -112,8 +137,8 @@ structure PointwiseSeriesBelow {X R : Type*} [COF R]
   x : X
   hx_f : x ∈ f.dom
   hx_fs : ∀ n : Nat, x ∈ (fs n).dom
-  point_sum : RSeq.SeriesSum (fun n => (fs n).toFun x)
-  below : COF.lt point_sum.sum (f.toFun x)
+  point_sum : RSeq.SeriesSum (fun n => (fs n).toFun x (hx_fs n))
+  below : COF.lt point_sum.sum (f.toFun x hx_f)
 
 structure IntSpaceR (X R : Type*) [COF R] where
   L : Set (BFunR X R)
@@ -155,8 +180,9 @@ theorem posPart_mem {f : BFunR X R} (hf : f ∈ S.L) : BFunR.posPart f ∈ S.L :
   refine S.L_resp hmem ⟨?_, ?_⟩
   · show f.dom ∩ f.dom = f.dom
     exact Set.ext fun x => ⟨fun h => h.1, fun h => ⟨h, h⟩⟩
-  · intro x _
-    show (COF.half : R) * (f.toFun x + COF.abs (f.toFun x)) = COF.max (f.toFun x) 0
+  · intro x hx
+    show (COF.half : R) * (f.toFun x hx.1 + COF.abs (f.toFun x hx.2)) =
+      COF.max (f.toFun x hx.1) 0
     rw [COF.max_halfsum, add_zero, sub_zero]
 /-- Technical lemma used in the public import closure. -/
 theorem negPart_mem {f : BFunR X R} (hf : f ∈ S.L) : BFunR.negPart f ∈ S.L := by
@@ -165,8 +191,9 @@ theorem negPart_mem {f : BFunR X R} (hf : f ∈ S.L) : BFunR.negPart f ∈ S.L :
   refine S.L_resp hmem ⟨?_, ?_⟩
   · show f.dom ∩ f.dom = f.dom
     exact Set.ext fun x => ⟨fun h => h.1, fun h => ⟨h, h⟩⟩
-  · intro x _
-    show (COF.half : R) * ((-1) * f.toFun x + COF.abs (f.toFun x)) = - COF.min (f.toFun x) 0
+  · intro x hx
+    show (COF.half : R) * ((-1) * f.toFun x hx.1 + COF.abs (f.toFun x hx.2)) =
+      - COF.min (f.toFun x hx.1) 0
     rw [COF.min_halfsum, add_zero, sub_zero]; ring
 /-- I(|f|) = I(f⁺) + I(f⁻)(|f| ≃ᵇ f⁺+f⁻ + I_add)。 -/
 theorem I_absf_eq {f : BFunR X R} (hf : f ∈ S.L) :
@@ -175,9 +202,10 @@ theorem I_absf_eq {f : BFunR X R} (hf : f ∈ S.L) :
   refine S.I_resp (S.abs_mem hf) ⟨?_, ?_⟩
   · show f.dom = f.dom ∩ f.dom
     exact Set.ext fun x => ⟨fun h => ⟨h, h⟩, fun h => h.1⟩
-  · intro x _
-    show COF.abs (f.toFun x) = COF.max (f.toFun x) 0 + (- COF.min (f.toFun x) 0)
-    exact (COF.max_add_negmin_eq_abs (f.toFun x)).symm
+  · intro x hx
+    show COF.abs (f.toFun x hx) =
+      COF.max (f.toFun x hx) 0 + (- COF.min (f.toFun x hx) 0)
+    exact (COF.max_add_negmin_eq_abs (f.toFun x hx)).symm
 /-- I(f) = I(f⁺) - I(f⁻)(f ≃ᵇ f⁺-f⁻ + I_add/I_neg)。 -/
 theorem I_self_eq {f : BFunR X R} (hf : f ∈ S.L) :
     S.I f = S.I (BFunR.posPart f) - S.I (BFunR.negPart f) := by
@@ -186,11 +214,12 @@ theorem I_self_eq {f : BFunR X R} (hf : f ∈ S.L) :
   refine S.I_resp hf ⟨?_, ?_⟩
   · show f.dom = f.dom ∩ f.dom
     exact Set.ext fun x => ⟨fun h => ⟨h, h⟩, fun h => h.1⟩
-  · intro x _
-    show f.toFun x = COF.max (f.toFun x) 0 + (-1) * (- COF.min (f.toFun x) 0)
-    rw [show COF.max (f.toFun x) 0 + (-1) * (- COF.min (f.toFun x) 0)
-          = COF.max (f.toFun x) 0 + COF.min (f.toFun x) 0 from by ring]
-    exact (COF.max_add_min_eq_self (f.toFun x)).symm
+  · intro x hx
+    show f.toFun x hx =
+      COF.max (f.toFun x hx) 0 + (-1) * (- COF.min (f.toFun x hx) 0)
+    rw [show COF.max (f.toFun x hx) 0 + (-1) * (- COF.min (f.toFun x hx) 0)
+          = COF.max (f.toFun x hx) 0 + COF.min (f.toFun x hx) 0 from by ring]
+    exact (COF.max_add_min_eq_self (f.toFun x hx)).symm
 end IntSpaceR
 
 structure IntSpaceRC (X R : Type*) [COF R] extends IntSpaceR X R where
@@ -834,13 +863,18 @@ variable {X R : Type*} [COFO R] (S : IntSpaceRC X R)
 
 /-- Technical lemma used in the public import closure. -/
 theorem pos_witness {g : BFunR X R} (hg : g ∈ S.L) (hpos : COF.lt 0 (S.I g)) :
-    ∃ x, x ∈ g.dom ∧ COF.lt 0 (g.toFun x) := by
+    ∃ x, ∃ hx : x ∈ g.dom, COF.lt 0 (g.toFun x hx) := by
   -- Technical note.
   have hzmem : ∀ _ : Nat, BFunR.smul (0:R) g ∈ S.L := fun _ => S.smul_mem 0 hg
-  have hzval : (BFunR.smul (0:R) g).toFun = fun _ => (0:R) := by
-    funext x; show (0:R) * g.toFun x = 0; ring
+  have hzval : ∀ x (hx : x ∈ g.dom),
+      (BFunR.smul (0:R) g).toFun x hx = 0 := by
+    intro x hx
+    show (0:R) * g.toFun x hx = 0
+    ring
   have hznn : ∀ _ : Nat, BFunR.PointwiseNonneg (BFunR.smul (0:R) g) := by
-    intro _ x _; rw [hzval]; exact COF.lt_irrefl 0
+    intro _ x hx
+    rw [hzval x hx]
+    exact COF.lt_irrefl 0
   have hIz : S.I (BFunR.smul (0:R) g) = 0 := by rw [S.I_smul 0 hg]; ring
   -- hI : SeriesSum (fun n => I (smul 0 g))
   have hps : ∀ n, RSeq.partialSum (fun _ => S.I (BFunR.smul (0:R) g)) n = 0 := by
@@ -865,15 +899,19 @@ theorem pos_witness {g : BFunR X R} (hg : g ∈ S.L) (hpos : COF.lt 0 (S.I g)) :
   have hpsb := S.continuity hg hzmem hznn hI hlt
   refine ⟨hpsb.x, hpsb.hx_f, ?_⟩
   -- Technical note.
-  have hzeroval : (BFunR.smul (0:R) g).toFun hpsb.x = 0 := by rw [hzval]
+  have hzeroval : ∀ n,
+      (BFunR.smul (0:R) g).toFun hpsb.x (hpsb.hx_fs n) = 0 :=
+    fun n => hzval hpsb.x (hpsb.hx_fs n)
   have hpv : ∀ n, RSeq.partialSum
-      (fun _ : Nat => (BFunR.smul (0:R) g).toFun hpsb.x) n = 0 := by
+      (fun n : Nat => (BFunR.smul (0:R) g).toFun hpsb.x (hpsb.hx_fs n)) n = 0 := by
     intro n; induction n with
-    | zero => exact hzeroval
+    | zero => exact hzeroval 0
     | succ n ih =>
-        show RSeq.partialSum (fun _ : Nat => (BFunR.smul (0:R) g).toFun hpsb.x) n
-              + (BFunR.smul (0:R) g).toFun hpsb.x = 0
-        rw [ih, hzeroval]; ring
+        show RSeq.partialSum
+              (fun n : Nat => (BFunR.smul (0:R) g).toFun hpsb.x (hpsb.hx_fs n)) n
+              + (BFunR.smul (0:R) g).toFun hpsb.x (hpsb.hx_fs (n + 1)) = 0
+        rw [ih, hzeroval (n + 1)]
+        ring
   have hnn : Nonneg hpsb.point_sum.sum :=
     nonneg_of_tendstoHalf_zeroseq hpsb.point_sum.sum hpv hpsb.point_sum.tends
   exact lt_of_nonneg_of_lt hnn hpsb.below
@@ -888,9 +926,11 @@ theorem I_nonneg {g : BFunR X R} (hg : g ∈ S.L) (hgnn : BFunR.PointwiseNonneg 
   obtain ⟨x, hxdom, hxpos⟩ := pos_witness S (S.smul_mem (-1) hg) hIneg
   -- (smul -1 g).dom = g.dom, (smul -1 g) x = -1 * g x
   have hxdom' : x ∈ g.dom := hxdom
-  have : COF.lt 0 (-(g.toFun x)) := by
-    have e : (BFunR.smul (-1:R) g).toFun x = -(g.toFun x) := by
-      show (-1:R) * g.toFun x = -(g.toFun x); ring
+  have : COF.lt 0 (-(g.toFun x hxdom')) := by
+    have e : (BFunR.smul (-1:R) g).toFun x hxdom =
+        -(g.toFun x hxdom') := by
+      show (-1:R) * g.toFun x hxdom' = -(g.toFun x hxdom')
+      ring
     rwa [e] at hxpos
   exact hgnn x hxdom' (neg_of_neg_pos this)
 
@@ -904,8 +944,11 @@ theorem I_mono {f g : BFunR X R} (hf : f ∈ S.L) (hg : g ∈ S.L)
     -- Technical note.
     have hxg : x ∈ g.dom := hx.1
     have hxf : x ∈ f.dom := hx.2
-    have e : (BFunR.add g (BFunR.smul (-1) f)).toFun x = g.toFun x - f.toFun x := by
-      show g.toFun x + (-1:R) * f.toFun x = g.toFun x - f.toFun x; ring
+    have e : (BFunR.add g (BFunR.smul (-1) f)).toFun x hx =
+        g.toFun x hxg - f.toFun x hxf := by
+      show g.toFun x hxg + (-1:R) * f.toFun x hxf =
+        g.toFun x hxg - f.toFun x hxf
+      ring
     rw [e]
     -- Technical note.
     intro hlt
@@ -925,16 +968,17 @@ theorem I_abs_ge {f : BFunR X R} (hf : f ∈ S.L) :
   -- f ≤ |f|
   have hle1 : BFunR.PointwiseLE f (BFunR.absf f) :=
     { dom_eq := rfl
-      le_val := by intro x _; exact COFO.le_abs_self (f.toFun x) }
+      le_val := by intro x hx; exact COFO.le_abs_self (f.toFun x hx) }
   -- -f ≤ |f|
   have hle2 : BFunR.PointwiseLE (BFunR.smul (-1) f) (BFunR.absf f) :=
     { dom_eq := rfl
       le_val := by
-        intro x _
-        show ¬ COF.lt (COF.abs (f.toFun x)) ((BFunR.smul (-1:R) f).toFun x)
-        rw [show (BFunR.smul (-1:R) f).toFun x = -(f.toFun x) from by
-              show (-1:R) * f.toFun x = -(f.toFun x); ring]
-        exact COFO.neg_le_abs (f.toFun x) }
+        intro x hx
+        show ¬ COF.lt (COF.abs (f.toFun x hx))
+          ((BFunR.smul (-1:R) f).toFun x hx)
+        rw [show (BFunR.smul (-1:R) f).toFun x hx = -(f.toFun x hx) from by
+              show (-1:R) * f.toFun x hx = -(f.toFun x hx); ring]
+        exact COFO.neg_le_abs (f.toFun x hx) }
   have hI1 : Le (S.I f) (S.I (BFunR.absf f)) := I_mono S hf habs hle1
   have hI2 : Le (S.I (BFunR.smul (-1) f)) (S.I (BFunR.absf f)) :=
     I_mono S (S.smul_mem (-1) hf) habs hle2
@@ -948,15 +992,15 @@ end IntSpaceRC
 section PosNeg
 variable {X R : Type*} [COFO R]
 theorem posPart_pwnn (f : BFunR X R) : BFunR.PointwiseNonneg (BFunR.posPart f) :=
-  fun x _ => COFO.max_zero_nonneg (f.toFun x)
+  fun x hx => COFO.max_zero_nonneg (f.toFun x hx)
 theorem posPart_le_abs (f : BFunR X R) : BFunR.PointwiseLE (BFunR.posPart f) (BFunR.absf f) where
   dom_eq := rfl
-  le_val := fun x _ => COFO.max_le_abs (f.toFun x)
+  le_val := fun x hx => COFO.max_le_abs (f.toFun x hx)
 theorem negPart_pwnn (f : BFunR X R) : BFunR.PointwiseNonneg (BFunR.negPart f) :=
-  fun x _ => COFO.neg_min_zero_nonneg (f.toFun x)
+  fun x hx => COFO.neg_min_zero_nonneg (f.toFun x hx)
 theorem negPart_le_abs (f : BFunR X R) : BFunR.PointwiseLE (BFunR.negPart f) (BFunR.absf f) where
   dom_eq := rfl
-  le_val := fun x _ => COFO.neg_min_le_abs (f.toFun x)
+  le_val := fun x hx => COFO.neg_min_le_abs (f.toFun x hx)
 end PosNeg
 
 section CapstonePrep
@@ -986,9 +1030,10 @@ section Capstone
 variable {X R : Type*} [COFOC R] (S : IntSpaceRC X R)
 theorem lemma_1_7 {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
     (habs : RSeq.SeriesSum (fun n => S.I (BFunR.absf (f n))))
-    (hpos : ∀ x : X, (∀ n, x ∈ (f n).dom) →
-              RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x)) →
-              ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x)), Nonneg hfx.sum)
+    (hpos : ∀ x : X, ∀ (hx : ∀ n, x ∈ (f n).dom),
+              RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x (hx n))) →
+              ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x (hx n))),
+                Nonneg hfx.sum)
     (hsum : RSeq.SeriesSum (fun n => S.I (f n))) :
     Nonneg hsum.sum := by
   let cP := I_posPart_seriesConv S hmem habs
@@ -1012,18 +1057,23 @@ theorem lemma_1_7 {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
     intro hlt
     have hpsb := S.continuity (S.add_mem hseq_mem hseq_mem)
       (fun n => S.abs_mem (hmem n))
-      (fun n x _ => abs_nonneg ((f n).toFun x))
+      (fun n x hx => abs_nonneg ((f n).toFun x hx))
       habs hlt
-    obtain ⟨x, _, hxfs, point_sum, below⟩ := hpsb
-    have cPx : RSeq.SeriesSum (fun n => COF.max ((f n).toFun x) 0) :=
+    obtain ⟨x, hxG, hxfs0, point_sum0, below⟩ := hpsb
+    let hxfs : ∀ n, x ∈ (f n).dom := fun n => hxfs0 n
+    let point_sum : RSeq.SeriesSum
+        (fun n => COF.abs ((f n).toFun x (hxfs n))) := by
+      simpa [BFunR.absf] using point_sum0
+    have cPx : RSeq.SeriesSum (fun n => COF.max ((f n).toFun x (hxfs n)) 0) :=
       seriesSum_comparison (fun n => COFO.max_zero_nonneg _) (fun n => COFO.max_le_abs _) point_sum
-    have cMx : RSeq.SeriesSum (fun n => - COF.min ((f n).toFun x) 0) :=
+    have cMx : RSeq.SeriesSum (fun n => - COF.min ((f n).toFun x (hxfs n)) 0) :=
       seriesSum_comparison (fun n => COFO.neg_min_zero_nonneg _) (fun n => COFO.neg_min_le_abs _)
         point_sum
-    have hfx : RSeq.SeriesSum (fun n => (f n).toFun x) := by
+    have hfx : RSeq.SeriesSum (fun n => (f n).toFun x (hxfs n)) := by
       have hsub := seriesSum_sub cPx cMx
-      have heq : (fun n => COF.max ((f n).toFun x) 0 - (- COF.min ((f n).toFun x) 0))
-               = (fun n => (f n).toFun x) := by
+      have heq : (fun n => COF.max ((f n).toFun x (hxfs n)) 0 -
+          (- COF.min ((f n).toFun x (hxfs n)) 0)) =
+          (fun n => (f n).toFun x (hxfs n)) := by
         funext n; rw [sub_neg_eq_add, COF.max_add_min_eq_self]
       exact heq ▸ hsub
     have hnn : Nonneg hfx.sum := hpos x hxfs point_sum hfx
@@ -1032,19 +1082,26 @@ theorem lemma_1_7 {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
         (seriesSum_sub cPx cMx)
     have hMP : Le cMx.sum cPx.sum := le_of_nonneg_sub (hfx_split ▸ hnn)
     have hps_split : point_sum.sum = cPx.sum + cMx.sum :=
-      seriesSum_sum_congr (fun n => (COF.max_add_negmin_eq_abs ((f n).toFun x)).symm) point_sum
+      seriesSum_sum_congr
+        (fun n => (COF.max_add_negmin_eq_abs ((f n).toFun x (hxfs n))).symm)
+        point_sum
         (seriesSum_add cPx cMx)
-    have hpartial_le : Le (RSeq.partialSum (fun n => (BFunR.negPart (f n)).toFun x) N) cMx.sum :=
+    have hpartial_le : Le (RSeq.partialSum
+        (fun n => (BFunR.negPart (f n)).toFun x (hxfs n)) N) cMx.sum :=
       partialSum_le_sum (fun n => COFO.neg_min_zero_nonneg _) cMx N
     have hGx : (BFunR.add (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)
-                          (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)).toFun x
-             = RSeq.partialSum (fun n => (BFunR.negPart (f n)).toFun x) N
-               + RSeq.partialSum (fun n => (BFunR.negPart (f n)).toFun x) N := by
+                          (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)).toFun x hxG
+             = RSeq.partialSum
+                 (fun n => (BFunR.negPart (f n)).toFun x (hxfs n)) N
+               + RSeq.partialSum
+                 (fun n => (BFunR.negPart (f n)).toFun x (hxfs n)) N := by
       show (BFunR.seqSum (fun n => BFunR.negPart (f n)) N).toFun x
-         + (BFunR.seqSum (fun n => BFunR.negPart (f n)) N).toFun x = _
-      rw [BFunR.seqSum_toFun (fun n => BFunR.negPart (f n)) x N]
+          (BFunR.seqSum_mem (fun n => BFunR.negPart (f n)) x hxfs N) +
+        (BFunR.seqSum (fun n => BFunR.negPart (f n)) N).toFun x
+          (BFunR.seqSum_mem (fun n => BFunR.negPart (f n)) x hxfs N) = _
+      rw [BFunR.seqSum_toFun (fun n => BFunR.negPart (f n)) x hxfs N]
     have hle : Le ((BFunR.add (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)
-                              (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)).toFun x)
+                              (BFunR.seqSum (fun n => BFunR.negPart (f n)) N)).toFun x hxG)
                  point_sum.sum := by
       rw [hGx, hps_split]
       exact le_add (le_trans hpartial_le hMP) hpartial_le
@@ -1067,22 +1124,25 @@ theorem lemma_1_7 {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
 /-- Technical lemma used in the public import closure. -/
 theorem lemma_1_7_zero {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
     (habs : RSeq.SeriesSum (fun n => S.I (BFunR.absf (f n))))
-    (hzero : ∀ x : X, RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x)) →
-              ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x)), hfx.sum = 0)
+    (hzero : ∀ x : X, ∀ (hx : ∀ n, x ∈ (f n).dom),
+              RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x (hx n))) →
+              ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x (hx n))),
+                hfx.sum = 0)
     (hsum : RSeq.SeriesSum (fun n => S.I (f n))) :
     hsum.sum = 0 := by
   -- Technical note.
   have hge : Nonneg hsum.sum :=
     lemma_1_7 S hmem habs
-      (fun x _ hax hfx => by rw [hzero x hax hfx]; exact nonneg_zero) hsum
+      (fun x hx hax hfx => by rw [hzero x hx hax hfx]; exact nonneg_zero) hsum
   -- Technical note.
   -- habs'(|-fₙ|=|fₙ|)
   have hI_eq : ∀ n, S.I (BFunR.absf (BFunR.smul (-1) (f n))) = S.I (BFunR.absf (f n)) := by
     intro n
     refine S.toIntSpaceR.I_resp (S.abs_mem (S.smul_mem (-1) (hmem n))) ⟨rfl, ?_⟩
-    intro x _
-    show COF.abs ((-1) * (f n).toFun x) = COF.abs ((f n).toFun x)
-    rw [show (-1) * (f n).toFun x = - (f n).toFun x from by ring, COFO.abs_neg]
+    intro x hx
+    show COF.abs ((-1) * (f n).toFun x hx) = COF.abs ((f n).toFun x hx)
+    rw [show (-1) * (f n).toFun x hx = - (f n).toFun x hx from by ring,
+      COFO.abs_neg]
   have habs' : RSeq.SeriesSum (fun n => S.I (BFunR.absf (BFunR.smul (-1) (f n)))) := by
     rw [show (fun n => S.I (BFunR.absf (BFunR.smul (-1) (f n))))
           = (fun n => S.I (BFunR.absf (f n))) from funext hI_eq]
@@ -1094,23 +1154,34 @@ theorem lemma_1_7_zero {f : Nat → BFunR X R} (hmem : ∀ n, f n ∈ S.L)
     exact seriesSum_neg hsum
   -- hpos'(Σ(-fₙ)(x) = -Σfₙ(x) = 0 ≥ 0)
   have hge' : Nonneg hsum'.sum := by
-    refine lemma_1_7 S (fun n => S.smul_mem (-1) (hmem n)) habs' (fun x _ hax' hfx' => ?_) hsum'
-    have hax : RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x)) := by
-      rw [show (fun n => COF.abs ((BFunR.smul (-1) (f n)).toFun x))
-            = (fun n => COF.abs ((f n).toFun x)) from by
-            funext n; show COF.abs ((-1) * (f n).toFun x) = COF.abs ((f n).toFun x)
-            rw [show (-1) * (f n).toFun x = - (f n).toFun x from by ring, COFO.abs_neg]] at hax'
+    refine lemma_1_7 S (fun n => S.smul_mem (-1) (hmem n)) habs'
+      (fun x hx hax' hfx' => ?_) hsum'
+    have hax : RSeq.SeriesSum
+        (fun n => COF.abs ((f n).toFun x (hx n))) := by
+      rw [show (fun n => COF.abs
+            ((BFunR.smul (-1) (f n)).toFun x (hx n))) =
+            (fun n => COF.abs ((f n).toFun x (hx n))) from by
+            funext n
+            show COF.abs ((-1) * (f n).toFun x (hx n)) =
+              COF.abs ((f n).toFun x (hx n))
+            rw [show (-1) * (f n).toFun x (hx n) =
+              - (f n).toFun x (hx n) from by ring, COFO.abs_neg]] at hax'
       exact hax'
-    have hfₓ : RSeq.SeriesSum (fun n => (f n).toFun x) := by
-      rw [show (fun n => (f n).toFun x) = (fun n => - (BFunR.smul (-1) (f n)).toFun x) from by
-            funext n; show (f n).toFun x = - ((-1) * (f n).toFun x); ring]
+    have hfₓ : RSeq.SeriesSum (fun n => (f n).toFun x (hx n)) := by
+      rw [show (fun n => (f n).toFun x (hx n)) =
+          (fun n => - (BFunR.smul (-1) (f n)).toFun x (hx n)) from by
+            funext n
+            show (f n).toFun x (hx n) = - ((-1) * (f n).toFun x (hx n))
+            ring]
       exact seriesSum_neg hfx'
     have hfx'_eq : hfx'.sum = (seriesSum_neg hfₓ).sum :=
-      seriesSum_sum_congr (fun n => by show (-1) * (f n).toFun x = - (f n).toFun x; ring)
+      seriesSum_sum_congr (fun n => by
+        show (-1) * (f n).toFun x (hx n) = - (f n).toFun x (hx n)
+        ring)
         hfx' (seriesSum_neg hfₓ)
     rw [hfx'_eq]
     show Nonneg (- hfₓ.sum)
-    rw [hzero x hax hfₓ, neg_zero]
+    rw [hzero x hx hax hfₓ, neg_zero]
     exact nonneg_zero
   -- hsum'.sum = - hsum.sum ⟹ hsum.sum ≤ 0
   have hsum'_eq : hsum'.sum = - hsum.sum :=
@@ -1346,9 +1417,9 @@ variable {X R : Type*} [COFOC R] (S : IntSpaceRC X R)
 theorem I_absf_neg_eq {gk : BFunR X R} (hg : gk ∈ S.L) :
     S.I (BFunR.absf (BFunR.smul (-1) gk)) = S.I (BFunR.absf gk) := by
   refine S.toIntSpaceR.I_resp (S.abs_mem (S.smul_mem (-1) hg)) ⟨rfl, ?_⟩
-  intro x _
-  show COF.abs ((-1) * gk.toFun x) = COF.abs (gk.toFun x)
-  rw [show (-1) * gk.toFun x = - gk.toFun x from by ring, COFO.abs_neg]
+  intro x hx
+  show COF.abs ((-1) * gk.toFun x hx) = COF.abs (gk.toFun x hx)
+  rw [show (-1) * gk.toFun x hx = - gk.toFun x hx from by ring, COFO.abs_neg]
 
 /-- Technical lemma used in the public import closure. -/
 theorem I1_well_defined {f g : Nat → BFunR X R}
@@ -1356,10 +1427,11 @@ theorem I1_well_defined {f g : Nat → BFunR X R}
     (hfabs : RSeq.SeriesSum (fun n => S.I (BFunR.absf (f n))))
     (hgabs : RSeq.SeriesSum (fun n => S.I (BFunR.absf (g n))))
     (hagree : ∀ x : X,
-        RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x)) →
-        RSeq.SeriesSum (fun n => COF.abs ((g n).toFun x)) →
-        ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x))
-          (hgx : RSeq.SeriesSum (fun n => (g n).toFun x)), hfx.sum = hgx.sum)
+        ∀ (hfd : ∀ n, x ∈ (f n).dom) (hgd : ∀ n, x ∈ (g n).dom),
+        RSeq.SeriesSum (fun n => COF.abs ((f n).toFun x (hfd n))) →
+        RSeq.SeriesSum (fun n => COF.abs ((g n).toFun x (hgd n))) →
+        ∀ (hfx : RSeq.SeriesSum (fun n => (f n).toFun x (hfd n)))
+          (hgx : RSeq.SeriesSum (fun n => (g n).toFun x (hgd n))), hfx.sum = hgx.sum)
     (hfsum : RSeq.SeriesSum (fun n => S.I (f n)))
     (hgsum : RSeq.SeriesSum (fun n => S.I (g n))) :
     hfsum.sum = hgsum.sum := by
@@ -1405,49 +1477,80 @@ theorem I1_well_defined {f g : Nat → BFunR X R}
       hsum (seriesSum_interleave hfsum hnegGsum)
   -- Technical note.
   have hzero : ∀ x : X,
-      RSeq.SeriesSum (fun n => COF.abs ((seqInterleave f negG n).toFun x)) →
-      ∀ (hhx : RSeq.SeriesSum (fun n => (seqInterleave f negG n).toFun x)), hhx.sum = 0 := by
-    intro x habsx hhx
+      ∀ (hx : ∀ n, x ∈ (seqInterleave f negG n).dom),
+      RSeq.SeriesSum
+          (fun n => COF.abs ((seqInterleave f negG n).toFun x (hx n))) →
+      ∀ (hhx : RSeq.SeriesSum
+          (fun n => (seqInterleave f negG n).toFun x (hx n))), hhx.sum = 0 := by
+    intro x hx habsx hhx
+    let hfxdom : ∀ k, x ∈ (f k).dom := fun k => by
+      simpa only [seqInterleave_even] using hx (2 * k)
+    let hnegGdom : ∀ k, x ∈ (negG k).dom := fun k => by
+      simpa only [seqInterleave_odd] using hx (2 * k + 1)
+    let hgdom : ∀ k, x ∈ (g k).dom := fun k => by
+      simpa only [negG, BFunR.smul] using hnegGdom k
     -- |interleave·x| = interleave (|f·x|) (|negG·x|)
-    have heqabsx : (fun n => COF.abs ((seqInterleave f negG n).toFun x))
-                 = seqInterleave (fun k => COF.abs ((f k).toFun x))
-                     (fun k => COF.abs ((negG k).toFun x)) := by
+    have heqabsx :
+        (fun n => COF.abs ((seqInterleave f negG n).toFun x (hx n))) =
+          seqInterleave (fun k => COF.abs ((f k).toFun x (hfxdom k)))
+            (fun k => COF.abs ((negG k).toFun x (hnegGdom k))) := by
       funext n
-      rw [seqInterleave_map (fun b : BFunR X R => b.toFun x) f negG n,
-          seqInterleave_map COF.abs _ _ n]
+      rcases natEvenOrOdd' n with ⟨k, rfl⟩ | ⟨k, rfl⟩
+      · simp only [seqInterleave_even]
+      · simp only [seqInterleave_odd]
     rw [heqabsx] at habsx
     -- Technical note.
-    have hfabsx : RSeq.SeriesSum (fun k => COF.abs ((f k).toFun x)) :=
+    have hfabsx : RSeq.SeriesSum
+        (fun k => COF.abs ((f k).toFun x (hfxdom k))) :=
       seriesSum_interleave_left (fun k => abs_nonneg _) (fun k => abs_nonneg _) habsx
-    have hnegGabsx : RSeq.SeriesSum (fun k => COF.abs ((negG k).toFun x)) :=
+    have hnegGabsx : RSeq.SeriesSum
+        (fun k => COF.abs ((negG k).toFun x (hnegGdom k))) :=
       seriesSum_interleave_right (fun k => abs_nonneg _) (fun k => abs_nonneg _) habsx
     -- |negG·x| = |g·x|
-    have hgabsx : RSeq.SeriesSum (fun k => COF.abs ((g k).toFun x)) := by
-      have heq : (fun k => COF.abs ((negG k).toFun x)) = (fun k => COF.abs ((g k).toFun x)) := by
+    have hgabsx : RSeq.SeriesSum
+        (fun k => COF.abs ((g k).toFun x (hgdom k))) := by
+      have heq :
+          (fun k => COF.abs ((negG k).toFun x (hnegGdom k))) =
+            (fun k => COF.abs ((g k).toFun x (hgdom k))) := by
         funext k
-        show COF.abs ((-1) * (g k).toFun x) = COF.abs ((g k).toFun x)
-        rw [show (-1) * (g k).toFun x = - (g k).toFun x from by ring, COFO.abs_neg]
+        show COF.abs ((-1) * (g k).toFun x (hgdom k)) =
+          COF.abs ((g k).toFun x (hgdom k))
+        rw [show (-1) * (g k).toFun x (hgdom k) =
+          - (g k).toFun x (hgdom k) from by ring, COFO.abs_neg]
       rw [heq] at hnegGabsx; exact hnegGabsx
     -- Technical note.
-    have hfx : RSeq.SeriesSum (fun k => (f k).toFun x) := seriesSum_of_abs hfabsx
-    have hgx : RSeq.SeriesSum (fun k => (g k).toFun x) := seriesSum_of_abs hgabsx
+    have hfx : RSeq.SeriesSum (fun k => (f k).toFun x (hfxdom k)) :=
+      seriesSum_of_abs hfabsx
+    have hgx : RSeq.SeriesSum (fun k => (g k).toFun x (hgdom k)) :=
+      seriesSum_of_abs hgabsx
     -- ΣnegG·x = -Σg·x
-    have hnegGx : RSeq.SeriesSum (fun k => (negG k).toFun x) := by
-      have heq : (fun k => (negG k).toFun x) = (fun k => - (g k).toFun x) := by
-        funext k; show (-1) * (g k).toFun x = - (g k).toFun x; ring
+    have hnegGx : RSeq.SeriesSum
+        (fun k => (negG k).toFun x (hnegGdom k)) := by
+      have heq : (fun k => (negG k).toFun x (hnegGdom k)) =
+          (fun k => - (g k).toFun x (hgdom k)) := by
+        funext k
+        show (-1) * (g k).toFun x (hgdom k) = - (g k).toFun x (hgdom k)
+        ring
       rw [heq]; exact seriesSum_neg hgx
     have hnegGx_eq : hnegGx.sum = - hgx.sum :=
-      seriesSum_sum_congr (fun k => by show (-1) * (g k).toFun x = - (g k).toFun x; ring)
+      seriesSum_sum_congr (fun k => by
+        show (-1) * (g k).toFun x (hgdom k) = - (g k).toFun x (hgdom k)
+        ring)
         hnegGx (seriesSum_neg hgx)
     -- hhx.sum = Σf·x + ΣnegG·x = Σf·x - Σg·x
     have hhx_eq : hhx.sum = hfx.sum + hnegGx.sum :=
       seriesSum_sum_congr
-        (fun n => by rw [seqInterleave_map (fun b : BFunR X R => b.toFun x) f negG n] :
-          ∀ n, (seqInterleave f negG n).toFun x
-             = seqInterleave (fun k => (f k).toFun x) (fun k => (negG k).toFun x) n)
+        (fun n => by
+          rcases natEvenOrOdd' n with ⟨k, rfl⟩ | ⟨k, rfl⟩
+          · simp only [seqInterleave_even]
+          · simp only [seqInterleave_odd] :
+          ∀ n, (seqInterleave f negG n).toFun x (hx n) =
+            seqInterleave (fun k => (f k).toFun x (hfxdom k))
+              (fun k => (negG k).toFun x (hnegGdom k)) n)
         hhx (seriesSum_interleave hfx hnegGx)
     -- hagree: Σf·x = Σg·x
-    have hagx : hfx.sum = hgx.sum := hagree x hfabsx hgabsx hfx hgx
+    have hagx : hfx.sum = hgx.sum :=
+      hagree x hfxdom hgdom hfabsx hgabsx hfx hgx
     rw [hhx_eq, hnegGx_eq, hagx]; ring
   -- Technical note.
   have hzero_res : hsum.sum = 0 := lemma_1_7_zero S hmem habs hzero hsum
@@ -1470,6 +1573,15 @@ structure IntegrableRep (S : IntSpaceRC X R) where
 
 variable {S : IntSpaceRC X R}
 
+/-- Every component of `r` is defined at `x`. -/
+def IntegrableRep.MemAt (r : IntegrableRep S) (x : X) : Prop :=
+  ∀ n, x ∈ (r.fn n).dom
+
+/-- Pointwise value of a representative at a point in all component domains. -/
+def IntegrableRep.valueAt (r : IntegrableRep S) (x : X)
+    (hx : r.MemAt x) (n : Nat) : R :=
+  (r.fn n).toFun x (hx n)
+
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.seriesSum_I (r : IntegrableRep S) :
     RSeq.SeriesSum (fun n => S.I (r.fn n)) :=
@@ -1483,10 +1595,13 @@ def IntegrableRep.integral (r : IntegrableRep S) : R := r.seriesSum_I.sum
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.integral_congr (r r' : IntegrableRep S)
     (hagree : ∀ x : X,
-        RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) →
-        RSeq.SeriesSum (fun n => COF.abs ((r'.fn n).toFun x)) →
-        ∀ (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x))
-          (hx' : RSeq.SeriesSum (fun n => (r'.fn n).toFun x)), hx.sum = hx'.sum) :
+        ∀ (hrdom : ∀ n, x ∈ (r.fn n).dom)
+          (hr'dom : ∀ n, x ∈ (r'.fn n).dom),
+        RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x (hrdom n))) →
+        RSeq.SeriesSum (fun n => COF.abs ((r'.fn n).toFun x (hr'dom n))) →
+        ∀ (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x (hrdom n)))
+          (hx' : RSeq.SeriesSum (fun n => (r'.fn n).toFun x (hr'dom n))),
+          hx.sum = hx'.sum) :
     r.integral = r'.integral :=
   I1_well_defined S r.mem r'.mem r.absConv r'.absConv hagree r.seriesSum_I r'.seriesSum_I
 
@@ -1519,9 +1634,9 @@ theorem I_abs_smul_zero {g : BFunR X R} (hg : g ∈ S.L) :
     S.I (BFunR.absf (BFunR.smul (0:R) g)) = 0 := by
   have hbe : BFunR.BEquiv (BFunR.absf (BFunR.smul (0:R) g)) (BFunR.smul (0:R) g) := by
     refine ⟨rfl, ?_⟩
-    intro x _
-    show COF.abs ((0:R) * g.toFun x) = (0:R) * g.toFun x
-    rw [show (0:R) * g.toFun x = (0:R) from by ring, COFO.abs_zero]
+    intro x hx
+    show COF.abs ((0:R) * g.toFun x hx) = (0:R) * g.toFun x hx
+    rw [show (0:R) * g.toFun x hx = (0:R) from by ring, COFO.abs_zero]
   rw [S.toIntSpaceR.I_resp (S.abs_mem (S.smul_mem 0 hg)) hbe, S.I_smul 0 hg]; ring
 
 /-- Technical lemma used in the public import closure. -/
@@ -1552,6 +1667,19 @@ theorem IntegrableRep.ofL_integral {g : BFunR X R} (hg : g ∈ S.L) :
     · rw [if_pos hn, if_pos hn]
     · rw [if_neg hn, if_neg hn, S.I_smul 0 hg]; ring
   exact seriesSum_sum_congr h (IntegrableRep.ofL hg).seriesSum_I (seriesSum_single (S.I g))
+
+/-- Domain membership for the one-term representative. -/
+theorem IntegrableRep.ofL_memAt {g : BFunR X R} (hg : g ∈ S.L)
+    {x : X} (hx : x ∈ g.dom) : (IntegrableRep.ofL hg).MemAt x := by
+  intro n
+  by_cases hn : n = 0
+  · simpa [IntegrableRep.ofL, hn] using hx
+  · simpa [IntegrableRep.ofL, hn, BFunR.smul] using hx
+
+/-- Recover the source domain proof from a one-term representative. -/
+theorem IntegrableRep.ofL_dom {g : BFunR X R} (hg : g ∈ S.L)
+    {x : X} (hdom : (IntegrableRep.ofL hg).MemAt x) : x ∈ g.dom := by
+  simpa [IntegrableRep.ofL] using hdom 0
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -1620,9 +1748,9 @@ theorem I_abs_smul (a : R) {f : BFunR X R} (hf : f ∈ S.L) :
   have hbe : BFunR.BEquiv (BFunR.absf (BFunR.smul a f))
                           (BFunR.smul (COF.abs a) (BFunR.absf f)) := by
     refine ⟨rfl, ?_⟩
-    intro x _
-    show COF.abs (a * f.toFun x) = COF.abs a * COF.abs (f.toFun x)
-    exact COFO.abs_mul a (f.toFun x)
+    intro x hx
+    show COF.abs (a * f.toFun x hx) = COF.abs a * COF.abs (f.toFun x hx)
+    exact COFO.abs_mul a (f.toFun x hx)
   rw [S.toIntSpaceR.I_resp (S.abs_mem (S.smul_mem a hf)) hbe, S.I_smul (COF.abs a) (S.abs_mem hf)]
 
 /-- Technical lemma used in the public import closure. -/
@@ -1646,8 +1774,8 @@ theorem IntegrableRep.integral_smul (a : R) (r : IntegrableRep S) :
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.domain (r : IntegrableRep S) : Set X :=
-  {x | (∀ n, x ∈ (r.fn n).dom) ∧
-       Nonempty (RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)))}
+  {x | ∃ hx : r.MemAt x,
+       Nonempty (RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hx n)))}
 
 /-- Technical lemma used in the public import closure. -/
 def seqMerge {α : Type*} (f g : Nat → α) : Nat → α :=
@@ -2319,15 +2447,20 @@ theorem seriesIntegrable_domain_subset (F : Nat → IntegrableRep S)
     (seriesIntegrable F hsum).domain ⊆ {x | ∀ m, x ∈ (F m).domain} := by
   intro x hx m
   obtain ⟨hdom, hconv⟩ := hx
-  refine ⟨?_, ?_⟩
-  · intro n
-    obtain ⟨k, hk⟩ := cellAt_surj m n
+  let hrow : ∀ i j, x ∈ ((F i).fn j).dom := fun i j => by
+    obtain ⟨k, hk⟩ := cellAt_surj i j
     have hd : x ∈ ((F (cellAt k).1).fn (cellAt k).2).dom := hdom k
     rw [hk] at hd
     exact hd
-  · obtain ⟨flatSS⟩ := hconv
-    exact ⟨row_seriesSum (A := fun i j => COF.abs (((F i).fn j).toFun x))
-            (fun _ _ => abs_nonneg _) flatSS m⟩
+  refine ⟨hrow m, ?_⟩
+  obtain ⟨flatSS⟩ := hconv
+  have flatSS' : RSeq.SeriesSum
+      (fun k => COF.abs (((F (cellAt k).1).fn (cellAt k).2).toFun x
+        (hrow (cellAt k).1 (cellAt k).2))) := by
+    simpa [seriesIntegrable, IntegrableRep.valueAt] using flatSS
+  exact ⟨row_seriesSum
+    (A := fun i j => COF.abs (((F i).fn j).toFun x (hrow i j)))
+    (fun _ _ => abs_nonneg _) flatSS' m⟩
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -2355,15 +2488,17 @@ theorem IntegrableRep.smul_halfPow_domain_subset (r : IntegrableRep S) (K : Nat)
     (r.smul (COF.halfPow K)).domain ⊆ r.domain := by
   intro x hx
   obtain ⟨hdom, hconv⟩ := hx
-  refine ⟨hdom, ?_⟩
+  let hrdom : r.MemAt x := fun n => hdom n
+  refine ⟨hrdom, ?_⟩
   obtain ⟨ss⟩ := hconv
-  refine ⟨seriesSum_congr (v := fun n => COF.abs ((r.fn n).toFun x)) ?_
+  refine ⟨seriesSum_congr (v := fun n => COF.abs (r.valueAt x hrdom n)) ?_
             (seriesSum_smul (twoPow K) ss)⟩
   intro n
-  show twoPow K * COF.abs (COF.halfPow K * (r.fn n).toFun x) = COF.abs ((r.fn n).toFun x)
+  show twoPow K * COF.abs (COF.halfPow K * r.valueAt x hrdom n) =
+    COF.abs (r.valueAt x hrdom n)
   rw [COFO.abs_mul, COFO.abs_of_nonneg (le_of_lt (halfPow_pos K)),
-      show twoPow K * (COF.halfPow K * COF.abs ((r.fn n).toFun x))
-        = COF.halfPow K * twoPow K * COF.abs ((r.fn n).toFun x) from by ring,
+      show twoPow K * (COF.halfPow K * COF.abs (r.valueAt x hrdom n))
+        = COF.halfPow K * twoPow K * COF.abs (r.valueAt x hrdom n) from by ring,
       halfPow_mul_twoPow, one_mul]
 
 /-- Technical lemma used in the public import closure. -/
@@ -2421,68 +2556,107 @@ theorem interleave_value {u v : Nat → R}
 /-! Technical auxiliary material for the public import closure. -/
 
 /-- Technical lemma used in the public import closure. -/
-theorem add_fn_toFun (r r' : IntegrableRep S) (n : Nat) (x : X) :
-    ((r.add r').fn n).toFun x
-      = seqInterleave (fun k => (r.fn k).toFun x) (fun k => (r'.fn k).toFun x) n :=
-  seqInterleave_map (fun f => f.toFun x) r.fn r'.fn n
+theorem IntegrableRep.add_memAt {r r' : IntegrableRep S} {x : X}
+    (hrdom : r.MemAt x) (hr'dom : r'.MemAt x) : (r.add r').MemAt x := by
+  intro n
+  rcases natEvenOrOdd' n with ⟨k, rfl⟩ | ⟨k, rfl⟩
+  · simpa [IntegrableRep.add, seqInterleave_even] using hrdom k
+  · simpa [IntegrableRep.add, seqInterleave_odd] using hr'dom k
 
 /-- Technical lemma used in the public import closure. -/
-theorem neg_fn_toFun (r : IntegrableRep S) (n : Nat) (x : X) :
-    ((r.neg).fn n).toFun x = -((r.fn n).toFun x) := by
-  show (-1 : R) * (r.fn n).toFun x = -((r.fn n).toFun x); ring
-
-/-- Technical lemma used in the public import closure. -/
-def add_seriesSum_value {r r' : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => (r.fn k).toFun x))
-    (hr' : RSeq.SeriesSum (fun k => (r'.fn k).toFun x)) :
-    RSeq.SeriesSum (fun n => ((r.add r').fn n).toFun x) :=
-  seriesSum_congr (fun n => (add_fn_toFun r r' n x).symm) (seriesSum_interleave hr hr')
-
-/-- Technical lemma used in the public import closure. -/
-def neg_seriesSum_value {r : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => (r.fn k).toFun x)) :
-    RSeq.SeriesSum (fun n => ((r.neg).fn n).toFun x) :=
-  seriesSum_congr (fun n => (neg_fn_toFun r n x).symm) (seriesSum_neg hr)
-
-/-- Technical lemma used in the public import closure. -/
-def add_absSeriesSum_left {r r' : IntegrableRep S} {x : X}
-    (habs : RSeq.SeriesSum (fun n => COF.abs (((r.add r').fn n).toFun x))) :
-    RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) :=
-  seriesSum_even_of_interleave_abs (seriesSum_congr (fun n => by rw [add_fn_toFun]) habs)
-
-/-- Technical lemma used in the public import closure. -/
-def add_absSeriesSum_right {r r' : IntegrableRep S} {x : X}
-    (habs : RSeq.SeriesSum (fun n => COF.abs (((r.add r').fn n).toFun x))) :
-    RSeq.SeriesSum (fun k => COF.abs ((r'.fn k).toFun x)) :=
-  seriesSum_odd_of_interleave_abs (seriesSum_congr (fun n => by rw [add_fn_toFun]) habs)
-
-/-- Technical lemma used in the public import closure. -/
-def neg_absSeriesSum {r : IntegrableRep S} {x : X}
-    (habs : RSeq.SeriesSum (fun n => COF.abs (((r.neg).fn n).toFun x))) :
-    RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) :=
-  seriesSum_congr (fun n => by rw [neg_fn_toFun, COFO.abs_neg]) habs
+theorem IntegrableRep.neg_memAt {r : IntegrableRep S} {x : X}
+    (hrdom : r.MemAt x) : r.neg.MemAt x := by
+  intro n
+  simpa [IntegrableRep.neg, BFunR.smul] using hrdom n
 
 /-- Technical lemma used in the public import closure. -/
 theorem add_dom_left {r r' : IntegrableRep S} {x : X}
-    (hd : ∀ n, x ∈ ((r.add r').fn n).dom) (k : Nat) : x ∈ (r.fn k).dom := by
+    (hd : (r.add r').MemAt x) (k : Nat) : x ∈ (r.fn k).dom := by
   have hk := hd (2 * k)
   rwa [show (r.add r').fn (2 * k) = r.fn k from seqInterleave_even r.fn r'.fn k] at hk
 
 /-- Technical lemma used in the public import closure. -/
 theorem add_dom_right {r r' : IntegrableRep S} {x : X}
-    (hd : ∀ n, x ∈ ((r.add r').fn n).dom) (k : Nat) : x ∈ (r'.fn k).dom := by
+    (hd : (r.add r').MemAt x) (k : Nat) : x ∈ (r'.fn k).dom := by
   have hk := hd (2 * k + 1)
   rwa [show (r.add r').fn (2 * k + 1) = r'.fn k from seqInterleave_odd r.fn r'.fn k] at hk
 
 /-- Technical lemma used in the public import closure. -/
 theorem neg_dom {r : IntegrableRep S} {x : X}
-    (hd : ∀ n, x ∈ ((r.neg).fn n).dom) (k : Nat) : x ∈ (r.fn k).dom :=
+    (hd : r.neg.MemAt x) (k : Nat) : x ∈ (r.fn k).dom :=
   hd k
 
 /-- Technical lemma used in the public import closure. -/
+theorem add_fn_toFun (r r' : IntegrableRep S) (n : Nat) (x : X)
+    (hrdom : r.MemAt x) (hr'dom : r'.MemAt x) :
+    (r.add r').valueAt x (IntegrableRep.add_memAt hrdom hr'dom) n =
+      seqInterleave (fun k => r.valueAt x hrdom k)
+        (fun k => r'.valueAt x hr'dom k) n := by
+  rcases natEvenOrOdd' n with ⟨k, rfl⟩ | ⟨k, rfl⟩
+  · simp only [IntegrableRep.valueAt, IntegrableRep.add, seqInterleave_even]
+  · simp only [IntegrableRep.valueAt, IntegrableRep.add, seqInterleave_odd]
+
+/-- Technical lemma used in the public import closure. -/
+theorem neg_fn_toFun (r : IntegrableRep S) (n : Nat) (x : X)
+    (hrdom : r.MemAt x) :
+    r.neg.valueAt x (IntegrableRep.neg_memAt hrdom) n =
+      -(r.valueAt x hrdom n) := by
+  show (-1 : R) * r.valueAt x hrdom n = -(r.valueAt x hrdom n)
+  ring
+
+/-- Technical lemma used in the public import closure. -/
+def add_seriesSum_value {r r' : IntegrableRep S} {x : X}
+    (hrdom : r.MemAt x) (hr'dom : r'.MemAt x)
+    (hr : RSeq.SeriesSum (fun k => r.valueAt x hrdom k))
+    (hr' : RSeq.SeriesSum (fun k => r'.valueAt x hr'dom k)) :
+    RSeq.SeriesSum
+      (fun n => (r.add r').valueAt x (IntegrableRep.add_memAt hrdom hr'dom) n) :=
+  seriesSum_congr (fun n => (add_fn_toFun r r' n x hrdom hr'dom).symm)
+    (seriesSum_interleave hr hr')
+
+/-- Technical lemma used in the public import closure. -/
+def neg_seriesSum_value {r : IntegrableRep S} {x : X}
+    (hrdom : r.MemAt x)
+    (hr : RSeq.SeriesSum (fun k => r.valueAt x hrdom k)) :
+    RSeq.SeriesSum
+      (fun n => r.neg.valueAt x (IntegrableRep.neg_memAt hrdom) n) :=
+  seriesSum_congr (fun n => (neg_fn_toFun r n x hrdom).symm) (seriesSum_neg hr)
+
+/-- Technical lemma used in the public import closure. -/
+def add_absSeriesSum_left {r r' : IntegrableRep S} {x : X}
+    (hdom : (r.add r').MemAt x)
+    (habs : RSeq.SeriesSum
+      (fun n => COF.abs ((r.add r').valueAt x hdom n))) :
+    RSeq.SeriesSum (fun k => COF.abs (r.valueAt x (add_dom_left hdom) k)) :=
+  seriesSum_even_of_interleave_abs
+    (seriesSum_congr (fun n => by
+      rw [add_fn_toFun r r' n x (add_dom_left hdom) (add_dom_right hdom)]) habs)
+
+/-- Technical lemma used in the public import closure. -/
+def add_absSeriesSum_right {r r' : IntegrableRep S} {x : X}
+    (hdom : (r.add r').MemAt x)
+    (habs : RSeq.SeriesSum
+      (fun n => COF.abs ((r.add r').valueAt x hdom n))) :
+    RSeq.SeriesSum (fun k => COF.abs (r'.valueAt x (add_dom_right hdom) k)) :=
+  seriesSum_odd_of_interleave_abs
+    (seriesSum_congr (fun n => by
+      rw [add_fn_toFun r r' n x (add_dom_left hdom) (add_dom_right hdom)]) habs)
+
+/-- Technical lemma used in the public import closure. -/
+def neg_absSeriesSum {r : IntegrableRep S} {x : X}
+    (hdom : r.neg.MemAt x)
+    (habs : RSeq.SeriesSum
+      (fun n => COF.abs (r.neg.valueAt x hdom n))) :
+    RSeq.SeriesSum (fun k => COF.abs (r.valueAt x (neg_dom hdom) k)) :=
+  seriesSum_congr (fun n => by
+    rw [neg_fn_toFun r n x (neg_dom hdom), COFO.abs_neg]) habs
+
+/-- Technical lemma used in the public import closure. -/
 theorem prop_1_11 {A : Set X} (hA : IsFull S A) (r r' : IntegrableRep S)
-    (hle : ∀ x ∈ A, ∀ (hr : RSeq.SeriesSum (fun n => (r.fn n).toFun x))
-            (hr' : RSeq.SeriesSum (fun n => (r'.fn n).toFun x)), Le hr.sum hr'.sum) :
+    (hle : ∀ x ∈ A, ∀ (hrdom : r.MemAt x) (hr'dom : r'.MemAt x)
+            (hr : RSeq.SeriesSum (fun n => r.valueAt x hrdom n))
+            (hr' : RSeq.SeriesSum (fun n => r'.valueAt x hr'dom n)),
+            Le hr.sum hr'.sum) :
     Le r.integral r'.integral := by
   obtain ⟨h, hhA⟩ := lemma_1_10_full hA
   have hKnn : Nonneg ((r'.sub r).add (h.sub h)).integral := by
@@ -2490,20 +2664,38 @@ theorem prop_1_11 {A : Set X} (hA : IsFull S A) (r r' : IntegrableRep S)
     refine lemma_1_7 S ((r'.sub r).add (h.sub h)).mem ((r'.sub r).add (h.sub h)).absConv
             ?_ ((r'.sub r).add (h.sub h)).seriesSum_I
     intro x hdomK habsK hKx
-    have hhabs : RSeq.SeriesSum (fun k => COF.abs ((h.fn k).toFun x)) :=
-      add_absSeriesSum_left (add_absSeriesSum_right habsK)
-    have hxA : x ∈ A := hhA ⟨add_dom_left (add_dom_right hdomK), ⟨hhabs⟩⟩
-    have hr'v : RSeq.SeriesSum (fun n => (r'.fn n).toFun x) :=
-      seriesSum_of_abs (add_absSeriesSum_left (add_absSeriesSum_left habsK))
-    have hrv : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
-      seriesSum_of_abs (neg_absSeriesSum (add_absSeriesSum_right (add_absSeriesSum_left habsK)))
-    have hhv : RSeq.SeriesSum (fun n => (h.fn n).toFun x) := seriesSum_of_abs hhabs
-    rw [seriesSum_unique hKx
-        (add_seriesSum_value (add_seriesSum_value hr'v (neg_seriesSum_value hrv))
-          (add_seriesSum_value hhv (neg_seriesSum_value hhv)))]
+    let hsubRdom : (r'.sub r).MemAt x := add_dom_left hdomK
+    let hsubHdom : (h.sub h).MemAt x := add_dom_right hdomK
+    let hr'dom : r'.MemAt x := add_dom_left hsubRdom
+    let hnegRdom : r.neg.MemAt x := add_dom_right hsubRdom
+    let hrdom : r.MemAt x := neg_dom hnegRdom
+    let hhdom : h.MemAt x := add_dom_left hsubHdom
+    let hnegHdom : h.neg.MemAt x := add_dom_right hsubHdom
+    have hsubRabs : RSeq.SeriesSum
+        (fun k => COF.abs ((r'.sub r).valueAt x hsubRdom k)) :=
+      add_absSeriesSum_left hdomK habsK
+    have hsubHabs : RSeq.SeriesSum
+        (fun k => COF.abs ((h.sub h).valueAt x hsubHdom k)) :=
+      add_absSeriesSum_right hdomK habsK
+    have hhabs : RSeq.SeriesSum (fun k => COF.abs (h.valueAt x hhdom k)) :=
+      add_absSeriesSum_left hsubHdom hsubHabs
+    have hxA : x ∈ A := hhA ⟨hhdom, ⟨hhabs⟩⟩
+    have hr'v : RSeq.SeriesSum (fun n => r'.valueAt x hr'dom n) :=
+      seriesSum_of_abs (add_absSeriesSum_left hsubRdom hsubRabs)
+    have hrv : RSeq.SeriesSum (fun n => r.valueAt x hrdom n) :=
+      seriesSum_of_abs
+        (neg_absSeriesSum hnegRdom (add_absSeriesSum_right hsubRdom hsubRabs))
+    have hhv : RSeq.SeriesSum (fun n => h.valueAt x hhdom n) :=
+      seriesSum_of_abs hhabs
+    let hsubRv := add_seriesSum_value hr'dom hnegRdom hr'v
+      (neg_seriesSum_value hrdom hrv)
+    let hsubHv := add_seriesSum_value hhdom hnegHdom hhv
+      (neg_seriesSum_value hhdom hhv)
+    let hKv := add_seriesSum_value hsubRdom hsubHdom hsubRv hsubHv
+    rw [seriesSum_unique hKx hKv]
     show Nonneg ((hr'v.sum + (- hrv.sum)) + (hhv.sum + (- hhv.sum)))
     rw [show (hr'v.sum + (- hrv.sum)) + (hhv.sum + (- hhv.sum)) = hr'v.sum - hrv.sum from by ring]
-    exact nonneg_sub_of_le (hle x hxA hrv hr'v)
+    exact nonneg_sub_of_le (hle x hxA hrdom hr'dom hrv hr'v)
   rw [IntegrableRep.integral_add, IntegrableRep.integral_sub, IntegrableRep.integral_sub,
       show (r'.integral - r.integral) + (h.integral - h.integral) = r'.integral - r.integral
         from by ring] at hKnn
@@ -2511,12 +2703,16 @@ theorem prop_1_11 {A : Set X} (hA : IsFull S A) (r r' : IntegrableRep S)
 
 /-- Technical lemma used in the public import closure. -/
 theorem cor_1_12 {A : Set X} (hA : IsFull S A) (r r' : IntegrableRep S)
-    (heq : ∀ x ∈ A, ∀ (hr : RSeq.SeriesSum (fun n => (r.fn n).toFun x))
-            (hr' : RSeq.SeriesSum (fun n => (r'.fn n).toFun x)), hr.sum = hr'.sum) :
+    (heq : ∀ x ∈ A, ∀ (hrdom : r.MemAt x) (hr'dom : r'.MemAt x)
+            (hr : RSeq.SeriesSum (fun n => r.valueAt x hrdom n))
+            (hr' : RSeq.SeriesSum (fun n => r'.valueAt x hr'dom n)),
+            hr.sum = hr'.sum) :
     r.integral = r'.integral :=
   le_antisymm
-    (prop_1_11 hA r r' (fun x hx hr hr' => by rw [heq x hx hr hr']; exact le_refl _))
-    (prop_1_11 hA r' r (fun x hx hr hr' => by rw [heq x hx hr' hr]; exact le_refl _))
+    (prop_1_11 hA r r' (fun x hx hrdom hr'dom hr hr' => by
+      rw [heq x hx hrdom hr'dom hr hr']; exact le_refl _))
+    (prop_1_11 hA r' r (fun x hx hr'dom hrdom hr' hr => by
+      rw [heq x hx hrdom hr'dom hr hr']; exact le_refl _))
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -2679,41 +2875,49 @@ theorem I_absf_nonneg {g : BFunR X R} (hg : g ∈ S.L) : Nonneg (S.I (BFunR.absf
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.ofL_point_sum {g : BFunR X R} (hg : g ∈ S.L) (x : X)
-    (hr : RSeq.SeriesSum (fun n => ((IntegrableRep.ofL hg).fn n).toFun x)) :
-    hr.sum = g.toFun x := by
-  have heq : ∀ n, (if n = 0 then g.toFun x else (0:R))
-                = ((IntegrableRep.ofL hg).fn n).toFun x := by
+    (hx : x ∈ g.dom)
+    (hr : RSeq.SeriesSum (fun n => (IntegrableRep.ofL hg).valueAt x
+      (IntegrableRep.ofL_memAt hg hx) n)) :
+    hr.sum = g.toFun x hx := by
+  have heq : ∀ n, (if n = 0 then g.toFun x hx else (0:R)) =
+      (IntegrableRep.ofL hg).valueAt x (IntegrableRep.ofL_memAt hg hx) n := by
     intro n
-    show (if n = 0 then g.toFun x else (0:R))
-       = (if n = 0 then g else BFunR.smul (0:R) g).toFun x
+    show (if n = 0 then g.toFun x hx else (0:R)) =
+      (if n = 0 then g else BFunR.smul (0:R) g).toFun x
+        ((IntegrableRep.ofL_memAt hg hx) n)
     by_cases hn : n = 0
-    · rw [if_pos hn, if_pos hn]
-    · rw [if_neg hn, if_neg hn]; show (0:R) = (0:R) * g.toFun x; ring
-  exact seriesSum_unique hr (seriesSum_congr heq (seriesSum_single (g.toFun x)))
+    · simp only [if_pos hn]
+    · simp only [if_neg hn, BFunR.smul]
+      ring
+  exact seriesSum_unique hr
+    (seriesSum_congr heq (seriesSum_single (g.toFun x hx)))
 
 /-- Technical lemma used in the public import closure. -/
-theorem IntegrableRep.absDiffFn_abs_le (r : IntegrableRep S) (j : Nat) (x : X) :
-    Le (COF.abs ((r.absDiffFn j).toFun x)) (COF.abs ((r.fn j).toFun x)) := by
+theorem IntegrableRep.absDiffFn_abs_le (r : IntegrableRep S) (j : Nat) (x : X)
+    (hdiff : x ∈ (r.absDiffFn j).dom) (hfn : x ∈ (r.fn j).dom) :
+    Le (COF.abs ((r.absDiffFn j).toFun x hdiff))
+      (COF.abs ((r.fn j).toFun x hfn)) := by
   cases j with
   | zero =>
-      show Le (COF.abs (COF.abs ((BFunR.seqSum r.fn 0).toFun x))) (COF.abs ((r.fn 0).toFun x))
-      rw [show (BFunR.seqSum r.fn 0).toFun x = (r.fn 0).toFun x from rfl,
-          COFO.abs_of_nonneg (abs_nonneg ((r.fn 0).toFun x))]
+      show Le (COF.abs (COF.abs ((BFunR.seqSum r.fn 0).toFun x hdiff)))
+        (COF.abs ((r.fn 0).toFun x hfn))
+      rw [show (BFunR.seqSum r.fn 0).toFun x hdiff =
+            (r.fn 0).toFun x hfn from rfl,
+          COFO.abs_of_nonneg (abs_nonneg ((r.fn 0).toFun x hfn))]
       exact le_refl _
   | succ j =>
-      show Le (COF.abs (COF.abs ((BFunR.seqSum r.fn (j + 1)).toFun x)
-                + (-1) * COF.abs ((BFunR.seqSum r.fn j).toFun x)))
-              (COF.abs ((r.fn (j + 1)).toFun x))
-      rw [show COF.abs ((BFunR.seqSum r.fn (j + 1)).toFun x)
-              + (-1) * COF.abs ((BFunR.seqSum r.fn j).toFun x)
-            = COF.abs ((BFunR.seqSum r.fn (j + 1)).toFun x)
-              - COF.abs ((BFunR.seqSum r.fn j).toFun x) from by ring]
-      have h := abs_abs_sub_abs_le ((BFunR.seqSum r.fn (j + 1)).toFun x)
-                  ((BFunR.seqSum r.fn j).toFun x)
-      rwa [show (BFunR.seqSum r.fn (j + 1)).toFun x - (BFunR.seqSum r.fn j).toFun x
-            = (r.fn (j + 1)).toFun x from by
-            show (BFunR.seqSum r.fn j).toFun x + (r.fn (j + 1)).toFun x
-                - (BFunR.seqSum r.fn j).toFun x = (r.fn (j + 1)).toFun x
+      let s1 := (BFunR.seqSum r.fn (j + 1)).toFun x hdiff.1
+      let s0 := (BFunR.seqSum r.fn j).toFun x hdiff.2
+      let fj := (r.fn (j + 1)).toFun x hfn
+      show Le (COF.abs (COF.abs s1 + (-1) * COF.abs s0)) (COF.abs fj)
+      rw [show COF.abs s1 + (-1) * COF.abs s0 =
+            COF.abs s1 - COF.abs s0 from by ring]
+      have h := abs_abs_sub_abs_le s1 s0
+      rwa [show s1 - s0 = fj from by
+            show (BFunR.seqSum r.fn j).toFun x hdiff.1.1 +
+                (r.fn (j + 1)).toFun x hdiff.1.2 -
+                (BFunR.seqSum r.fn j).toFun x hdiff.2 =
+                (r.fn (j + 1)).toFun x hfn
             ring] at h
 
 /-- Technical lemma used in the public import closure. -/
@@ -2724,10 +2928,13 @@ theorem IntegrableRep.I_absDiffFn_le (r : IntegrableRep S) (j : Nat) :
   refine prop_1_11 isFull_univ
     (IntegrableRep.ofL (S.abs_mem (r.absDiffFn_mem j)))
     (IntegrableRep.ofL (S.abs_mem (r.mem j))) ?_
-  intro x _ hr hr'
-  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.absDiffFn_mem j)) x hr,
-      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hr']
-  exact r.absDiffFn_abs_le j x
+  intro x _ hrdiffdom hrfndom hr hr'
+  let hdiff := IntegrableRep.ofL_dom
+    (S.abs_mem (r.absDiffFn_mem j)) hrdiffdom
+  let hfn := IntegrableRep.ofL_dom (S.abs_mem (r.mem j)) hrfndom
+  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.absDiffFn_mem j)) x hdiff hr,
+      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hfn hr']
+  exact r.absDiffFn_abs_le j x hdiff hfn
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.absVal (r : IntegrableRep S) : IntegrableRep S where
@@ -2832,51 +3039,67 @@ def tendstoHalf_abs {u : Nat → R} {l : R} (h : RSeq.TendstoHalf u l) :
       show COF.lt (COF.abs (COF.abs (u n) - COF.abs l)) (COF.halfPow k)
       exact lt_of_le_of_lt (abs_abs_sub_abs_le (u n) l) (h.close k n hn) }
 
+/-- Domain membership for every absolute-value telescope difference. -/
+theorem IntegrableRep.absDiffFn_memAt {r : IntegrableRep S} {x : X}
+    (hdom : r.MemAt x) : ∀ j, x ∈ (r.absDiffFn j).dom := by
+  intro j
+  cases j with
+  | zero => exact BFunR.seqSum_mem r.fn x hdom 0
+  | succ j => exact ⟨BFunR.seqSum_mem r.fn x hdom (j + 1),
+      BFunR.seqSum_mem r.fn x hdom j⟩
+
 /-- Technical lemma used in the public import closure. -/
-theorem IntegrableRep.partialSum_absDiffFn_value (r : IntegrableRep S) (x : X) (N : Nat) :
-    RSeq.partialSum (fun j => (r.absDiffFn j).toFun x) N
-      = COF.abs ((BFunR.seqSum r.fn N).toFun x) := by
+theorem IntegrableRep.partialSum_absDiffFn_value (r : IntegrableRep S) (x : X)
+    (hdom : r.MemAt x) (N : Nat) :
+    RSeq.partialSum
+        (fun j => (r.absDiffFn j).toFun x (r.absDiffFn_memAt hdom j)) N =
+      COF.abs ((BFunR.seqSum r.fn N).toFun x
+        (BFunR.seqSum_mem r.fn x hdom N)) := by
   induction N with
   | zero => rfl
   | succ N ih =>
-      show RSeq.partialSum (fun j => (r.absDiffFn j).toFun x) N + (r.absDiffFn (N + 1)).toFun x
-         = COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x)
+      show RSeq.partialSum
+          (fun j => (r.absDiffFn j).toFun x (r.absDiffFn_memAt hdom j)) N +
+          (r.absDiffFn (N + 1)).toFun x (r.absDiffFn_memAt hdom (N + 1)) =
+        COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1)))
       rw [ih]
-      show COF.abs ((BFunR.seqSum r.fn N).toFun x)
-            + (COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x)
-               + (-1) * COF.abs ((BFunR.seqSum r.fn N).toFun x))
-         = COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x)
+      show COF.abs ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N)) +
+            (COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x
+              (BFunR.seqSum_mem r.fn x hdom (N + 1))) +
+             (-1) * COF.abs ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N))) =
+        COF.abs ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1)))
       ring
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.absVal_value (r : IntegrableRep S) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hd : RSeq.SeriesSum (fun j => (r.absDiffFn j).toFun x) // hd.sum = COF.abs hx.sum } :=
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hd : RSeq.SeriesSum (fun j => (r.absDiffFn j).toFun x
+        (r.absDiffFn_memAt hdom j)) // hd.sum = COF.abs hx.sum } :=
   ⟨{ sum := COF.abs hx.sum
      tends :=
        { mod := (tendstoHalf_abs hx.tends).mod
          close := by
            intro k N hN
            have h := (tendstoHalf_abs hx.tends).close k N hN
-           rw [r.partialSum_absDiffFn_value x N, BFunR.seqSum_toFun r.fn x N]
+           rw [r.partialSum_absDiffFn_value x hdom N,
+             BFunR.seqSum_toFun r.fn x hdom N]
            exact h } },
    rfl⟩
 
 /-- Technical lemma used in the public import closure. -/
 theorem mem_seqSum_dom {r : IntegrableRep S} {x : X} (hdom : ∀ k, x ∈ (r.fn k).dom) :
-    ∀ m, x ∈ (BFunR.seqSum r.fn m).dom := by
-  intro m
-  induction m with
-  | zero => exact hdom 0
-  | succ m ih => exact ⟨ih, hdom (m + 1)⟩
+    ∀ m, x ∈ (BFunR.seqSum r.fn m).dom :=
+  BFunR.seqSum_mem r.fn x hdom
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_absDiffFn_dom {r : IntegrableRep S} {x : X}
-    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.absDiffFn j).dom := by
-  intro j
-  cases j with
-  | zero => exact mem_seqSum_dom hdom 0
-  | succ j => exact ⟨mem_seqSum_dom hdom (j + 1), mem_seqSum_dom hdom j⟩
+    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.absDiffFn j).dom :=
+  r.absDiffFn_memAt hdom
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_absVal_dom {r : IntegrableRep S} {x : X}
@@ -2895,32 +3118,48 @@ theorem IntegrableRep.mem_absVal_dom {r : IntegrableRep S} {x : X}
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.absVal_absSeries (r : IntegrableRep S) {x : X}
-    (hconv : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((r.absVal.fn n).toFun x)) := by
-  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.absDiffFn j).toFun x)) :=
-    seriesSum_comparison (fun _ => abs_nonneg _) (fun j => r.absDiffFn_abs_le j x) hconv
-  have anf : RSeq.SeriesSum (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) :=
+    (hdom : r.MemAt x)
+    (hconv : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n))) :
+    RSeq.SeriesSum (fun n => COF.abs ((r.absVal.fn n).toFun x
+      (r.mem_absVal_dom hdom n))) := by
+  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.absDiffFn j).toFun x
+      (r.mem_absDiffFn_dom hdom j))) :=
+    seriesSum_comparison (fun _ => abs_nonneg _)
+      (fun j => r.absDiffFn_abs_le j x (r.mem_absDiffFn_dom hdom j) (hdom j)) hconv
+  have anf : RSeq.SeriesSum (fun k => COF.abs
+      ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) :=
     seriesSum_congr (fun k => by
-      show COF.abs ((r.fn k).toFun x) = COF.abs ((-1) * (r.fn k).toFun x)
-      rw [show (-1 : R) * (r.fn k).toFun x = - (r.fn k).toFun x from by ring, COFO.abs_neg]) hconv
-  have key : ∀ n, seqMerge3 (fun j => COF.abs ((r.absDiffFn j).toFun x))
-                    (fun k => COF.abs ((r.fn k).toFun x))
-                    (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) n
-                = COF.abs ((r.absVal.fn n).toFun x) := by
+      show COF.abs (r.valueAt x hdom k) =
+        COF.abs ((-1) * r.valueAt x hdom k)
+      rw [show (-1 : R) * r.valueAt x hdom k =
+        - r.valueAt x hdom k from by ring, COFO.abs_neg]) hconv
+  have key : ∀ n,
+      seqMerge3
+          (fun j => COF.abs ((r.absDiffFn j).toFun x
+            (r.mem_absDiffFn_dom hdom j)))
+          (fun k => COF.abs (r.valueAt x hdom k))
+          (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) n =
+        COF.abs ((r.absVal.fn n).toFun x (r.mem_absVal_dom hdom n)) := by
     intro n
     rcases natMod3 n with ⟨m, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩
-    · rw [seqMerge3_zero]
-      show COF.abs ((r.absDiffFn m).toFun x)
-         = COF.abs ((seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x)
-      rw [seqMerge3_zero]
-    · rw [seqMerge3_one]
-      show COF.abs ((r.fn m).toFun x)
-         = COF.abs ((seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x)
-      rw [seqMerge3_one]
-    · rw [seqMerge3_two]
-      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x)
-         = COF.abs ((seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x)
-      rw [seqMerge3_two]
+    · simp only [seqMerge3_zero]
+      show COF.abs ((r.absDiffFn m).toFun x (r.mem_absDiffFn_dom hdom m)) =
+        COF.abs ((seqMerge3 r.absDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x
+            (r.mem_absVal_dom hdom (3 * m)))
+      simp only [seqMerge3_zero]
+    · simp only [seqMerge3_one]
+      show COF.abs (r.valueAt x hdom m) =
+        COF.abs ((seqMerge3 r.absDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x
+            (r.mem_absVal_dom hdom (3 * m + 1)))
+      simp only [seqMerge3_one, IntegrableRep.valueAt]
+    · simp only [seqMerge3_two]
+      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x (hdom m)) =
+        COF.abs ((seqMerge3 r.absDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x
+            (r.mem_absVal_dom hdom (3 * m + 2)))
+      simp only [seqMerge3_two]
   exact seriesSum_congr key (seriesSum_merge3 ad hconv anf)
 
 /-- Technical lemma used in the public import closure. -/
@@ -2928,7 +3167,7 @@ theorem IntegrableRep.domain_subset_absVal_domain (r : IntegrableRep S) :
     r.domain ⊆ r.absVal.domain := by
   intro x hx
   obtain ⟨hdom, ⟨hconv⟩⟩ := hx
-  exact ⟨mem_absVal_dom hdom, ⟨r.absVal_absSeries hconv⟩⟩
+  exact ⟨mem_absVal_dom hdom, ⟨r.absVal_absSeries hdom hconv⟩⟩
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -3002,30 +3241,37 @@ theorem seqSum_absf_dom_eq {r : IntegrableRep S} (N : Nat) :
       rw [ih]
 
 /-- Technical lemma used in the public import closure. -/
-theorem abs_seqSum_le {r : IntegrableRep S} (x : X) (N : Nat) :
-    Le (COF.abs ((BFunR.seqSum r.fn N).toFun x))
-       ((BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x) := by
+theorem abs_seqSum_le {r : IntegrableRep S} (x : X) (N : Nat)
+    (hx : x ∈ (BFunR.seqSum r.fn N).dom) :
+    Le (COF.abs ((BFunR.seqSum r.fn N).toFun x hx))
+       ((BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
+        (seqSum_absf_dom_eq (r := r) N ▸ hx)) := by
   induction N with
   | zero => exact le_refl _
   | succ N ih =>
-      show Le (COF.abs ((BFunR.seqSum r.fn N).toFun x + (r.fn (N + 1)).toFun x))
-              ((BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
-                + COF.abs ((r.fn (N + 1)).toFun x))
+      show Le (COF.abs ((BFunR.seqSum r.fn N).toFun x hx.1 +
+              (r.fn (N + 1)).toFun x hx.2))
+            ((BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
+              (seqSum_absf_dom_eq (r := r) N ▸ hx.1) +
+              COF.abs ((r.fn (N + 1)).toFun x hx.2))
       refine le_trans (COFO.abs_add_le _ _) ?_
       apply le_of_nonneg_sub
       rw [show ((BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
-                + COF.abs ((r.fn (N + 1)).toFun x))
-              - (COF.abs ((BFunR.seqSum r.fn N).toFun x) + COF.abs ((r.fn (N + 1)).toFun x))
-            = (BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
-              - COF.abs ((BFunR.seqSum r.fn N).toFun x) from by ring]
-      exact nonneg_sub_of_le ih
+                (seqSum_absf_dom_eq (r := r) N ▸ hx.1) +
+                COF.abs ((r.fn (N + 1)).toFun x hx.2)) -
+              (COF.abs ((BFunR.seqSum r.fn N).toFun x hx.1) +
+                COF.abs ((r.fn (N + 1)).toFun x hx.2)) =
+            (BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N).toFun x
+                (seqSum_absf_dom_eq (r := r) N ▸ hx.1) -
+              COF.abs ((BFunR.seqSum r.fn N).toFun x hx.1) from by ring]
+      exact nonneg_sub_of_le (ih hx.1)
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.absSeqSum_pointwiseLE (r : IntegrableRep S) (N : Nat) :
     BFunR.PointwiseLE (BFunR.absf (BFunR.seqSum r.fn N))
       (BFunR.seqSum (fun k => BFunR.absf (r.fn k)) N) where
-  dom_eq := seqSum_absf_dom_eq N
-  le_val := fun x _ => abs_seqSum_le x N
+  dom_eq := seqSum_absf_dom_eq (r := r) N
+  le_val := fun x hx => abs_seqSum_le x N hx
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.normL1_le_absConv (r : IntegrableRep S) : Le r.normL1 r.absConv.sum := by
@@ -3150,27 +3396,30 @@ theorem IntegrableRep.minDiffFn_mem (r : IntegrableRep S) :
                (S.smul_mem (-1) (S.cutConst_mem 1 (S.toIntSpaceR.seqSum_mem r.mem j)))
 
 /-- Technical lemma used in the public import closure. -/
-theorem IntegrableRep.minDiffFn_abs_le (r : IntegrableRep S) (j : Nat) (x : X) :
-    Le (COF.abs ((r.minDiffFn j).toFun x)) (COF.abs ((r.fn j).toFun x)) := by
+theorem IntegrableRep.minDiffFn_abs_le (r : IntegrableRep S) (j : Nat) (x : X)
+    (hdiff : x ∈ (r.minDiffFn j).dom) (hfn : x ∈ (r.fn j).dom) :
+    Le (COF.abs ((r.minDiffFn j).toFun x hdiff))
+      (COF.abs ((r.fn j).toFun x hfn)) := by
   cases j with
   | zero =>
-      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn 0).toFun x) 1)) (COF.abs ((r.fn 0).toFun x))
-      rw [show (BFunR.seqSum r.fn 0).toFun x = (r.fn 0).toFun x from rfl]
-      exact abs_min_one_le ((r.fn 0).toFun x)
+      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn 0).toFun x hdiff) 1))
+        (COF.abs ((r.fn 0).toFun x hfn))
+      rw [show (BFunR.seqSum r.fn 0).toFun x hdiff =
+        (r.fn 0).toFun x hfn from rfl]
+      exact abs_min_one_le ((r.fn 0).toFun x hfn)
   | succ j =>
-      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) 1
-                + (-1) * COF.min ((BFunR.seqSum r.fn j).toFun x) 1))
-              (COF.abs ((r.fn (j + 1)).toFun x))
-      rw [show COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) 1
-              + (-1) * COF.min ((BFunR.seqSum r.fn j).toFun x) 1
-            = COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) 1
-              - COF.min ((BFunR.seqSum r.fn j).toFun x) 1 from by ring]
-      have h := abs_min_sub_min_le ((BFunR.seqSum r.fn (j + 1)).toFun x)
-                  ((BFunR.seqSum r.fn j).toFun x) 1
-      rwa [show (BFunR.seqSum r.fn (j + 1)).toFun x - (BFunR.seqSum r.fn j).toFun x
-            = (r.fn (j + 1)).toFun x from by
-            show (BFunR.seqSum r.fn j).toFun x + (r.fn (j + 1)).toFun x
-                - (BFunR.seqSum r.fn j).toFun x = (r.fn (j + 1)).toFun x
+      let s1 := (BFunR.seqSum r.fn (j + 1)).toFun x hdiff.1
+      let s0 := (BFunR.seqSum r.fn j).toFun x hdiff.2
+      let fj := (r.fn (j + 1)).toFun x hfn
+      show Le (COF.abs (COF.min s1 1 + (-1) * COF.min s0 1)) (COF.abs fj)
+      rw [show COF.min s1 1 + (-1) * COF.min s0 1 =
+        COF.min s1 1 - COF.min s0 1 from by ring]
+      have h := abs_min_sub_min_le s1 s0 1
+      rwa [show s1 - s0 = fj from by
+            show (BFunR.seqSum r.fn j).toFun x hdiff.1.1 +
+                (r.fn (j + 1)).toFun x hdiff.1.2 -
+                (BFunR.seqSum r.fn j).toFun x hdiff.2 =
+              (r.fn (j + 1)).toFun x hfn
             ring] at h
 
 /-- Technical lemma used in the public import closure. -/
@@ -3181,10 +3430,12 @@ theorem IntegrableRep.I_minDiffFn_le (r : IntegrableRep S) (j : Nat) :
   refine prop_1_11 isFull_univ
     (IntegrableRep.ofL (S.abs_mem (r.minDiffFn_mem j)))
     (IntegrableRep.ofL (S.abs_mem (r.mem j))) ?_
-  intro x _ hr hr'
-  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.minDiffFn_mem j)) x hr,
-      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hr']
-  exact r.minDiffFn_abs_le j x
+  intro x _ hrdiffdom hrfndom hr hr'
+  let hdiff := IntegrableRep.ofL_dom (S.abs_mem (r.minDiffFn_mem j)) hrdiffdom
+  let hfn := IntegrableRep.ofL_dom (S.abs_mem (r.mem j)) hrfndom
+  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.minDiffFn_mem j)) x hdiff hr,
+      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hfn hr']
+  exact r.minDiffFn_abs_le j x hdiff hfn
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.minVal (r : IntegrableRep S) : IntegrableRep S where
@@ -3231,32 +3482,54 @@ def tendstoHalf_min_one {u : Nat → R} {l : R} (h : RSeq.TendstoHalf u l) :
       exact lt_of_le_of_lt (abs_min_sub_min_le (u n) l 1) (h.close k n hn) }
 
 /-- Technical lemma used in the public import closure. -/
-theorem IntegrableRep.partialSum_minDiffFn_value (r : IntegrableRep S) (x : X) (N : Nat) :
-    RSeq.partialSum (fun j => (r.minDiffFn j).toFun x) N
-      = COF.min ((BFunR.seqSum r.fn N).toFun x) 1 := by
+theorem IntegrableRep.minDiffFn_memAt {r : IntegrableRep S} {x : X}
+    (hdom : r.MemAt x) : ∀ j, x ∈ (r.minDiffFn j).dom := by
+  intro j
+  cases j with
+  | zero => exact BFunR.seqSum_mem r.fn x hdom 0
+  | succ j => exact ⟨BFunR.seqSum_mem r.fn x hdom (j + 1),
+      BFunR.seqSum_mem r.fn x hdom j⟩
+
+/-- Technical lemma used in the public import closure. -/
+theorem IntegrableRep.partialSum_minDiffFn_value (r : IntegrableRep S) (x : X)
+    (hdom : r.MemAt x) (N : Nat) :
+    RSeq.partialSum
+        (fun j => (r.minDiffFn j).toFun x (r.minDiffFn_memAt hdom j)) N =
+      COF.min ((BFunR.seqSum r.fn N).toFun x
+        (BFunR.seqSum_mem r.fn x hdom N)) 1 := by
   induction N with
   | zero => rfl
   | succ N ih =>
-      show RSeq.partialSum (fun j => (r.minDiffFn j).toFun x) N + (r.minDiffFn (N + 1)).toFun x
-         = COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) 1
+      show RSeq.partialSum
+          (fun j => (r.minDiffFn j).toFun x (r.minDiffFn_memAt hdom j)) N +
+          (r.minDiffFn (N + 1)).toFun x (r.minDiffFn_memAt hdom (N + 1)) =
+        COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1))) 1
       rw [ih]
-      show COF.min ((BFunR.seqSum r.fn N).toFun x) 1
-            + (COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) 1
-               + (-1) * COF.min ((BFunR.seqSum r.fn N).toFun x) 1)
-         = COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) 1
+      show COF.min ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N)) 1 +
+            (COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+              (BFunR.seqSum_mem r.fn x hdom (N + 1))) 1 +
+             (-1) * COF.min ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N)) 1) =
+        COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1))) 1
       ring
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.minVal_value (r : IntegrableRep S) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hd : RSeq.SeriesSum (fun j => (r.minDiffFn j).toFun x) // hd.sum = COF.min hx.sum 1 } :=
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hd : RSeq.SeriesSum (fun j => (r.minDiffFn j).toFun x
+        (r.minDiffFn_memAt hdom j)) // hd.sum = COF.min hx.sum 1 } :=
   ⟨{ sum := COF.min hx.sum 1
      tends :=
        { mod := (tendstoHalf_min_one hx.tends).mod
          close := by
            intro k N hN
            have h := (tendstoHalf_min_one hx.tends).close k N hN
-           rw [r.partialSum_minDiffFn_value x N, BFunR.seqSum_toFun r.fn x N]
+           rw [r.partialSum_minDiffFn_value x hdom N,
+             BFunR.seqSum_toFun r.fn x hdom N]
            exact h } },
    rfl⟩
 
@@ -3264,11 +3537,8 @@ def IntegrableRep.minVal_value (r : IntegrableRep S) (x : X)
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_minDiffFn_dom {r : IntegrableRep S} {x : X}
-    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.minDiffFn j).dom := by
-  intro j
-  cases j with
-  | zero => exact mem_seqSum_dom hdom 0
-  | succ j => exact ⟨mem_seqSum_dom hdom (j + 1), mem_seqSum_dom hdom j⟩
+    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.minDiffFn j).dom :=
+  r.minDiffFn_memAt hdom
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_minVal_dom {r : IntegrableRep S} {x : X}
@@ -3287,32 +3557,48 @@ theorem IntegrableRep.mem_minVal_dom {r : IntegrableRep S} {x : X}
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.minVal_absSeries (r : IntegrableRep S) {x : X}
-    (hconv : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((r.minVal.fn n).toFun x)) := by
-  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.minDiffFn j).toFun x)) :=
-    seriesSum_comparison (fun _ => abs_nonneg _) (fun j => r.minDiffFn_abs_le j x) hconv
-  have anf : RSeq.SeriesSum (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) :=
+    (hdom : r.MemAt x)
+    (hconv : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n))) :
+    RSeq.SeriesSum (fun n => COF.abs ((r.minVal.fn n).toFun x
+      (r.mem_minVal_dom hdom n))) := by
+  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.minDiffFn j).toFun x
+      (r.mem_minDiffFn_dom hdom j))) :=
+    seriesSum_comparison (fun _ => abs_nonneg _)
+      (fun j => r.minDiffFn_abs_le j x (r.mem_minDiffFn_dom hdom j) (hdom j)) hconv
+  have anf : RSeq.SeriesSum (fun k => COF.abs
+      ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) :=
     seriesSum_congr (fun k => by
-      show COF.abs ((r.fn k).toFun x) = COF.abs ((-1) * (r.fn k).toFun x)
-      rw [show (-1 : R) * (r.fn k).toFun x = - (r.fn k).toFun x from by ring, COFO.abs_neg]) hconv
-  have key : ∀ n, seqMerge3 (fun j => COF.abs ((r.minDiffFn j).toFun x))
-                    (fun k => COF.abs ((r.fn k).toFun x))
-                    (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) n
-                = COF.abs ((r.minVal.fn n).toFun x) := by
+      show COF.abs (r.valueAt x hdom k) =
+        COF.abs ((-1) * r.valueAt x hdom k)
+      rw [show (-1 : R) * r.valueAt x hdom k =
+        - r.valueAt x hdom k from by ring, COFO.abs_neg]) hconv
+  have key : ∀ n,
+      seqMerge3
+          (fun j => COF.abs ((r.minDiffFn j).toFun x
+            (r.mem_minDiffFn_dom hdom j)))
+          (fun k => COF.abs (r.valueAt x hdom k))
+          (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) n =
+        COF.abs ((r.minVal.fn n).toFun x (r.mem_minVal_dom hdom n)) := by
     intro n
     rcases natMod3 n with ⟨m, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩
-    · rw [seqMerge3_zero]
-      show COF.abs ((r.minDiffFn m).toFun x)
-         = COF.abs ((seqMerge3 r.minDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x)
-      rw [seqMerge3_zero]
-    · rw [seqMerge3_one]
-      show COF.abs ((r.fn m).toFun x)
-         = COF.abs ((seqMerge3 r.minDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x)
-      rw [seqMerge3_one]
-    · rw [seqMerge3_two]
-      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x)
-         = COF.abs ((seqMerge3 r.minDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x)
-      rw [seqMerge3_two]
+    · simp only [seqMerge3_zero]
+      show COF.abs ((r.minDiffFn m).toFun x (r.mem_minDiffFn_dom hdom m)) =
+        COF.abs ((seqMerge3 r.minDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x
+            (r.mem_minVal_dom hdom (3 * m)))
+      simp only [seqMerge3_zero]
+    · simp only [seqMerge3_one]
+      show COF.abs (r.valueAt x hdom m) =
+        COF.abs ((seqMerge3 r.minDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x
+            (r.mem_minVal_dom hdom (3 * m + 1)))
+      simp only [seqMerge3_one, IntegrableRep.valueAt]
+    · simp only [seqMerge3_two]
+      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x (hdom m)) =
+        COF.abs ((seqMerge3 r.minDiffFn r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x
+            (r.mem_minVal_dom hdom (3 * m + 2)))
+      simp only [seqMerge3_two]
   exact seriesSum_congr key (seriesSum_merge3 ad hconv anf)
 
 /-- Technical lemma used in the public import closure. -/
@@ -3320,7 +3606,7 @@ theorem IntegrableRep.domain_subset_minVal_domain (r : IntegrableRep S) :
     r.domain ⊆ r.minVal.domain := by
   intro x hx
   obtain ⟨hdom, ⟨hconv⟩⟩ := hx
-  exact ⟨mem_minVal_dom hdom, ⟨r.minVal_absSeries hconv⟩⟩
+  exact ⟨mem_minVal_dom hdom, ⟨r.minVal_absSeries hdom hconv⟩⟩
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -3360,27 +3646,30 @@ theorem IntegrableRep.cutConstDiffFn_mem (r : IntegrableRep S) (a : R) :
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.cutConstDiffFn_abs_le (r : IntegrableRep S) (a : R) (ha : ¬ COF.lt a 0)
-    (j : Nat) (x : X) :
-    Le (COF.abs ((r.cutConstDiffFn a j).toFun x)) (COF.abs ((r.fn j).toFun x)) := by
+    (j : Nat) (x : X) (hdiff : x ∈ (r.cutConstDiffFn a j).dom)
+    (hfn : x ∈ (r.fn j).dom) :
+    Le (COF.abs ((r.cutConstDiffFn a j).toFun x hdiff))
+      (COF.abs ((r.fn j).toFun x hfn)) := by
   cases j with
   | zero =>
-      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn 0).toFun x) a)) (COF.abs ((r.fn 0).toFun x))
-      rw [show (BFunR.seqSum r.fn 0).toFun x = (r.fn 0).toFun x from rfl]
-      exact abs_min_const_le ha ((r.fn 0).toFun x)
+      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn 0).toFun x hdiff) a))
+        (COF.abs ((r.fn 0).toFun x hfn))
+      rw [show (BFunR.seqSum r.fn 0).toFun x hdiff =
+        (r.fn 0).toFun x hfn from rfl]
+      exact abs_min_const_le ha ((r.fn 0).toFun x hfn)
   | succ j =>
-      show Le (COF.abs (COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) a
-                + (-1) * COF.min ((BFunR.seqSum r.fn j).toFun x) a))
-              (COF.abs ((r.fn (j + 1)).toFun x))
-      rw [show COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) a
-              + (-1) * COF.min ((BFunR.seqSum r.fn j).toFun x) a
-            = COF.min ((BFunR.seqSum r.fn (j + 1)).toFun x) a
-              - COF.min ((BFunR.seqSum r.fn j).toFun x) a from by ring]
-      have h := abs_min_sub_min_le ((BFunR.seqSum r.fn (j + 1)).toFun x)
-                  ((BFunR.seqSum r.fn j).toFun x) a
-      rwa [show (BFunR.seqSum r.fn (j + 1)).toFun x - (BFunR.seqSum r.fn j).toFun x
-            = (r.fn (j + 1)).toFun x from by
-            show (BFunR.seqSum r.fn j).toFun x + (r.fn (j + 1)).toFun x
-                - (BFunR.seqSum r.fn j).toFun x = (r.fn (j + 1)).toFun x
+      let s1 := (BFunR.seqSum r.fn (j + 1)).toFun x hdiff.1
+      let s0 := (BFunR.seqSum r.fn j).toFun x hdiff.2
+      let fj := (r.fn (j + 1)).toFun x hfn
+      show Le (COF.abs (COF.min s1 a + (-1) * COF.min s0 a)) (COF.abs fj)
+      rw [show COF.min s1 a + (-1) * COF.min s0 a =
+        COF.min s1 a - COF.min s0 a from by ring]
+      have h := abs_min_sub_min_le s1 s0 a
+      rwa [show s1 - s0 = fj from by
+            show (BFunR.seqSum r.fn j).toFun x hdiff.1.1 +
+                (r.fn (j + 1)).toFun x hdiff.1.2 -
+                (BFunR.seqSum r.fn j).toFun x hdiff.2 =
+              (r.fn (j + 1)).toFun x hfn
             ring] at h
 
 /-- I(|m_j|) ≤ I(|f_j|)(ofL+prop_1_11 on isFull_univ)。 -/
@@ -3392,10 +3681,13 @@ theorem IntegrableRep.I_cutConstDiffFn_le (r : IntegrableRep S) (a : R) (ha : ¬
   refine prop_1_11 isFull_univ
     (IntegrableRep.ofL (S.abs_mem (r.cutConstDiffFn_mem a j)))
     (IntegrableRep.ofL (S.abs_mem (r.mem j))) ?_
-  intro x _ hr hr'
-  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.cutConstDiffFn_mem a j)) x hr,
-      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hr']
-  exact r.cutConstDiffFn_abs_le a ha j x
+  intro x _ hrdiffdom hrfndom hr hr'
+  let hdiff := IntegrableRep.ofL_dom
+    (S.abs_mem (r.cutConstDiffFn_mem a j)) hrdiffdom
+  let hfn := IntegrableRep.ofL_dom (S.abs_mem (r.mem j)) hrfndom
+  rw [IntegrableRep.ofL_point_sum (S.abs_mem (r.cutConstDiffFn_mem a j)) x hdiff hr,
+      IntegrableRep.ofL_point_sum (S.abs_mem (r.mem j)) x hfn hr']
+  exact r.cutConstDiffFn_abs_le a ha j x hdiff hfn
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.cutConstVal (r : IntegrableRep S) (a : R) (ha : ¬ COF.lt a 0) : IntegrableRep S where
@@ -3450,35 +3742,41 @@ def IntegrableRep.cutNatVal (r : IntegrableRep S) (n : Nat) : IntegrableRep S :=
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.absVal_signed_value (r : IntegrableRep S) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hs : RSeq.SeriesSum (fun n => (r.absVal.fn n).toFun x) // hs.sum = COF.abs hx.sum } := by
-  obtain ⟨hd, hdeq⟩ := r.absVal_value x hx
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hs : RSeq.SeriesSum (fun n => r.absVal.valueAt x
+        (r.mem_absVal_dom hdom) n) // hs.sum = COF.abs hx.sum } := by
+  obtain ⟨hd, hdeq⟩ := r.absVal_value x hdom hx
   refine ⟨seriesSum_congr (fun n => ?_)
             (seriesSum_merge3 hd hx (seriesSum_smul (-1 : R) hx)), ?_⟩
-  · exact (seqMerge3_map (fun g => g.toFun x) r.absDiffFn r.fn
-            (fun k => BFunR.smul (-1) (r.fn k)) n).symm
+  · rcases natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_zero]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_one]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, BFunR.smul,
+        seqMerge3_two]
   · show hd.sum + hx.sum + (-1) * hx.sum = COF.abs hx.sum
     rw [hdeq]; ring
 
 /-- Technical lemma used in the public import closure. -/
 theorem normL1_mono {A : Set X} (hA : IsFull S A) (u v : IntegrableRep S)
-    (hle : ∀ x ∈ A, ∀ (hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x))
-            (hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x)),
+    (hle : ∀ x ∈ A, ∀ (hudom : u.MemAt x) (hvdom : v.MemAt x)
+            (hu : RSeq.SeriesSum (fun n => u.valueAt x hudom n))
+            (hv : RSeq.SeriesSum (fun n => v.valueAt x hvdom n)),
             Le (COF.abs hu.sum) (COF.abs hv.sum)) :
     Le u.normL1 v.normL1 := by
   show Le u.absVal.integral v.absVal.integral
   refine prop_1_11 (isFull_inter (isFull_inter hA u.domain_isFull) v.domain_isFull)
     u.absVal v.absVal ?_
-  intro x hx hr hr'
+  intro x hx huAbsDom hvAbsDom hr hr'
   obtain ⟨⟨hxA, hxu⟩, hxv⟩ := hx
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hudom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvdom, ⟨hvabs⟩⟩ := hxv
   have hu := seriesSum_of_abs huabs
   have hv := seriesSum_of_abs hvabs
-  obtain ⟨hsu, hsueq⟩ := u.absVal_signed_value x hu
-  obtain ⟨hsv, hsveq⟩ := v.absVal_signed_value x hv
+  obtain ⟨hsu, hsueq⟩ := u.absVal_signed_value x hudom hu
+  obtain ⟨hsv, hsveq⟩ := v.absVal_signed_value x hvdom hv
   rw [seriesSum_unique hr hsu, seriesSum_unique hr' hsv, hsueq, hsveq]
-  exact hle x hxA hu hv
+  exact hle x hxA hudom hvdom hu hv
 
 /-- Technical lemma used in the public import closure. -/
 def tendstoHalf_min_const (a : R) {u : Nat → R} {l : R} (h : RSeq.TendstoHalf u l) :
@@ -3490,44 +3788,62 @@ def tendstoHalf_min_const (a : R) {u : Nat → R} {l : R} (h : RSeq.TendstoHalf 
       exact lt_of_le_of_lt (abs_min_sub_min_le (u n) l a) (h.close k n hn) }
 
 /-- Technical lemma used in the public import closure. -/
+theorem IntegrableRep.cutConstDiffFn_memAt {r : IntegrableRep S} {x : X}
+    (a : R) (hdom : r.MemAt x) : ∀ j, x ∈ (r.cutConstDiffFn a j).dom := by
+  intro j
+  cases j with
+  | zero => exact BFunR.seqSum_mem r.fn x hdom 0
+  | succ j => exact ⟨BFunR.seqSum_mem r.fn x hdom (j + 1),
+      BFunR.seqSum_mem r.fn x hdom j⟩
+
+/-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.partialSum_cutConstDiffFn_value (r : IntegrableRep S) (a : R) (x : X)
-    (N : Nat) :
-    RSeq.partialSum (fun j => (r.cutConstDiffFn a j).toFun x) N
-      = COF.min ((BFunR.seqSum r.fn N).toFun x) a := by
+    (hdom : r.MemAt x) (N : Nat) :
+    RSeq.partialSum (fun j => (r.cutConstDiffFn a j).toFun x
+        (r.cutConstDiffFn_memAt a hdom j)) N =
+      COF.min ((BFunR.seqSum r.fn N).toFun x
+        (BFunR.seqSum_mem r.fn x hdom N)) a := by
   induction N with
   | zero => rfl
   | succ N ih =>
-      show RSeq.partialSum (fun j => (r.cutConstDiffFn a j).toFun x) N
-            + (r.cutConstDiffFn a (N + 1)).toFun x
-         = COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) a
+      show RSeq.partialSum (fun j => (r.cutConstDiffFn a j).toFun x
+              (r.cutConstDiffFn_memAt a hdom j)) N +
+            (r.cutConstDiffFn a (N + 1)).toFun x
+              (r.cutConstDiffFn_memAt a hdom (N + 1)) =
+        COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1))) a
       rw [ih]
-      show COF.min ((BFunR.seqSum r.fn N).toFun x) a
-            + (COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) a
-               + (-1) * COF.min ((BFunR.seqSum r.fn N).toFun x) a)
-         = COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x) a
+      show COF.min ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N)) a +
+            (COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+              (BFunR.seqSum_mem r.fn x hdom (N + 1))) a +
+             (-1) * COF.min ((BFunR.seqSum r.fn N).toFun x
+              (BFunR.seqSum_mem r.fn x hdom N)) a) =
+        COF.min ((BFunR.seqSum r.fn (N + 1)).toFun x
+          (BFunR.seqSum_mem r.fn x hdom (N + 1))) a
       ring
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.cutConstVal_value (r : IntegrableRep S) (a : R) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hd : RSeq.SeriesSum (fun j => (r.cutConstDiffFn a j).toFun x) // hd.sum = COF.min hx.sum a } :=
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hd : RSeq.SeriesSum (fun j => (r.cutConstDiffFn a j).toFun x
+        (r.cutConstDiffFn_memAt a hdom j)) // hd.sum = COF.min hx.sum a } :=
   ⟨{ sum := COF.min hx.sum a
      tends :=
        { mod := (tendstoHalf_min_const a hx.tends).mod
          close := by
            intro k N hN
            have h := (tendstoHalf_min_const a hx.tends).close k N hN
-           rw [r.partialSum_cutConstDiffFn_value a x N, BFunR.seqSum_toFun r.fn x N]
+           rw [r.partialSum_cutConstDiffFn_value a x hdom N,
+             BFunR.seqSum_toFun r.fn x hdom N]
            exact h } },
    rfl⟩
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_cutConstDiffFn_dom {r : IntegrableRep S} {x : X} (a : R)
-    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.cutConstDiffFn a j).dom := by
-  intro j
-  cases j with
-  | zero => exact mem_seqSum_dom hdom 0
-  | succ j => exact ⟨mem_seqSum_dom hdom (j + 1), mem_seqSum_dom hdom j⟩
+    (hdom : ∀ k, x ∈ (r.fn k).dom) : ∀ j, x ∈ (r.cutConstDiffFn a j).dom :=
+  r.cutConstDiffFn_memAt a hdom
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.mem_cutConstVal_dom {r : IntegrableRep S} {x : X} (a : R)
@@ -3547,35 +3863,51 @@ theorem IntegrableRep.mem_cutConstVal_dom {r : IntegrableRep S} {x : X} (a : R)
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.cutConstVal_absSeries (r : IntegrableRep S) (a : R) (ha : ¬ COF.lt a 0) {x : X}
-    (hconv : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.cutConstVal a ha).fn n).toFun x)) := by
-  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.cutConstDiffFn a j).toFun x)) :=
-    seriesSum_comparison (fun _ => abs_nonneg _) (fun j => r.cutConstDiffFn_abs_le a ha j x) hconv
-  have anf : RSeq.SeriesSum (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) :=
+    (hdom : r.MemAt x)
+    (hconv : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n))) :
+    RSeq.SeriesSum (fun n => COF.abs (((r.cutConstVal a ha).fn n).toFun x
+      (r.mem_cutConstVal_dom a ha hdom n))) := by
+  have ad : RSeq.SeriesSum (fun j => COF.abs ((r.cutConstDiffFn a j).toFun x
+      (r.mem_cutConstDiffFn_dom a hdom j))) :=
+    seriesSum_comparison (fun _ => abs_nonneg _)
+      (fun j => r.cutConstDiffFn_abs_le a ha j x
+        (r.mem_cutConstDiffFn_dom a hdom j) (hdom j)) hconv
+  have anf : RSeq.SeriesSum (fun k => COF.abs
+      ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) :=
     seriesSum_congr (fun k => by
-      show COF.abs ((r.fn k).toFun x) = COF.abs ((-1) * (r.fn k).toFun x)
-      rw [show (-1 : R) * (r.fn k).toFun x = - (r.fn k).toFun x from by ring, COFO.abs_neg]) hconv
-  have key : ∀ n, seqMerge3 (fun j => COF.abs ((r.cutConstDiffFn a j).toFun x))
-                    (fun k => COF.abs ((r.fn k).toFun x))
-                    (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) n
-                = COF.abs (((r.cutConstVal a ha).fn n).toFun x) := by
+      show COF.abs (r.valueAt x hdom k) =
+        COF.abs ((-1) * r.valueAt x hdom k)
+      rw [show (-1 : R) * r.valueAt x hdom k =
+        - r.valueAt x hdom k from by ring, COFO.abs_neg]) hconv
+  have key : ∀ n,
+      seqMerge3
+          (fun j => COF.abs ((r.cutConstDiffFn a j).toFun x
+            (r.mem_cutConstDiffFn_dom a hdom j)))
+          (fun k => COF.abs (r.valueAt x hdom k))
+          (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x (hdom k))) n =
+        COF.abs (((r.cutConstVal a ha).fn n).toFun x
+          (r.mem_cutConstVal_dom a ha hdom n)) := by
     intro n
     rcases natMod3 n with ⟨m, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩
-    · rw [seqMerge3_zero]
-      show COF.abs ((r.cutConstDiffFn a m).toFun x)
-         = COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
-              (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x)
-      rw [seqMerge3_zero]
-    · rw [seqMerge3_one]
-      show COF.abs ((r.fn m).toFun x)
-         = COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
-              (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x)
-      rw [seqMerge3_one]
-    · rw [seqMerge3_two]
-      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x)
-         = COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
-              (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x)
-      rw [seqMerge3_two]
+    · simp only [seqMerge3_zero]
+      show COF.abs ((r.cutConstDiffFn a m).toFun x
+          (r.mem_cutConstDiffFn_dom a hdom m)) =
+        COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x
+            (r.mem_cutConstVal_dom a ha hdom (3 * m)))
+      simp only [seqMerge3_zero]
+    · simp only [seqMerge3_one]
+      show COF.abs (r.valueAt x hdom m) =
+        COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x
+            (r.mem_cutConstVal_dom a ha hdom (3 * m + 1)))
+      simp only [seqMerge3_one, IntegrableRep.valueAt]
+    · simp only [seqMerge3_two]
+      show COF.abs ((BFunR.smul (-1) (r.fn m)).toFun x (hdom m)) =
+        COF.abs ((seqMerge3 (r.cutConstDiffFn a) r.fn
+          (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x
+            (r.mem_cutConstVal_dom a ha hdom (3 * m + 2)))
+      simp only [seqMerge3_two]
   exact seriesSum_congr key (seriesSum_merge3 ad hconv anf)
 
 /-- Technical lemma used in the public import closure. -/
@@ -3583,7 +3915,8 @@ theorem IntegrableRep.domain_subset_cutConstVal_domain (r : IntegrableRep S) (a 
     (ha : ¬ COF.lt a 0) : r.domain ⊆ (r.cutConstVal a ha).domain := by
   intro x hx
   obtain ⟨hdom, ⟨hconv⟩⟩ := hx
-  exact ⟨mem_cutConstVal_dom a ha hdom, ⟨r.cutConstVal_absSeries a ha hconv⟩⟩
+  exact ⟨mem_cutConstVal_dom a ha hdom,
+    ⟨r.cutConstVal_absSeries a ha hdom hconv⟩⟩
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -3599,37 +3932,60 @@ theorem IntegrableRep.tailFrom_normL1_lt (r : IntegrableRep S) (k : Nat) :
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.cutConstVal_signed_value (r : IntegrableRep S) (a : R) (ha : ¬ COF.lt a 0)
-    (x : X) (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hs : RSeq.SeriesSum (fun n => ((r.cutConstVal a ha).fn n).toFun x) //
+    (x : X) (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hs : RSeq.SeriesSum (fun n => (r.cutConstVal a ha).valueAt x
+        (r.mem_cutConstVal_dom a ha hdom) n) //
         hs.sum = COF.min hx.sum a } := by
-  obtain ⟨hd, hdeq⟩ := r.cutConstVal_value a x hx
+  obtain ⟨hd, hdeq⟩ := r.cutConstVal_value a x hdom hx
   refine ⟨seriesSum_congr (fun n => ?_)
             (seriesSum_merge3 hd hx (seriesSum_smul (-1 : R) hx)), ?_⟩
-  · exact (seqMerge3_map (fun g => g.toFun x) (r.cutConstDiffFn a) r.fn
-            (fun k => BFunR.smul (-1) (r.fn k)) n).symm
+  · rcases natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+    · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, seqMerge3_zero]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, seqMerge3_one]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.cutConstVal, BFunR.smul,
+        seqMerge3_two]
   · show hd.sum + hx.sum + (-1) * hx.sum = COF.min hx.sum a
     rw [hdeq]; ring
 
 /-- Technical lemma used in the public import closure. -/
-def IntegrableRep.ofL_value {g : BFunR X R} (hg : g ∈ S.L) (x : X) :
-    { hs : RSeq.SeriesSum (fun n => ((IntegrableRep.ofL hg).fn n).toFun x) //
-        hs.sum = g.toFun x } := by
-  refine ⟨seriesSum_congr (fun n => ?_) (seriesSum_single (g.toFun x)), rfl⟩
-  show (if n = 0 then g.toFun x else (0:R))
-     = (if n = 0 then g else BFunR.smul (0:R) g).toFun x
+def IntegrableRep.ofL_value {g : BFunR X R} (hg : g ∈ S.L) (x : X)
+    (hx : x ∈ g.dom) :
+    { hs : RSeq.SeriesSum (fun n => (IntegrableRep.ofL hg).valueAt x
+        (IntegrableRep.ofL_memAt hg hx) n) // hs.sum = g.toFun x hx } := by
+  refine ⟨seriesSum_congr (fun n => ?_)
+    (seriesSum_single (g.toFun x hx)), rfl⟩
+  show (if n = 0 then g.toFun x hx else (0:R)) =
+    (if n = 0 then g else BFunR.smul (0:R) g).toFun x
+      ((IntegrableRep.ofL_memAt hg hx) n)
   by_cases hn : n = 0
-  · rw [if_pos hn, if_pos hn]
-  · rw [if_neg hn, if_neg hn]; show (0:R) = (0:R) * g.toFun x; ring
+  · simp only [if_pos hn]
+  · simp only [if_neg hn, BFunR.smul]
+    ring
+
+/-- Domain membership for a tail representative. -/
+theorem IntegrableRep.tailFrom_memAt {r : IntegrableRep S} {x : X} (M : Nat)
+    (hdom : r.MemAt x) : (r.tailFrom M).MemAt x :=
+  fun k => hdom (M + 1 + k)
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.tailFrom_value (r : IntegrableRep S) (M : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hs : RSeq.SeriesSum (fun k => ((r.tailFrom M).fn k).toFun x) //
-        hs.sum = hx.sum - (BFunR.seqSum r.fn M).toFun x } := by
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hs : RSeq.SeriesSum (fun k => (r.tailFrom M).valueAt x
+        (r.tailFrom_memAt M hdom) k) //
+        hs.sum = hx.sum - (BFunR.seqSum r.fn M).toFun x
+          (BFunR.seqSum_mem r.fn x hdom M) } := by
   refine ⟨seriesSum_tail hx M, ?_⟩
-  show hx.sum - RSeq.partialSum (fun n => (r.fn n).toFun x) M
-     = hx.sum - (BFunR.seqSum r.fn M).toFun x
-  rw [BFunR.seqSum_toFun]
+  show hx.sum - RSeq.partialSum (fun n => r.valueAt x hdom n) M =
+    hx.sum - (BFunR.seqSum r.fn M).toFun x
+      (BFunR.seqSum_mem r.fn x hdom M)
+  have hs : (BFunR.seqSum r.fn M).toFun x
+        (BFunR.seqSum_mem r.fn x hdom M) =
+      RSeq.partialSum (fun n => r.valueAt x hdom n) M := by
+    simpa only [IntegrableRep.valueAt] using
+      BFunR.seqSum_toFun r.fn x hdom M
+  exact congrArg (fun z => hx.sum - z) hs.symm
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.tailFrom_integral (r : IntegrableRep S) (M : Nat) :
@@ -3677,22 +4033,32 @@ theorem IntegrableRep.cutNat_tendsto_aux (r : IntegrableRep S) (k M n : Nat)
       (normL1_mono r.domain_isFull
         ((r.cutNatVal n).sub (IntegrableRep.ofL (S.cutConst_mem ((n:R)) hSM)))
         (r.tailFrom M) ?_) htail
-    intro x hx hu hv
-    obtain ⟨_, ⟨habs⟩⟩ := hx
+    intro x hx hudom hvdom hu hv
+    obtain ⟨hrdom, ⟨habs⟩⟩ := hx
     have hxv := seriesSum_of_abs habs
-    obtain ⟨hcv, hcveq⟩ := r.cutConstVal_signed_value ((n:R)) (natCast_nonneg n) x hxv
-    obtain ⟨hov, hoveq⟩ := IntegrableRep.ofL_value (S.cutConst_mem ((n:R)) hSM) x
-    obtain ⟨htv, htveq⟩ := r.tailFrom_value M x hxv
-    rw [seriesSum_unique hu (add_seriesSum_value hcv (neg_seriesSum_value hov)),
+    let hSMx : x ∈ (BFunR.seqSum r.fn M).dom :=
+      BFunR.seqSum_mem r.fn x hrdom M
+    let hcutdom := r.mem_cutConstVal_dom ((n : R)) (natCast_nonneg n) hrdom
+    let hofdom := IntegrableRep.ofL_memAt (S.cutConst_mem ((n:R)) hSM) hSMx
+    obtain ⟨hcv, hcveq⟩ :=
+      r.cutConstVal_signed_value ((n:R)) (natCast_nonneg n) x hrdom hxv
+    obtain ⟨hov, hoveq⟩ :=
+      IntegrableRep.ofL_value (S.cutConst_mem ((n:R)) hSM) x hSMx
+    obtain ⟨htv, htveq⟩ := r.tailFrom_value M x hrdom hxv
+    rw [seriesSum_unique hu (add_seriesSum_value hcutdom
+          (IntegrableRep.neg_memAt hofdom) hcv (neg_seriesSum_value hofdom hov)),
         seriesSum_unique hv htv]
     show Le (COF.abs (hcv.sum + -hov.sum)) (COF.abs htv.sum)
     rw [hcveq, hoveq, htveq]
     show Le (COF.abs (COF.min hxv.sum ((n:R))
-            + -(COF.min ((BFunR.seqSum r.fn M).toFun x) ((n:R)))))
-            (COF.abs (hxv.sum - (BFunR.seqSum r.fn M).toFun x))
-    rw [show COF.min hxv.sum ((n:R)) + -(COF.min ((BFunR.seqSum r.fn M).toFun x) ((n:R)))
-          = COF.min hxv.sum ((n:R)) - COF.min ((BFunR.seqSum r.fn M).toFun x) ((n:R)) from by ring]
-    exact abs_min_sub_min_le hxv.sum ((BFunR.seqSum r.fn M).toFun x) ((n:R))
+            + -(COF.min ((BFunR.seqSum r.fn M).toFun x hSMx) ((n:R)))))
+            (COF.abs (hxv.sum - (BFunR.seqSum r.fn M).toFun x hSMx))
+    rw [show COF.min hxv.sum ((n:R)) +
+          -(COF.min ((BFunR.seqSum r.fn M).toFun x hSMx) ((n:R))) =
+        COF.min hxv.sum ((n:R)) -
+          COF.min ((BFunR.seqSum r.fn M).toFun x hSMx) ((n:R)) from by ring]
+    exact abs_min_sub_min_le hxv.sum
+      ((BFunR.seqSum r.fn M).toFun x hSMx) ((n:R))
   -- Technical note.
   have htri : Le (COF.abs ((r.cutNatVal n).integral - r.integral))
         (COF.abs ((r.cutNatVal n).integral - S.I (BFunR.cutNat n (BFunR.seqSum r.fn M)))
@@ -3766,28 +4132,41 @@ theorem IntegrableRep.cutSmall_tendsto_aux (r : IntegrableRep S) (p M k : Nat)
       (normL1_mono r.domain_isFull
         ((r.cutSmallVal k).sub (IntegrableRep.ofL (S.cutConst_mem (COF.halfPow k) (S.abs_mem hSM))))
         (r.tailFrom M) ?_) htail
-    intro x hx hu hv
-    obtain ⟨_, ⟨habs⟩⟩ := hx
+    intro x hx hudom hvdom hu hv
+    obtain ⟨hrdom, ⟨habs⟩⟩ := hx
     have hxv := seriesSum_of_abs habs
-    obtain ⟨hav, haveq⟩ := r.absVal_signed_value x hxv
-    obtain ⟨hcv, hcveq⟩ := r.absVal.cutConstVal_signed_value (COF.halfPow k) (halfPow_nonneg k) x hav
+    let hSMx : x ∈ (BFunR.seqSum r.fn M).dom :=
+      BFunR.seqSum_mem r.fn x hrdom M
+    let habsdom := r.mem_absVal_dom hrdom
+    let hcutdom := r.absVal.mem_cutConstVal_dom
+      (COF.halfPow k) (halfPow_nonneg k) habsdom
+    let hofdom := IntegrableRep.ofL_memAt
+      (S.cutConst_mem (COF.halfPow k) (S.abs_mem hSM)) hSMx
+    obtain ⟨hav, haveq⟩ := r.absVal_signed_value x hrdom hxv
+    obtain ⟨hcv, hcveq⟩ := r.absVal.cutConstVal_signed_value
+      (COF.halfPow k) (halfPow_nonneg k) x habsdom hav
     obtain ⟨hov, hoveq⟩ :=
-      IntegrableRep.ofL_value (S.cutConst_mem (COF.halfPow k) (S.abs_mem hSM)) x
-    obtain ⟨htv, htveq⟩ := r.tailFrom_value M x hxv
-    rw [seriesSum_unique hu (add_seriesSum_value hcv (neg_seriesSum_value hov)),
+      IntegrableRep.ofL_value
+        (S.cutConst_mem (COF.halfPow k) (S.abs_mem hSM)) x hSMx
+    obtain ⟨htv, htveq⟩ := r.tailFrom_value M x hrdom hxv
+    rw [seriesSum_unique hu (add_seriesSum_value hcutdom
+          (IntegrableRep.neg_memAt hofdom) hcv (neg_seriesSum_value hofdom hov)),
         seriesSum_unique hv htv]
     show Le (COF.abs (hcv.sum + -hov.sum)) (COF.abs htv.sum)
     rw [hcveq, haveq, hoveq, htveq]
     show Le (COF.abs (COF.min (COF.abs hxv.sum) (COF.halfPow k)
-            + -(COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x)) (COF.halfPow k))))
-            (COF.abs (hxv.sum - (BFunR.seqSum r.fn M).toFun x))
+            + -(COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x hSMx))
+              (COF.halfPow k))))
+            (COF.abs (hxv.sum - (BFunR.seqSum r.fn M).toFun x hSMx))
     rw [show COF.min (COF.abs hxv.sum) (COF.halfPow k)
-            + -(COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x)) (COF.halfPow k))
+            + -(COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x hSMx))
+              (COF.halfPow k))
           = COF.min (COF.abs hxv.sum) (COF.halfPow k)
-            - COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x)) (COF.halfPow k) from by ring]
+            - COF.min (COF.abs ((BFunR.seqSum r.fn M).toFun x hSMx))
+              (COF.halfPow k) from by ring]
     refine le_trans (abs_min_sub_min_le (COF.abs hxv.sum)
-      (COF.abs ((BFunR.seqSum r.fn M).toFun x)) (COF.halfPow k)) ?_
-    exact abs_abs_sub_abs_le hxv.sum ((BFunR.seqSum r.fn M).toFun x)
+      (COF.abs ((BFunR.seqSum r.fn M).toFun x hSMx)) (COF.halfPow k)) ?_
+    exact abs_abs_sub_abs_le hxv.sum ((BFunR.seqSum r.fn M).toFun x hSMx)
   -- Technical note.
   have htri : Le (COF.abs ((r.cutSmallVal k).integral))
         (COF.abs ((r.cutSmallVal k).integral
@@ -3945,42 +4324,24 @@ def cellAt_rowsum {A : Nat → Nat → R} (hA : ∀ i j, Nonneg (A i j))
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.absVal_pointSum (r : IntegrableRep S) (x : X)
-    (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { h : RSeq.SeriesSum (fun n => (r.absVal.fn n).toFun x) // h.sum = COF.abs hx.sum } := by
-  have key : ∀ n, seqMerge3 (fun j => (r.absDiffFn j).toFun x)
-                    (fun k => (r.fn k).toFun x)
-                    (fun k => (BFunR.smul (-1) (r.fn k)).toFun x) n
-                = (r.absVal.fn n).toFun x := by
-    intro n
-    rcases natMod3 n with ⟨m, rfl⟩ | ⟨m, rfl⟩ | ⟨m, rfl⟩
-    · rw [seqMerge3_zero]
-      show (r.absDiffFn m).toFun x
-         = (seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m)).toFun x
-      rw [seqMerge3_zero]
-    · rw [seqMerge3_one]
-      show (r.fn m).toFun x
-         = (seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 1)).toFun x
-      rw [seqMerge3_one]
-    · rw [seqMerge3_two]
-      show (BFunR.smul (-1) (r.fn m)).toFun x
-         = (seqMerge3 r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) (3 * m + 2)).toFun x
-      rw [seqMerge3_two]
-  refine ⟨seriesSum_congr key
-      (seriesSum_merge3 (r.absVal_value x hx).1 hx
-        (seriesSum_congr (fun _ => rfl) (seriesSum_smul (-1) hx))), ?_⟩
-  show (r.absVal_value x hx).1.sum + hx.sum + (-1) * hx.sum = COF.abs hx.sum
-  rw [(r.absVal_value x hx).2]; ring
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { h : RSeq.SeriesSum (fun n => r.absVal.valueAt x
+        (r.mem_absVal_dom hdom) n) // h.sum = COF.abs hx.sum } :=
+  r.absVal_signed_value x hdom hx
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.normL1_eq_integral_of_nonneg (r : IntegrableRep S)
-    (hnn : ∀ x : X, ∀ (_habs : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)))
-              (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)), Nonneg hx.sum) :
+    (hnn : ∀ x : X, ∀ (hdom : r.MemAt x)
+              (_habs : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n)))
+              (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)), Nonneg hx.sum) :
     r.normL1 = r.integral := by
   show r.absVal.integral = r.integral
   refine IntegrableRep.integral_congr r.absVal r ?_
-  intro x _h1 _h2 hx hx'
-  rw [seriesSum_unique hx (r.absVal_pointSum x hx').1, (r.absVal_pointSum x hx').2]
-  exact COFO.abs_of_nonneg (hnn x _h2 hx')
+  intro x _hAbsDom hdom _hAbs hRAbs hAbsSum hRSum
+  rw [seriesSum_unique hAbsSum (r.absVal_pointSum x hdom hRSum).1,
+    (r.absVal_pointSum x hdom hRSum).2]
+  exact COFO.abs_of_nonneg (hnn x hdom hRAbs hRSum)
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.truncK (r : IntegrableRep S) (k : Nat) : Nat :=
@@ -3988,8 +4349,9 @@ def IntegrableRep.truncK (r : IntegrableRep S) (k : Nat) : Nat :=
 
 /-- Technical lemma used in the public import closure. -/
 theorem IntegrableRep.truncK_headsum_lt (r : IntegrableRep S)
-    (hnn : ∀ x : X, ∀ (_habs : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)))
-              (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)), Nonneg hx.sum)
+    (hnn : ∀ x : X, ∀ (hdom : r.MemAt x)
+              (_habs : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n)))
+              (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)), Nonneg hx.sum)
     (k : Nat) :
     COF.lt (r.integral - COF.halfPow k)
       (S.I (BFunR.absf (BFunR.seqSum r.fn (r.truncK k)))) := by
@@ -4054,16 +4416,18 @@ theorem contΦ_mem (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Na
 
 theorem contΦ_pwnn (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Nat) :
     ∀ a b, BFunR.PointwiseNonneg (contΦ rg rn k a b) := by
-  rintro (_ | n) b <;> intro x _ <;> exact abs_nonneg _
+  rintro (_ | n) b <;> intro x hx <;> exact abs_nonneg _
 
 theorem contΦ_val_nn (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Nat) :
-    ∀ a b y, Nonneg ((contΦ rg rn k a b).toFun y) := by
-  rintro (_ | n) b y <;> exact abs_nonneg _
+    ∀ a b y, ∀ hy : y ∈ (contΦ rg rn k a b).dom,
+      Nonneg ((contΦ rg rn k a b).toFun y hy) := by
+  rintro (_ | n) b y hy <;> exact abs_nonneg _
 
 /-- Technical lemma used in the public import closure. -/
 def RepNonneg (r : IntegrableRep S) : Prop :=
-  ∀ x : X, ∀ (_habs : RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)))
-            (hx : RSeq.SeriesSum (fun n => (r.fn n).toFun x)), Nonneg hx.sum
+  ∀ x : X, ∀ (hdom : r.MemAt x)
+    (_habs : RSeq.SeriesSum (fun n => COF.abs (r.valueAt x hdom n)))
+    (hx : RSeq.SeriesSum (fun n => r.valueAt x hdom n)), Nonneg hx.sum
 
 /-- Technical lemma used in the public import closure. -/
 def contGeom (k : Nat) : RSeq.SeriesSum (fun n => COF.halfPow (R := R) (k + n + 2)) := by
@@ -4243,16 +4607,17 @@ structure PointwiseDoubleBelow {X R : Type*} [COF R]
   x : X
   hx_f : x ∈ f.dom
   hx_Φ : ∀ a b, x ∈ (Φ a b).dom
-  fiber : ∀ a, RSeq.SeriesSum (fun b => (Φ a b).toFun x)
+  fiber : ∀ a, RSeq.SeriesSum (fun b => (Φ a b).toFun x (hx_Φ a b))
   row : RSeq.SeriesSum (fun a => (fiber a).sum)
-  below : COF.lt row.sum (f.toFun x)
+  below : COF.lt row.sum (f.toFun x hx_f)
 
 /-- Technical lemma used in the public import closure. -/
 def continuity_double (S : IntSpaceRC X R)
     (f : BFunR X R) (hf : f ∈ S.L)
     (Φ : Nat → Nat → BFunR X R) (hΦmem : ∀ a b, Φ a b ∈ S.L)
     (hΦnn : ∀ a b, BFunR.PointwiseNonneg (Φ a b))
-    (hΦval : ∀ a b y, Nonneg ((Φ a b).toFun y))
+    (hΦval : ∀ a b y, ∀ hy : y ∈ (Φ a b).dom,
+      Nonneg ((Φ a b).toFun y hy))
     (hGsum : RSeq.SeriesSum (fun m => S.I (Φ (cellAt m).1 (cellAt m).2)))
     (hlt : COF.lt hGsum.sum (S.I f)) :
     PointwiseDoubleBelow Φ f :=
@@ -4260,16 +4625,22 @@ def continuity_double (S : IntSpaceRC X R)
     (fs := fun m => Φ (cellAt m).1 (cellAt m).2)
     (fun m => hΦmem (cellAt m).1 (cellAt m).2)
     (fun m => hΦnn (cellAt m).1 (cellAt m).2) hGsum hlt
-  let hA : ∀ i j, Nonneg ((Φ i j).toFun psb.x) := fun i j => hΦval i j psb.x
+  let hxΦ : ∀ a b, psb.x ∈ (Φ a b).dom := fun a b => by
+    have h := psb.hx_fs (cellIdx a b)
+    rw [cellAt_cellIdx a b] at h
+    exact h
+  let hA : ∀ i j, Nonneg ((Φ i j).toFun psb.x (hxΦ i j)) :=
+    fun i j => hΦval i j psb.x (hxΦ i j)
+  let hflat : RSeq.SeriesSum
+      (fun m => (Φ (cellAt m).1 (cellAt m).2).toFun psb.x
+        (hxΦ (cellAt m).1 (cellAt m).2)) := by
+    simpa using psb.point_sum
   { x := psb.x
     hx_f := psb.hx_f
-    hx_Φ := fun a b => by
-      have h := psb.hx_fs (cellIdx a b)
-      rw [cellAt_cellIdx a b] at h
-      exact h
-    fiber := fun a => row_seriesSum hA psb.point_sum a
-    row := cellAt_rowsum hA psb.point_sum
-    below := lt_of_le_of_lt (cellAt_rowsum_le hA psb.point_sum) psb.below }
+    hx_Φ := hxΦ
+    fiber := fun a => row_seriesSum hA hflat a
+    row := cellAt_rowsum hA hflat
+    below := lt_of_le_of_lt (cellAt_rowsum_le hA hflat) psb.below }
 
 /-- Technical lemma used in the public import closure. -/
 theorem seriesSum_le_termwise {a b : Nat → R} (hx : RSeq.SeriesSum a) (hy : RSeq.SeriesSum b)
@@ -4314,110 +4685,144 @@ def seriesSum_collapse {a : Nat → R} (h : RSeq.SeriesSum a) (N : Nat) :
 
 variable {S : IntSpaceRC X R}
 
+/-- Domain membership for the collapsed representative. -/
+theorem IntegrableRep.collapseFirst_memAt {r : IntegrableRep S} {x : X}
+    (N : Nat) (hdom : r.MemAt x) : (r.collapseFirst N).MemAt x := by
+  intro k
+  by_cases hk : k = 0
+  · simpa [IntegrableRep.collapseFirst, hk] using
+      BFunR.seqSum_mem r.fn x hdom N
+  · simpa [IntegrableRep.collapseFirst, hk] using hdom (N + k)
+
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.collapseFirst_toFun_seriesSum (r : IntegrableRep S) (N : Nat) (x : X)
-    (hx : RSeq.SeriesSum (fun i => (r.fn i).toFun x)) :
-    {hc : RSeq.SeriesSum (fun k => ((r.collapseFirst N).fn k).toFun x) // hc.sum = hx.sum} := by
+    (hdom : r.MemAt x)
+    (hx : RSeq.SeriesSum (fun i => r.valueAt x hdom i)) :
+    {hc : RSeq.SeriesSum (fun k => (r.collapseFirst N).valueAt x
+        (r.collapseFirst_memAt N hdom) k) // hc.sum = hx.sum} := by
   refine ⟨seriesSum_congr (fun k => ?_) (seriesSum_collapse hx N).1, ?_⟩
-  · show (if k = 0 then RSeq.partialSum (fun i => (r.fn i).toFun x) N else (r.fn (N + k)).toFun x)
-        = ((r.collapseFirst N).fn k).toFun x
-    show (if k = 0 then RSeq.partialSum (fun i => (r.fn i).toFun x) N else (r.fn (N + k)).toFun x)
-        = (if k = 0 then BFunR.seqSum r.fn N else r.fn (N + k)).toFun x
+  · show (if k = 0 then RSeq.partialSum (fun i => r.valueAt x hdom i) N
+        else r.valueAt x hdom (N + k)) =
+      (if k = 0 then BFunR.seqSum r.fn N else r.fn (N + k)).toFun x
+        ((r.collapseFirst_memAt N hdom) k)
     by_cases h : k = 0
-    · rw [if_pos h, if_pos h, BFunR.seqSum_toFun r.fn x N]
-    · rw [if_neg h, if_neg h]
+    · subst k
+      simpa only [if_pos rfl, IntegrableRep.valueAt,
+        IntegrableRep.collapseFirst] using
+          (BFunR.seqSum_toFun r.fn x hdom N).symm
+    · simp only [if_neg h, IntegrableRep.valueAt,
+        IntegrableRep.collapseFirst]
   · exact (seriesSum_collapse hx N).2
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.toFun_seriesSum_of_absTail (r : IntegrableRep S) (x : X) (p : Nat)
-    (htail : RSeq.SeriesSum (fun l => COF.abs ((r.fn (p + 1 + l)).toFun x))) :
-    RSeq.SeriesSum (fun m => (r.fn m).toFun x) :=
-  seriesSum_of_abs (seriesSum_of_tail (u := fun m => COF.abs ((r.fn m).toFun x)) p htail)
+    (hdom : r.MemAt x)
+    (htail : RSeq.SeriesSum
+      (fun l => COF.abs (r.valueAt x hdom (p + 1 + l)))) :
+    RSeq.SeriesSum (fun m => r.valueAt x hdom m) :=
+  seriesSum_of_abs
+    (seriesSum_of_tail (u := fun m => COF.abs (r.valueAt x hdom m)) p htail)
 
 /-- Technical lemma used in the public import closure. -/
 def rg_sum_of_fiber0 (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Nat) (x : X)
-    (fiber0 : RSeq.SeriesSum (fun b => (contΦ rg rn k 0 b).toFun x)) :
-    RSeq.SeriesSum (fun m => (rg.fn m).toFun x) :=
-  rg.toFun_seriesSum_of_absTail x (rg.truncK k)
+    (hrdom : rg.MemAt x)
+    (hΦdom : ∀ b, x ∈ (contΦ rg rn k 0 b).dom)
+    (fiber0 : RSeq.SeriesSum
+      (fun b => (contΦ rg rn k 0 b).toFun x (hΦdom b))) :
+    RSeq.SeriesSum (fun m => rg.valueAt x hrdom m) :=
+  rg.toFun_seriesSum_of_absTail x (rg.truncK k) hrdom
     (seriesSum_congr (fun l => by
-      rw [contΦ_zero]
-      show COF.abs ((rg.fn (l + (rg.truncK k + 1))).toFun x)
-          = COF.abs ((rg.fn (rg.truncK k + 1 + l)).toFun x)
+      change COF.abs (rg.valueAt x hrdom (l + (rg.truncK k + 1))) =
+        COF.abs (rg.valueAt x hrdom (rg.truncK k + 1 + l))
       rw [show l + (rg.truncK k + 1) = rg.truncK k + 1 + l from by omega]) fiber0)
 
 /-- Technical lemma used in the public import closure. -/
 def rn_sum_of_fiber (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k n : Nat) (x : X)
-    (fibern : RSeq.SeriesSum (fun b => (contΦ rg rn k (n + 1) b).toFun x)) :
-    RSeq.SeriesSum (fun m => ((rn n).fn m).toFun x) :=
-  (rn n).toFun_seriesSum_of_absTail x ((rn n).contNf (k + n + 2))
+    (hndom : (rn n).MemAt x)
+    (hΦdom : ∀ b, x ∈ (contΦ rg rn k (n + 1) b).dom)
+    (fibern : RSeq.SeriesSum
+      (fun b => (contΦ rg rn k (n + 1) b).toFun x (hΦdom b))) :
+    RSeq.SeriesSum (fun m => (rn n).valueAt x hndom m) :=
+  (rn n).toFun_seriesSum_of_absTail x ((rn n).contNf (k + n + 2)) hndom
     (seriesSum_congr (fun l => by
-      rw [contΦ_succ]
-      show COF.abs ((((rn n).collapseFirst ((rn n).contNf (k + n + 2))).fn (0 + 1 + l)).toFun x)
-          = COF.abs (((rn n).fn ((rn n).contNf (k + n + 2) + 1 + l)).toFun x)
-      rw [show (((rn n).collapseFirst ((rn n).contNf (k + n + 2))).fn (0 + 1 + l))
-            = (rn n).fn ((rn n).contNf (k + n + 2) + 1 + l) from by
-        show (if 0 + 1 + l = 0 then BFunR.seqSum (rn n).fn ((rn n).contNf (k + n + 2))
-              else (rn n).fn ((rn n).contNf (k + n + 2) + (0 + 1 + l)))
-            = (rn n).fn ((rn n).contNf (k + n + 2) + 1 + l)
-        rw [if_neg (by omega),
-            show (rn n).contNf (k + n + 2) + (0 + 1 + l)
-              = (rn n).contNf (k + n + 2) + 1 + l from by omega]])
+      simp only [contΦ_succ]
+      show COF.abs (((rn n).collapseFirst ((rn n).contNf (k + n + 2))).valueAt x
+            ((rn n).collapseFirst_memAt ((rn n).contNf (k + n + 2)) hndom)
+            (0 + 1 + l)) =
+        COF.abs ((rn n).valueAt x hndom
+          ((rn n).contNf (k + n + 2) + 1 + l))
+      simp only [IntegrableRep.valueAt, IntegrableRep.collapseFirst,
+        if_neg (by omega : ¬0 + 1 + l = 0),
+        show (rn n).contNf (k + n + 2) + (0 + 1 + l) =
+          (rn n).contNf (k + n + 2) + 1 + l by omega])
       (seriesSum_tail fibern 0))
 
 /-- Technical lemma used in the public import closure. -/
 def rg_abs_of_fiber0 (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Nat) (x : X)
-    (fiber0 : RSeq.SeriesSum (fun b => (contΦ rg rn k 0 b).toFun x)) :
-    RSeq.SeriesSum (fun m => COF.abs ((rg.fn m).toFun x)) :=
+    (hrdom : rg.MemAt x)
+    (hΦdom : ∀ b, x ∈ (contΦ rg rn k 0 b).dom)
+    (fiber0 : RSeq.SeriesSum
+      (fun b => (contΦ rg rn k 0 b).toFun x (hΦdom b))) :
+    RSeq.SeriesSum (fun m => COF.abs (rg.valueAt x hrdom m)) :=
   seriesSum_of_tail (rg.truncK k)
     (seriesSum_congr (fun l => by
-      rw [contΦ_zero]
-      show COF.abs ((rg.fn (l + (rg.truncK k + 1))).toFun x)
-          = COF.abs ((rg.fn (rg.truncK k + 1 + l)).toFun x)
+      change COF.abs (rg.valueAt x hrdom (l + (rg.truncK k + 1))) =
+        COF.abs (rg.valueAt x hrdom (rg.truncK k + 1 + l))
       rw [show l + (rg.truncK k + 1) = rg.truncK k + 1 + l from by omega]) fiber0)
 
 /-- Technical lemma used in the public import closure. -/
 def rn_abs_of_fiber (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k n : Nat) (x : X)
-    (fibern : RSeq.SeriesSum (fun b => (contΦ rg rn k (n + 1) b).toFun x)) :
-    RSeq.SeriesSum (fun m => COF.abs (((rn n).fn m).toFun x)) :=
+    (hndom : (rn n).MemAt x)
+    (hΦdom : ∀ b, x ∈ (contΦ rg rn k (n + 1) b).dom)
+    (fibern : RSeq.SeriesSum
+      (fun b => (contΦ rg rn k (n + 1) b).toFun x (hΦdom b))) :
+    RSeq.SeriesSum (fun m => COF.abs ((rn n).valueAt x hndom m)) :=
   seriesSum_of_tail ((rn n).contNf (k + n + 2))
     (seriesSum_congr (fun l => by
-      rw [contΦ_succ]
-      show COF.abs ((((rn n).collapseFirst ((rn n).contNf (k + n + 2))).fn (0 + 1 + l)).toFun x)
-          = COF.abs (((rn n).fn ((rn n).contNf (k + n + 2) + 1 + l)).toFun x)
-      rw [show (((rn n).collapseFirst ((rn n).contNf (k + n + 2))).fn (0 + 1 + l))
-            = (rn n).fn ((rn n).contNf (k + n + 2) + 1 + l) from by
-        show (if 0 + 1 + l = 0 then BFunR.seqSum (rn n).fn ((rn n).contNf (k + n + 2))
-              else (rn n).fn ((rn n).contNf (k + n + 2) + (0 + 1 + l)))
-            = (rn n).fn ((rn n).contNf (k + n + 2) + 1 + l)
-        rw [if_neg (by omega),
-            show (rn n).contNf (k + n + 2) + (0 + 1 + l)
-              = (rn n).contNf (k + n + 2) + 1 + l from by omega]])
+      simp only [contΦ_succ]
+      show COF.abs (((rn n).collapseFirst ((rn n).contNf (k + n + 2))).valueAt x
+            ((rn n).collapseFirst_memAt ((rn n).contNf (k + n + 2)) hndom)
+            (0 + 1 + l)) =
+        COF.abs ((rn n).valueAt x hndom
+          ((rn n).contNf (k + n + 2) + 1 + l))
+      simp only [IntegrableRep.valueAt, IntegrableRep.collapseFirst,
+        if_neg (by omega : ¬0 + 1 + l = 0),
+        show (rn n).contNf (k + n + 2) + (0 + 1 + l) =
+          (rn n).contNf (k + n + 2) + 1 + l by omega])
       (seriesSum_tail fibern 0))
 
 /-- Technical lemma used in the public import closure. -/
 theorem absSK_le_rg_add_fiber0 (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k : Nat) (x : X)
     (hgnn : RepNonneg rg)
-    (rg_abs : RSeq.SeriesSum (fun m => COF.abs ((rg.fn m).toFun x)))
-    (rg_sum : RSeq.SeriesSum (fun m => (rg.fn m).toFun x))
-    (fiber0 : RSeq.SeriesSum (fun b => (contΦ rg rn k 0 b).toFun x)) :
-    Le (COF.abs ((BFunR.seqSum rg.fn (rg.truncK k)).toFun x)) (rg_sum.sum + fiber0.sum) := by
-  rw [BFunR.seqSum_toFun rg.fn x (rg.truncK k)]
+    (hrdom : rg.MemAt x)
+    (rg_abs : RSeq.SeriesSum (fun m => COF.abs (rg.valueAt x hrdom m)))
+    (rg_sum : RSeq.SeriesSum (fun m => rg.valueAt x hrdom m))
+    (hΦdom : ∀ b, x ∈ (contΦ rg rn k 0 b).dom)
+    (fiber0 : RSeq.SeriesSum
+      (fun b => (contΦ rg rn k 0 b).toFun x (hΦdom b))) :
+    Le (COF.abs ((BFunR.seqSum rg.fn (rg.truncK k)).toFun x
+        (BFunR.seqSum_mem rg.fn x hrdom (rg.truncK k))))
+      (rg_sum.sum + fiber0.sum) := by
+  rw [BFunR.seqSum_toFun rg.fn x hrdom (rg.truncK k)]
+  change Le
+    (COF.abs (RSeq.partialSum (fun n => rg.valueAt x hrdom n) (rg.truncK k)))
+    (rg_sum.sum + fiber0.sum)
   have htail : Le (COF.abs ((seriesSum_tail rg_sum (rg.truncK k)).sum)) fiber0.sum :=
-    seriesSum_abs_le (a := fun l => (rg.fn (rg.truncK k + 1 + l)).toFun x)
+    seriesSum_abs_le (a := fun l => rg.valueAt x hrdom (rg.truncK k + 1 + l))
       (seriesSum_tail rg_sum (rg.truncK k))
       (seriesSum_congr (fun l => by
-        rw [contΦ_zero]
-        show COF.abs ((rg.fn (l + (rg.truncK k + 1))).toFun x)
-            = COF.abs ((rg.fn (rg.truncK k + 1 + l)).toFun x)
+        change COF.abs (rg.valueAt x hrdom (l + (rg.truncK k + 1))) =
+          COF.abs (rg.valueAt x hrdom (rg.truncK k + 1 + l))
         rw [show l + (rg.truncK k + 1) = rg.truncK k + 1 + l from by omega]) fiber0)
-  have hps : RSeq.partialSum (fun m => (rg.fn m).toFun x) (rg.truncK k)
+  have hps : RSeq.partialSum (fun m => rg.valueAt x hrdom m) (rg.truncK k)
       = rg_sum.sum - (seriesSum_tail rg_sum (rg.truncK k)).sum := by
-    show RSeq.partialSum (fun m => (rg.fn m).toFun x) (rg.truncK k)
-        = rg_sum.sum - (rg_sum.sum - RSeq.partialSum (fun m => (rg.fn m).toFun x) (rg.truncK k))
+    show RSeq.partialSum (fun m => rg.valueAt x hrdom m) (rg.truncK k) =
+      rg_sum.sum - (rg_sum.sum -
+        RSeq.partialSum (fun m => rg.valueAt x hrdom m) (rg.truncK k))
     ring
   rw [hps]
   refine le_trans (abs_sub_le rg_sum.sum (seriesSum_tail rg_sum (rg.truncK k)).sum) ?_
-  rw [COFO.abs_of_nonneg (hgnn x rg_abs rg_sum)]
+  rw [COFO.abs_of_nonneg (hgnn x hrdom rg_abs rg_sum)]
   exact le_add (le_refl _) htail
 
 /-- Technical lemma used in the public import closure. -/
@@ -4472,16 +4877,16 @@ theorem rn_dom_of_pdb (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) (k :
 /-- Technical lemma used in the public import closure. -/
 structure RepSeriesBelow (rg : IntegrableRep S) (rn : Nat → IntegrableRep S) where
   x : X
-  rg_sum : RSeq.SeriesSum (fun m => (rg.fn m).toFun x)
-  rn_sum : ∀ n, RSeq.SeriesSum (fun m => ((rn n).fn m).toFun x)
+  rg_dom : rg.MemAt x
+  rn_dom : ∀ n, (rn n).MemAt x
+  rg_sum : RSeq.SeriesSum (fun m => rg.valueAt x rg_dom m)
+  rn_sum : ∀ n, RSeq.SeriesSum (fun m => (rn n).valueAt x (rn_dom n) m)
   total : RSeq.SeriesSum (fun n => (rn_sum n).sum)
   below : COF.lt total.sum rg_sum.sum
-  rg_dom : ∀ m, x ∈ (rg.fn m).dom
-  rn_dom : ∀ n m, x ∈ ((rn n).fn m).dom
   /-- Technical lemma used in the public import closure. -/
-  rg_abs : RSeq.SeriesSum (fun m => COF.abs ((rg.fn m).toFun x))
+  rg_abs : RSeq.SeriesSum (fun m => COF.abs (rg.valueAt x rg_dom m))
   /-- Technical lemma used in the public import closure. -/
-  rn_abs : ∀ n, RSeq.SeriesSum (fun m => COF.abs (((rn n).fn m).toFun x))
+  rn_abs : ∀ n, RSeq.SeriesSum (fun m => COF.abs ((rn n).valueAt x (rn_dom n) m))
   /-- Technical lemma used in the public import closure. -/
   total_nonneg : Nonneg total.sum
 
@@ -4540,10 +4945,15 @@ def continuity_rep (rg : IntegrableRep S) (rn : Nat → IntegrableRep S)
     RepSeriesBelow rg rn := by
   let k := contLevel rg hsumI hslt
   let pdb := continuity_rep_double rg rn hgnn hnn hsumI hslt
-  let rgs := rg_sum_of_fiber0 rg rn k pdb.x (pdb.fiber 0)
-  let rns := fun n => rn_sum_of_fiber rg rn k n pdb.x (pdb.fiber (n + 1))
+  let rgdom : rg.MemAt pdb.x := rg_dom_of_pdb rg rn k pdb
+  let rndom : ∀ n, (rn n).MemAt pdb.x := rn_dom_of_pdb rg rn k pdb
+  let rowdom : ∀ a b, pdb.x ∈ (contΦ rg rn k a b).dom := pdb.hx_Φ
+  let rgs := rg_sum_of_fiber0 rg rn k pdb.x rgdom (rowdom 0) (pdb.fiber 0)
+  let rns := fun n => rn_sum_of_fiber rg rn k n pdb.x (rndom n)
+    (rowdom (n + 1)) (pdb.fiber (n + 1))
   have h2 : ∀ n, Le (rns n).sum (pdb.fiber (n + 1)).sum := fun n => by
-    have cs := (rn n).collapseFirst_toFun_seriesSum ((rn n).contNf (k + n + 2)) pdb.x (rns n)
+    have cs := (rn n).collapseFirst_toFun_seriesSum
+      ((rn n).contNf (k + n + 2)) pdb.x (rndom n) (rns n)
     rw [← cs.2]
     exact seriesSum_le_termwise cs.1 (pdb.fiber (n + 1))
       (fun b => abs_nonneg _) (fun b => COFO.le_abs_self _)
@@ -4551,11 +4961,22 @@ def continuity_rep (rg : IntegrableRep S) (rn : Nat → IntegrableRep S)
     seriesSum_congr (fun n => by rw [show (0 + 1 + n) = n + 1 from by omega])
       (seriesSum_tail pdb.row 0)
   have hnns : ∀ n, Nonneg (rns n).sum :=
-    fun n => (hnn n) pdb.x (rn_abs_of_fiber rg rn k n pdb.x (pdb.fiber (n + 1))) (rns n)
+    fun n => (hnn n) pdb.x (rndom n)
+      (rn_abs_of_fiber rg rn k n pdb.x (rndom n)
+        (rowdom (n + 1)) (pdb.fiber (n + 1))) (rns n)
   let total := seriesSum_comparison hnns h2 rowtail
-  refine ⟨pdb.x, rgs, rns, total, ?_, rg_dom_of_pdb rg rn _ pdb, rn_dom_of_pdb rg rn _ pdb,
-    rg_abs_of_fiber0 rg rn k pdb.x (pdb.fiber 0),
-    (fun n => rn_abs_of_fiber rg rn k n pdb.x (pdb.fiber (n + 1))), seriesSum_nonneg hnns total⟩
+  refine
+    { x := pdb.x
+      rg_dom := rgdom
+      rn_dom := rndom
+      rg_sum := rgs
+      rn_sum := rns
+      total := total
+      below := ?_
+      rg_abs := rg_abs_of_fiber0 rg rn k pdb.x rgdom (rowdom 0) (pdb.fiber 0)
+      rn_abs := fun n => rn_abs_of_fiber rg rn k n pdb.x (rndom n)
+        (rowdom (n + 1)) (pdb.fiber (n + 1))
+      total_nonneg := seriesSum_nonneg hnns total }
   have hA : Le total.sum (pdb.row.sum - (pdb.fiber 0).sum) := by
     refine le_trans (seriesSum_comparison_le hnns h2 rowtail) ?_
     show Le (pdb.row.sum - RSeq.partialSum (fun a => (pdb.fiber a).sum) 0)
@@ -4563,7 +4984,8 @@ def continuity_rep (rg : IntegrableRep S) (rn : Nat → IntegrableRep S)
     exact le_refl _
   have hrow_lt : COF.lt pdb.row.sum (rgs.sum + (pdb.fiber 0).sum) :=
     lt_of_lt_of_le pdb.below (absSK_le_rg_add_fiber0 rg rn k pdb.x hgnn
-      (rg_abs_of_fiber0 rg rn k pdb.x (pdb.fiber 0)) rgs (pdb.fiber 0))
+      rgdom (rg_abs_of_fiber0 rg rn k pdb.x rgdom (rowdom 0) (pdb.fiber 0))
+      rgs (rowdom 0) (pdb.fiber 0))
   have hB : COF.lt (pdb.row.sum - (pdb.fiber 0).sum) rgs.sum := by
     have h := COF.lt_add_left (-(pdb.fiber 0).sum) hrow_lt
     rwa [show -(pdb.fiber 0).sum + pdb.row.sum = pdb.row.sum - (pdb.fiber 0).sum from by ring,
@@ -4573,22 +4995,37 @@ def continuity_rep (rg : IntegrableRep S) (rn : Nat → IntegrableRep S)
 /-! Technical auxiliary material for the public import closure. -/
 
 /-- Technical lemma used in the public import closure. -/
-theorem smul_fn_toFun (a : R) (r : IntegrableRep S) (n : Nat) (x : X) :
-    ((r.smul a).fn n).toFun x = a * ((r.fn n).toFun x) := rfl
+theorem IntegrableRep.smul_memAt {a : R} {r : IntegrableRep S} {x : X}
+    (hdom : r.MemAt x) : (r.smul a).MemAt x := hdom
+
+/-- Technical lemma used in the public import closure. -/
+theorem smul_fn_toFun (a : R) (r : IntegrableRep S) (n : Nat) (x : X)
+    (hdom : r.MemAt x) :
+    (r.smul a).valueAt x (IntegrableRep.smul_memAt hdom) n =
+      a * r.valueAt x hdom n := rfl
 
 /-- Technical lemma used in the public import closure. -/
 def smul_seriesSum_value (a : R) {r : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => (r.fn k).toFun x)) :
-    RSeq.SeriesSum (fun n => ((r.smul a).fn n).toFun x) :=
-  seriesSum_congr (fun n => (smul_fn_toFun a r n x).symm) (seriesSum_smul a hr)
+    (hdom : r.MemAt x)
+    (hr : RSeq.SeriesSum (fun k => r.valueAt x hdom k)) :
+    RSeq.SeriesSum
+      (fun n => (r.smul a).valueAt x (IntegrableRep.smul_memAt hdom) n) :=
+  seriesSum_congr (fun n => (smul_fn_toFun a r n x hdom).symm)
+    (seriesSum_smul a hr)
 
 /-- Technical lemma used in the public import closure. -/
 theorem smul_dom {a : R} {r : IntegrableRep S} {x : X}
-    (hd : ∀ n, x ∈ ((r.smul a).fn n).dom) (k : Nat) : x ∈ (r.fn k).dom := hd k
+    (hd : (r.smul a).MemAt x) : r.MemAt x := hd
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.posPart (r : IntegrableRep S) : IntegrableRep S :=
   (r.add r.absVal).smul COF.half
+
+/-- Domain membership for the positive-part representative. -/
+theorem IntegrableRep.posPart_memAt {r : IntegrableRep S} {x : X}
+    (hdom : r.MemAt x) : r.posPart.MemAt x :=
+  IntegrableRep.smul_memAt
+    (IntegrableRep.add_memAt hdom (r.mem_absVal_dom hdom))
 
 /-- I(rg⁺) = ½(I(rg) + ‖rg‖₁)。 -/
 theorem IntegrableRep.posPart_integral (r : IntegrableRep S) :
@@ -4616,10 +5053,15 @@ theorem IntegrableRep.integral_le_posPart (r : IntegrableRep S) :
 
 /-- Technical lemma used in the public import closure. -/
 def IntegrableRep.posPart_value (r : IntegrableRep S) (x : X)
-    (hr : RSeq.SeriesSum (fun n => (r.fn n).toFun x)) :
-    { hP : RSeq.SeriesSum (fun n => (r.posPart.fn n).toFun x) // hP.sum = COF.max hr.sum 0 } := by
-  obtain ⟨habs, habseq⟩ := r.absVal_signed_value x hr
-  refine ⟨smul_seriesSum_value COF.half (add_seriesSum_value hr habs), ?_⟩
+    (hdom : r.MemAt x)
+    (hr : RSeq.SeriesSum (fun n => r.valueAt x hdom n)) :
+    { hP : RSeq.SeriesSum (fun n => r.posPart.valueAt x
+        (r.posPart_memAt hdom) n) // hP.sum = COF.max hr.sum 0 } := by
+  let habsdom := r.mem_absVal_dom hdom
+  obtain ⟨habs, habseq⟩ := r.absVal_signed_value x hdom hr
+  refine ⟨smul_seriesSum_value COF.half
+    (IntegrableRep.add_memAt hdom habsdom)
+    (add_seriesSum_value hdom habsdom hr habs), ?_⟩
   show COF.half * (hr.sum + habs.sum) = COF.max hr.sum 0
   rw [habseq, COF.max_halfsum, sub_zero]; ring
 
@@ -4629,27 +5071,37 @@ theorem two_mul_half : (2 : R) * COF.half = 1 := by
 
 /-- Technical lemma used in the public import closure. -/
 def posPart_add_absSeriesSum {r : IntegrableRep S} {x : X}
-    (habs : RSeq.SeriesSum (fun n => COF.abs ((r.posPart.fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.add r.absVal).fn n).toFun x)) := by
+    (hposdom : r.posPart.MemAt x)
+    (habs : RSeq.SeriesSum
+      (fun n => COF.abs (r.posPart.valueAt x hposdom n))) :
+    RSeq.SeriesSum (fun n => COF.abs ((r.add r.absVal).valueAt x
+      (smul_dom hposdom) n)) := by
   refine seriesSum_congr (fun n => ?_) (seriesSum_smul (2 : R) habs)
-  show (2 : R) * COF.abs ((r.posPart.fn n).toFun x)
-      = COF.abs (((r.add r.absVal).fn n).toFun x)
-  have hp : (r.posPart.fn n).toFun x = COF.half * (((r.add r.absVal).fn n).toFun x) := rfl
+  show (2 : R) * COF.abs (r.posPart.valueAt x hposdom n) =
+    COF.abs ((r.add r.absVal).valueAt x (smul_dom hposdom) n)
+  have hp : r.posPart.valueAt x hposdom n =
+      COF.half * (r.add r.absVal).valueAt x (smul_dom hposdom) n := rfl
   rw [hp, COFO.abs_mul, COFO.abs_of_nonneg (le_of_lt COFO.half_pos),
-      show (2 : R) * (COF.half * COF.abs (((r.add r.absVal).fn n).toFun x))
-        = ((2 : R) * COF.half) * COF.abs (((r.add r.absVal).fn n).toFun x) from by ring,
+      show (2 : R) * (COF.half *
+          COF.abs ((r.add r.absVal).valueAt x (smul_dom hposdom) n)) =
+        ((2 : R) * COF.half) *
+          COF.abs ((r.add r.absVal).valueAt x (smul_dom hposdom) n) from by ring,
       two_mul_half, one_mul]
 
 /-- Technical lemma used in the public import closure. -/
 def posPart_absSeriesSum_rg {r : IntegrableRep S} {x : X}
-    (habs : RSeq.SeriesSum (fun n => COF.abs ((r.posPart.fn n).toFun x))) :
-    RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)) :=
-  add_absSeriesSum_left (posPart_add_absSeriesSum habs)
+    (hposdom : r.posPart.MemAt x)
+    (habs : RSeq.SeriesSum
+      (fun n => COF.abs (r.posPart.valueAt x hposdom n))) :
+    RSeq.SeriesSum (fun k => COF.abs
+      (r.valueAt x (add_dom_left (smul_dom hposdom)) k)) :=
+  add_absSeriesSum_left (smul_dom hposdom)
+    (posPart_add_absSeriesSum hposdom habs)
 
 /-- Technical lemma used in the public import closure. -/
 theorem posPart_dom_rg {r : IntegrableRep S} {x : X}
-    (hd : ∀ n, x ∈ (r.posPart.fn n).dom) (k : Nat) : x ∈ (r.fn k).dom :=
-  add_dom_left (smul_dom hd) k
+    (hd : r.posPart.MemAt x) : r.MemAt x :=
+  add_dom_left (smul_dom hd)
 
 /-- 0 ≤ a ⟹ max(a,0) = a。 -/
 theorem max_zero_of_nonneg {a : R} (ha : Nonneg a) : COF.max a 0 = a := by
@@ -4674,10 +5126,11 @@ theorem lt_of_lt_max_zero_of_nonneg {a t : R} (ht : Nonneg t) (h : COF.lt t (COF
 
 /-- Technical lemma used in the public import closure. -/
 theorem repNonneg_posPart (r : IntegrableRep S) : RepNonneg r.posPart := by
-  intro x habs hx
-  have hr : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
-    seriesSum_of_abs (posPart_absSeriesSum_rg habs)
-  obtain ⟨hP, hPeq⟩ := r.posPart_value x hr
+  intro x hposdom habs hx
+  let hrdom := posPart_dom_rg hposdom
+  have hr : RSeq.SeriesSum (fun n => r.valueAt x hrdom n) :=
+    seriesSum_of_abs (posPart_absSeriesSum_rg hposdom habs)
+  obtain ⟨hP, hPeq⟩ := r.posPart_value x hrdom hr
   rw [seriesSum_unique hx hP, hPeq]
   exact COFO.max_zero_nonneg hr.sum
 
@@ -4688,12 +5141,24 @@ def continuity_rep_general (rg : IntegrableRep S) (rn : Nat → IntegrableRep S)
     RepSeriesBelow rg rn := by
   have hsltP : COF.lt hsumI.sum rg.posPart.integral := lt_of_lt_of_le hslt rg.integral_le_posPart
   let rsb := continuity_rep rg.posPart rn (repNonneg_posPart rg) hnn hsumI hsltP
-  let rg_absx : RSeq.SeriesSum (fun m => COF.abs ((rg.fn m).toFun rsb.x)) :=
-    posPart_absSeriesSum_rg rsb.rg_abs
-  let rg_sumx : RSeq.SeriesSum (fun m => (rg.fn m).toFun rsb.x) := seriesSum_of_abs rg_absx
-  refine ⟨rsb.x, rg_sumx, rsb.rn_sum, rsb.total, ?_,
-    fun m => posPart_dom_rg rsb.rg_dom m, rsb.rn_dom, rg_absx, rsb.rn_abs, rsb.total_nonneg⟩
-  obtain ⟨hP, hPeq⟩ := rg.posPart_value rsb.x rg_sumx
+  let rgdom : rg.MemAt rsb.x := posPart_dom_rg rsb.rg_dom
+  let rg_absx : RSeq.SeriesSum
+      (fun m => COF.abs (rg.valueAt rsb.x rgdom m)) :=
+    posPart_absSeriesSum_rg rsb.rg_dom rsb.rg_abs
+  let rg_sumx : RSeq.SeriesSum (fun m => rg.valueAt rsb.x rgdom m) :=
+    seriesSum_of_abs rg_absx
+  refine
+    { x := rsb.x
+      rg_dom := rgdom
+      rn_dom := rsb.rn_dom
+      rg_sum := rg_sumx
+      rn_sum := rsb.rn_sum
+      total := rsb.total
+      below := ?_
+      rg_abs := rg_absx
+      rn_abs := rsb.rn_abs
+      total_nonneg := rsb.total_nonneg }
+  obtain ⟨hP, hPeq⟩ := rg.posPart_value rsb.x rgdom rg_sumx
   have hrgeq : rsb.rg_sum.sum = COF.max rg_sumx.sum 0 := by
     rw [seriesSum_unique rsb.rg_sum hP, hPeq]
   exact lt_of_lt_max_zero_of_nonneg rsb.total_nonneg (hrgeq ▸ rsb.below)
@@ -4766,16 +5231,3 @@ theorem L1.integral_mk (r : IntegrableRep S) :
 end
 
 end BishopC
-
-
-
-
-
-
-
-
-
-
-
-
-

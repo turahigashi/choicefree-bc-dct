@@ -46,12 +46,15 @@ noncomputable def sec4_canonicalCoverValue
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     Nat → R :=
   fun N =>
-    sec4_genIB_baseValue B hB f hnn x hgenabs +
-      RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) N
+    sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+      RSeq.partialSum
+        (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) N
 
 
 /--
@@ -61,12 +64,15 @@ theorem sec4_canonicalCoverValue_finite_telescope
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
+    (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
     (hgenabs : RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n))) :
     ∀ N : Nat,
-      sec4_genIB_baseValue B hB f hnn x hgenabs +
-        RSeq.partialSum (sec4_genIB_tailRowSeq B hB f hnn x hgenabs) N =
-      sec4_canonicalCoverValue B hB f hnn x hgenabs N := by
+      sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
+        RSeq.partialSum
+          (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) N =
+      sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs N := by
   intro N
   rfl
 
@@ -78,8 +84,10 @@ def Sec4CCD_domain
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) : Prop :=
   ∀ x : X,
+    ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
     RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)) →
+      (fun n => COF.abs
+        ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) →
     x ∈ B.S1 ∪ B.S2
 
 
@@ -88,14 +96,17 @@ def Sec4CCD_close_s1
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) : Prop :=
   ∀ x : X, x ∈ B.S1 →
+    ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
     ∀ hgenabs :
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
+    ∀ hfDom : f.MemAt x,
     ∀ hfabs :
-      RSeq.SeriesSum (fun n => COF.abs (((f.fn n).toFun x))),
+      RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n)),
     ∀ k n : Nat, k ≤ n →
       COF.Close k
-        (sec4_canonicalCoverValue B hB f hnn x hgenabs n)
+        (sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n)
         (seriesSum_of_abs hfabs).sum
 
 
@@ -104,12 +115,14 @@ def Sec4CCD_close_s2
     (B : BSet X) (hB : IsMeasurableSet (S := S) B)
     (f : IntegrableRep S) (hnn : RepNonneg f) : Prop :=
   ∀ x : X, x ∈ B.S2 →
+    ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
     ∀ hgenabs :
       RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_measurable B hB f hnn).fn n).toFun x)),
+        (fun n => COF.abs
+          ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)),
     ∀ k n : Nat, k ≤ n →
       COF.Close k
-        (sec4_canonicalCoverValue B hB f hnn x hgenabs n)
+        (sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n)
         0
 
 
@@ -176,18 +189,19 @@ noncomputable def sec4_coverEstimateData_of_canonicalCloseData
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (T : Sec4GenIBCanonicalCloseData (S := S) B hB f hnn) :
     Sec4GenIBCoverEstimateData (S := S) B hB f hnn := {
-  coverValue := fun x hgenabs =>
-    sec4_canonicalCoverValue B hB f hnn x hgenabs
+  coverValue := fun x hgenDom hgenabs =>
+    sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs
   domain := T.domain
   finite_telescope := by
-    intro x hgenabs N
-    exact sec4_canonicalCoverValue_finite_telescope B hB f hnn x hgenabs N
+    intro x hgenDom hgenabs N
+    exact sec4_canonicalCoverValue_finite_telescope
+      B hB f hnn x hgenDom hgenabs N
   cover_close_s1 := by
-    intro x hxB hgenabs hfabs k n hn
-    exact T.close_s1 x hxB hgenabs hfabs k n hn
+    intro x hxB hgenDom hgenabs hfDom hfabs k n hn
+    exact T.close_s1 x hxB hgenDom hgenabs hfDom hfabs k n hn
   cover_close_s2 := by
-    intro x hxB hgenabs k n hn
-    exact T.close_s2 x hxB hgenabs k n hn
+    intro x hxB hgenDom hgenabs k n hn
+    exact T.close_s2 x hxB hgenDom hgenabs k n hn
 }
 
 

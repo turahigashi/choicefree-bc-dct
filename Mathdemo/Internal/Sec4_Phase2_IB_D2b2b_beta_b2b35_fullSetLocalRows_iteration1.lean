@@ -56,10 +56,12 @@ construction.  This deliberately does not give a map from membership in
 structure Sec4Prop42LocalWitness
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (x : X) : Type _ where
-  chi_dom : forall m : Nat, x ∈ (hA.rep.fn m).dom
-  chi_abs : RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
-  f_dom : forall m : Nat, x ∈ (f.fn m).dom
-  f_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))
+  chi_dom : hA.rep.MemAt x
+  chi_abs : RSeq.SeriesSum
+    (fun m => COF.abs (hA.rep.valueAt x chi_dom m))
+  f_dom : f.MemAt x
+  f_abs : RSeq.SeriesSum
+    (fun m => COF.abs (f.valueAt x f_dom m))
 
 
 namespace Sec4Prop42LocalWitness
@@ -79,7 +81,7 @@ noncomputable def chiSigned
     {A : BSet X} {hA : IntegrableSet1 S A}
     {f : IntegrableRep S} {x : X}
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
-    RSeq.SeriesSum (fun m => (hA.rep.fn m).toFun x) :=
+    RSeq.SeriesSum (fun m => hA.rep.valueAt x W.chi_dom m) :=
   seriesSum_of_abs W.chi_abs
 
 
@@ -88,7 +90,7 @@ noncomputable def fSigned
     {A : BSet X} {hA : IntegrableSet1 S A}
     {f : IntegrableRep S} {x : X}
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
-    RSeq.SeriesSum (fun m => (f.fn m).toFun x) :=
+    RSeq.SeriesSum (fun m => f.valueAt x W.f_dom m) :=
   seriesSum_of_abs W.f_abs
 
 
@@ -105,7 +107,8 @@ noncomputable def sec4_lambdaRowsAbs_of_localWitness
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
     Sec4LambdaRowsAbsAt (S := S) A hA f x :=
   sec4_lambdaRowAbs_of_chiF_fabs
-    A hA f (prop_4_2_n_k f) x W.chi_abs W.f_abs
+    A hA f (prop_4_2_n_k f) x
+      ⟨W.chi_dom, W.chi_abs⟩ ⟨W.f_dom, W.f_abs⟩
 
 
 /-- Local replacement for the previous standard outer obligation: the outer
@@ -147,7 +150,7 @@ theorem sec4_chi_mem_of_localWitness
     {f : IntegrableRep S} {x : X}
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
     x ∈ A.S1 ∪ A.S2 :=
-  (hA.valid x W.chi_abs).1
+  (hA.valid x W.chi_dom W.chi_abs).1
 
 
 /-- On the positive side of the integrable set, the characteristic value is
@@ -158,7 +161,7 @@ theorem sec4_chi_value_one_of_localWitness
     (W : Sec4Prop42LocalWitness (S := S) A hA f x)
     (hxA : x ∈ A.S1) :
     (Sec4Prop42LocalWitness.chiSigned (S := S) W).sum = (1 : R) := by
-  exact (hA.valid x W.chi_abs).2.1 hxA
+  exact (hA.valid x W.chi_dom W.chi_abs).2.1 hxA
     (Sec4Prop42LocalWitness.chiSigned (S := S) W)
 
 
@@ -170,7 +173,7 @@ theorem sec4_chi_value_zero_of_localWitness
     (W : Sec4Prop42LocalWitness (S := S) A hA f x)
     (hxA : x ∈ A.S2) :
     (Sec4Prop42LocalWitness.chiSigned (S := S) W).sum = (0 : R) := by
-  exact (hA.valid x W.chi_abs).2.2 hxA
+  exact (hA.valid x W.chi_dom W.chi_abs).2.2 hxA
     (Sec4Prop42LocalWitness.chiSigned (S := S) W)
 
 

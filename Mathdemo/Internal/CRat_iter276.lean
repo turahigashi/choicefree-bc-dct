@@ -59,10 +59,12 @@ structure Prop412ComplementPointwiseBadData
     ∀ x ∈
       (prop412ComplementRep hE d hdnn).domain ∩
         (prop412BadRelRep hA hE d hdnn).domain,
-      ∀ (hcomp : RSeq.SeriesSum
-          (fun m => ((prop412ComplementRep hE d hdnn).fn m).toFun x))
+      ∀ (hcompDom : (prop412ComplementRep hE d hdnn).MemAt x)
+        (hbadDom : (prop412BadRelRep hA hE d hdnn).MemAt x)
+        (hcomp : RSeq.SeriesSum
+          (fun m => (prop412ComplementRep hE d hdnn).valueAt x hcompDom m))
         (hbad : RSeq.SeriesSum
-          (fun m => ((prop412BadRelRep hA hE d hdnn).fn m).toFun x)),
+          (fun m => (prop412BadRelRep hA hE d hdnn).valueAt x hbadDom m)),
         BishopC.Le hcomp.sum hbad.sum
 
 /-- Proposition 1.11 upgrades pointwise complement domination to the
@@ -85,8 +87,8 @@ def prop412_complement_to_bad_data_from_pointwise
         (prop412BadRelRep hA hE d hdnn).domain_isFull)
       (prop412ComplementRep hE d hdnn)
       (prop412BadRelRep hA hE d hdnn) ?_
-    intro x hx hcomp hbad
-    exact PData.pointwise_le x hx hcomp hbad
+    intro x hx hcompDom hbadDom hcomp hbad
+    exact PData.pointwise_le x hx hcompDom hbadDom hcomp hbad
 
 /-- G173+G174+G176 estimate with the complement-to-bad datum now produced
 from pointwise support data. -/
@@ -108,9 +110,13 @@ theorem prop412_full_integral_le_from_value_bound_pointwise_complement_data
           eps)
     (hbadBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (PData : Prop412ComplementPointwiseBadData A E hA hE d hdnn) :

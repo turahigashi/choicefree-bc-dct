@@ -49,7 +49,7 @@ Build the per-row abs witnesses on `A.S1` from an `f` abs witness.
 def Sec4Prop42RowsOnS1OfFAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))) →
+    Sec4RepAbsAt f x →
     Sec4LambdaRowsAbsAt (S := S) A hA f x
 
 
@@ -60,7 +60,7 @@ known.
 def Sec4Prop42OuterOnS1OfRows
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
-    ∀ hfabs : RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x))),
+    ∀ hfabs : Sec4RepAbsAt f x,
     ∀ hrows : Sec4LambdaRowsAbsAt (S := S) A hA f x,
       Sec4LambdaRowsOuterSumAt (S := S) A hA f x hrows
 
@@ -174,9 +174,9 @@ noncomputable def sec4_outerRowsOnS2_from_rows
     Sec4LambdaRowsOuterSumAt (S := S) A hA f x hrows :=
   seriesSum_congr
     (fun k => by
-      change (0 : R) = (seriesSum_of_abs (hrows k)).sum
+      change (0 : R) = (seriesSum_of_abs (hrows k).snd).sum
       exact (sec4_lambdaRowZeroOnS2 (S := S) f hnn
-        A hA x hxA k (hrows k)).symm)
+        A hA x hxA k (hrows k).fst (hrows k).snd).symm)
     (sec4_zeroSeries_transparent (R := R))
 
 

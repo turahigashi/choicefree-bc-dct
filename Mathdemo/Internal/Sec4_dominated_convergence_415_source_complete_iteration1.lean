@@ -161,18 +161,16 @@ noncomputable def sec4_fabsOfLambdaAbsRowsOnS1_of_row0Right
     (u : IntegrableRep S) (unn : RepNonneg u) :
     Sec4FAbsOfLambdaAbsRowsOnS1 (S := S) u unn := by
   intro A hA x _hxA hrows
-  have hrow0 :
-      RSeq.SeriesSum
-        (fun m => COF.abs
-          ((((prop_4_2_lambda_k A hA u (prop_4_2_n_k u) 0).fn m).toFun x))) :=
-    hrows 0
+  let hrow0 : Sec4RepAbsAt
+      (prop_4_2_lambda_k A hA u (prop_4_2_n_k u) 0) x := hrows 0
   dsimp [prop_4_2_lambda_k] at hrow0
+  let hrightDom := min2_dom_right hrow0.fst
   have hright :
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((u.sub (prop_4_2_min_f_n u 0)).fn m).toFun x))) :=
-    min2_absSeriesSum_right hrow0
-  exact add_absSeriesSum_left hright
+          ((u.sub (prop_4_2_min_f_n u 0)).valueAt x hrightDom m)) :=
+    min2_absSeriesSum_right hrow0.fst hrow0.snd
+  exact ⟨add_dom_left hrightDom, add_absSeriesSum_left hrightDom hright⟩
 
 
 /-- The generic Proposition 4.2 Step 2b-i tool, now discharged. -/
@@ -491,8 +489,9 @@ noncomputable def sec4_chiAbsOnS1_of_chiFAbsOnS1
     (H : Sec4ChiFAbsOnS1Data (S := S) u unn) :
     Sec4Prop42ChiAbsOnS1OfFAbs (S := S) u unn := by
   intro A hA x hxA hfabs
+  let hflat := H A hA x hxA hfabs
   exact sec4_setChiAbsOfChiFAbs_of_row1 (S := S) u unn A hA x
-    (H A hA x hxA hfabs)
+    hflat.fst hflat.snd
 
 
 /-- Assemble the exact generic `A.S1` seed tools from the row-1 `χ_A`
@@ -1095,43 +1094,46 @@ theorem relIntegral_mono_integrand
       u.domain_isFull) v.domain_isFull) hC.rep.domain_isFull)
     (prop_4_2_chi_f_rep C hC u hnn_u)
     (prop_4_2_chi_f_rep C hC v hnn_v) ?_
-  intro x hx hr hr'
+  intro x hx _hrArgDom _hr'ArgDom hr hr'
   obtain ⟨⟨⟨⟨hxrepU, hxrepV⟩, hxu⟩, hxv⟩, hxχ⟩ := hx
-  obtain ⟨_, ⟨hflatU⟩⟩ := hxrepU
-  obtain ⟨_, ⟨hflatV⟩⟩ := hxrepV
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  obtain ⟨hflatUDom, ⟨hflatU⟩⟩ := hxrepU
+  obtain ⟨hflatVDom, ⟨hflatV⟩⟩ := hxrepV
+  obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   have hvalU :=
-    prop_4_2_chi_f_rep_value C hC u hnn_u hflatU hχabs huabs
+    prop_4_2_chi_f_rep_value C hC u hnn_u
+      hflatUDom hχDom huDom hflatU hχabs huabs
   have hvalV :=
-    prop_4_2_chi_f_rep_value C hC v hnn_v hflatV hχabs hvabs
+    prop_4_2_chi_f_rep_value C hC v hnn_v
+      hflatVDom hχDom hvDom hflatV hχabs hvabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflatU),
       seriesSum_unique hr' (seriesSum_of_abs hflatV), hvalU, hvalV]
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAbs : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAbs.fst n) :=
+        add_seriesSum_value hvDom (IntegrableRep.neg_memAt huDom)
+          hv (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAbs.fst hsubAbs.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
       rw [show hv.sum - hu.sum = hv.sum + -hu.sum from by ring]
       exact hnonneg)
-  rcases (hC.valid x hχabs).1 with hxC1 | hxC2
+  rcases (hC.valid x hχDom hχabs).1 with hxC1 | hxC2
   · have hχ1 : (seriesSum_of_abs hχabs).sum = 1 :=
-      (hC.valid x hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
     rw [hχ1, one_mul, one_mul]
     exact huv_le
   · have hχ0 : (seriesSum_of_abs hχabs).sum = 0 :=
-      (hC.valid x hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
     rw [hχ0, zero_mul, zero_mul]
     exact le_refl _
 
@@ -1177,15 +1179,15 @@ theorem genRelIntegral_from_measurable_mono_integrand_of_bridges
       u.domain_isFull) v.domain_isFull)
     (genIB_rep_from_measurable B hB u hnn_u)
     (genIB_rep_from_measurable B hB v hnn_v) ?_
-  intro x hx hr hr'
+  intro x hx _hrArgDom _hr'ArgDom hr hr'
   obtain ⟨⟨⟨hxgenU, hxgenV⟩, hxu⟩, hxv⟩ := hx
-  obtain ⟨_, ⟨hgenUabs⟩⟩ := hxgenU
-  obtain ⟨_, ⟨hgenVabs⟩⟩ := hxgenV
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  obtain ⟨hgenUDom, ⟨hgenUabs⟩⟩ := hxgenU
+  obtain ⟨hgenVDom, ⟨hgenVabs⟩⟩ := hxgenV
+  obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   have hgenU_sum :
       hr.sum = (seriesSum_of_abs hgenUabs).sum :=
@@ -1194,29 +1196,30 @@ theorem genRelIntegral_from_measurable_mono_integrand_of_bridges
       hr'.sum = (seriesSum_of_abs hgenVabs).sum :=
     seriesSum_unique hr' (seriesSum_of_abs hgenVabs)
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAbs : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAbs.fst n) :=
+        add_seriesSum_value hvDom (IntegrableRep.neg_memAt huDom)
+          hv (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAbs.fst hsubAbs.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
       rw [show hv.sum - hu.sum = hv.sum + -hu.sum from by ring]
       exact hnonneg)
-  rcases Vu.domain x hgenUabs with hxB1 | hxB2
+  rcases Vu.domain x hgenUDom hgenUabs with hxB1 | hxB2
   · have hU : (seriesSum_of_abs hgenUabs).sum = hu.sum :=
-      Vu.value_s1 x hxB1 hgenUabs huabs
+      Vu.value_s1 x hxB1 hgenUDom hgenUabs huDom huabs
     have hV : (seriesSum_of_abs hgenVabs).sum = hv.sum :=
-      Vv.value_s1 x hxB1 hgenVabs hvabs
+      Vv.value_s1 x hxB1 hgenVDom hgenVabs hvDom hvabs
     rw [hgenU_sum, hgenV_sum, hU, hV]
     exact huv_le
   · have hU : (seriesSum_of_abs hgenUabs).sum = 0 :=
-      Vu.value_s2 x hxB2 hgenUabs
+      Vu.value_s2 x hxB2 hgenUDom hgenUabs
     have hV : (seriesSum_of_abs hgenVabs).sum = 0 :=
-      Vv.value_s2 x hxB2 hgenVabs
+      Vv.value_s2 x hxB2 hgenVDom hgenVabs
     rw [hgenU_sum, hgenV_sum, hU, hV]
     exact le_refl _
 
@@ -1281,46 +1284,59 @@ theorem genRelIntegral_from_measurable_add_integrand_of_bridges
     (genIB_rep_from_measurable B hB (u.add v) hnn_add)
     ((genIB_rep_from_measurable B hB u hnn_u).add
       (genIB_rep_from_measurable B hB v hnn_v)) ?_
-  intro x hx hgenAdd hgenSum
+  intro x hx _hgenAddArgDom _hgenSumArgDom hgenAdd hgenSum
   obtain ⟨⟨hxgenAdd, hxgenSum⟩, hxuv⟩ := hx
-  obtain ⟨_, ⟨hgenAddAbs⟩⟩ := hxgenAdd
-  obtain ⟨_, ⟨hgenSumAbs⟩⟩ := hxgenSum
-  obtain ⟨_, ⟨huvAbs⟩⟩ := hxuv
-  have huAbs : RSeq.SeriesSum (fun k => COF.abs ((u.fn k).toFun x)) :=
-    add_absSeriesSum_left huvAbs
-  have hvAbs : RSeq.SeriesSum (fun k => COF.abs ((v.fn k).toFun x)) :=
-    add_absSeriesSum_right huvAbs
+  obtain ⟨hgenAddDom, ⟨hgenAddAbs⟩⟩ := hxgenAdd
+  obtain ⟨hgenSumDom, ⟨hgenSumAbs⟩⟩ := hxgenSum
+  obtain ⟨huvDom, ⟨huvAbs⟩⟩ := hxuv
+  let huDom : u.MemAt x := add_dom_left huvDom
+  let hvDom : v.MemAt x := add_dom_right huvDom
+  let hgenUDom : (genIB_rep_from_measurable B hB u hnn_u).MemAt x :=
+    add_dom_left hgenSumDom
+  let hgenVDom : (genIB_rep_from_measurable B hB v hnn_v).MemAt x :=
+    add_dom_right hgenSumDom
+  have huAbs : RSeq.SeriesSum
+      (fun k => COF.abs (u.valueAt x huDom k)) :=
+    add_absSeriesSum_left huvDom huvAbs
+  have hvAbs : RSeq.SeriesSum
+      (fun k => COF.abs (v.valueAt x hvDom k)) :=
+    add_absSeriesSum_right huvDom huvAbs
   have hgenUAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((genIB_rep_from_measurable B hB u hnn_u).fn k).toFun x)) :=
-    add_absSeriesSum_left hgenSumAbs
+      (fun k => COF.abs ((genIB_rep_from_measurable B hB u hnn_u).valueAt
+        x hgenUDom k)) :=
+    add_absSeriesSum_left hgenSumDom hgenSumAbs
   have hgenVAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((genIB_rep_from_measurable B hB v hnn_v).fn k).toFun x)) :=
-    add_absSeriesSum_right hgenSumAbs
-  let huSum : RSeq.SeriesSum (fun k => (u.fn k).toFun x) :=
+      (fun k => COF.abs ((genIB_rep_from_measurable B hB v hnn_v).valueAt
+        x hgenVDom k)) :=
+    add_absSeriesSum_right hgenSumDom hgenSumAbs
+  let huSum : RSeq.SeriesSum (fun k => u.valueAt x huDom k) :=
     seriesSum_of_abs huAbs
-  let hvSum : RSeq.SeriesSum (fun k => (v.fn k).toFun x) :=
+  let hvSum : RSeq.SeriesSum (fun k => v.valueAt x hvDom k) :=
     seriesSum_of_abs hvAbs
   let hgenUSum : RSeq.SeriesSum
-      (fun k => ((genIB_rep_from_measurable B hB u hnn_u).fn k).toFun x) :=
+      (fun k => (genIB_rep_from_measurable B hB u hnn_u).valueAt
+        x hgenUDom k) :=
     seriesSum_of_abs hgenUAbs
   let hgenVSum : RSeq.SeriesSum
-      (fun k => ((genIB_rep_from_measurable B hB v hnn_v).fn k).toFun x) :=
+      (fun k => (genIB_rep_from_measurable B hB v hnn_v).valueAt
+        x hgenVDom k) :=
     seriesSum_of_abs hgenVAbs
   have hgenSum_eq :
       hgenSum.sum = hgenUSum.sum + hgenVSum.sum :=
-    seriesSum_unique hgenSum (add_seriesSum_value hgenUSum hgenVSum)
-  rcases Vadd.domain x hgenAddAbs with hxB1 | hxB2
+    seriesSum_unique hgenSum
+      (add_seriesSum_value hgenUDom hgenVDom hgenUSum hgenVSum)
+  rcases Vadd.domain x hgenAddDom hgenAddAbs with hxB1 | hxB2
   · have hAddVal :
         (seriesSum_of_abs hgenAddAbs).sum =
           (seriesSum_of_abs huvAbs).sum :=
-      Vadd.value_s1 x hxB1 hgenAddAbs huvAbs
+      Vadd.value_s1 x hxB1 hgenAddDom hgenAddAbs huvDom huvAbs
     have hUVal : hgenUSum.sum = huSum.sum :=
-      Vu.value_s1 x hxB1 hgenUAbs huAbs
+      Vu.value_s1 x hxB1 hgenUDom hgenUAbs huDom huAbs
     have hVVal : hgenVSum.sum = hvSum.sum :=
-      Vv.value_s1 x hxB1 hgenVAbs hvAbs
+      Vv.value_s1 x hxB1 hgenVDom hgenVAbs hvDom hvAbs
     have huv_eq : (seriesSum_of_abs huvAbs).sum = huSum.sum + hvSum.sum :=
       seriesSum_unique (seriesSum_of_abs huvAbs)
-        (add_seriesSum_value huSum hvSum)
+        (add_seriesSum_value huDom hvDom huSum hvSum)
     calc
       hgenAdd.sum = (seriesSum_of_abs hgenAddAbs).sum :=
         seriesSum_unique hgenAdd (seriesSum_of_abs hgenAddAbs)
@@ -1329,11 +1345,11 @@ theorem genRelIntegral_from_measurable_add_integrand_of_bridges
       _ = hgenUSum.sum + hgenVSum.sum := by rw [hUVal, hVVal]
       _ = hgenSum.sum := hgenSum_eq.symm
   · have hAddVal : (seriesSum_of_abs hgenAddAbs).sum = 0 :=
-      Vadd.value_s2 x hxB2 hgenAddAbs
+      Vadd.value_s2 x hxB2 hgenAddDom hgenAddAbs
     have hUVal : hgenUSum.sum = 0 :=
-      Vu.value_s2 x hxB2 hgenUAbs
+      Vu.value_s2 x hxB2 hgenUDom hgenUAbs
     have hVVal : hgenVSum.sum = 0 :=
-      Vv.value_s2 x hxB2 hgenVAbs
+      Vv.value_s2 x hxB2 hgenVDom hgenVAbs
     calc
       hgenAdd.sum = (seriesSum_of_abs hgenAddAbs).sum :=
         seriesSum_unique hgenAdd (seriesSum_of_abs hgenAddAbs)
@@ -1389,16 +1405,16 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_valueBridge
     (genIB_rep_from_measurable C
       (isMeasurableSet_of_integrable (S := S) hC) u hnn_u)
     (prop_4_2_chi_f_rep C hC v hnn_v) ?_
-  intro x hx hgen hrel
+  intro x hx _hgenArgDom _hrelArgDom hgen hrel
   obtain ⟨⟨⟨⟨hxgen, hxrel⟩, hxu⟩, hxv⟩, hxχ⟩ := hx
-  obtain ⟨_, ⟨hgenabs⟩⟩ := hxgen
-  obtain ⟨_, ⟨hrelabs⟩⟩ := hxrel
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  obtain ⟨hgenDom, ⟨hgenabs⟩⟩ := hxgen
+  obtain ⟨hrelDom, ⟨hrelabs⟩⟩ := hxrel
+  obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   have hgen_sum :
       hgen.sum = (seriesSum_of_abs hgenabs).sum :=
@@ -1409,35 +1425,37 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_valueBridge
   have hrel_value :
       (seriesSum_of_abs hrelabs).sum =
         (seriesSum_of_abs hχabs).sum * hv.sum :=
-    prop_4_2_chi_f_rep_value C hC v hnn_v hrelabs hχabs hvabs
+    prop_4_2_chi_f_rep_value C hC v hnn_v
+      hrelDom hχDom hvDom hrelabs hχabs hvabs
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAbs : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAbs.fst n) :=
+        add_seriesSum_value hvDom (IntegrableRep.neg_memAt huDom)
+          hv (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAbs.fst hsubAbs.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
       rw [show hv.sum - hu.sum = hv.sum + -hu.sum from by ring]
       exact hnonneg)
-  rcases Vu.domain x hgenabs with hxC1 | hxC2
+  rcases Vu.domain x hgenDom hgenabs with hxC1 | hxC2
   · have hgen_value :
         (seriesSum_of_abs hgenabs).sum = hu.sum :=
-      Vu.value_s1 x hxC1 hgenabs huabs
+      Vu.value_s1 x hxC1 hgenDom hgenabs huDom huabs
     have hχ_one :
         (seriesSum_of_abs hχabs).sum = 1 :=
-      (hC.valid x hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
     rw [hgen_sum, hrel_sum, hgen_value, hrel_value, hχ_one, one_mul]
     exact huv_le
   · have hgen_value :
         (seriesSum_of_abs hgenabs).sum = 0 :=
-      Vu.value_s2 x hxC2 hgenabs
+      Vu.value_s2 x hxC2 hgenDom hgenabs
     have hχ_zero :
         (seriesSum_of_abs hχabs).sum = 0 :=
-      (hC.valid x hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
     rw [hgen_sum, hrel_sum, hgen_value, hrel_value, hχ_zero, zero_mul]
     exact le_refl _
 
@@ -1500,49 +1518,60 @@ theorem relIntegral_add_integrand
     (prop_4_2_chi_f_rep C hC (u.add v) hnn_add)
     ((prop_4_2_chi_f_rep C hC u hnn_u).add
       (prop_4_2_chi_f_rep C hC v hnn_v)) ?_
-  intro x hx hrelAdd hrelSum
+  intro x hx _hrelAddArgDom _hrelSumArgDom hrelAdd hrelSum
   obtain ⟨⟨⟨⟨hxrelAdd, hxrelSum⟩, hxuv⟩, hxu⟩, hxvχ⟩ := hx
   obtain ⟨hxv, hxχ⟩ := hxvχ
-  obtain ⟨_, ⟨hrelAddAbs⟩⟩ := hxrelAdd
-  obtain ⟨_, ⟨hrelSumAbs⟩⟩ := hxrelSum
-  obtain ⟨_, ⟨huvAbs⟩⟩ := hxuv
-  obtain ⟨_, ⟨huAbs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvAbs⟩⟩ := hxv
-  obtain ⟨_, ⟨hχAbs⟩⟩ := hxχ
+  obtain ⟨hrelAddDom, ⟨hrelAddAbs⟩⟩ := hxrelAdd
+  obtain ⟨hrelSumDom, ⟨hrelSumAbs⟩⟩ := hxrelSum
+  obtain ⟨huvDom, ⟨huvAbs⟩⟩ := hxuv
+  obtain ⟨huDom, ⟨huAbs⟩⟩ := hxu
+  obtain ⟨hvDom, ⟨hvAbs⟩⟩ := hxv
+  obtain ⟨hχDom, ⟨hχAbs⟩⟩ := hxχ
+  let hrelUDom : (prop_4_2_chi_f_rep C hC u hnn_u).MemAt x :=
+    add_dom_left hrelSumDom
+  let hrelVDom : (prop_4_2_chi_f_rep C hC v hnn_v).MemAt x :=
+    add_dom_right hrelSumDom
   have hrelUAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((prop_4_2_chi_f_rep C hC u hnn_u).fn k).toFun x)) :=
-    add_absSeriesSum_left hrelSumAbs
+      (fun k => COF.abs ((prop_4_2_chi_f_rep C hC u hnn_u).valueAt
+        x hrelUDom k)) :=
+    add_absSeriesSum_left hrelSumDom hrelSumAbs
   have hrelVAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((prop_4_2_chi_f_rep C hC v hnn_v).fn k).toFun x)) :=
-    add_absSeriesSum_right hrelSumAbs
-  let huSum : RSeq.SeriesSum (fun k => (u.fn k).toFun x) :=
+      (fun k => COF.abs ((prop_4_2_chi_f_rep C hC v hnn_v).valueAt
+        x hrelVDom k)) :=
+    add_absSeriesSum_right hrelSumDom hrelSumAbs
+  let huSum : RSeq.SeriesSum (fun k => u.valueAt x huDom k) :=
     seriesSum_of_abs huAbs
-  let hvSum : RSeq.SeriesSum (fun k => (v.fn k).toFun x) :=
+  let hvSum : RSeq.SeriesSum (fun k => v.valueAt x hvDom k) :=
     seriesSum_of_abs hvAbs
   let hrelUSum : RSeq.SeriesSum
-      (fun k => ((prop_4_2_chi_f_rep C hC u hnn_u).fn k).toFun x) :=
+      (fun k => (prop_4_2_chi_f_rep C hC u hnn_u).valueAt
+        x hrelUDom k) :=
     seriesSum_of_abs hrelUAbs
   let hrelVSum : RSeq.SeriesSum
-      (fun k => ((prop_4_2_chi_f_rep C hC v hnn_v).fn k).toFun x) :=
+      (fun k => (prop_4_2_chi_f_rep C hC v hnn_v).valueAt
+        x hrelVDom k) :=
     seriesSum_of_abs hrelVAbs
   have hrelSum_eq :
       hrelSum.sum = hrelUSum.sum + hrelVSum.sum :=
-    seriesSum_unique hrelSum (add_seriesSum_value hrelUSum hrelVSum)
+    seriesSum_unique hrelSum
+      (add_seriesSum_value hrelUDom hrelVDom hrelUSum hrelVSum)
   have hrelAdd_value :
       (seriesSum_of_abs hrelAddAbs).sum =
         (seriesSum_of_abs hχAbs).sum * (seriesSum_of_abs huvAbs).sum :=
     prop_4_2_chi_f_rep_value C hC (u.add v) hnn_add
-      hrelAddAbs hχAbs huvAbs
+      hrelAddDom hχDom huvDom hrelAddAbs hχAbs huvAbs
   have hrelU_value :
       hrelUSum.sum = (seriesSum_of_abs hχAbs).sum * huSum.sum :=
-    prop_4_2_chi_f_rep_value C hC u hnn_u hrelUAbs hχAbs huAbs
+    prop_4_2_chi_f_rep_value C hC u hnn_u
+      hrelUDom hχDom huDom hrelUAbs hχAbs huAbs
   have hrelV_value :
       hrelVSum.sum = (seriesSum_of_abs hχAbs).sum * hvSum.sum :=
-    prop_4_2_chi_f_rep_value C hC v hnn_v hrelVAbs hχAbs hvAbs
+    prop_4_2_chi_f_rep_value C hC v hnn_v
+      hrelVDom hχDom hvDom hrelVAbs hχAbs hvAbs
   have huv_value :
       (seriesSum_of_abs huvAbs).sum = huSum.sum + hvSum.sum :=
     seriesSum_unique (seriesSum_of_abs huvAbs)
-      (add_seriesSum_value huSum hvSum)
+      (add_seriesSum_value huDom hvDom huSum hvSum)
   calc
     hrelAdd.sum = (seriesSum_of_abs hrelAddAbs).sum :=
       seriesSum_unique hrelAdd (seriesSum_of_abs hrelAddAbs)
@@ -1599,25 +1628,27 @@ theorem genRelIntegral_neg_le_complementIntegral_of_valueBridge
     (genIB_rep_from_measurable (BSet.neg C)
       (isMeasurableSet_neg_of_integrable (S := S) hC) u hnn_u)
     (v.sub (prop_4_2_chi_f_rep C hC v hnn_v)) ?_
-  intro x hx hgen hcomp
+  intro x hx _hgenArgDom _hcompArgDom hgen hcomp
   obtain ⟨⟨⟨⟨hxgen, hxcomp⟩, hxchiF⟩, hxχ⟩, hxuv⟩ := hx
   obtain ⟨hxu, hxv⟩ := hxuv
-  obtain ⟨_, ⟨hgenabs⟩⟩ := hxgen
-  obtain ⟨_, ⟨_hcompabs⟩⟩ := hxcomp
-  obtain ⟨_, ⟨hchiFabs⟩⟩ := hxchiF
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  obtain ⟨hgenDom, ⟨hgenabs⟩⟩ := hxgen
+  obtain ⟨_hcompSupportDom, ⟨_hcompabs⟩⟩ := hxcomp
+  obtain ⟨hchiFDom, ⟨hchiFabs⟩⟩ := hxchiF
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
+  obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   let hcompValue :=
-    add_seriesSum_value hv (neg_seriesSum_value (seriesSum_of_abs hchiFabs))
+    add_seriesSum_value hvDom (IntegrableRep.neg_memAt hchiFDom)
+      hv (neg_seriesSum_value hchiFDom (seriesSum_of_abs hchiFabs))
   have hcomp_value :
       hcompValue.sum =
         (1 - (seriesSum_of_abs hχabs).sum) * hv.sum :=
-    prop_4_2_complement_value C hC v hnn_v hchiFabs hχabs hvabs
+    prop_4_2_complement_value C hC v hnn_v
+      hchiFDom hχDom hvDom hchiFabs hχabs hvabs
   have hgen_sum :
       hgen.sum = (seriesSum_of_abs hgenabs).sum :=
     seriesSum_unique hgen (seriesSum_of_abs hgenabs)
@@ -1625,34 +1656,36 @@ theorem genRelIntegral_neg_le_complementIntegral_of_valueBridge
       hcomp.sum = hcompValue.sum :=
     seriesSum_unique hcomp hcompValue
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAbs : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAbs.fst n) :=
+        add_seriesSum_value hvDom (IntegrableRep.neg_memAt huDom)
+          hv (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAbs.fst hsubAbs.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
       rw [show hv.sum - hu.sum = hv.sum + -hu.sum from by ring]
       exact hnonneg)
-  rcases (hC.valid x hχabs).1 with hxC1 | hxC2
+  rcases (hC.valid x hχDom hχabs).1 with hxC1 | hxC2
   · have hχ_one :
         (seriesSum_of_abs hχabs).sum = 1 :=
-      (hC.valid x hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
     have hgen_value :
         (seriesSum_of_abs hgenabs).sum = 0 :=
-      Vu.value_s2 x (by simpa [BSet.neg] using hxC1) hgenabs
+      Vu.value_s2 x (by simpa [BSet.neg] using hxC1) hgenDom hgenabs
     rw [hgen_sum, hcomp_sum, hgen_value, hcomp_value, hχ_one]
     ring_nf
     exact le_refl _
   · have hχ_zero :
         (seriesSum_of_abs hχabs).sum = 0 :=
-      (hC.valid x hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
     have hgen_value :
         (seriesSum_of_abs hgenabs).sum = hu.sum :=
-      Vu.value_s1 x (by simpa [BSet.neg] using hxC2) hgenabs huabs
+      Vu.value_s1 x (by simpa [BSet.neg] using hxC2)
+        hgenDom hgenabs huDom huabs
     rw [hgen_sum, hcomp_sum, hgen_value, hcomp_value, hχ_zero]
     ring_nf
     exact huv_le
@@ -1958,54 +1991,62 @@ theorem thm_4_15_abs_error_dominated_by_two_g
     forall n,
       RepNonneg
         ((g.add g).sub (thm_4_15_abs_error (S := S) fn f n)) := by
-  intro n x habs hx
+  intro n x htotalDom habs hx
   let err : IntegrableRep S := thm_4_15_abs_error (S := S) fn f n
   let subRep : IntegrableRep S := (fn n).sub f
+  let htwoGDom : (g.add g).MemAt x := add_dom_left htotalDom
+  let herrNegDom : err.neg.MemAt x := add_dom_right htotalDom
+  let herrDom : err.MemAt x := neg_dom herrNegDom
   have htwoG_abs :
-      RSeq.SeriesSum (fun k => COF.abs (((g.add g).fn k).toFun x)) :=
-    add_absSeriesSum_left habs
+      RSeq.SeriesSum (fun k => COF.abs ((g.add g).valueAt x htwoGDom k)) :=
+    add_absSeriesSum_left htotalDom habs
   have herr_neg_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((err.neg.fn k).toFun x)) :=
-    add_absSeriesSum_right habs
+      RSeq.SeriesSum (fun k => COF.abs (err.neg.valueAt x herrNegDom k)) :=
+    add_absSeriesSum_right htotalDom habs
   have herr_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((err.fn k).toFun x)) :=
-    neg_absSeriesSum herr_neg_abs
-  have hg1_abs : RSeq.SeriesSum (fun k => COF.abs ((g.fn k).toFun x)) :=
-    add_absSeriesSum_left htwoG_abs
-  have hg2_abs : RSeq.SeriesSum (fun k => COF.abs ((g.fn k).toFun x)) :=
-    add_absSeriesSum_right htwoG_abs
-  let hg1_sum : RSeq.SeriesSum (fun k => (g.fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => COF.abs (err.valueAt x herrDom k)) :=
+    neg_absSeriesSum herrNegDom herr_neg_abs
+  let hg1Dom : g.MemAt x := add_dom_left htwoGDom
+  let hg2Dom : g.MemAt x := add_dom_right htwoGDom
+  have hg1_abs : RSeq.SeriesSum
+      (fun k => COF.abs (g.valueAt x hg1Dom k)) :=
+    add_absSeriesSum_left htwoGDom htwoG_abs
+  have hg2_abs : RSeq.SeriesSum
+      (fun k => COF.abs (g.valueAt x hg2Dom k)) :=
+    add_absSeriesSum_right htwoGDom htwoG_abs
+  let hg1_sum : RSeq.SeriesSum (fun k => g.valueAt x hg1Dom k) :=
     seriesSum_of_abs hg1_abs
-  let hg2_sum : RSeq.SeriesSum (fun k => (g.fn k).toFun x) :=
+  let hg2_sum : RSeq.SeriesSum (fun k => g.valueAt x hg2Dom k) :=
     seriesSum_of_abs hg2_abs
-  let herr_sum : RSeq.SeriesSum (fun k => (err.fn k).toFun x) :=
+  let herr_sum : RSeq.SeriesSum (fun k => err.valueAt x herrDom k) :=
     seriesSum_of_abs herr_abs
-  let htwoG_sum : RSeq.SeriesSum (fun k => ((g.add g).fn k).toFun x) :=
-    add_seriesSum_value hg1_sum hg2_sum
+  let htwoG_sum : RSeq.SeriesSum
+      (fun k => (g.add g).valueAt x htwoGDom k) :=
+    add_seriesSum_value hg1Dom hg2Dom hg1_sum hg2_sum
   let htotal : RSeq.SeriesSum
-      (fun k => (((g.add g).sub err).fn k).toFun x) :=
-    add_seriesSum_value htwoG_sum (neg_seriesSum_value herr_sum)
+      (fun k => ((g.add g).sub err).valueAt x htotalDom k) :=
+    add_seriesSum_value htwoGDom herrNegDom htwoG_sum
+      (neg_seriesSum_value herrDom herr_sum)
   have hx_eq : hx.sum = htotal.sum := seriesSum_unique hx htotal
-  let u : Nat -> R := fun j => COF.abs ((subRep.absDiffFn j).toFun x)
-  let v : Nat -> R := fun k => COF.abs ((subRep.fn k).toFun x)
+  let hsubDom : subRep.MemAt x := fun k => by
+    have hk := herrDom (3 * k + 1)
+    change x ∈ (subRep.absVal.fn (3 * k + 1)).dom at hk
+    simpa only [IntegrableRep.absVal, seqMerge3_one] using hk
+  let u : Nat -> R := fun j =>
+    COF.abs ((subRep.absDiffFn j).toFun x
+      (subRep.absDiffFn_memAt hsubDom j))
+  let v : Nat -> R := fun k => COF.abs (subRep.valueAt x hsubDom k)
   let w : Nat -> R := fun k =>
-    COF.abs ((BFunR.smul (-1) (subRep.fn k)).toFun x)
+    COF.abs ((BFunR.smul (-1) (subRep.fn k)).toFun x (hsubDom k))
   have hmerge : RSeq.SeriesSum (seqMerge3 u v w) := by
     refine seriesSum_congr (fun m => ?_) herr_abs
     dsimp [u, v, w, err, subRep, thm_4_15_abs_error]
-    change COF.abs
-        (((seqMerge3 ((fn n).sub f).absDiffFn ((fn n).sub f).fn
-          (fun k => BFunR.smul (-1) (((fn n).sub f).fn k)) m).toFun x)) =
-      seqMerge3
-        (fun j => COF.abs ((((fn n).sub f).absDiffFn j).toFun x))
-        (fun k => COF.abs ((((fn n).sub f).fn k).toFun x))
-        (fun k => COF.abs
-          ((BFunR.smul (-1) (((fn n).sub f).fn k)).toFun x)) m
-    exact seqMerge3_map (fun q : BFunR X R => COF.abs (q.toFun x))
-      ((fn n).sub f).absDiffFn ((fn n).sub f).fn
-      (fun k => BFunR.smul (-1) (((fn n).sub f).fn k)) m
+    rcases natMod3 m with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_zero]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_one]
+    · simp only [IntegrableRep.valueAt, IntegrableRep.absVal, seqMerge3_two]
   have hsub_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((subRep.fn k).toFun x)) := by
+      RSeq.SeriesSum (fun k => COF.abs (subRep.valueAt x hsubDom k)) := by
     dsimp [v] at hmerge ⊢
     exact seriesSum_merge3_second_of_nonneg
       (u := u) (v := v) (w := w)
@@ -2013,50 +2054,59 @@ theorem thm_4_15_abs_error_dominated_by_two_g
       (fun _ => abs_nonneg _)
       (fun _ => abs_nonneg _)
       hmerge
+  let hfnDom : (fn n).MemAt x := add_dom_left hsubDom
+  let hnegFDom : f.neg.MemAt x := add_dom_right hsubDom
+  let hfDom : f.MemAt x := neg_dom hnegFDom
   have hfn_abs :
-      RSeq.SeriesSum (fun k => COF.abs (((fn n).fn k).toFun x)) :=
-    add_absSeriesSum_left hsub_abs
+      RSeq.SeriesSum (fun k => COF.abs ((fn n).valueAt x hfnDom k)) :=
+    add_absSeriesSum_left hsubDom hsub_abs
   have hf_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((f.fn k).toFun x)) :=
-    neg_absSeriesSum (add_absSeriesSum_right hsub_abs)
-  let hfn_sum : RSeq.SeriesSum (fun k => ((fn n).fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => COF.abs (f.valueAt x hfDom k)) :=
+    neg_absSeriesSum hnegFDom (add_absSeriesSum_right hsubDom hsub_abs)
+  let hfn_sum : RSeq.SeriesSum (fun k => (fn n).valueAt x hfnDom k) :=
     seriesSum_of_abs hfn_abs
-  let hf_sum : RSeq.SeriesSum (fun k => (f.fn k).toFun x) :=
+  let hf_sum : RSeq.SeriesSum (fun k => f.valueAt x hfDom k) :=
     seriesSum_of_abs hf_abs
-  let hsub_sum : RSeq.SeriesSum (fun k => (subRep.fn k).toFun x) :=
+  let hsub_sum : RSeq.SeriesSum (fun k => subRep.valueAt x hsubDom k) :=
     seriesSum_of_abs hsub_abs
   have hsub_eq : hsub_sum.sum = hfn_sum.sum - hf_sum.sum := by
     have heq :=
       seriesSum_unique hsub_sum
-        (add_seriesSum_value hfn_sum (neg_seriesSum_value hf_sum))
+        (add_seriesSum_value hfnDom hnegFDom hfn_sum
+          (neg_seriesSum_value hfDom hf_sum))
     change hsub_sum.sum = hfn_sum.sum + -hf_sum.sum at heq
     rwa [sub_eq_add_neg]
-  obtain ⟨herr_alt, herr_alt_eq⟩ := subRep.absVal_pointSum x hsub_sum
+  obtain ⟨herr_alt, herr_alt_eq⟩ :=
+    subRep.absVal_signed_value x hsubDom hsub_sum
   have herr_eq :
       herr_sum.sum = COF.abs (hfn_sum.sum - hf_sum.sum) := by
     have heq : herr_sum.sum = herr_alt.sum :=
       seriesSum_unique herr_sum herr_alt
     rw [heq, herr_alt_eq, hsub_eq]
-  have hfn_absVal_abs :
-      RSeq.SeriesSum (fun k => COF.abs (((fn n).absVal.fn k).toFun x)) :=
-    (fn n).absVal_absSeries hfn_abs
+  let hfnAbsValDom : (fn n).absVal.MemAt x :=
+    (fn n).mem_absVal_dom hfnDom
+  have hfn_absVal_abs : RSeq.SeriesSum
+      (fun k => COF.abs ((fn n).absVal.valueAt x hfnAbsValDom k)) := by
+    simpa only [IntegrableRep.valueAt] using
+      (fn n).absVal_absSeries hfnDom hfn_abs
   let hfn_absVal_sum :
-      RSeq.SeriesSum (fun k => ((fn n).absVal.fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => (fn n).absVal.valueAt x hfnAbsValDom k) :=
     seriesSum_of_abs hfn_absVal_abs
   obtain ⟨hfn_absVal_alt, hfn_absVal_alt_eq⟩ :=
-    (fn n).absVal_pointSum x hfn_sum
+    (fn n).absVal_signed_value x hfnDom hfn_sum
   have hfn_absVal_sum_eq :
       hfn_absVal_sum.sum = COF.abs hfn_sum.sum := by
     rw [seriesSum_unique hfn_absVal_sum hfn_absVal_alt,
       hfn_absVal_alt_eq]
-  have hfn_sub_abs :
-      RSeq.SeriesSum
-        (fun k => COF.abs (((g.sub (fn n).absVal).fn k).toFun x)) :=
-    sec4_sub_absSeriesSum_fwd hg1_abs hfn_absVal_abs
+  let hfn_sub_abs : Sec4RepAbsAt (g.sub (fn n).absVal) x :=
+    sec4_sub_absSeriesSum_fwd
+      ⟨hg1Dom, hg1_abs⟩ ⟨hfnAbsValDom, hfn_absVal_abs⟩
   let hfn_sub_sum : RSeq.SeriesSum
-      (fun k => ((g.sub (fn n).absVal).fn k).toFun x) :=
-    add_seriesSum_value hg1_sum (neg_seriesSum_value hfn_absVal_sum)
-  have hfn_nonneg := hfn_dom n x hfn_sub_abs hfn_sub_sum
+      (fun k => (g.sub (fn n).absVal).valueAt x hfn_sub_abs.fst k) :=
+    add_seriesSum_value hg1Dom (IntegrableRep.neg_memAt hfnAbsValDom)
+      hg1_sum (neg_seriesSum_value hfnAbsValDom hfn_absVal_sum)
+  have hfn_nonneg :=
+    hfn_dom n x hfn_sub_abs.fst hfn_sub_abs.snd hfn_sub_sum
   have hfn_abs_le_g : Le (COF.abs hfn_sum.sum) hg1_sum.sum := by
     have hle_absVal : Le hfn_absVal_sum.sum hg1_sum.sum :=
       le_of_nonneg_sub (by
@@ -2064,26 +2114,27 @@ theorem thm_4_15_abs_error_dominated_by_two_g
             hg1_sum.sum + -hfn_absVal_sum.sum from by ring]
         exact hfn_nonneg)
     rwa [← hfn_absVal_sum_eq]
-  have hf_absVal_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((f.absVal.fn k).toFun x)) :=
-    f.absVal_absSeries hf_abs
+  let hfAbsValDom : f.absVal.MemAt x := f.mem_absVal_dom hfDom
+  have hf_absVal_abs : RSeq.SeriesSum
+      (fun k => COF.abs (f.absVal.valueAt x hfAbsValDom k)) := by
+    simpa only [IntegrableRep.valueAt] using f.absVal_absSeries hfDom hf_abs
   let hf_absVal_sum :
-      RSeq.SeriesSum (fun k => (f.absVal.fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => f.absVal.valueAt x hfAbsValDom k) :=
     seriesSum_of_abs hf_absVal_abs
   obtain ⟨hf_absVal_alt, hf_absVal_alt_eq⟩ :=
-    f.absVal_pointSum x hf_sum
+    f.absVal_signed_value x hfDom hf_sum
   have hf_absVal_sum_eq :
       hf_absVal_sum.sum = COF.abs hf_sum.sum := by
     rw [seriesSum_unique hf_absVal_sum hf_absVal_alt,
       hf_absVal_alt_eq]
-  have hf_sub_abs :
-      RSeq.SeriesSum
-        (fun k => COF.abs (((g.sub f.absVal).fn k).toFun x)) :=
-    sec4_sub_absSeriesSum_fwd hg2_abs hf_absVal_abs
+  let hf_sub_abs : Sec4RepAbsAt (g.sub f.absVal) x :=
+    sec4_sub_absSeriesSum_fwd
+      ⟨hg2Dom, hg2_abs⟩ ⟨hfAbsValDom, hf_absVal_abs⟩
   let hf_sub_sum : RSeq.SeriesSum
-      (fun k => ((g.sub f.absVal).fn k).toFun x) :=
-    add_seriesSum_value hg2_sum (neg_seriesSum_value hf_absVal_sum)
-  have hf_nonneg := hf_dom x hf_sub_abs hf_sub_sum
+      (fun k => (g.sub f.absVal).valueAt x hf_sub_abs.fst k) :=
+    add_seriesSum_value hg2Dom (IntegrableRep.neg_memAt hfAbsValDom)
+      hg2_sum (neg_seriesSum_value hfAbsValDom hf_absVal_sum)
+  have hf_nonneg := hf_dom x hf_sub_abs.fst hf_sub_abs.snd hf_sub_sum
   have hf_abs_le_g : Le (COF.abs hf_sum.sum) hg2_sum.sum := by
     have hle_absVal : Le hf_absVal_sum.sum hg2_sum.sum :=
       le_of_nonneg_sub (by

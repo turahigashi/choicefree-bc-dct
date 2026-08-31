@@ -31,17 +31,17 @@ namespace CleanCharData
 /-- Nonnegative terms convert signed convergence into absolute convergence. -/
 def absSeries_of_value
     {A : BSet X} (C : CleanCharData (S := S) A) {x : X}
-    (h : RSeq.SeriesSum (fun k => ((C.rep.fn k).toFun x))) :
+    (h : RepSummableAtSec2 C.rep x) :
     RepDefinedAt (S := S) C.rep x :=
-  CleanCharRepSec2.absSeries_of_value C h
+  ⟨h.dom, CleanCharRepSec2.absSeries_of_value C h⟩
 
 
 /-- For a clean nonnegative representative, the absolute sum equals the signed
 value sum. -/
 theorem abs_eq_value
     {A : BSet X} (C : CleanCharData (S := S) A) {x : X}
-    (h : RSeq.SeriesSum (fun k => ((C.rep.fn k).toFun x))) :
-    (C.absSeries_of_value h).sum = h.sum :=
+    (h : RepSummableAtSec2 C.rep x) :
+    (C.absSeries_of_value h).sum = h.series.sum :=
   CleanCharRepSec2.abs_eq_value C h
 
 
@@ -111,7 +111,8 @@ theorem bridge_value_with_existing_chi
     (hclean : RepValueSeries (S := S) C.rep x hclean_abs)
     (hexisting : RepValueSeries (S := S) C.existing_chi.rep x hexisting_abs) :
     hclean.sum = hexisting.sum :=
-  C.bridge_value_existing x hclean_abs hexisting_abs hclean hexisting
+  C.bridge_value_existing x hclean_abs.dom hexisting_abs.dom
+    hclean_abs.series hexisting_abs.series hclean hexisting
 
 
 /-- Quotient/integral-level bridge from the clean representative to the

@@ -33,8 +33,7 @@ noncomputable def sec4_prop42FlatAbs_of_localWitnessOuter
     {x : X}
     (W : Sec4Prop42LocalWitness (S := S) A hA f x)
     (houter : Sec4Prop42LocalStandardAbsOuterAt (S := S) hA W) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) :=
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x :=
   sec4_prop42FlatAbs_of_absPack
     (S := S) f hnn sec4_rowToFlat_source A hA x
     (sec4_lambdaRowsAbsPack_of_localWitness (S := S) hA W houter)
@@ -46,8 +45,7 @@ noncomputable def sec4_prop42FlatAbs_of_localOuterProvider
     (Outer : Sec4Prop42LocalStandardAbsOuterProvider (S := S) f hnn)
     (A : BSet X) (hA : IntegrableSet1 S A) (x : X)
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x)) :=
+    Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x :=
   sec4_prop42FlatAbs_of_localWitnessOuter
     (S := S) hA hnn W (Outer A hA x W)
 
@@ -65,15 +63,17 @@ theorem sec4_prop42Value_of_localWitnessOuter
     (houter : Sec4Prop42LocalStandardAbsOuterAt (S := S) hA W) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbs_of_localWitnessOuter
-        (S := S) hA hnn W houter)).sum =
+        (S := S) hA hnn W houter).snd).sum =
       (Sec4Prop42LocalWitness.chiSigned (S := S) W).sum *
         (Sec4Prop42LocalWitness.fSigned (S := S) W).sum := by
   exact prop_4_2_chi_f_rep_value
     A hA f hnn
     (sec4_prop42FlatAbs_of_localWitnessOuter
-      (S := S) hA hnn W houter)
-    W.chi_abs
-    W.f_abs
+      (S := S) hA hnn W houter).fst
+    W.chi_dom W.f_dom
+    (sec4_prop42FlatAbs_of_localWitnessOuter
+      (S := S) hA hnn W houter).snd
+    W.chi_abs W.f_abs
 
 
 /-- On the positive side of `A`, the local value identification reduces to the
@@ -87,7 +87,7 @@ theorem sec4_prop42Value_on_s1_of_localWitnessOuter
     (hxA : x ∈ A.S1) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbs_of_localWitnessOuter
-        (S := S) hA hnn W houter)).sum =
+        (S := S) hA hnn W houter).snd).sum =
       (Sec4Prop42LocalWitness.fSigned (S := S) W).sum := by
   rw [sec4_prop42Value_of_localWitnessOuter
     (S := S) hA hnn W houter]
@@ -105,7 +105,7 @@ theorem sec4_prop42Value_on_s2_of_localWitnessOuter
     (hxA : x ∈ A.S2) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbs_of_localWitnessOuter
-        (S := S) hA hnn W houter)).sum = (0 : R) := by
+        (S := S) hA hnn W houter).snd).sum = (0 : R) := by
   rw [sec4_prop42Value_of_localWitnessOuter
     (S := S) hA hnn W houter]
   rw [sec4_chi_value_zero_of_localWitness (S := S) hA W hxA]
@@ -120,7 +120,7 @@ theorem sec4_prop42Value_of_localOuterProvider
     (W : Sec4Prop42LocalWitness (S := S) A hA f x) :
     (seriesSum_of_abs
       (sec4_prop42FlatAbs_of_localOuterProvider
-        (S := S) f hnn Outer A hA x W)).sum =
+        (S := S) f hnn Outer A hA x W).snd).sum =
       (Sec4Prop42LocalWitness.chiSigned (S := S) W).sum *
         (Sec4Prop42LocalWitness.fSigned (S := S) W).sum := by
   exact sec4_prop42Value_of_localWitnessOuter

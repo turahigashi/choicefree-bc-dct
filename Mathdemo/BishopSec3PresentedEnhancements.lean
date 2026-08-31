@@ -26,9 +26,11 @@ noncomputable def lemma414_l1_error_tendsto_zero_from_majorant_measure_convergeC
     (hgnn : BishopSec1P.RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :
@@ -55,9 +57,11 @@ noncomputable def lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_co
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :
@@ -79,9 +83,11 @@ noncomputable def lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_co
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : forall (n : Nat) (x : X)
+      (herrdom : (BishopSec1P.thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
       (ev : BishopSec1P.RepSeriesSum fun k =>
-        ((BishopSec1P.thm_4_15_abs_errorC fn f n).fn k).toFun x)
-      (gv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+        (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe ev.sum gv.sum)
     (hconv : BishopSec1P.Lemma414ConvergeInMeasureToZeroDataC
       (BishopSec1P.thm_4_15_abs_errorC fn f)) :
@@ -102,11 +108,13 @@ then that point is in the positive side of the represented set. -/
 theorem mem_s1_of_indicator_oneC
     {X : Type u} {S : IntSpaceC X} {C : BishopC.BSet X}
     (hC : IntegrableSet1C S C) {x : X}
-    (hchi_abs : RepSeriesSum (fun n => BishopCReal.CReal.abs ((hC.rep.fn n).toFun x)))
+    (hdom : hC.rep.MemAt x)
+    (hchi_abs : RepSeriesSum (fun n =>
+      BishopCReal.CReal.abs (hC.rep.valueAt x hdom n)))
     (hone : BishopCReal.relEventually (seriesSum_of_absC hchi_abs).sum
       BishopCReal.CReal.one) :
     x ∈ C.S1 := by
-  have hvalid := hC.valid x hchi_abs
+  have hvalid := hC.valid x hdom hchi_abs
   rcases hvalid.1 with hxC1 | hxC2
   · exact hxC1
   · exfalso
@@ -137,17 +145,18 @@ structure Lemma415GoodSetClosePackC
     (fn_n f : BishopSec1P.IntegrableRepC3 S) : Type u where
   subset_A : C.S1 ⊆ A.S1
   doms : forall x : X, x ∈ C.S1 ->
-    BishopSec1P.RepSeriesSum (fun m => BishopCReal.CReal.abs ((f.fn m).toFun x)) ×
-    BishopSec1P.RepSeriesSum (fun m => BishopCReal.CReal.abs ((fn_n.fn m).toFun x))
+    Thm36RepAbsAtC f x × Thm36RepAbsAtC fn_n x
   measure_small :
     BishopCReal.regularSeqLtProp
       ((BishopSec1P.IntegrableSet1_subC hA hC).rep.integral) eps
   point_close : forall (x : X), x ∈ C.S1 ->
     forall
+      (hfdom : f.MemAt x)
+      (hfndom : fn_n.MemAt x)
       (hfabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs ((f.fn m).toFun x)))
+        (fun m => BishopCReal.CReal.abs (f.valueAt x hfdom m)))
       (hfnabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs ((fn_n.fn m).toFun x))),
+        (fun m => BishopCReal.CReal.abs (fn_n.valueAt x hfndom m))),
       BishopCReal.regularSeqLtProp
         (BishopCReal.CReal.abs
           (BishopCReal.CReal.sub
@@ -185,10 +194,13 @@ noncomputable def lemma415_goodSetData_to_convergeInMeasureC
   obtain ⟨C, hC, hpack⟩ := hN n hn
   refine ⟨C, hC, ?_, hpack.measure_small, ?_⟩
   · intro x hxC
-    have hdom := hpack.doms x hxC
-    exact ⟨⟨hpack.subset_A hxC, ⟨hdom.1⟩⟩, ⟨hdom.2⟩⟩
+    obtain ⟨hfdata, hfnData⟩ := hpack.doms x hxC
+    exact ⟨⟨hpack.subset_A hxC,
+      ⟨{ mem := hfdata.dom, absWitness := hfdata.absSeries }⟩⟩,
+      ⟨{ mem := hfnData.dom, absWitness := hfnData.absSeries }⟩⟩
   · intro x hxC exf exfn
-    exact hpack.point_close x hxC exf exfn
+    exact hpack.point_close x hxC exf.mem exfn.mem
+      exf.absWitness exfn.absWitness
 
 /-- Good-set convergence of `fn` to `f` gives convergence to zero for the
 absolute-error representatives in the Lemma 4.14 input form. -/
@@ -206,31 +218,48 @@ noncomputable def lemma415_absError_convergeInMeasureToZeroData_goodSetC
     intro n hn
     obtain ⟨C, hC, hpack⟩ := hN n hn
     refine ⟨C, hC, hpack.subset_A, hpack.measure_small, ?_⟩
-    intro x herrabs hchi_abs hchi_one
+    intro x herrdom hchi_dom herrabs hchi_abs hchi_one
     have hxC : x ∈ C.S1 :=
-      BishopSec1P.IntegrableSet1C.mem_s1_of_indicator_oneC hC hchi_abs hchi_one
+      BishopSec1P.IntegrableSet1C.mem_s1_of_indicator_oneC
+        hC hchi_dom hchi_abs hchi_one
     let r : BishopSec1P.IntegrableRepC3 S := (fn n).sub f
+    let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC herrdom
+    let haddDom : ((fn n).add f.neg).MemAt x := by
+      simpa [r, BishopSec1P.IntegrableRepC3.sub] using hrdom
+    let hfndom : (fn n).MemAt x :=
+      BishopSec1P.IntegrableRepC3.add_left_memAt haddDom
+    let hfnegdom : f.neg.MemAt x :=
+      BishopSec1P.IntegrableRepC3.add_right_memAt haddDom
+    let hfdom : f.MemAt x :=
+      BishopSec1P.IntegrableRepC3.of_neg_memAt hfnegdom
     let hsubabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs ((r.fn m).toFun x)) :=
-      IntegrableRepC3_absVal_absSeriesSum_midC r x herrabs
+        (fun m => BishopCReal.CReal.abs (r.valueAt x hrdom m)) :=
+      IntegrableRepC3_absVal_absSeriesSum_midC r x herrdom herrabs
     let hfnabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs (((fn n).fn m).toFun x)) :=
-      BishopSec1P.add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x) hsubabs
+        (fun m => BishopCReal.CReal.abs ((fn n).valueAt x hfndom m)) :=
+      BishopSec1P.add_absSeriesSum_leftC
+        (r := fn n) (r' := f.neg) (x := x) haddDom hsubabs
     let hfnegabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs (((f.neg).fn m).toFun x)) :=
-      BishopSec1P.add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x) hsubabs
+        (fun m => BishopCReal.CReal.abs (f.neg.valueAt x hfnegdom m)) :=
+      BishopSec1P.add_absSeriesSum_rightC
+        (r := fn n) (r' := f.neg) (x := x) haddDom hsubabs
     let hfabs : BishopSec1P.RepSeriesSum
-        (fun m => BishopCReal.CReal.abs ((f.fn m).toFun x)) :=
-      BishopSec1P.neg_absSeriesSumC (r := f) (x := x) hfnegabs
-    let hfnv : BishopSec1P.RepSeriesSum (fun m => ((fn n).fn m).toFun x) :=
+        (fun m => BishopCReal.CReal.abs (f.valueAt x hfdom m)) :=
+      BishopSec1P.neg_absSeriesSumC (r := f) (x := x) hfdom hfnegabs
+    let hfnv : BishopSec1P.RepSeriesSum
+        (fun m => (fn n).valueAt x hfndom m) :=
       BishopSec1P.seriesSum_of_absC hfnabs
-    let hfv : BishopSec1P.RepSeriesSum (fun m => (f.fn m).toFun x) :=
+    let hfv : BishopSec1P.RepSeriesSum (fun m => f.valueAt x hfdom m) :=
       BishopSec1P.seriesSum_of_absC hfabs
-    let herrv : BishopSec1P.RepSeriesSum (fun m => (r.fn m).toFun x) :=
-      BishopSec1P.sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x) hfnv hfv
-    obtain ⟨habsModel, habsModel_eq⟩ := r.absVal_signed_value x herrv
+    let herrv : BishopSec1P.RepSeriesSum
+        (fun m => r.valueAt x hrdom m) :=
+      BishopSec1P.sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x)
+        hfndom hfdom hfnv hfv
+    obtain ⟨habsModel, habsModel_eq⟩ :=
+      r.absVal_signed_value x hrdom herrv
     let herrSigned : BishopSec1P.RepSeriesSum
-        (fun m => (((BishopSec1P.thm_4_15_abs_errorC fn f n).fn m).toFun x)) :=
+        (fun m => (BishopSec1P.thm_4_15_abs_errorC fn f n).valueAt
+          x herrdom m) :=
       BishopSec1P.seriesSum_of_absC herrabs
     have herr_to_abs : BishopCReal.relEventually herrSigned.sum
         (BishopCReal.CReal.abs (BishopCReal.CReal.sub hfnv.sum hfv.sum)) := by
@@ -272,7 +301,7 @@ noncomputable def lemma415_absError_convergeInMeasureToZeroData_goodSetC
         (BishopCReal.relEventually_trans _ _ _ h2
           (BishopSec1P.absSeq_subSeq_comm_eventually hfnv.sum hfv.sum))
     exact BishopSec1P.regularSeqLtProp_of_left_eventual houter
-      (hpack.point_close x hxC hfabs hfnabs)
+      (hpack.point_close x hxC hfdom hfndom hfabs hfnabs)
 
 /-- Pointwise-majorant DCT wrapper using the corrected good-set convergence
 data. -/
@@ -284,8 +313,9 @@ noncomputable def goalB_pointwise_majorant_goodSet_convergence_dataC
     (hgnn : BishopSec1P.RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC (g.add f.absVal))
     (hfn_bound : forall (n : Nat) (x : X)
-      (hfnv : BishopSec1P.RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : BishopSec1P.RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : BishopSec1P.RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : BishopSec1P.RepSeriesSum fun k => g.valueAt x hgdom k),
         BishopCReal.RegularSeqLe (BishopCReal.CReal.abs hfnv.sum) hgv.sum)
     (hconv : Lemma415ConvergeInMeasureGoodSetDataC fn f) :
     BishopSec1P.RepSeriesTendsto (fun n => (fn n).integral) f.integral :=

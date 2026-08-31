@@ -129,14 +129,14 @@ noncomputable def toSourceRepSideWitness
   dom_on_s2 := W.bridge.dom_on_s2
   abs_on_s1 := by
     intro x hx
-    exact W.bridge.abs_on_s1_from_clean x hx
+    exact (W.bridge.abs_on_s1_from_clean x hx
       ((W.point_data.toPointwiseMajorantWitness
-        (hsum := W.clean_hsum)).definedAt_on_s1 x hx)
+        (hsum := W.clean_hsum)).definedAt_on_s1 x hx)).series
   abs_on_s2 := by
     intro x hx
-    exact W.bridge.abs_on_s2_from_clean x hx
+    exact (W.bridge.abs_on_s2_from_clean x hx
       ((W.point_data.toPointwiseMajorantWitness
-        (hsum := W.clean_hsum)).definedAt_on_s2 x hx)
+        (hsum := W.clean_hsum)).definedAt_on_s2 x hx)).series
 
 
 end Prop210BCleanRouteToSourceWitness
@@ -176,14 +176,14 @@ noncomputable def toSourceRepSideWitness
   dom_on_s2 := W.bridge.dom_on_s2
   abs_on_s1 := by
     intro x hx
-    exact W.bridge.abs_on_s1_from_clean x hx
+    exact (W.bridge.abs_on_s1_from_clean x hx
       ((W.point_data.toPointwiseMajorantWitness
-        (hsum := W.clean_hsum)).definedAt_on_s1 x hx)
+        (hsum := W.clean_hsum)).definedAt_on_s1 x hx)).series
   abs_on_s2 := by
     intro x hx
-    exact W.bridge.abs_on_s2_from_clean x hx
+    exact (W.bridge.abs_on_s2_from_clean x hx
       ((W.point_data.toPointwiseMajorantWitness
-        (hsum := W.clean_hsum)).definedAt_on_s2 x hx)
+        (hsum := W.clean_hsum)).definedAt_on_s2 x hx)).series
 
 
 end Prop210CCleanRouteToSourceWitness

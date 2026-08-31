@@ -42,7 +42,7 @@ theorem zeroSeriesSum_uniqueC
 
 def zeroIntSpaceC (X : Type u) : BishopSec1P.IntSpaceC X where
   L := Set.univ
-  I := fun _ => BishopCReal.CReal.zero
+  I := fun _ _ => BishopCReal.CReal.zero
   L_resp := by
     intro f g hf hfg
     trivial
@@ -71,11 +71,11 @@ def zeroIntSpaceC (X : Type u) : BishopSec1P.IntSpaceC X where
       Setoid.trans (BishopCReal.CReal.mul_comm a BishopCReal.CReal.zero)
         (BishopSec1P.zero_mul_equivC a)
     exact Setoid.symm hmul0
-  cutNat_tendsto := by
-    intro f hf
+  cutNat_tendsto_raw := by
+    intro f hf hcut
     exact BishopSec1P.repSeriesTendsto_constC BishopCReal.CReal.zero
-  cutSmall_tendsto := by
-    intro f hf
+  cutSmall_tendsto_raw := by
+    intro f hf hcut
     exact BishopSec1P.repSeriesTendsto_constC BishopCReal.CReal.zero
   I_nonneg := by
     intro f hf hnn
@@ -93,8 +93,8 @@ def zeroIntSpaceC (X : Type u) : BishopSec1P.IntSpaceC X where
 
 def constBFunC (X : Type u) (c : BishopCReal.CReal) :
     BishopSec1P.BFunC X where
-  toFun := fun _ => c
   dom := Set.univ
+  toFun := fun _ _ => c
 
 def zeroBFunC (X : Type u) : BishopSec1P.BFunC X :=
   constBFunC X BishopCReal.CReal.zero
@@ -121,38 +121,50 @@ theorem zeroIntSpace_integral_zeroC {X : Type u}
     r.integral ≈ BishopCReal.CReal.zero :=
   BishopSec1P.repSeriesSum_unique r.integral_sum zeroSeriesSumC
 
-def zeroRep_value_seriesC (X : Type u) (x : X) :
+def zeroRep_memAtC (X : Type u) (x : X) :
+    (zeroRepC X).MemAt x := by
+  intro n
+  trivial
+
+def zeroRep_value_seriesC (X : Type u) (x : X)
+    (hdom : (zeroRepC X).MemAt x) :
     BishopSec1P.RepSeriesSum
-      (fun n => ((zeroRepC X).fn n).toFun x) :=
+      (fun n => (zeroRepC X).valueAt x hdom n) :=
   zeroSeriesSumC
 
-def zeroRep_abs_seriesC (X : Type u) (x : X) :
+def zeroRep_abs_seriesC (X : Type u) (x : X)
+    (hdom : (zeroRepC X).MemAt x) :
     BishopSec1P.RepSeriesSum
-      (fun n => BishopCReal.CReal.abs (((zeroRepC X).fn n).toFun x)) :=
+      (fun n => BishopCReal.CReal.abs ((zeroRepC X).valueAt x hdom n)) :=
   absZeroSeriesSumC
 
 theorem zeroRep_value_sum_zeroC {X : Type u} {x : X}
+    {hdom : (zeroRepC X).MemAt x}
     (h : BishopSec1P.RepSeriesSum
-      (fun n => ((zeroRepC X).fn n).toFun x)) :
+      (fun n => (zeroRepC X).valueAt x hdom n)) :
     h.sum ≈ BishopCReal.CReal.zero :=
-  BishopSec1P.repSeriesSum_unique h (zeroRep_value_seriesC X x)
+  BishopSec1P.repSeriesSum_unique h (zeroRep_value_seriesC X x hdom)
 
 theorem zeroRep_abs_value_sum_zeroC {X : Type u} {x : X}
+    {hdom : (zeroRepC X).MemAt x}
     (h : BishopSec1P.RepSeriesSum
-      (fun n => BishopCReal.CReal.abs (((zeroRepC X).fn n).toFun x))) :
+      (fun n => BishopCReal.CReal.abs ((zeroRepC X).valueAt x hdom n))) :
     (BishopSec1P.seriesSum_of_absC h).sum ≈ BishopCReal.CReal.zero :=
   zeroRep_value_sum_zeroC (BishopSec1P.seriesSum_of_absC h)
 
 theorem zeroRep_nonnegC (X : Type u) :
     BishopSec1P.RepNonnegC (zeroRepC X) := by
-  intro x habs hx
+  intro x hdom habs hx
   exact BishopCReal.regularSeqNonneg_of_eventual
     (zeroRep_value_sum_zeroC hx)
     BishopSec1P.regularSeqNonneg_zero
 
 theorem zeroRep_abs_sub_sum_ltC {X : Type u} {x : X}
-    (hfabs hfnabs : BishopSec1P.RepSeriesSum
-      (fun n => BishopCReal.CReal.abs (((zeroRepC X).fn n).toFun x)))
+    {hfdom hfn_dom : (zeroRepC X).MemAt x}
+    (hfabs : BishopSec1P.RepSeriesSum
+      (fun n => BishopCReal.CReal.abs ((zeroRepC X).valueAt x hfdom n)))
+    (hfnabs : BishopSec1P.RepSeriesSum
+      (fun n => BishopCReal.CReal.abs ((zeroRepC X).valueAt x hfn_dom n)))
     {eps : BishopCReal.CReal}
     (heps : BishopCReal.regularSeqLtProp
       BishopCReal.CReal.zero eps) :
@@ -188,13 +200,15 @@ theorem zeroRep_abs_sub_sum_ltC {X : Type u} {x : X}
 
 theorem zeroRep_boundC (X : Type u) :
     forall (n : Nat) (x : X)
+      (hfndom : (zeroRepC X).MemAt x)
+      (hgdom : (zeroRepC X).MemAt x)
       (hfnv : BishopSec1P.RepSeriesSum
-        (fun k => (((fun _ : Nat => zeroRepC X) n).fn k).toFun x))
+        (fun k => (zeroRepC X).valueAt x hfndom k))
       (hgv : BishopSec1P.RepSeriesSum
-        (fun k => ((zeroRepC X).fn k).toFun x)),
+        (fun k => (zeroRepC X).valueAt x hgdom k)),
         BishopCReal.RegularSeqLe
           (BishopCReal.CReal.abs hfnv.sum) hgv.sum := by
-  intro n x hfnv hgv
+  intro n x hfndom hgdom hfnv hgv
   have hfn0 : hfnv.sum ≈ BishopCReal.CReal.zero :=
     zeroRep_value_sum_zeroC hfnv
   have hg0 : hgv.sum ≈ BishopCReal.CReal.zero :=
@@ -223,12 +237,14 @@ noncomputable def zeroRep_goodSetConvergeC (X : Type u) :
         measure_small := ?_
         point_close := ?_ }
     · intro x hx
-      exact ⟨zeroRep_abs_seriesC X x, zeroRep_abs_seriesC X x⟩
+      let hdom := zeroRep_memAtC X x
+      exact ⟨⟨hdom, zeroRep_abs_seriesC X x hdom⟩,
+        ⟨hdom, zeroRep_abs_seriesC X x hdom⟩⟩
     · exact BishopSec1P.regularSeqLtProp_of_left_eventual
         (zeroIntSpace_integral_zeroC
           ((BishopSec1P.IntegrableSet1_subC hA hA).rep))
         heps
-    · intro x hx hfabs hfnabs
+    · intro x hx hfdom hfndom hfabs hfnabs
       exact zeroRep_abs_sub_sum_ltC hfabs hfnabs heps
 
 /-- A fully concrete nonempty end-to-end invocation of the automatic corrected

@@ -59,13 +59,15 @@ If a characteristic value is positive, it cannot be the zero branch.
 -/
 theorem sec4_valid_s1_of_half_lt_value
     (A : BSet X) (hA : IntegrableSet1 S A) (x : X)
-    (hχabs : RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x))))
+    (hχDom : hA.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum
+      (fun m => COF.abs (hA.rep.valueAt x hχDom m)))
     (hpos : COF.lt 0 (seriesSum_of_abs hχabs).sum) :
     x ∈ A.S1 := by
   -- Technical note.
   -- Technical note.
   let hχ := seriesSum_of_abs hχabs
-  have hvalid := hA.valid x hχabs
+  have hvalid := hA.valid x hχDom hχabs
   cases hvalid.1 with
   | inl h1 =>
       exact h1
@@ -82,11 +84,13 @@ If a characteristic value is smaller than `1/2`, it cannot be the one branch.
 -/
 theorem sec4_valid_s2_of_value_lt_half
     (A : BSet X) (hA : IntegrableSet1 S A) (x : X)
-    (hχabs : RSeq.SeriesSum (fun m => COF.abs (((hA.rep.fn m).toFun x))))
+    (hχDom : hA.rep.MemAt x)
+    (hχabs : RSeq.SeriesSum
+      (fun m => COF.abs (hA.rep.valueAt x hχDom m)))
     (hlt : COF.lt (seriesSum_of_abs hχabs).sum COF.half) :
     x ∈ A.S2 := by
   let hχ := seriesSum_of_abs hχabs
-  have hvalid := hA.valid x hχabs
+  have hvalid := hA.valid x hχDom hχabs
   cases hvalid.1 with
   | inl h1 =>
       have hone : hχ.sum = 1 :=
@@ -112,15 +116,17 @@ trigger large elimination.
 noncomputable def sec4_integrableSetDichotomy_from_valid
     (A : BSet X) (hA : IntegrableSet1 S A) :
     Sec4IntegrableSetDichotomy (S := S) A hA := by
-  intro x hχabs
+  intro x hχAt
+  let hχDom := hχAt.fst
+  let hχabs := hχAt.snd
   let hχ := seriesSum_of_abs hχabs
   cases COF.lt_cotrans_data COFO.half_pos hχ.sum with
   | inl hhalf =>
       exact PSum.inl
-        (sec4_valid_s1_of_half_lt_value A hA x hχabs hhalf)
+        (sec4_valid_s1_of_half_lt_value A hA x hχDom hχabs hhalf)
   | inr hlt =>
       exact PSum.inr
-        (sec4_valid_s2_of_value_lt_half A hA x hχabs hlt)
+        (sec4_valid_s2_of_value_lt_half A hA x hχDom hχabs hlt)
 
 
 /--

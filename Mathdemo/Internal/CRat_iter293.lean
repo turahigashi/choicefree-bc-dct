@@ -37,14 +37,24 @@ structure Prop412MidRepresentativeBoundSourceData
     (F : Prop412MidRepresentativeSupportData A hA n h) : Type _ where
   dom_of_mid_abs :
     ∀ x
+      (hmidDom : F.mid.rep.MemAt x)
       (_hmidabs : RSeq.SeriesSum
-        (fun m => COF.abs ((F.mid.rep.fn m).toFun x))),
+        (fun m => COF.abs (F.mid.rep.valueAt x hmidDom m))),
       x ∈ h.dom
+  chiA_dom_of_mid_abs :
+    ∀ x
+      (hmidDom : F.mid.rep.MemAt x)
+      (_hmidabs : RSeq.SeriesSum
+        (fun m => COF.abs (F.mid.rep.valueAt x hmidDom m))),
+      hA.rep.MemAt x
   chiA_abs_of_mid_abs :
     ∀ x
-      (_hmidabs : RSeq.SeriesSum
-        (fun m => COF.abs ((F.mid.rep.fn m).toFun x))),
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+      (hmidDom : F.mid.rep.MemAt x)
+      (hmidabs : RSeq.SeriesSum
+        (fun m => COF.abs (F.mid.rep.valueAt x hmidDom m))),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x
+          (chiA_dom_of_mid_abs x hmidDom hmidabs) m))
 
 /-- The scalar `mid` bounds turn local value witnesses into pointwise boundedness
 data for the concrete mid representative. -/
@@ -58,30 +68,34 @@ def prop412_mid_pointwise_bounds_from_bound_source_data
     (Src : Prop412MidRepresentativeBoundSourceData F) :
     Prop412MidRepresentativePointwiseBoundData F where
   lower_bound := by
-    intro x hmidabs
-    let hmidsum : RSeq.SeriesSum (fun m => (F.mid.rep.fn m).toFun x) :=
+    intro x hmidDom hmidabs
+    let hmidsum : RSeq.SeriesSum
+        (fun m => F.mid.rep.valueAt x hmidDom m) :=
       BishopC.seriesSum_of_abs hmidabs
-    let hdom := Src.dom_of_mid_abs x hmidabs
-    let hchi := Src.chiA_abs_of_mid_abs x hmidabs
+    let hdom := Src.dom_of_mid_abs x hmidDom hmidabs
+    let hchiDom := Src.chiA_dom_of_mid_abs x hmidDom hmidabs
+    let hchi := Src.chiA_abs_of_mid_abs x hmidDom hmidabs
     have hval :
         hmidsum.sum =
           prop412ScalarMid n
             ((BishopC.seriesSum_of_abs hchi).sum * h.toFun x hdom) :=
-      F.mid.value_eq x hdom hchi hmidsum
+      F.mid.value_eq x hdom hchiDom hmidDom hchi hmidsum
     rw [hval]
     exact prop412_scalarMid_lower_bound n
       ((BishopC.seriesSum_of_abs hchi).sum * h.toFun x hdom)
   upper_bound := by
-    intro x hmidabs
-    let hmidsum : RSeq.SeriesSum (fun m => (F.mid.rep.fn m).toFun x) :=
+    intro x hmidDom hmidabs
+    let hmidsum : RSeq.SeriesSum
+        (fun m => F.mid.rep.valueAt x hmidDom m) :=
       BishopC.seriesSum_of_abs hmidabs
-    let hdom := Src.dom_of_mid_abs x hmidabs
-    let hchi := Src.chiA_abs_of_mid_abs x hmidabs
+    let hdom := Src.dom_of_mid_abs x hmidDom hmidabs
+    let hchiDom := Src.chiA_dom_of_mid_abs x hmidDom hmidabs
+    let hchi := Src.chiA_abs_of_mid_abs x hmidDom hmidabs
     have hval :
         hmidsum.sum =
           prop412ScalarMid n
             ((BishopC.seriesSum_of_abs hchi).sum * h.toFun x hdom) :=
-      F.mid.value_eq x hdom hchi hmidsum
+      F.mid.value_eq x hdom hchiDom hmidDom hchi hmidsum
     rw [hval]
     exact prop412_scalarMid_upper_bound n
       ((BishopC.seriesSum_of_abs hchi).sum * h.toFun x hdom)

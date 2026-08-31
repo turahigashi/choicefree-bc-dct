@@ -183,46 +183,78 @@ def theorem46_left_set_step_pointwise_data
     intro x hx
     exact hx.1
   monotone := by
-    intro x hx hφt hφu _hψt _hψu
-    obtain ⟨haux_abs⟩ := hx.2.2
-    have hφtdom := (theorem46_mid_source Mφ s1).dom_of_mid_value x hφt
+    intro x hx hφtDom hφuDom _hψtDom _hψuDom hφt hφu _hψt _hψu
+    obtain ⟨hauxDom, ⟨haux_abs⟩⟩ := hx.2
+    have hφtdom :=
+      (theorem46_mid_source Mφ s1).dom_of_mid_value x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hφu
-    have hχA := (theorem46_mid_source Mφ s1).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hφuDom hφu
+    have hχADom :=
+      (theorem46_mid_source Mφ s1).chiA_dom_of_mid_value x hφtDom hφt
+    have hχOrDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχA :=
+      (theorem46_mid_source Mφ s1).chiA_abs_of_mid_value x hφtDom hφt
     have hχOr :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hφtval :=
-      (theorem46_mid_source Mφ s1).value_eq x hφtdom hχA hφt
+      (theorem46_mid_source Mφ s1).value_eq
+        x hφtdom hχADom hφtDom hχA hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hφudom hχOr hφu
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hφudom hχOrDom hφuDom hχOr hφu
     have hv_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     rw [hφtval, hφuval, hv_eq]
     exact theorem46_scalarMid_or_left_expansion_mono
-      s1.hA s2.hA hχA haux_abs hχOr s1.n
+      s1.hA s2.hA hχADom hauxDom hχOrDom hχA haux_abs hχOr s1.n
       (Rel.left_nonneg x hφtdom)
   increment_bound := by
-    intro x hx hφt hφu hψt hψu
-    obtain ⟨haux_abs⟩ := hx.2.2
-    have hφtdom := (theorem46_mid_source Mφ s1).dom_of_mid_value x hφt
+    intro x hx hφtDom hφuDom hψtDom hψuDom hφt hφu hψt hψu
+    obtain ⟨hauxDom, ⟨haux_abs⟩⟩ := hx.2
+    have hφtdom :=
+      (theorem46_mid_source Mφ s1).dom_of_mid_value x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hφu
-    have hψtdom := (theorem46_mid_source Mψ s1).dom_of_mid_value x hψt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hφuDom hφu
+    have hψtdom :=
+      (theorem46_mid_source Mψ s1).dom_of_mid_value x hψtDom hψt
     have hψudom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hψu
-    have hχAφ := (theorem46_mid_source Mφ s1).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hψuDom hψu
+    have hχAφDom :=
+      (theorem46_mid_source Mφ s1).chiA_dom_of_mid_value x hφtDom hφt
+    have hχOrφDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχAψDom :=
+      (theorem46_mid_source Mψ s1).chiA_dom_of_mid_value x hψtDom hψt
+    have hχOrψDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hψuDom hψu
+    have hχAφ :=
+      (theorem46_mid_source Mφ s1).chiA_abs_of_mid_value x hφtDom hφt
     have hχOrφ :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hφu
-    have hχAψ := (theorem46_mid_source Mψ s1).chiA_abs_of_mid_value x hψt
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
+    have hχAψ :=
+      (theorem46_mid_source Mψ s1).chiA_abs_of_mid_value x hψtDom hψt
     have hχOrψ :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hψu
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hψuDom hψu
     have hχA_eq :
         (BishopC.seriesSum_of_abs hχAφ).sum =
           (BishopC.seriesSum_of_abs hχAψ).sum :=
@@ -236,15 +268,19 @@ def theorem46_left_set_step_pointwise_data
         (BishopC.seriesSum_of_abs hχOrφ)
         (BishopC.seriesSum_of_abs hχOrψ)
     have hφtval :=
-      (theorem46_mid_source Mφ s1).value_eq x hφtdom hχAφ hφt
+      (theorem46_mid_source Mφ s1).value_eq
+        x hφtdom hχAφDom hφtDom hχAφ hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hφudom hχOrφ hφu
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hφudom hχOrφDom hφuDom hχOrφ hφu
     have hψtval :=
-      (theorem46_mid_source Mψ s1).value_eq x hψtdom hχAψ hψt
+      (theorem46_mid_source Mψ s1).value_eq
+        x hψtdom hχAψDom hψtDom hχAψ hψt
     have hψuval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hψudom hχOrψ hψu
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hψudom hχOrψDom hψuDom hχOrψ hψu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     have hψ_eq : ψh.toFun x hψudom = ψh.toFun x hψtdom :=
@@ -252,10 +288,11 @@ def theorem46_left_set_step_pointwise_data
     rw [hφtval, hφuval, hψtval, hψuval, hφ_eq, hψ_eq,
       hχA_eq, hχOr_eq]
     exact theorem46_scalarMid_chi_set_increment_bound s1.n
-      (theorem46_chi_value_zero_or_one s1.hA hχAψ)
+      (theorem46_chi_value_zero_or_one s1.hA hχAψDom hχAψ)
       (theorem46_chi_value_zero_or_one
-        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχOrψ)
-      (theorem46_chi_or_left_value_le s1.hA s2.hA hχAψ haux_abs hχOrψ)
+        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχOrψDom hχOrψ)
+      (theorem46_chi_or_left_value_le s1.hA s2.hA
+        hχAψDom hauxDom hχOrψDom hχAψ haux_abs hχOrψ)
       (Rel.left_nonneg x hφtdom)
       (Rel.right_nonneg x hψtdom)
       (Rel.le_value x hφtdom hψtdom)
@@ -277,46 +314,78 @@ def theorem46_right_set_step_pointwise_data
     intro x hx
     exact hx.1
   monotone := by
-    intro x hx hφt hφu _hψt _hψu
-    obtain ⟨haux_abs⟩ := hx.2.2
-    have hφtdom := (theorem46_mid_source Mφ s2).dom_of_mid_value x hφt
+    intro x hx hφtDom hφuDom _hψtDom _hψuDom hφt hφu _hψt _hψu
+    obtain ⟨hauxDom, ⟨haux_abs⟩⟩ := hx.2
+    have hφtdom :=
+      (theorem46_mid_source Mφ s2).dom_of_mid_value x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hφu
-    have hχB := (theorem46_mid_source Mφ s2).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hφuDom hφu
+    have hχBDom :=
+      (theorem46_mid_source Mφ s2).chiA_dom_of_mid_value x hφtDom hφt
+    have hχOrDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχB :=
+      (theorem46_mid_source Mφ s2).chiA_abs_of_mid_value x hφtDom hφt
     have hχOr :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hφtval :=
-      (theorem46_mid_source Mφ s2).value_eq x hφtdom hχB hφt
+      (theorem46_mid_source Mφ s2).value_eq
+        x hφtdom hχBDom hφtDom hχB hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hφudom hχOr hφu
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hφudom hχOrDom hφuDom hχOr hφu
     have hv_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     rw [hφtval, hφuval, hv_eq]
     exact theorem46_scalarMid_or_right_expansion_mono
-      s1.hA s2.hA haux_abs hχB hχOr s2.n
+      s1.hA s2.hA hauxDom hχBDom hχOrDom haux_abs hχB hχOr s2.n
       (Rel.left_nonneg x hφtdom)
   increment_bound := by
-    intro x hx hφt hφu hψt hψu
-    obtain ⟨haux_abs⟩ := hx.2.2
-    have hφtdom := (theorem46_mid_source Mφ s2).dom_of_mid_value x hφt
+    intro x hx hφtDom hφuDom hψtDom hψuDom hφt hφu hψt hψu
+    obtain ⟨hauxDom, ⟨haux_abs⟩⟩ := hx.2
+    have hφtdom :=
+      (theorem46_mid_source Mφ s2).dom_of_mid_value x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hφu
-    have hψtdom := (theorem46_mid_source Mψ s2).dom_of_mid_value x hψt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hφuDom hφu
+    have hψtdom :=
+      (theorem46_mid_source Mψ s2).dom_of_mid_value x hψtDom hψt
     have hψudom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hψu
-    have hχBφ := (theorem46_mid_source Mφ s2).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hψuDom hψu
+    have hχBφDom :=
+      (theorem46_mid_source Mφ s2).chiA_dom_of_mid_value x hφtDom hφt
+    have hχOrφDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχBψDom :=
+      (theorem46_mid_source Mψ s2).chiA_dom_of_mid_value x hψtDom hψt
+    have hχOrψDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hψuDom hψu
+    have hχBφ :=
+      (theorem46_mid_source Mφ s2).chiA_abs_of_mid_value x hφtDom hφt
     have hχOrφ :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hφu
-    have hχBψ := (theorem46_mid_source Mψ s2).chiA_abs_of_mid_value x hψt
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
+    have hχBψ :=
+      (theorem46_mid_source Mψ s2).chiA_abs_of_mid_value x hψtDom hψt
     have hχOrψ :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hψu
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hψuDom hψu
     have hχB_eq :
         (BishopC.seriesSum_of_abs hχBφ).sum =
           (BishopC.seriesSum_of_abs hχBψ).sum :=
@@ -330,15 +399,19 @@ def theorem46_right_set_step_pointwise_data
         (BishopC.seriesSum_of_abs hχOrφ)
         (BishopC.seriesSum_of_abs hχOrψ)
     have hφtval :=
-      (theorem46_mid_source Mφ s2).value_eq x hφtdom hχBφ hφt
+      (theorem46_mid_source Mφ s2).value_eq
+        x hφtdom hχBφDom hφtDom hχBφ hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hφudom hχOrφ hφu
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hφudom hχOrφDom hφuDom hχOrφ hφu
     have hψtval :=
-      (theorem46_mid_source Mψ s2).value_eq x hψtdom hχBψ hψt
+      (theorem46_mid_source Mψ s2).value_eq
+        x hψtdom hχBψDom hψtDom hχBψ hψt
     have hψuval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hψudom hχOrψ hψu
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hψudom hχOrψDom hψuDom hχOrψ hψu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     have hψ_eq : ψh.toFun x hψudom = ψh.toFun x hψtdom :=
@@ -346,10 +419,11 @@ def theorem46_right_set_step_pointwise_data
     rw [hφtval, hφuval, hψtval, hψuval, hφ_eq, hψ_eq,
       hχB_eq, hχOr_eq]
     exact theorem46_scalarMid_chi_set_increment_bound s2.n
-      (theorem46_chi_value_zero_or_one s2.hA hχBψ)
+      (theorem46_chi_value_zero_or_one s2.hA hχBψDom hχBψ)
       (theorem46_chi_value_zero_or_one
-        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχOrψ)
-      (theorem46_chi_or_right_value_le s1.hA s2.hA haux_abs hχBψ hχOrψ)
+        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχOrψDom hχOrψ)
+      (theorem46_chi_or_right_value_le s1.hA s2.hA
+        hauxDom hχBψDom hχOrψDom haux_abs hχBψ hχOrψ)
       (Rel.left_nonneg x hφtdom)
       (Rel.right_nonneg x hψtdom)
       (Rel.le_value x hφtdom hψtdom)
@@ -376,19 +450,30 @@ def theorem46_left_trunc_step_pointwise_data
     intro x hx
     exact hx
   monotone := by
-    intro x _hx hφt hφu _hψt _hψu
+    intro x _hx hφtDom hφuDom _hψtDom _hψuDom hφt hφu _hψt _hψu
     have hφtdom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφuDom hφu
+    have hχtDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hφtDom hφt
+    have hχuDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
     have hχt :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hφtDom hφt
     have hχu :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hχ_eq :
         (BishopC.seriesSum_of_abs hχu).sum =
           (BishopC.seriesSum_of_abs hχt).sum :=
@@ -397,10 +482,12 @@ def theorem46_left_trunc_step_pointwise_data
         (BishopC.seriesSum_of_abs hχt)
     have hφtval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hφtdom hχt hφt
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hφtdom hχtDom hφtDom hχt hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hφudom hχu hφu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hφudom hχuDom hφuDom hχu hφu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     rw [hφtval, hφuval, hφ_eq, hχ_eq]
@@ -408,34 +495,56 @@ def theorem46_left_trunc_step_pointwise_data
       (Nat.le_add_right s1.n s2.n)
       (COFO.mul_nonneg
         (theorem46_chi_value_nonneg
-          (BishopC.IntegrableSet1_or s1.hA s2.hA) hχt)
+          (BishopC.IntegrableSet1_or s1.hA s2.hA) hχtDom hχt)
         (Rel.left_nonneg x hφtdom))
   increment_bound := by
-    intro x _hx hφt hφu hψt hψu
+    intro x _hx hφtDom hφuDom hψtDom hψuDom hφt hφu hψt hψu
     have hφtdom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφuDom hφu
     have hψtdom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value x hψt
+        (theorem46_stateData_or_leftN s1 s2)).dom_of_mid_value
+          x hψtDom hψt
     have hψudom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hψu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hψuDom hψu
+    have hχφtDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hφtDom hφt
+    have hχφuDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχψtDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_or_leftN s1 s2)).chiA_dom_of_mid_value
+          x hψtDom hψt
+    have hχψuDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hψuDom hψu
     have hχφt :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hφtDom hφt
     have hχφu :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hχψt :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value x hψt
+        (theorem46_stateData_or_leftN s1 s2)).chiA_abs_of_mid_value
+          x hψtDom hψt
     have hχψu :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hψu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hψuDom hψu
     have hχφtψt :
         (BishopC.seriesSum_of_abs hχφt).sum =
           (BishopC.seriesSum_of_abs hχψt).sum :=
@@ -456,16 +565,20 @@ def theorem46_left_trunc_step_pointwise_data
         (BishopC.seriesSum_of_abs hχψt)
     have hφtval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hφtdom hχφt hφt
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hφtdom hχφtDom hφtDom hχφt hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hφudom hχφu hφu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hφudom hχφuDom hφuDom hχφu hφu
     have hψtval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_leftN s1 s2)).value_eq x hψtdom hχψt hψt
+        (theorem46_stateData_or_leftN s1 s2)).value_eq
+          x hψtdom hχψtDom hψtDom hχψt hψt
     have hψuval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hψudom hχψu hψu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hψudom hχψuDom hψuDom hχψu hψu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     have hψ_eq : ψh.toFun x hψudom = ψh.toFun x hψtdom :=
@@ -475,7 +588,7 @@ def theorem46_left_trunc_step_pointwise_data
     exact theorem46_scalarMid_chi_trunc_increment_bound
       (Nat.le_add_right s1.n s2.n)
       (theorem46_chi_value_zero_or_one
-        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχψt)
+        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχψtDom hχψt)
       (Rel.left_nonneg x hφtdom)
       (Rel.right_nonneg x hψtdom)
       (Rel.le_value x hφtdom hψtdom)
@@ -502,19 +615,30 @@ def theorem46_right_trunc_step_pointwise_data
     intro x hx
     exact hx
   monotone := by
-    intro x _hx hφt hφu _hψt _hψu
+    intro x _hx hφtDom hφuDom _hψtDom _hψuDom hφt hφu _hψt _hψu
     have hφtdom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφuDom hφu
+    have hχtDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hφtDom hφt
+    have hχuDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
     have hχt :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hφtDom hφt
     have hχu :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hχ_eq :
         (BishopC.seriesSum_of_abs hχu).sum =
           (BishopC.seriesSum_of_abs hχt).sum :=
@@ -523,10 +647,12 @@ def theorem46_right_trunc_step_pointwise_data
         (BishopC.seriesSum_of_abs hχt)
     have hφtval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hφtdom hχt hφt
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hφtdom hχtDom hφtDom hχt hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hφudom hχu hφu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hφudom hχuDom hφuDom hχu hφu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     rw [hφtval, hφuval, hφ_eq, hχ_eq]
@@ -534,34 +660,56 @@ def theorem46_right_trunc_step_pointwise_data
       (Nat.le_add_left s2.n s1.n)
       (COFO.mul_nonneg
         (theorem46_chi_value_nonneg
-          (BishopC.IntegrableSet1_or s1.hA s2.hA) hχt)
+          (BishopC.IntegrableSet1_or s1.hA s2.hA) hχtDom hχt)
         (Rel.left_nonneg x hφtdom))
   increment_bound := by
-    intro x _hx hφt hφu hψt hψu
+    intro x _hx hφtDom hφuDom hψtDom hψuDom hφt hφu hψt hψu
     have hφtdom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hφtDom hφt
     have hφudom :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hφuDom hφu
     have hψtdom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value x hψt
+        (theorem46_stateData_or_rightN s1 s2)).dom_of_mid_value
+          x hψtDom hψt
     have hψudom :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hψu
+        (theorem46_stateData_s3 s1 s2)).dom_of_mid_value x hψuDom hψu
+    have hχφtDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hφtDom hφt
+    have hχφuDom :=
+      (theorem46_mid_source Mφ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hφuDom hφu
+    have hχψtDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_or_rightN s1 s2)).chiA_dom_of_mid_value
+          x hψtDom hψt
+    have hχψuDom :=
+      (theorem46_mid_source Mψ
+        (theorem46_stateData_s3 s1 s2)).chiA_dom_of_mid_value
+          x hψuDom hψu
     have hχφt :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hφt
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hφtDom hφt
     have hχφu :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hφu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hφuDom hφu
     have hχψt :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value x hψt
+        (theorem46_stateData_or_rightN s1 s2)).chiA_abs_of_mid_value
+          x hψtDom hψt
     have hχψu :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value x hψu
+        (theorem46_stateData_s3 s1 s2)).chiA_abs_of_mid_value
+          x hψuDom hψu
     have hχφtψt :
         (BishopC.seriesSum_of_abs hχφt).sum =
           (BishopC.seriesSum_of_abs hχψt).sum :=
@@ -582,16 +730,20 @@ def theorem46_right_trunc_step_pointwise_data
         (BishopC.seriesSum_of_abs hχψt)
     have hφtval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hφtdom hχφt hφt
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hφtdom hχφtDom hφtDom hχφt hφt
     have hφuval :=
       (theorem46_mid_source Mφ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hφudom hχφu hφu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hφudom hχφuDom hφuDom hχφu hφu
     have hψtval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_or_rightN s1 s2)).value_eq x hψtdom hχψt hψt
+        (theorem46_stateData_or_rightN s1 s2)).value_eq
+          x hψtdom hχψtDom hψtDom hχψt hψt
     have hψuval :=
       (theorem46_mid_source Mψ
-        (theorem46_stateData_s3 s1 s2)).value_eq x hψudom hχψu hψu
+        (theorem46_stateData_s3 s1 s2)).value_eq
+          x hψudom hχψuDom hψuDom hχψu hψu
     have hφ_eq : φh.toFun x hφudom = φh.toFun x hφtdom :=
       pfun_value_proof_irrel φh hφudom hφtdom
     have hψ_eq : ψh.toFun x hψudom = ψh.toFun x hψtdom :=
@@ -601,7 +753,7 @@ def theorem46_right_trunc_step_pointwise_data
     exact theorem46_scalarMid_chi_trunc_increment_bound
       (Nat.le_add_left s2.n s1.n)
       (theorem46_chi_value_zero_or_one
-        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχψt)
+        (BishopC.IntegrableSet1_or s1.hA s2.hA) hχψtDom hχψt)
       (Rel.left_nonneg x hφtdom)
       (Rel.right_nonneg x hψtdom)
       (Rel.le_value x hφtdom hψtdom)

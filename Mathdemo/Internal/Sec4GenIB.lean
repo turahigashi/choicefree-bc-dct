@@ -37,8 +37,8 @@ theorem coverApart_decr {S : IntSpaceRC X R} (f : IntegrableRep S) (k : Nat) :
 theorem coverSet_mono {S : IntSpaceRC X R} (f : IntegrableRep S) (k : Nat) :
     (coverSet f k).S1 ⊆ (coverSet f (k+1)).S1 := by
   intro x hx
-  obtain ⟨habs, hsum, hle⟩ := hx
-  exact ⟨habs, hsum, le_trans (le_of_lt (coverApart_decr f k)) hle⟩
+  obtain ⟨hdom, habs, hsum, hle⟩ := hx
+  exact ⟨hdom, habs, hsum, le_trans (le_of_lt (coverApart_decr f k)) hle⟩
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -66,30 +66,41 @@ theorem coverSet_approx_le {S : IntSpaceRC X R} (f : IntegrableRep S) (hnn : Rep
       (f.sub (f.cutConstVal (coverApart f k).t (coverApart_t_nonneg f k))).domain_isFull
       (prop_4_2_chi_f_rep (coverSet f k) (coverSet_int f k) f hnn).domain_isFull)
       f.domain_isFull) (coverSet_int f k).rep.domain_isFull) _ _ ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨_hxLk, hxchi⟩, hxf⟩, hxχ⟩ := hx
-  obtain ⟨_, ⟨hflatabs⟩⟩ := hxchi
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
-  have hval := prop_4_2_chi_f_rep_value (coverSet f k) (coverSet_int f k) f hnn hflatabs hχabs hfabs
+  obtain ⟨hflatDom, ⟨hflatabs⟩⟩ := hxchi
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
+  have hval := prop_4_2_chi_f_rep_value
+    (coverSet f k) (coverSet_int f k) f hnn
+      hflatDom hχDom hfDom hflatabs hχabs hfabs
+  let hcutDom := f.mem_cutConstVal_dom
+    (coverApart f k).t (coverApart_t_nonneg f k) hfDom
+  let hnegCutDom := IntegrableRep.neg_memAt hcutDom
   obtain ⟨hcut, hcuteq⟩ :=
-    f.cutConstVal_signed_value (coverApart f k).t (coverApart_t_nonneg f k) x (seriesSum_of_abs hfabs)
-  rw [seriesSum_unique hr (add_seriesSum_value (seriesSum_of_abs hfabs) (neg_seriesSum_value hcut)),
+    f.cutConstVal_signed_value (coverApart f k).t (coverApart_t_nonneg f k)
+      x hfDom (seriesSum_of_abs hfabs)
+  rw [seriesSum_unique hr
+        (add_seriesSum_value hfDom hnegCutDom (seriesSum_of_abs hfabs)
+          (neg_seriesSum_value hcutDom hcut)),
       seriesSum_unique hr' (seriesSum_of_abs hflatabs), hval]
   show Le ((seriesSum_of_abs hfabs).sum + (-(hcut.sum)))
           ((seriesSum_of_abs hχabs).sum * (seriesSum_of_abs hfabs).sum)
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
-  rcases ((coverSet_int f k).valid x hχabs).1 with hS1 | hS2
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
+  rcases ((coverSet_int f k).valid x hχDom hχabs).1 with hS1 | hS2
   · -- χ = 1, min ≥ 0
-    rw [((coverSet_int f k).valid x hχabs).2.1 hS1 (seriesSum_of_abs hχabs), one_mul, hcuteq]
+    rw [((coverSet_int f k).valid x hχDom hχabs).2.1
+      hS1 (seriesSum_of_abs hχabs), one_mul, hcuteq]
     refine le_of_nonneg_sub ?_
     rw [show (seriesSum_of_abs hfabs).sum
           - ((seriesSum_of_abs hfabs).sum + (-(COF.min (seriesSum_of_abs hfabs).sum (coverApart f k).t)))
           = COF.min (seriesSum_of_abs hfabs).sum (coverApart f k).t from by ring]
     exact le_min hfnn (coverApart_t_nonneg f k)
   · -- χ = 0, min = hf.sum (hf.sum < t_k)
-    rw [((coverSet_int f k).valid x hχabs).2.2 hS2 (seriesSum_of_abs hχabs), zero_mul, hcuteq]
-    obtain ⟨_, hxf2, hlt⟩ := hS2
+    rw [((coverSet_int f k).valid x hχDom hχabs).2.2
+      hS2 (seriesSum_of_abs hχabs), zero_mul, hcuteq]
+    obtain ⟨_hfDom2, _hfabs2, hxf2, hlt⟩ := hS2
     rw [seriesSum_unique hxf2 (seriesSum_of_abs hfabs)] at hlt
     rw [min_eq_left_of_le (le_of_lt hlt)]
     rw [show (seriesSum_of_abs hfabs).sum + (-((seriesSum_of_abs hfabs).sum)) = (0:R) from by ring]

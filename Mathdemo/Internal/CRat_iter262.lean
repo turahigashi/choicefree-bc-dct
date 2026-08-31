@@ -86,12 +86,18 @@ theorem prop42_chi_f_rep_value_available
     {R : Type*} [COFOC R] {Y : Type} {S : BishopC.IntSpaceRC Y R}
     (A : BishopC.BSet Y) (hA : BishopC.IntegrableSet1 S A)
     (f : BishopC.IntegrableRep S) (hnn : BishopC.RepNonneg f) {x : Y}
-    (hflatabs : RSeq.SeriesSum (fun n => COF.abs (((BishopC.prop_4_2_chi_f_rep A hA f hnn).fn n).toFun x)))
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x)))
-    (hfabs : RSeq.SeriesSum (fun n => COF.abs ((f.fn n).toFun x))) :
+    (hflatDom : (BishopC.prop_4_2_chi_f_rep A hA f hnn).MemAt x)
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x)
+    (hflatabs : RSeq.SeriesSum (fun n => COF.abs
+      ((BishopC.prop_4_2_chi_f_rep A hA f hnn).valueAt x hflatDom n)))
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs
+      (hA.rep.valueAt x hχDom n)))
+    (hfabs : RSeq.SeriesSum (fun n => COF.abs
+      (f.valueAt x hfDom n))) :
     (seriesSum_of_abs hflatabs).sum
       = (seriesSum_of_abs hχabs).sum * (seriesSum_of_abs hfabs).sum :=
-  BishopC.prop_4_2_chi_f_rep_value A hA f hnn hflatabs hχabs hfabs
+  BishopC.prop_4_2_chi_f_rep_value A hA f hnn
+    hflatDom hχDom hfDom hflatabs hχabs hfabs
 
 /-- G163 audit package for the first two numbered Chapter 4 items. -/
 structure Chapter4G163Def41Prop42Package

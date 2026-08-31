@@ -85,57 +85,41 @@ theorem min2_dom_of_left_right {r r' : IntegrableRep S} {x : X}
 /-! ## 2. Forward absolute-convergence transport -/
 
 /-- Forward absolute-convergence transport for representative addition. -/
-def add_absSeriesSum_of_left_right {r r' : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)))
-    (hr' : RSeq.SeriesSum (fun k => COF.abs ((r'.fn k).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.add r').fn n).toFun x)) :=
-  seriesSum_congr
-    (fun n => by
-      rw [add_fn_toFun]
-      rw [seqInterleave_map (fun y : R => COF.abs y)])
-    (seriesSum_interleave hr hr')
+noncomputable def add_absSeriesSum_of_left_right
+    {r r' : IntegrableRep S} {x : X}
+    (hr : Sec4RepAbsAt r x) (hr' : Sec4RepAbsAt r' x) :
+    Sec4RepAbsAt (r.add r') x :=
+  sec4_add_absSeriesSum_fwd hr hr'
 
 
 /-- Forward absolute-convergence transport for representative negation. -/
-def neg_absSeriesSum_of_abs {r : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.neg).fn n).toFun x)) :=
-  seriesSum_congr
-    (fun n => by
-      rw [neg_fn_toFun, COFO.abs_neg])
-    hr
+noncomputable def neg_absSeriesSum_of_abs
+    {r : IntegrableRep S} {x : X} (hr : Sec4RepAbsAt r x) :
+    Sec4RepAbsAt r.neg x :=
+  sec4_neg_absSeriesSum_fwd hr
 
 
 /-- Forward absolute-convergence transport for representative subtraction. -/
-def sub_absSeriesSum_of_left_right {r r' : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)))
-    (hr' : RSeq.SeriesSum (fun k => COF.abs ((r'.fn k).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.sub r').fn n).toFun x)) := by
-  unfold IntegrableRep.sub
-  exact add_absSeriesSum_of_left_right hr (neg_absSeriesSum_of_abs hr')
+noncomputable def sub_absSeriesSum_of_left_right
+    {r r' : IntegrableRep S} {x : X}
+    (hr : Sec4RepAbsAt r x) (hr' : Sec4RepAbsAt r' x) :
+    Sec4RepAbsAt (r.sub r') x :=
+  sec4_sub_absSeriesSum_fwd hr hr'
 
 
 /-- Forward absolute-convergence transport for scalar multiplication. -/
-def smul_absSeriesSum_of_abs {a : R} {r : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((r.smul a).fn n).toFun x)) :=
-  seriesSum_congr
-    (fun n => by
-      rw [smul_fn_toFun, COFO.abs_mul])
-    (seriesSum_smul (COF.abs a) hr)
+noncomputable def smul_absSeriesSum_of_abs
+    {a : R} {r : IntegrableRep S} {x : X} (hr : Sec4RepAbsAt r x) :
+    Sec4RepAbsAt (r.smul a) x :=
+  sec4_smul_absSeriesSum a hr
 
 
 /-- Forward absolute-convergence transport for `min2`. -/
-def min2_absSeriesSum_of_left_right {r r' : IntegrableRep S} {x : X}
-    (hr : RSeq.SeriesSum (fun k => COF.abs ((r.fn k).toFun x)))
-    (hr' : RSeq.SeriesSum (fun k => COF.abs ((r'.fn k).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs (((IntegrableRep.min2 r r').fn n).toFun x)) := by
-  unfold IntegrableRep.min2
-  exact smul_absSeriesSum_of_abs
-    (sub_absSeriesSum_of_left_right
-      (add_absSeriesSum_of_left_right hr hr')
-      (IntegrableRep.absVal_absSeries (r.sub r')
-        (sub_absSeriesSum_of_left_right hr hr')))
+noncomputable def min2_absSeriesSum_of_left_right
+    {r r' : IntegrableRep S} {x : X}
+    (hr : Sec4RepAbsAt r x) (hr' : Sec4RepAbsAt r' x) :
+    Sec4RepAbsAt (IntegrableRep.min2 r r') x :=
+  sec4_min2_absSeriesSum hr hr'
 
 
 /-! ## 3. Audit -/

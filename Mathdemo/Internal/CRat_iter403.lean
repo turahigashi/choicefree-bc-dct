@@ -51,16 +51,13 @@ theorem Gm_sum_le_row_abs
     (F : Nat → IntegrableRep S)
     (i : Nat) {x : X}
     (hrow : RepDefinedAt (S := S) (F i) x) :
-    Le ((RepDefinedAt.Gm (S := S) F i x).sum) hrow.sum := by
-  change Le (COF.abs ((psi_m F i).toFun x)) hrow.sum
-  rw [psi_m, BFunR.seqSum_toFun]
-  exact le_trans
-    (abs_partialSum_le_abs_partialSum
-      (fun n => ((F i).fn n).toFun x) (Nm F i))
-    (partialSum_le_sum
-      (fun n => abs_nonneg (((F i).fn n).toFun x))
-      hrow
-      (Nm F i))
+    Le ((RepDefinedAt.Gm (S := S) F i x hrow).sum) hrow.sum := by
+  let hPsiDom : x ∈ (psi_m F i).dom :=
+    BFunR.seqSum_mem (F i).fn x hrow.dom (Nm F i)
+  change Le (COF.abs ((psi_m F i).toFun x hPsiDom)) hrow.series.sum
+  simpa only [psi_m] using
+    (sec4_abs_seqSum_le_seriesSum
+      (F i) x hrow.dom hrow.series (Nm F i))
 
 
 /-- The `tail_m` split row is bounded pointwise by the absolute sum of the
@@ -71,26 +68,26 @@ theorem tailm_sum_le_row_abs
     (hrow : RepDefinedAt (S := S) (F i) x) :
     Le ((RepDefinedAt.tailm (S := S) F i hrow).sum) hrow.sum := by
   change Le
-    ((seriesSum_tail hrow (Nm F i)).sum)
+    ((seriesSum_tail hrow.series (Nm F i)).sum)
     hrow.sum
   apply le_of_nonneg_sub
-  show Nonneg (hrow.sum - ((seriesSum_tail hrow (Nm F i)).sum))
-  rw [show hrow.sum - ((seriesSum_tail hrow (Nm F i)).sum)
+  show Nonneg (hrow.sum - ((seriesSum_tail hrow.series (Nm F i)).sum))
+  rw [show hrow.sum - ((seriesSum_tail hrow.series (Nm F i)).sum)
       = RSeq.partialSum
-          (fun n => COF.abs (((F i).fn n).toFun x))
+          (fun n => COF.abs ((F i).valueAt x hrow.dom n))
           (Nm F i) from by
         change hrow.sum
             - (hrow.sum
               - RSeq.partialSum
-                (fun n => COF.abs (((F i).fn n).toFun x))
+                (fun n => COF.abs ((F i).valueAt x hrow.dom n))
                 (Nm F i))
             =
               RSeq.partialSum
-                (fun n => COF.abs (((F i).fn n).toFun x))
+                (fun n => COF.abs ((F i).valueAt x hrow.dom n))
                 (Nm F i)
         ring]
   exact partialSum_nonneg
-    (fun n => abs_nonneg (((F i).fn n).toFun x))
+    (fun n => abs_nonneg ((F i).valueAt x hrow.dom n))
     (Nm F i)
 
 

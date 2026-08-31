@@ -39,7 +39,7 @@ theorem genRelIntegral_from_measurable_mono_integrand_of_localBridges
       u.domain_isFull) v.domain_isFull)
     (genIB_rep_from_measurable B hB u hnn_u)
     (genIB_rep_from_measurable B hB v hnn_v) ?_
-  intro x hx hr hr'
+  intro x hx _hrDom _hr'Dom hr hr'
   obtain ⟨⟨⟨hxgenU, hxgenV⟩, hxu⟩, hxv⟩ := hx
   obtain ⟨hgenUDom, ⟨hgenUabs⟩⟩ := hxgenU
   obtain ⟨hgenVDom, ⟨hgenVabs⟩⟩ := hxgenV
@@ -57,9 +57,9 @@ theorem genRelIntegral_from_measurable_mono_integrand_of_localBridges
     f_dom := hvDom
     f_abs := hvabs
   }
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   have hgenU_sum :
       hr.sum = (seriesSum_of_abs hgenUabs).sum :=
@@ -68,13 +68,16 @@ theorem genRelIntegral_from_measurable_mono_integrand_of_localBridges
       hr'.sum = (seriesSum_of_abs hgenVabs).sum :=
     seriesSum_unique hr' (seriesSum_of_abs hgenVabs)
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAt : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd
+        ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAt.fst n) := by
+        simpa using add_seriesSum_value hvDom
+          (IntegrableRep.neg_memAt huDom) hv
+          (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAt.fst hsubAt.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
@@ -123,21 +126,29 @@ theorem genRelIntegral_from_measurable_add_integrand_of_localBridges
     (genIB_rep_from_measurable B hB (u.add v) hnn_add)
     ((genIB_rep_from_measurable B hB u hnn_u).add
       (genIB_rep_from_measurable B hB v hnn_v)) ?_
-  intro x hx hgenAdd hgenSum
+  intro x hx _hgenAddArgDom _hgenSumArgDom hgenAdd hgenSum
   obtain ⟨⟨hxgenAdd, hxgenSum⟩, hxuv⟩ := hx
   obtain ⟨hgenAddDom, ⟨hgenAddAbs⟩⟩ := hxgenAdd
   obtain ⟨hgenSumDom, ⟨hgenSumAbs⟩⟩ := hxgenSum
   obtain ⟨huvDom, ⟨huvAbs⟩⟩ := hxuv
-  have huAbs : RSeq.SeriesSum (fun k => COF.abs ((u.fn k).toFun x)) :=
-    add_absSeriesSum_left huvAbs
-  have hvAbs : RSeq.SeriesSum (fun k => COF.abs ((v.fn k).toFun x)) :=
-    add_absSeriesSum_right huvAbs
+  let huDom := add_dom_left huvDom
+  let hvDom := add_dom_right huvDom
+  have huAbs : RSeq.SeriesSum
+      (fun k => COF.abs (u.valueAt x huDom k)) :=
+    add_absSeriesSum_left huvDom huvAbs
+  have hvAbs : RSeq.SeriesSum
+      (fun k => COF.abs (v.valueAt x hvDom k)) :=
+    add_absSeriesSum_right huvDom huvAbs
+  let hgenUDom := add_dom_left hgenSumDom
+  let hgenVDom := add_dom_right hgenSumDom
   have hgenUAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((genIB_rep_from_measurable B hB u hnn_u).fn k).toFun x)) :=
-    add_absSeriesSum_left hgenSumAbs
+      (fun k => COF.abs
+        ((genIB_rep_from_measurable B hB u hnn_u).valueAt x hgenUDom k)) :=
+    add_absSeriesSum_left hgenSumDom hgenSumAbs
   have hgenVAbs : RSeq.SeriesSum
-      (fun k => COF.abs (((genIB_rep_from_measurable B hB v hnn_v).fn k).toFun x)) :=
-    add_absSeriesSum_right hgenSumAbs
+      (fun k => COF.abs
+        ((genIB_rep_from_measurable B hB v hnn_v).valueAt x hgenVDom k)) :=
+    add_absSeriesSum_right hgenSumDom hgenSumAbs
   let Wadd : Sec4GenIBLocalWitness (S := S) B hB (u.add v) hnn_add x := {
     gen_dom := hgenAddDom
     gen_abs := hgenAddAbs
@@ -145,30 +156,33 @@ theorem genRelIntegral_from_measurable_add_integrand_of_localBridges
     f_abs := huvAbs
   }
   let Wu : Sec4GenIBLocalWitness (S := S) B hB u hnn_u x := {
-    gen_dom := add_dom_left hgenSumDom
+    gen_dom := hgenUDom
     gen_abs := hgenUAbs
-    f_dom := add_dom_left huvDom
+    f_dom := huDom
     f_abs := huAbs
   }
   let Wv : Sec4GenIBLocalWitness (S := S) B hB v hnn_v x := {
-    gen_dom := add_dom_right hgenSumDom
+    gen_dom := hgenVDom
     gen_abs := hgenVAbs
-    f_dom := add_dom_right huvDom
+    f_dom := hvDom
     f_abs := hvAbs
   }
-  let huSum : RSeq.SeriesSum (fun k => (u.fn k).toFun x) :=
+  let huSum : RSeq.SeriesSum (fun k => u.valueAt x huDom k) :=
     seriesSum_of_abs huAbs
-  let hvSum : RSeq.SeriesSum (fun k => (v.fn k).toFun x) :=
+  let hvSum : RSeq.SeriesSum (fun k => v.valueAt x hvDom k) :=
     seriesSum_of_abs hvAbs
   let hgenUSum : RSeq.SeriesSum
-      (fun k => ((genIB_rep_from_measurable B hB u hnn_u).fn k).toFun x) :=
+      (fun k => (genIB_rep_from_measurable B hB u hnn_u).valueAt
+        x hgenUDom k) :=
     seriesSum_of_abs hgenUAbs
   let hgenVSum : RSeq.SeriesSum
-      (fun k => ((genIB_rep_from_measurable B hB v hnn_v).fn k).toFun x) :=
+      (fun k => (genIB_rep_from_measurable B hB v hnn_v).valueAt
+        x hgenVDom k) :=
     seriesSum_of_abs hgenVAbs
   have hgenSum_eq :
       hgenSum.sum = hgenUSum.sum + hgenVSum.sum :=
-    seriesSum_unique hgenSum (add_seriesSum_value hgenUSum hgenVSum)
+    seriesSum_unique hgenSum
+      (add_seriesSum_value hgenUDom hgenVDom hgenUSum hgenVSum)
   rcases Vadd.domain x Wadd with hxB1 | hxB2
   · have hAddVal :
         (seriesSum_of_abs hgenAddAbs).sum =
@@ -180,7 +194,7 @@ theorem genRelIntegral_from_measurable_add_integrand_of_localBridges
       Vv.value_s1 x hxB1 Wv
     have huv_eq : (seriesSum_of_abs huvAbs).sum = huSum.sum + hvSum.sum :=
       seriesSum_unique (seriesSum_of_abs huvAbs)
-        (add_seriesSum_value huSum hvSum)
+        (add_seriesSum_value huDom hvDom huSum hvSum)
     calc
       hgenAdd.sum = (seriesSum_of_abs hgenAddAbs).sum :=
         seriesSum_unique hgenAdd (seriesSum_of_abs hgenAddAbs)
@@ -226,13 +240,13 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_localBridge
     (genIB_rep_from_measurable C
       (isMeasurableSet_of_integrable (S := S) hC) u hnn_u)
     (prop_4_2_chi_f_rep C hC v hnn_v) ?_
-  intro x hx hgen hrel
+  intro x hx _hgenArgDom _hrelArgDom hgen hrel
   obtain ⟨⟨⟨⟨hxgen, hxrel⟩, hxu⟩, hxv⟩, hxχ⟩ := hx
   obtain ⟨hgenDom, ⟨hgenabs⟩⟩ := hxgen
-  obtain ⟨_, ⟨hrelabs⟩⟩ := hxrel
+  obtain ⟨hrelDom, ⟨hrelabs⟩⟩ := hxrel
   obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
   let W : Sec4GenIBLocalWitness
       (S := S) C (isMeasurableSet_of_integrable (S := S) hC) u hnn_u x := {
     gen_dom := hgenDom
@@ -240,9 +254,9 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_localBridge
     f_dom := huDom
     f_abs := huabs
   }
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   have hgen_sum :
       hgen.sum = (seriesSum_of_abs hgenabs).sum :=
@@ -253,15 +267,19 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_localBridge
   have hrel_value :
       (seriesSum_of_abs hrelabs).sum =
         (seriesSum_of_abs hχabs).sum * hv.sum :=
-    prop_4_2_chi_f_rep_value C hC v hnn_v hrelabs hχabs hvabs
+    prop_4_2_chi_f_rep_value C hC v hnn_v
+      hrelDom hχDom hvDom hrelabs hχabs hvabs
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAt : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd
+        ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAt.fst n) := by
+        simpa using add_seriesSum_value hvDom
+          (IntegrableRep.neg_memAt huDom) hv
+          (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAt.fst hsubAt.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
@@ -273,7 +291,7 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_localBridge
       Vu.value_s1 x hxC1 W
     have hχ_one :
         (seriesSum_of_abs hχabs).sum = 1 :=
-      (hC.valid x hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
     rw [hgen_sum, hrel_sum, hgen_value, hrel_value, hχ_one, one_mul]
     exact huv_le
   · have hgen_value :
@@ -281,7 +299,7 @@ theorem genRelIntegral_from_measurable_le_relIntegral_of_localBridge
       Vu.value_s2 x hxC2 W
     have hχ_zero :
         (seriesSum_of_abs hχabs).sum = 0 :=
-      (hC.valid x hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
     rw [hgen_sum, hrel_sum, hgen_value, hrel_value, hχ_zero, zero_mul]
     exact le_refl _
 
@@ -313,15 +331,15 @@ theorem genRelIntegral_neg_le_complementIntegral_of_localBridge
     (genIB_rep_from_measurable (BSet.neg C)
       (isMeasurableSet_neg_of_integrable (S := S) hC) u hnn_u)
     (v.sub (prop_4_2_chi_f_rep C hC v hnn_v)) ?_
-  intro x hx hgen hcomp
+  intro x hx _hgenArgDom _hcompArgDom hgen hcomp
   obtain ⟨⟨⟨⟨hxgen, hxcomp⟩, hxchiF⟩, hxχ⟩, hxuv⟩ := hx
   obtain ⟨hxu, hxv⟩ := hxuv
   obtain ⟨hgenDom, ⟨hgenabs⟩⟩ := hxgen
   obtain ⟨_, ⟨_hcompabs⟩⟩ := hxcomp
-  obtain ⟨_, ⟨hchiFabs⟩⟩ := hxchiF
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
+  obtain ⟨hchiFDom, ⟨hchiFabs⟩⟩ := hxchiF
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
   obtain ⟨huDom, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hvDom, ⟨hvabs⟩⟩ := hxv
   let W : Sec4GenIBLocalWitness
       (S := S) (BSet.neg C)
       (isMeasurableSet_neg_of_integrable (S := S) hC) u hnn_u x := {
@@ -330,16 +348,18 @@ theorem genRelIntegral_neg_le_complementIntegral_of_localBridge
     f_dom := huDom
     f_abs := huabs
   }
-  let hu : RSeq.SeriesSum (fun n => (u.fn n).toFun x) :=
+  let hu : RSeq.SeriesSum (fun n => u.valueAt x huDom n) :=
     seriesSum_of_abs huabs
-  let hv : RSeq.SeriesSum (fun n => (v.fn n).toFun x) :=
+  let hv : RSeq.SeriesSum (fun n => v.valueAt x hvDom n) :=
     seriesSum_of_abs hvabs
   let hcompValue :=
-    add_seriesSum_value hv (neg_seriesSum_value (seriesSum_of_abs hchiFabs))
+    add_seriesSum_value hvDom (IntegrableRep.neg_memAt hchiFDom)
+      hv (neg_seriesSum_value hchiFDom (seriesSum_of_abs hchiFabs))
   have hcomp_value :
       hcompValue.sum =
         (1 - (seriesSum_of_abs hχabs).sum) * hv.sum :=
-    prop_4_2_complement_value C hC v hnn_v hchiFabs hχabs hvabs
+    prop_4_2_complement_value C hC v hnn_v
+      hchiFDom hχDom hvDom hchiFabs hχabs hvabs
   have hgen_sum :
       hgen.sum = (seriesSum_of_abs hgenabs).sum :=
     seriesSum_unique hgen (seriesSum_of_abs hgenabs)
@@ -347,22 +367,25 @@ theorem genRelIntegral_neg_le_complementIntegral_of_localBridge
       hcomp.sum = hcompValue.sum :=
     seriesSum_unique hcomp hcompValue
   have huv_le : Le hu.sum hv.sum := by
-    have hsubAbs : RSeq.SeriesSum
-        (fun n => COF.abs (((v.sub u).fn n).toFun x)) :=
-      sec4_sub_absSeriesSum_fwd hvabs huabs
+    let hsubAt : Sec4RepAbsAt (v.sub u) x :=
+      sec4_sub_absSeriesSum_fwd
+        ⟨hvDom, hvabs⟩ ⟨huDom, huabs⟩
     have hnonneg : Nonneg (hv.sum + -hu.sum) := by
-      let hsub : RSeq.SeriesSum (fun n => ((v.sub u).fn n).toFun x) :=
-        add_seriesSum_value hv (neg_seriesSum_value hu)
-      have h := hvu x hsubAbs hsub
+      let hsub : RSeq.SeriesSum
+          (fun n => (v.sub u).valueAt x hsubAt.fst n) := by
+        simpa using add_seriesSum_value hvDom
+          (IntegrableRep.neg_memAt huDom) hv
+          (neg_seriesSum_value huDom hu)
+      have h := hvu x hsubAt.fst hsubAt.snd hsub
       change Nonneg (hv.sum + -hu.sum) at h
       exact h
     exact le_of_nonneg_sub (by
       rw [show hv.sum - hu.sum = hv.sum + -hu.sum from by ring]
       exact hnonneg)
-  rcases (hC.valid x hχabs).1 with hxC1 | hxC2
+  rcases (hC.valid x hχDom hχabs).1 with hxC1 | hxC2
   · have hχ_one :
         (seriesSum_of_abs hχabs).sum = 1 :=
-      (hC.valid x hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.1 hxC1 (seriesSum_of_abs hχabs)
     have hgen_value :
         (seriesSum_of_abs hgenabs).sum = 0 :=
       Vu.value_s2 x (by simpa [BSet.neg] using hxC1) W
@@ -371,7 +394,7 @@ theorem genRelIntegral_neg_le_complementIntegral_of_localBridge
     exact le_refl _
   · have hχ_zero :
         (seriesSum_of_abs hχabs).sum = 0 :=
-      (hC.valid x hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
+      (hC.valid x hχDom hχabs).2.2 hxC2 (seriesSum_of_abs hχabs)
     have hgen_value :
         (seriesSum_of_abs hgenabs).sum = hu.sum :=
       Vu.value_s1 x (by simpa [BSet.neg] using hxC2) W
@@ -394,21 +417,29 @@ theorem thm_4_15_genIB_split_le_on_support_of_localBridges
     (VnegA : Sec4GenIBLocalValueBridge (S := S) (BSet.neg A)
       (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn) :
     ∀ x ∈ thm_4_15_ib_split_support (S := S) A B hA hB u hnn,
+      ∀ (hleftDom : (genIB_rep_from_measurable B hB u hnn).MemAt x),
+      ∀ (hrightDom :
+        ((genIB_rep_from_measurable (BSet.and A B)
+            (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).add
+          (genIB_rep_from_measurable (BSet.neg A)
+            (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).MemAt x),
       ∀ (hleft : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable B hB u hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable B hB u hnn).valueAt
+          x hleftDom n))
         (hright : RSeq.SeriesSum
         (fun n =>
-          (((genIB_rep_from_measurable (BSet.and A B)
+          ((genIB_rep_from_measurable (BSet.and A B)
               (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).add
             (genIB_rep_from_measurable (BSet.neg A)
-              (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).fn n).toFun x)),
+              (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).valueAt
+            x hrightDom n)),
         Le hleft.sum hright.sum := by
-  intro x hx hleft hright
+  intro x hx _hleftArgDom _hrightArgDom hleft hright
   rcases hx with ⟨⟨⟨⟨hBDom, hABDom⟩, hNegDom⟩, hADom⟩, huDom⟩
   rcases hBDom with ⟨hBDomAll, ⟨hBabs⟩⟩
   rcases hABDom with ⟨hABDomAll, ⟨hABabs⟩⟩
   rcases hNegDom with ⟨hNegDomAll, ⟨hNegabs⟩⟩
-  rcases hADom with ⟨_, ⟨hAabs⟩⟩
+  rcases hADom with ⟨hADomAll, ⟨hAabs⟩⟩
   rcases huDom with ⟨huDomAll, ⟨huabs⟩⟩
   let WB : Sec4GenIBLocalWitness (S := S) B hB u hnn x := {
     gen_dom := hBDomAll
@@ -431,32 +462,36 @@ theorem thm_4_15_genIB_split_le_on_support_of_localBridges
     f_abs := huabs
   }
   let hBsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable B hB u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable B hB u hnn).valueAt
+        x hBDomAll n) :=
     seriesSum_of_abs hBabs
   let hABsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable (BSet.and A B)
-        (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable (BSet.and A B)
+        (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).valueAt
+          x hABDomAll n) :=
     seriesSum_of_abs hABabs
   let hNegsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable (BSet.neg A)
-        (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable (BSet.neg A)
+        (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn).valueAt
+          x hNegDomAll n) :=
     seriesSum_of_abs hNegabs
   have hleft_eq : hleft.sum = hBsum.sum :=
     seriesSum_unique hleft hBsum
   have hright_eq : hright.sum = hABsum.sum + hNegsum.sum :=
-    seriesSum_unique hright (add_seriesSum_value hABsum hNegsum)
+    seriesSum_unique hright
+      (add_seriesSum_value hABDomAll hNegDomAll hABsum hNegsum)
   have hAB_nonneg : Nonneg hABsum.sum :=
     genIB_rep_from_measurable_repNonneg
       (BSet.and A B)
       (isMeasurableSet_of_integrable (S := S) (hB A hA))
-      u hnn x hABabs hABsum
+      u hnn x hABDomAll hABabs hABsum
   have hNeg_nonneg : Nonneg hNegsum.sum :=
     genIB_rep_from_measurable_repNonneg
       (BSet.neg A)
       (isMeasurableSet_neg_of_integrable (S := S) hA)
-      u hnn x hNegabs hNegsum
+      u hnn x hNegDomAll hNegabs hNegsum
   have hBcases := VB.domain x WB
-  have hAcases := (hA.valid x hAabs).1
+  have hAcases := (hA.valid x hADomAll hAabs).1
   cases hBcases with
   | inl hxB1 =>
       have hB_value : hBsum.sum = (seriesSum_of_abs huabs).sum :=

@@ -88,11 +88,13 @@ def Sec4LambdaSuccChiAbsOfAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ k : Nat,
     ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X),
+      ∀ hrowDom :
+        (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) (k + 1)).MemAt x,
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) (k + 1)).fn m).toFun x))) →
-      RSeq.SeriesSum
-        (fun m => COF.abs (((hA.rep.fn m).toFun x)))
+          ((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) (k + 1)).valueAt
+            x hrowDom m)) →
+      Sec4RepAbsAt hA.rep x
 
 
 /--
@@ -101,13 +103,15 @@ Extract `χ_A` abs convergence from any successor row of `prop_4_2_lambda_k`.
 noncomputable def sec4_lambdaSuccChiAbs
     (f : IntegrableRep S) (hnn : RepNonneg f) :
     Sec4LambdaSuccChiAbsOfAbs (S := S) f hnn := by
-  intro k A hA x hrowabs
-  dsimp [prop_4_2_lambda_k] at hrowabs
+  intro k A hA x hrowDom hrowabs
+  dsimp [prop_4_2_lambda_k] at hrowDom hrowabs
   let coeff : Nat := prop_4_2_n_k f (k + 1) - prop_4_2_n_k f k
+  let hleftDom := min2_dom_left hrowDom
   let hleftAbs :=
-    min2_absSeriesSum_left hrowabs
+    min2_absSeriesSum_left hrowDom hrowabs
   exact sec4_natSmuled_abs_cancel (S := S)
-    coeff (sec4_prop42_nk_diff_pos (S := S) f k) hA.rep x hleftAbs
+    coeff (sec4_prop42_nk_diff_pos (S := S) f k)
+      hA.rep x hleftDom hleftAbs
 
 
 /--
@@ -117,19 +121,27 @@ row 1 of the internal `seriesSumRep_L1`.
 noncomputable def sec4_setChiAbsOfChiFAbs_of_row1
     (f : IntegrableRep S) (hnn : RepNonneg f) :
     Sec4SetChiAbsOfChiFAbs (S := S) f hnn := by
-  intro A hA x hflatabs
-  unfold prop_4_2_chi_f_rep at hflatabs
+  intro A hA x hflatDom hflatabs
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
+  let hrow1Dom :
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 1).MemAt x :=
+    seriesSumRep_L1_F_memAt
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
+      _ hflatDom 1
   let hrow1 :
       RSeq.SeriesSum
         (fun m => COF.abs
-          ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 1).fn m).toFun x))) :=
+          ((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) 1).valueAt
+            x hrow1Dom m)) :=
     seriesSumRep_L1_row_absConv
       (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
       _
       (x := x)
+      hflatDom
       hflatabs
       1
-  exact sec4_lambdaSuccChiAbs (S := S) f hnn 0 A hA x hrow1
+  exact sec4_lambdaSuccChiAbs (S := S) f hnn
+    0 A hA x hrow1Dom hrow1
 
 
 /-! ## 3. Generic zero on `A.S2` without any row-0 positivity -/
@@ -141,22 +153,23 @@ row-wise zero theorem.
 noncomputable def sec4_chiFZeroOnS2_from_lambdaRows
     (f : IntegrableRep S) (hnn : RepNonneg f) :
     Sec4ChiFZeroOnS2 (S := S) f hnn := by
-  intro A hA x hxA hflatabs
-  unfold prop_4_2_chi_f_rep at hflatabs
+  intro A hA x hxA hflatDom hflatabs
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
   let F : Nat → IntegrableRep S :=
     prop_4_2_lambda_k A hA f (prop_4_2_n_k f)
-  let PB := sec4_make_pointBridge F _ x hflatabs
+  let PBData := sec4_make_pointBridge F _ x hflatDom hflatabs
+  let PB := PBData.val
   let hzeroRows : RSeq.SeriesSum (fun k => (PB.rowVal k).sum) :=
     seriesSum_congr
       (fun k => by
         change (0 : R) = (PB.rowVal k).sum
         exact (sec4_lambdaRowZeroOnS2 (S := S) f hnn
-          A hA x hxA k (PB.rowAbs k)).symm)
+          A hA x hxA k (PB.rowDom k) (PB.rowAbs k)).symm)
       (sec4_zeroSeries_transparent (R := R))
   have hrows0 : PB.rows.sum = 0 :=
     (seriesSum_unique PB.rows hzeroRows).trans (by rfl)
   calc
-    (seriesSum_of_abs hflatabs).sum = PB.rows.sum := PB.value_eq
+    (seriesSum_of_abs hflatabs).sum = PB.rows.sum := PBData.property
     _ = 0 := hrows0
 
 

@@ -11,7 +11,7 @@ structure PFunR (X R : Type*) where
   toFun : ∀ x ∈ dom, R
 
 def IntegrableRep.toPFunR {S : IntSpaceRC X R} (r : IntegrableRep S) : PFunR X R :=
-  { dom := (r.fn 0).dom, toFun := fun x _ => (r.fn 0).toFun x }
+  { dom := (r.fn 0).dom, toFun := fun x hx => (r.fn 0).toFun x hx }
 
 -- Technical note.
 -- Technical note.
@@ -28,7 +28,9 @@ noncomputable def IsMeasurable (S : IntSpaceRC X R) (h : PFunR X R) : Prop :=
         let val := h.toFun x hx_h
         let mid_val := COF.max (COF.min val (n : R)) (-(n : R))
         -- Technical note.
-        Nonempty (RSeq.TendstoHalf (fun k => (rep.fn k).toFun x) mid_val)
+        ∃ hrepDom : rep.MemAt x,
+          Nonempty (RSeq.TendstoHalf
+            (fun k => rep.valueAt x hrepDom k) mid_val)
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def prop_4_2_min_f_n {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) : IntegrableRep S :=
@@ -57,40 +59,21 @@ theorem abs_min_le_abs_of_nonneg_left (a b : R) (ha : ¬COF.lt a 0) :
 theorem normL1_min2_le {S : IntSpaceRC X R} (u v : IntegrableRep S)
     {D : Set X} (hD : IsFull S D)
     (hDu : D ⊆ u.domain) (hDv : D ⊆ v.domain)
-    (hu : ∀ x ∈ D, ∀ (hx_sum : RSeq.SeriesSum (fun n => (u.fn n).toFun x)), Nonneg hx_sum.sum) :
+    (hu : ∀ x ∈ D, ∀ (hudom : u.MemAt x)
+      (hx_sum : RSeq.SeriesSum (fun n => u.valueAt x hudom n)),
+      Nonneg hx_sum.sum) :
     Le (u.min2 v).normL1 v.normL1 := by
   refine normL1_mono hD (u.min2 v) v ?_
-  intro x hx huv_sum hv_sum
-  have hx_udom : x ∈ u.domain := hDu hx
-  have hx_vdom : x ∈ v.domain := hDv hx
-  obtain ⟨_, ⟨hu_abs⟩⟩ := hx_udom
-  obtain ⟨_, ⟨hv_abs⟩⟩ := hx_vdom
-  have hu_sum := seriesSum_of_abs hu_abs
-  have hpos_u : ¬COF.lt hu_sum.sum 0 := hu x hx hu_sum
-  
-  let hsub_v := neg_seriesSum_value hv_sum
-  let h_u_sub_v := add_seriesSum_value hu_sum hsub_v
-  obtain ⟨h_abs, h_abs_eq⟩ := (u.sub v).absVal_signed_value x h_u_sub_v
-  let h_add := add_seriesSum_value hu_sum hv_sum
-  let h_sub2_v := neg_seriesSum_value h_abs
-  let h_inner := add_seriesSum_value h_add h_sub2_v
-  let h_final := smul_seriesSum_value (COF.half : R) h_inner
-  
-  have heq : huv_sum.sum = h_final.sum := seriesSum_unique huv_sum h_final
-  rw [heq]
-  
-  have hval : h_final.sum = COF.min hu_sum.sum hv_sum.sum := by
-    change COF.half * ((hu_sum.sum + hv_sum.sum) + -h_abs.sum) = COF.min hu_sum.sum hv_sum.sum
-    rw [h_abs_eq]
-    have h1 : h_u_sub_v.sum = hu_sum.sum + -hv_sum.sum := rfl
-    rw [h1]
-    have hsub : hu_sum.sum + -hv_sum.sum = hu_sum.sum - hv_sum.sum := by ring
-    rw [hsub]
-    have hsub2 : (hu_sum.sum + hv_sum.sum) + -(COF.abs (hu_sum.sum - hv_sum.sum)) = (hu_sum.sum + hv_sum.sum) - (COF.abs (hu_sum.sum - hv_sum.sum)) := by ring
-    rw [hsub2]
-    rw [COF.min_halfsum]
-  rw [hval]
-  exact abs_min_le_abs_of_nonneg_left hu_sum.sum hv_sum.sum hpos_u
+  intro x hx huvDom hvDom huvSum hvSum
+  let huDom : u.MemAt x := min2_dom_left huvDom
+  obtain ⟨huDom', ⟨huAbs⟩⟩ := hDu hx
+  have huSum : RSeq.SeriesSum (fun n => u.valueAt x huDom n) := by
+    simpa using seriesSum_of_abs huAbs
+  obtain ⟨hmin, hminEq⟩ := min2_value u v x huDom hvDom
+    huSum hvSum
+  have hpos_u : Nonneg huSum.sum := hu x hx huDom huSum
+  rw [seriesSum_unique huvSum hmin, hminEq]
+  exact abs_min_le_abs_of_nonneg_left huSum.sum hvSum.sum hpos_u
 
 theorem abs_add_self_nonneg (x : R) : Nonneg (x + COF.abs x) := by
   intro (hlt : COF.lt (x + COF.abs x) 0)
@@ -109,27 +92,24 @@ theorem abs_add_self_nonneg (x : R) : Nonneg (x + COF.abs x) := by
 
 theorem repNonneg_sub_cutNatVal {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
     RepNonneg (f.sub (prop_4_2_min_f_n f n)) := by
-  intro x habs hx
-  have hf_abs := add_absSeriesSum_left habs
-  have hg_abs := neg_absSeriesSum (add_absSeriesSum_right habs)
+  intro x hdom habs hx
+  let hfDom : f.MemAt x := add_dom_left hdom
+  let hnegGDom : (prop_4_2_min_f_n f n).neg.MemAt x := add_dom_right hdom
+  let hgDom : (prop_4_2_min_f_n f n).MemAt x := neg_dom hnegGDom
+  have hf_abs := add_absSeriesSum_left hdom habs
+  have hg_abs := neg_absSeriesSum hnegGDom (add_absSeriesSum_right hdom habs)
   have hf := seriesSum_of_abs hf_abs
   have hg := seriesSum_of_abs hg_abs
   have hx_eq : hx.sum = hf.sum - hg.sum := by
-    have heq := seriesSum_unique hx (add_seriesSum_value hf (neg_seriesSum_value hg))
+    have heq := seriesSum_unique hx
+      (add_seriesSum_value hfDom hnegGDom hf (neg_seriesSum_value hgDom hg))
     change hx.sum = hf.sum + -(hg.sum) at heq
     have h2 : hf.sum - hg.sum = hf.sum + -(hg.sum) := sub_eq_add_neg _ _
     rw [h2]
     exact heq
-  obtain ⟨hg_signed, hg_signed_eq⟩ := f.cutConstVal_signed_value (n : R) (natCast_nonneg n) x hf
-  have heq_fn : ∀ k, ((prop_4_2_min_f_n f n).fn k).toFun x = ((f.cutConstVal (n:R) (natCast_nonneg n)).fn k).toFun x := by
-    intro k
-    unfold prop_4_2_min_f_n
-    unfold IntegrableRep.cutNatVal
-    rfl
-  have hg_eq : hg.sum = hg_signed.sum := by
-    have t := seriesSum_unique hg (RSeq.seriesSum_congr (fun k => (heq_fn k).symm) hg_signed)
-    change hg.sum = hg_signed.sum at t
-    exact t
+  obtain ⟨hg_signed, hg_signed_eq⟩ := f.cutConstVal_signed_value
+    (n : R) (natCast_nonneg n) x hfDom hf
+  have hg_eq : hg.sum = hg_signed.sum := seriesSum_unique hg hg_signed
   have hx_sum : hx.sum = hf.sum - COF.min hf.sum (n : R) := by
     rw [hx_eq, hg_eq, hg_signed_eq]
   rw [hx_sum]
@@ -162,8 +142,8 @@ theorem test_nonneg_1 : Nonneg (1 : R) := by
   exact COF.lt_irrefl 0 h2
 
 theorem IntegrableSet1_repNonneg {S : IntSpaceRC X R} {A : BSet X} (hA : IntegrableSet1 S A) : RepNonneg hA.rep := by
-  intro x habs hx
-  have hvalid := hA.valid x habs
+  intro x hdom habs hx
+  have hvalid := hA.valid x hdom habs
   have h_or := hvalid.1
   cases h_or with
   | inl hS1 =>
@@ -239,20 +219,23 @@ theorem normL1_add_le {S : IntSpaceRC X R} (f g : IntegrableRep S) :
   have h_full : IsFull S (Set.inter f.domain g.domain) :=
     isFull_inter f.domain_isFull g.domain_isFull
   refine prop_1_11 h_full (f.add g).absVal (f.absVal.add g.absVal) ?_
-  intro x hx hu hv
-  obtain ⟨_, ⟨hf_abs⟩⟩ := hx.1
-  obtain ⟨_, ⟨hg_abs⟩⟩ := hx.2
+  intro x hx huDom hvDom hu hv
+  obtain ⟨hfDom, ⟨hf_abs⟩⟩ := hx.1
+  obtain ⟨hgDom, ⟨hg_abs⟩⟩ := hx.2
   have hfx_sum := seriesSum_of_abs hf_abs
   have hgx_sum := seriesSum_of_abs hg_abs
-  let h_add := add_seriesSum_value hfx_sum hgx_sum
-  obtain ⟨hu_alt, hueq⟩ := (f.add g).absVal_signed_value x h_add
+  let hfgDom := IntegrableRep.add_memAt hfDom hgDom
+  let h_add := add_seriesSum_value hfDom hgDom hfx_sum hgx_sum
+  obtain ⟨hu_alt, hueq⟩ := (f.add g).absVal_signed_value x hfgDom h_add
   have e_hu : hu.sum = COF.abs (hfx_sum.sum + hgx_sum.sum) := by
     have e1 : hu.sum = hu_alt.sum := seriesSum_unique hu hu_alt
     rw [e1, hueq]
     rfl
-  obtain ⟨hsu_f, hsu_feq⟩ := f.absVal_signed_value x hfx_sum
-  obtain ⟨hsu_g, hsu_geq⟩ := g.absVal_signed_value x hgx_sum
-  let h_add_abs := add_seriesSum_value hsu_f hsu_g
+  obtain ⟨hsu_f, hsu_feq⟩ := f.absVal_signed_value x hfDom hfx_sum
+  obtain ⟨hsu_g, hsu_geq⟩ := g.absVal_signed_value x hgDom hgx_sum
+  let hfAbsDom := f.mem_absVal_dom hfDom
+  let hgAbsDom := g.mem_absVal_dom hgDom
+  let h_add_abs := add_seriesSum_value hfAbsDom hgAbsDom hsu_f hsu_g
   have e_hv : hv.sum = COF.abs hfx_sum.sum + COF.abs hgx_sum.sum := by
     have e2 : hv.sum = h_add_abs.sum := seriesSum_unique hv h_add_abs
     rw [e2]
@@ -282,11 +265,15 @@ theorem IntegrableRep.domain_subset_smul (r : IntegrableRep S) (c : R) :
     r.domain ⊆ (r.smul c).domain := by
   intro x hx
   obtain ⟨hdom, ⟨habs⟩⟩ := hx
-  refine ⟨hdom, ?_⟩
+  let hsmulDom : (r.smul c).MemAt x :=
+    IntegrableRep.smul_memAt (a := c) hdom
+  refine ⟨hsmulDom, ?_⟩
   have hcabs := seriesSum_smul (COF.abs c) habs
-  have h_eq : ∀ n, COF.abs c * COF.abs ((r.fn n).toFun x) = COF.abs (((r.smul c).fn n).toFun x) := by
+  have h_eq : ∀ n, COF.abs c * COF.abs (r.valueAt x hdom n) =
+      COF.abs ((r.smul c).valueAt x hsmulDom n) := by
     intro n
-    change COF.abs c * COF.abs ((r.fn n).toFun x) = COF.abs (c * ((r.fn n).toFun x))
+    change COF.abs c * COF.abs (r.valueAt x hdom n) =
+      COF.abs (c * r.valueAt x hdom n)
     rw [COFO.abs_mul]
   exact ⟨RSeq.seriesSum_congr h_eq hcabs⟩
 
@@ -303,15 +290,16 @@ theorem lambda_k_norm_le {S : IntSpaceRC X R} (A : BSet X) (hA : IntegrableSet1 
     intro x hx
     exact IntegrableRep.domain_subset_smul hA.rep c hx.1
   have hDv : D ⊆ v.domain := fun x hx => hx.2
-  have hu_custom : ∀ x ∈ D, ∀ (hx_sum : RSeq.SeriesSum (fun n => (u.fn n).toFun x)), Nonneg hx_sum.sum := by
-    intro x hx hx_sum
+  have hu_custom : ∀ x ∈ D, ∀ (huDom : u.MemAt x)
+      (hx_sum : RSeq.SeriesSum (fun n => u.valueAt x huDom n)),
+      Nonneg hx_sum.sum := by
+    intro x hx huDom hx_sum
     have hx_rep_dom : x ∈ hA.rep.domain := hx.1
-    obtain ⟨_, ⟨habs_rep⟩⟩ := hx_rep_dom
+    obtain ⟨hrepDom, ⟨habs_rep⟩⟩ := hx_rep_dom
     have hx_rep := seriesSum_of_abs habs_rep
-    have hpos_rep := IntegrableSet1_repNonneg hA x habs_rep hx_rep
+    have hpos_rep := IntegrableSet1_repNonneg hA x hrepDom habs_rep hx_rep
     have heq : hx_sum.sum = c * hx_rep.sum := by
-      let h_smul := seriesSum_smul c hx_rep
-      let h_smul_congr := RSeq.seriesSum_congr (fun n => (smul_fn_toFun c hA.rep n x).symm) h_smul
+      let h_smul_congr := smul_seriesSum_value c hrepDom hx_rep
       exact seriesSum_unique hx_sum h_smul_congr
     rw [heq]
     exact COFO.mul_nonneg (natCast_nonneg _) hpos_rep
@@ -690,17 +678,39 @@ theorem prop42_telescope (φ χ : R) (m : Nat → R)
     ring
 
 /-- Technical lemma used in the public import closure. -/
+theorem prop_4_2_term_memAt {S : IntSpaceRC X R} {A : BSet X}
+    (hA : IntegrableSet1 S A) (f : IntegrableRep S)
+    (c a : R) (ha : Nonneg a) {x : X}
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x) :
+    ((hA.rep.smul c).min2 (f.sub (f.cutConstVal a ha))).MemAt x :=
+  IntegrableRep.min2_memAt
+    (IntegrableRep.smul_memAt hχDom)
+    (IntegrableRep.add_memAt hfDom
+      (IntegrableRep.neg_memAt (f.mem_cutConstVal_dom a ha hfDom)))
+
+/-- Technical lemma used in the public import closure. -/
 noncomputable def prop_4_2_term_value {S : IntSpaceRC X R} {A : BSet X} (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (c a : R) (ha : ¬ COF.lt a 0) (x : X)
-    (hχ : RSeq.SeriesSum (fun n => (hA.rep.fn n).toFun x))
-    (hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x)) :
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x)
+    (hχ : RSeq.SeriesSum (fun n => hA.rep.valueAt x hχDom n))
+    (hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n)) :
     { hv : RSeq.SeriesSum
-            (fun n => (((hA.rep.smul c).min2 (f.sub (f.cutConstVal a ha))).fn n).toFun x) //
+            (fun n => ((hA.rep.smul c).min2
+              (f.sub (f.cutConstVal a ha))).valueAt x
+                (prop_4_2_term_memAt hA f c a ha hχDom hfDom) n) //
         hv.sum = COF.min (c * hχ.sum) (hf.sum - COF.min hf.sum a) } := by
-  obtain ⟨hg, hgeq⟩ := f.cutConstVal_signed_value a ha x hf
+  let hgDom := f.mem_cutConstVal_dom a ha hfDom
+  obtain ⟨hg, hgeq⟩ := f.cutConstVal_signed_value a ha x hfDom hf
+  let hχSmulDom : (hA.rep.smul c).MemAt x :=
+    IntegrableRep.smul_memAt (a := c) hχDom
+  let hnegGDom := IntegrableRep.neg_memAt hgDom
+  let hsubDom := IntegrableRep.add_memAt hfDom hnegGDom
   obtain ⟨hm, hmeq⟩ :=
     min2_value (hA.rep.smul c) (f.sub (f.cutConstVal a ha)) x
-      (smul_seriesSum_value c hχ) (add_seriesSum_value hf (neg_seriesSum_value hg))
+      hχSmulDom hsubDom
+      (smul_seriesSum_value c hχDom hχ)
+      (add_seriesSum_value hfDom hnegGDom hf
+        (neg_seriesSum_value hgDom hg))
   refine ⟨hm, ?_⟩
   rw [hmeq]
   congr 1
@@ -708,17 +718,40 @@ noncomputable def prop_4_2_term_value {S : IntSpaceRC X R} {A : BSet X} (hA : In
   rw [hgeq]; ring
 
 /-- Technical lemma used in the public import closure. -/
+theorem prop_4_2_lambda_memAt {S : IntSpaceRC X R} {A : BSet X}
+    (hA : IntegrableSet1 S A) (f : IntegrableRep S)
+    (n_k : Nat → Nat) (k : Nat) {x : X}
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x) :
+    (prop_4_2_lambda_k A hA f n_k k).MemAt x := by
+  cases k with
+  | zero =>
+      simpa [prop_4_2_lambda_k, prop_4_2_min_f_n,
+        IntegrableRep.cutNatVal] using
+        (prop_4_2_term_memAt hA f (n_k 0 : R) (0 : R)
+          (nonneg_zero : Nonneg (0 : R)) hχDom hfDom)
+  | succ k =>
+      simpa [prop_4_2_lambda_k, prop_4_2_min_f_n,
+        IntegrableRep.cutNatVal] using
+        (prop_4_2_term_memAt hA f
+          ((n_k (k + 1) - n_k k : Nat) : R) (n_k k : R)
+          (natCast_nonneg (n_k k)) hχDom hfDom)
+
+/-- Technical lemma used in the public import closure. -/
 noncomputable def prop_4_2_lambda_value {S : IntSpaceRC X R} {A : BSet X} (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (n_k : Nat → Nat) (hmono : ∀ k, n_k k ≤ n_k (k + 1)) (x : X)
-    (hχ : RSeq.SeriesSum (fun n => (hA.rep.fn n).toFun x))
-    (hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x)) (k : Nat) :
-    { hv : RSeq.SeriesSum (fun n => ((prop_4_2_lambda_k A hA f n_k k).fn n).toFun x) //
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x)
+    (hχ : RSeq.SeriesSum (fun n => hA.rep.valueAt x hχDom n))
+    (hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n)) (k : Nat) :
+    { hv : RSeq.SeriesSum (fun n =>
+        (prop_4_2_lambda_k A hA f n_k k).valueAt x
+          (prop_4_2_lambda_memAt hA f n_k k hχDom hfDom) n) //
         hv.sum = COF.min (((n_k k : R) - prevSeq (fun j => (n_k j : R)) k) * hχ.sum)
                           (hf.sum - COF.min hf.sum (prevSeq (fun j => (n_k j : R)) k)) } := by
   cases k with
   | zero =>
     obtain ⟨hv, hveq⟩ :=
-      prop_4_2_term_value hA f ((n_k 0 : R)) ((0 : Nat) : R) (natCast_nonneg 0) x hχ hf
+      prop_4_2_term_value hA f ((n_k 0 : R)) ((0 : Nat) : R)
+        (natCast_nonneg (R := R) 0) x hχDom hfDom hχ hf
     refine ⟨hv, ?_⟩
     rw [hveq]
     show COF.min ((n_k 0 : R) * hχ.sum) (hf.sum - COF.min hf.sum ((0:Nat):R))
@@ -727,7 +760,7 @@ noncomputable def prop_4_2_lambda_value {S : IntSpaceRC X R} {A : BSet X} (hA : 
   | succ k =>
     obtain ⟨hv, hveq⟩ :=
       prop_4_2_term_value hA f (((n_k (k + 1) - n_k k : Nat) : R)) ((n_k k : R))
-        (natCast_nonneg (n_k k)) x hχ hf
+        (natCast_nonneg (n_k k)) x hχDom hfDom hχ hf
     refine ⟨hv, ?_⟩
     rw [hveq]
     show COF.min (((n_k (k + 1) - n_k k : Nat) : R) * hχ.sum) (hf.sum - COF.min hf.sum ((n_k k : R)))
@@ -806,33 +839,54 @@ theorem prop42_eventually_chi_phi {φ χ : R} (hφ : Nonneg φ)
 noncomputable def prop_4_2_rep_value_series {S : IntSpaceRC X R} (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (hnn : RepNonneg f) (n_k : Nat → Nat)
     (hnk_ge : ∀ k, f.cutNat_tendsto_rep.mod (k + 1) ≤ n_k k) (hmono : ∀ k, n_k k ≤ n_k (k + 1)) {x : X}
-    (hflatabs : RSeq.SeriesSum (fun n => COF.abs (((seriesSumRep_L1 (prop_4_2_lambda_k A hA f n_k)
-        (prop_4_2_lambda_sum A hA f hnn n_k hnk_ge)).fn n).toFun x)))
-    (hχ : RSeq.SeriesSum (fun n => (hA.rep.fn n).toFun x))
-    (hf : RSeq.SeriesSum (fun n => (f.fn n).toFun x)) :
-    { hser : RSeq.SeriesSum (fun m => (prop_4_2_lambda_value hA f n_k hmono x hχ hf m).1.sum) //
+    (hflatDom : (seriesSumRep_L1 (prop_4_2_lambda_k A hA f n_k)
+      (prop_4_2_lambda_sum A hA f hnn n_k hnk_ge)).MemAt x)
+    (hflatabs : RSeq.SeriesSum (fun n => COF.abs
+      ((seriesSumRep_L1 (prop_4_2_lambda_k A hA f n_k)
+        (prop_4_2_lambda_sum A hA f hnn n_k hnk_ge)).valueAt x hflatDom n)))
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x)
+    (hχ : RSeq.SeriesSum (fun n => hA.rep.valueAt x hχDom n))
+    (hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n)) :
+    { hser : RSeq.SeriesSum (fun m =>
+        (prop_4_2_lambda_value hA f n_k hmono x hχDom hfDom hχ hf m).1.sum) //
         (seriesSum_of_abs hflatabs).sum = hser.sum } := by
-  obtain ⟨hV, eV⟩ := seriesSumRep_L1_value (prop_4_2_lambda_k A hA f n_k)
-    (prop_4_2_lambda_sum A hA f hnn n_k hnk_ge) hflatabs
+  let F := prop_4_2_lambda_k A hA f n_k
+  let hsum := prop_4_2_lambda_sum A hA f hnn n_k hnk_ge
+  obtain ⟨hV, eV⟩ := seriesSumRep_L1_value F hsum hflatDom hflatabs
   refine ⟨seriesSum_congr (fun m => ?_) hV, eV⟩
-  rw [show (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg (((G_m (prop_4_2_lambda_k A hA f n_k) i).fn j).toFun x))
-            (add_absSeriesSum_left hflatabs) m)).sum
-          = (IntegrableRep.ofL_value (psi_m_mem (prop_4_2_lambda_k A hA f n_k) m) x).val.sum from
-          seriesSum_unique _ _,
-      show (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg (((tail_m (prop_4_2_lambda_k A hA f n_k) i).fn j).toFun x))
-            (add_absSeriesSum_right hflatabs) m)).sum
-          = (IntegrableRep.tailFrom_value (prop_4_2_lambda_k A hA f n_k m) (Nm (prop_4_2_lambda_k A hA f n_k) m) x
-              (prop_4_2_lambda_value hA f n_k hmono x hχ hf m).1).val.sum from
-          seriesSum_unique _ _]
-  exact seriesSumRep_L1_hsplit_value (prop_4_2_lambda_k A hA f n_k) m
-    (prop_4_2_lambda_value hA f n_k hmono x hχ hf m).1
+  let hFmDom : (F m).MemAt x :=
+    seriesSumRep_L1_F_memAt F hsum hflatDom m
+  let hterm := prop_4_2_lambda_value hA f n_k hmono x
+    hχDom hfDom hχ hf m
+  let htermAt : RSeq.SeriesSum (fun n => (F m).valueAt x hFmDom n) := by
+    simpa [F] using hterm.val
+  let hprefix := IntegrableRep.ofL_value (psi_m_mem F m) x
+    (BFunR.seqSum_mem (F m).fn x hFmDom (Nm F m))
+  let htail := IntegrableRep.tailFrom_value (F m) (Nm F m) x hFmDom htermAt
+  calc
+    (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg
+      ((G_m F i).valueAt x
+        (seriesSumRep_L1_Grow_memAt F hsum hflatDom i) j))
+      (add_absSeriesSum_left hflatDom hflatabs) m)).sum
+        + (seriesSum_of_abs (row_seriesSum (fun i j => abs_nonneg
+          ((tail_m F i).valueAt x
+            (seriesSumRep_L1_tailRow_memAt F hsum hflatDom i) j))
+          (add_absSeriesSum_right hflatDom hflatabs) m)).sum
+      = hprefix.val.sum + htail.val.sum := by
+          rw [seriesSum_unique _ hprefix.val, seriesSum_unique _ htail.val]
+    _ = htermAt.sum :=
+      seriesSumRep_L1_hsplit_value F m hFmDom htermAt
+    _ = hterm.val.sum := seriesSum_unique htermAt hterm.val
 
 /-- Technical lemma used in the public import closure. -/
 theorem prop_4_2_chi_f_rep_value {S : IntSpaceRC X R} (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (hnn : RepNonneg f) {x : X}
-    (hflatabs : RSeq.SeriesSum (fun n => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn n).toFun x)))
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x)))
-    (hfabs : RSeq.SeriesSum (fun n => COF.abs ((f.fn n).toFun x))) :
+    (hflatDom : (prop_4_2_chi_f_rep A hA f hnn).MemAt x)
+    (hχDom : hA.rep.MemAt x) (hfDom : f.MemAt x)
+    (hflatabs : RSeq.SeriesSum (fun n => COF.abs
+      ((prop_4_2_chi_f_rep A hA f hnn).valueAt x hflatDom n)))
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs (hA.rep.valueAt x hχDom n)))
+    (hfabs : RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n))) :
     (seriesSum_of_abs hflatabs).sum
       = (seriesSum_of_abs hχabs).sum * (seriesSum_of_abs hfabs).sum := by
   have hnk_ge : ∀ k, f.cutNat_tendsto_rep.mod (k + 1) ≤ prop_4_2_n_k f k := by
@@ -845,25 +899,29 @@ theorem prop_4_2_chi_f_rep_value {S : IntSpaceRC X R} (A : BSet X) (hA : Integra
   let hχ := seriesSum_of_abs hχabs
   let hf := seriesSum_of_abs hfabs
   have hχ01 : hχ.sum = 0 ∨ hχ.sum = 1 := by
-    rcases (hA.valid x hχabs).1 with hS1 | hS2
-    · exact Or.inr ((hA.valid x hχabs).2.1 hS1 hχ)
-    · exact Or.inl ((hA.valid x hχabs).2.2 hS2 hχ)
-  have hφnn : Nonneg hf.sum := hnn x hfabs hf
+    rcases (hA.valid x hχDom hχabs).1 with hS1 | hS2
+    · exact Or.inr ((hA.valid x hχDom hχabs).2.1 hS1 hχ)
+    · exact Or.inl ((hA.valid x hχDom hχabs).2.2 hS2 hχ)
+  have hφnn : Nonneg hf.sum := hnn x hfDom hfabs hf
   have hm0 : Nonneg ((prop_4_2_n_k f 0 : R)) := natCast_nonneg _
   have hmono_R : ∀ k, Le ((fun j => (prop_4_2_n_k f j : R)) k) ((fun j => (prop_4_2_n_k f j : R)) (k + 1)) :=
     fun k => natCast_le_of_le (hmono k)
   obtain ⟨hser, eser⟩ :=
-    prop_4_2_rep_value_series A hA f hnn (prop_4_2_n_k f) hnk_ge hmono hflatabs hχ hf
+    prop_4_2_rep_value_series A hA f hnn (prop_4_2_n_k f)
+      hnk_ge hmono hflatDom hflatabs hχDom hfDom hχ hf
   have key : ∀ K, RSeq.partialSum
-      (fun m => (prop_4_2_lambda_value hA f (prop_4_2_n_k f) hmono x hχ hf m).1.sum) K
+      (fun m => (prop_4_2_lambda_value hA f (prop_4_2_n_k f) hmono x
+        hχDom hfDom hχ hf m).1.sum) K
       = hχ.sum * (COF.min hf.sum ((prop_4_2_n_k f K : R)) - COF.min hf.sum 0) := by
     intro K
-    rw [partialSum_congr (fun m => (prop_4_2_lambda_value hA f (prop_4_2_n_k f) hmono x hχ hf m).2) K]
+    rw [partialSum_congr (fun m => (prop_4_2_lambda_value hA f
+      (prop_4_2_n_k f) hmono x hχDom hfDom hχ hf m).2) K]
     exact prop42_telescope hf.sum hχ.sum (fun j => (prop_4_2_n_k f j : R)) hm0 hmono_R hχ01 K
   obtain ⟨k₀, hk₀⟩ :=
     prop42_eventually_chi_phi (φ := hf.sum) (χ := hχ.sum) (n_k := prop_4_2_n_k f) hφnn hsucc
   have hev : ∀ K, k₀ ≤ K → RSeq.partialSum
-      (fun m => (prop_4_2_lambda_value hA f (prop_4_2_n_k f) hmono x hχ hf m).1.sum) K
+      (fun m => (prop_4_2_lambda_value hA f (prop_4_2_n_k f) hmono x
+        hχDom hfDom hχ hf m).1.sum) K
       = hχ.sum * hf.sum := fun K hK => by rw [key K]; exact hk₀ K hK
   have efinal : hser.sum = hχ.sum * hf.sum := seriesSum_of_eventually_const hser k₀ hev
   exact eser.trans efinal
@@ -878,13 +936,18 @@ noncomputable def relIntegral {S : IntSpaceRC X R} (C : BSet X) (hC : Integrable
 /-- Technical lemma used in the public import closure. -/
 theorem prop_4_2_complement_value {S : IntSpaceRC X R} (C : BSet X) (hC : IntegrableSet1 S C)
     (f : IntegrableRep S) (hnn : RepNonneg f) {x : X}
-    (hCabs : RSeq.SeriesSum (fun n => COF.abs (((prop_4_2_chi_f_rep C hC f hnn).fn n).toFun x)))
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hC.rep.fn n).toFun x)))
-    (hfabs : RSeq.SeriesSum (fun n => COF.abs ((f.fn n).toFun x))) :
-    (add_seriesSum_value (seriesSum_of_abs hfabs)
-        (neg_seriesSum_value (seriesSum_of_abs hCabs))).sum
+    (hCDom : (prop_4_2_chi_f_rep C hC f hnn).MemAt x)
+    (hχDom : hC.rep.MemAt x) (hfDom : f.MemAt x)
+    (hCabs : RSeq.SeriesSum (fun n => COF.abs
+      ((prop_4_2_chi_f_rep C hC f hnn).valueAt x hCDom n)))
+    (hχabs : RSeq.SeriesSum (fun n => COF.abs (hC.rep.valueAt x hχDom n)))
+    (hfabs : RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n))) :
+    (add_seriesSum_value hfDom (IntegrableRep.neg_memAt hCDom)
+      (seriesSum_of_abs hfabs)
+        (neg_seriesSum_value hCDom (seriesSum_of_abs hCabs))).sum
       = (1 - (seriesSum_of_abs hχabs).sum) * (seriesSum_of_abs hfabs).sum := by
-  have hrep := prop_4_2_chi_f_rep_value C hC f hnn hCabs hχabs hfabs
+  have hrep := prop_4_2_chi_f_rep_value C hC f hnn
+    hCDom hχDom hfDom hCabs hχabs hfabs
   show (seriesSum_of_abs hfabs).sum + (-(seriesSum_of_abs hCabs).sum)
       = (1 - (seriesSum_of_abs hχabs).sum) * (seriesSum_of_abs hfabs).sum
   rw [hrep]; ring
@@ -907,19 +970,21 @@ theorem relIntegral_le_integral {S : IntSpaceRC X R} (C : BSet X) (hC : Integrab
   refine prop_1_11 (isFull_inter (isFull_inter
       (prop_4_2_chi_f_rep C hC f hnn).domain_isFull f.domain_isFull) hC.rep.domain_isFull)
     (prop_4_2_chi_f_rep C hC f hnn) f ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨hxrep, hxf⟩, hxχ⟩ := hx
-  obtain ⟨_, ⟨hflatabs⟩⟩ := hxrep
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχabs⟩⟩ := hxχ
-  have hval := prop_4_2_chi_f_rep_value C hC f hnn hflatabs hχabs hfabs
+  obtain ⟨hflatDom, ⟨hflatabs⟩⟩ := hxrep
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχDom, ⟨hχabs⟩⟩ := hxχ
+  have hval := prop_4_2_chi_f_rep_value C hC f hnn
+    hflatDom hχDom hfDom hflatabs hχabs hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflatabs),
       seriesSum_unique hr' (seriesSum_of_abs hfabs), hval]
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
   have hχ01 : (seriesSum_of_abs hχabs).sum = 0 ∨ (seriesSum_of_abs hχabs).sum = 1 := by
-    rcases (hC.valid x hχabs).1 with hS1 | hS2
-    · exact Or.inr ((hC.valid x hχabs).2.1 hS1 (seriesSum_of_abs hχabs))
-    · exact Or.inl ((hC.valid x hχabs).2.2 hS2 (seriesSum_of_abs hχabs))
+    rcases (hC.valid x hχDom hχabs).1 with hS1 | hS2
+    · exact Or.inr ((hC.valid x hχDom hχabs).2.1 hS1 (seriesSum_of_abs hχabs))
+    · exact Or.inl ((hC.valid x hχDom hχabs).2.2 hS2 (seriesSum_of_abs hχabs))
   rcases hχ01 with h0 | h1
   · rw [h0, zero_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
   · rw [h1, one_mul]; exact le_refl _
@@ -934,61 +999,71 @@ theorem relIntegral_mono_set {S : IntSpaceRC X R} (D D' : BSet X)
       (prop_4_2_chi_f_rep D hD f hnn).domain_isFull (prop_4_2_chi_f_rep D' hD' f hnn).domain_isFull)
       f.domain_isFull) hD.rep.domain_isFull) hD'.rep.domain_isFull)
     (prop_4_2_chi_f_rep D hD f hnn) (prop_4_2_chi_f_rep D' hD' f hnn) ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨hxrepD, hxrepD'⟩, hxf⟩, hxχD⟩, hxχD'⟩ := hx
-  obtain ⟨_, ⟨hflatabsD⟩⟩ := hxrepD
-  obtain ⟨_, ⟨hflatabsD'⟩⟩ := hxrepD'
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχDabs⟩⟩ := hxχD
-  obtain ⟨_, ⟨hχD'abs⟩⟩ := hxχD'
-  have hvalD := prop_4_2_chi_f_rep_value D hD f hnn hflatabsD hχDabs hfabs
-  have hvalD' := prop_4_2_chi_f_rep_value D' hD' f hnn hflatabsD' hχD'abs hfabs
+  obtain ⟨hflatDomD, ⟨hflatabsD⟩⟩ := hxrepD
+  obtain ⟨hflatDomD', ⟨hflatabsD'⟩⟩ := hxrepD'
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχDDom, ⟨hχDabs⟩⟩ := hxχD
+  obtain ⟨hχD'Dom, ⟨hχD'abs⟩⟩ := hxχD'
+  have hvalD := prop_4_2_chi_f_rep_value D hD f hnn
+    hflatDomD hχDDom hfDom hflatabsD hχDabs hfabs
+  have hvalD' := prop_4_2_chi_f_rep_value D' hD' f hnn
+    hflatDomD' hχD'Dom hfDom hflatabsD' hχD'abs hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflatabsD),
       seriesSum_unique hr' (seriesSum_of_abs hflatabsD'), hvalD, hvalD']
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
-  rcases (hD.valid x hχDabs).1 with hS1 | hS2
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
+  rcases (hD.valid x hχDDom hχDabs).1 with hS1 | hS2
   · have hcD : (seriesSum_of_abs hχDabs).sum = 1 :=
-      (hD.valid x hχDabs).2.1 hS1 (seriesSum_of_abs hχDabs)
+      (hD.valid x hχDDom hχDabs).2.1 hS1 (seriesSum_of_abs hχDabs)
     have hcD' : (seriesSum_of_abs hχD'abs).sum = 1 :=
-      (hD'.valid x hχD'abs).2.1 (hsub.1 hS1) (seriesSum_of_abs hχD'abs)
+      (hD'.valid x hχD'Dom hχD'abs).2.1 (hsub.1 hS1)
+        (seriesSum_of_abs hχD'abs)
     rw [hcD, hcD']; exact le_refl _
   · have hcD : (seriesSum_of_abs hχDabs).sum = 0 :=
-      (hD.valid x hχDabs).2.2 hS2 (seriesSum_of_abs hχDabs)
+      (hD.valid x hχDDom hχDabs).2.2 hS2 (seriesSum_of_abs hχDabs)
     rw [hcD, zero_mul]
-    rcases (hD'.valid x hχD'abs).1 with hS1' | hS2'
+    rcases (hD'.valid x hχD'Dom hχD'abs).1 with hS1' | hS2'
     · have hcD' : (seriesSum_of_abs hχD'abs).sum = 1 :=
-        (hD'.valid x hχD'abs).2.1 hS1' (seriesSum_of_abs hχD'abs)
+        (hD'.valid x hχD'Dom hχD'abs).2.1 hS1' (seriesSum_of_abs hχD'abs)
       rw [hcD', one_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
     · have hcD' : (seriesSum_of_abs hχD'abs).sum = 0 :=
-        (hD'.valid x hχD'abs).2.2 hS2' (seriesSum_of_abs hχD'abs)
+        (hD'.valid x hχD'Dom hχD'abs).2.2 hS2' (seriesSum_of_abs hχD'abs)
       rw [hcD', zero_mul]; exact le_refl _
 
 /-- Technical lemma used in the public import closure. -/
 theorem relIntegral_mono_le {S : IntSpaceRC X R} (D D' : BSet X)
     (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D')
     (f : IntegrableRep S) (hnn : RepNonneg f)
-    (hle : ∀ x, ∀ (hd : RSeq.SeriesSum (fun n => (hD.rep.fn n).toFun x))
-            (hd' : RSeq.SeriesSum (fun n => (hD'.rep.fn n).toFun x)), Le hd.sum hd'.sum) :
+    (hle : ∀ x, ∀ (hdDom : hD.rep.MemAt x) (hd'Dom : hD'.rep.MemAt x)
+      (hd : RSeq.SeriesSum (fun n => hD.rep.valueAt x hdDom n))
+      (hd' : RSeq.SeriesSum (fun n => hD'.rep.valueAt x hd'Dom n)),
+      Le hd.sum hd'.sum) :
     Le (relIntegral D hD f hnn) (relIntegral D' hD' f hnn) := by
   show Le (prop_4_2_chi_f_rep D hD f hnn).integral (prop_4_2_chi_f_rep D' hD' f hnn).integral
   refine prop_1_11 (isFull_inter (isFull_inter (isFull_inter (isFull_inter
       (prop_4_2_chi_f_rep D hD f hnn).domain_isFull (prop_4_2_chi_f_rep D' hD' f hnn).domain_isFull)
       f.domain_isFull) hD.rep.domain_isFull) hD'.rep.domain_isFull)
     (prop_4_2_chi_f_rep D hD f hnn) (prop_4_2_chi_f_rep D' hD' f hnn) ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨hxrepD, hxrepD'⟩, hxf⟩, hxχD⟩, hxχD'⟩ := hx
-  obtain ⟨_, ⟨hflatabsD⟩⟩ := hxrepD
-  obtain ⟨_, ⟨hflatabsD'⟩⟩ := hxrepD'
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχDabs⟩⟩ := hxχD
-  obtain ⟨_, ⟨hχD'abs⟩⟩ := hxχD'
-  have hvalD := prop_4_2_chi_f_rep_value D hD f hnn hflatabsD hχDabs hfabs
-  have hvalD' := prop_4_2_chi_f_rep_value D' hD' f hnn hflatabsD' hχD'abs hfabs
+  obtain ⟨hflatDomD, ⟨hflatabsD⟩⟩ := hxrepD
+  obtain ⟨hflatDomD', ⟨hflatabsD'⟩⟩ := hxrepD'
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχDDom, ⟨hχDabs⟩⟩ := hxχD
+  obtain ⟨hχD'Dom, ⟨hχD'abs⟩⟩ := hxχD'
+  have hvalD := prop_4_2_chi_f_rep_value D hD f hnn
+    hflatDomD hχDDom hfDom hflatabsD hχDabs hfabs
+  have hvalD' := prop_4_2_chi_f_rep_value D' hD' f hnn
+    hflatDomD' hχD'Dom hfDom hflatabsD' hχD'abs hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflatabsD),
       seriesSum_unique hr' (seriesSum_of_abs hflatabsD'), hvalD, hvalD']
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
   have hcc : Le (seriesSum_of_abs hχDabs).sum (seriesSum_of_abs hχD'abs).sum :=
-    hle x (seriesSum_of_abs hχDabs) (seriesSum_of_abs hχD'abs)
+    hle x hχDDom hχD'Dom (seriesSum_of_abs hχDabs)
+      (seriesSum_of_abs hχD'abs)
   exact le_of_nonneg_sub (by
     rw [show (seriesSum_of_abs hχD'abs).sum * (seriesSum_of_abs hfabs).sum
           - (seriesSum_of_abs hχDabs).sum * (seriesSum_of_abs hfabs).sum
@@ -999,16 +1074,27 @@ theorem relIntegral_mono_le {S : IntSpaceRC X R} (D D' : BSet X)
 /-- Technical lemma used in the public import closure. -/
 theorem chi_or_add_and_value {S : IntSpaceRC X R} {D D' : BSet X}
     (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') {x : X}
-    (hDc : RSeq.SeriesSum (fun n => (hD.rep.fn n).toFun x))
-    (hD'c : RSeq.SeriesSum (fun n => (hD'.rep.fn n).toFun x))
-    (horc : RSeq.SeriesSum (fun n => ((IntegrableSet1_or hD hD').rep.fn n).toFun x))
-    (handc : RSeq.SeriesSum (fun n => ((IntegrableSet1_and hD hD').rep.fn n).toFun x)) :
+    (hDDom : hD.rep.MemAt x) (hD'Dom : hD'.rep.MemAt x)
+    (horDom : (IntegrableSet1_or hD hD').rep.MemAt x)
+    (handDom : (IntegrableSet1_and hD hD').rep.MemAt x)
+    (hDc : RSeq.SeriesSum (fun n => hD.rep.valueAt x hDDom n))
+    (hD'c : RSeq.SeriesSum (fun n => hD'.rep.valueAt x hD'Dom n))
+    (horc : RSeq.SeriesSum (fun n =>
+      (IntegrableSet1_or hD hD').rep.valueAt x horDom n))
+    (handc : RSeq.SeriesSum (fun n =>
+      (IntegrableSet1_and hD hD').rep.valueAt x handDom n)) :
     horc.sum + handc.sum = hDc.sum + hD'c.sum := by
-  obtain ⟨hmin, hmineq⟩ := min2_value hD.rep hD'.rep x hDc hD'c
+  let hminDom := IntegrableRep.min2_memAt hDDom hD'Dom
+  obtain ⟨hmin, hmineq⟩ := min2_value hD.rep hD'.rep x
+    hDDom hD'Dom hDc hD'c
   have hand_eq : handc.sum = hmin.sum := seriesSum_unique handc hmin
+  let haddDom := IntegrableRep.add_memAt hDDom hD'Dom
+  let hnegMinDom := IntegrableRep.neg_memAt hminDom
   have hor_eq : horc.sum = (hDc.sum + hD'c.sum) + (- hmin.sum) :=
     seriesSum_unique horc
-      (add_seriesSum_value (add_seriesSum_value hDc hD'c) (neg_seriesSum_value hmin))
+      (add_seriesSum_value haddDom hnegMinDom
+        (add_seriesSum_value hDDom hD'Dom hDc hD'c)
+        (neg_seriesSum_value hminDom hmin))
   rw [hor_eq, hand_eq]; ring
 
 /-- Technical lemma used in the public import closure. -/
@@ -1035,31 +1121,36 @@ theorem relIntegral_or_add_and {S : IntSpaceRC X R} {D D' : BSet X}
         (IntegrableSet1_or hD hD').rep.domain_isFull)
         (IntegrableSet1_and hD hD').rep.domain_isFull)
     _ _ ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨⟨⟨⟨⟨hxOr, hxAnd⟩, hxD⟩, hxD'⟩, hxf⟩, hxχD⟩, hxχD'⟩, hxχOr⟩, hxχAnd⟩ := hx
-  obtain ⟨_, ⟨hflatOr⟩⟩ := hxOr
-  obtain ⟨_, ⟨hflatAnd⟩⟩ := hxAnd
-  obtain ⟨_, ⟨hflatD⟩⟩ := hxD
-  obtain ⟨_, ⟨hflatD'⟩⟩ := hxD'
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχDabs⟩⟩ := hxχD
-  obtain ⟨_, ⟨hχD'abs⟩⟩ := hxχD'
-  obtain ⟨_, ⟨hχorabs⟩⟩ := hxχOr
-  obtain ⟨_, ⟨hχandabs⟩⟩ := hxχAnd
+  obtain ⟨hflatOrDom, ⟨hflatOr⟩⟩ := hxOr
+  obtain ⟨hflatAndDom, ⟨hflatAnd⟩⟩ := hxAnd
+  obtain ⟨hflatDDom, ⟨hflatD⟩⟩ := hxD
+  obtain ⟨hflatD'Dom, ⟨hflatD'⟩⟩ := hxD'
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχDDom, ⟨hχDabs⟩⟩ := hxχD
+  obtain ⟨hχD'Dom, ⟨hχD'abs⟩⟩ := hxχD'
+  obtain ⟨hχOrDom, ⟨hχorabs⟩⟩ := hxχOr
+  obtain ⟨hχAndDom, ⟨hχandabs⟩⟩ := hxχAnd
   have value_Or := prop_4_2_chi_f_rep_value (BSet.or D D') (IntegrableSet1_or hD hD') f hnn
-    hflatOr hχorabs hfabs
+    hflatOrDom hχOrDom hfDom hflatOr hχorabs hfabs
   have value_And := prop_4_2_chi_f_rep_value (BSet.and D D') (IntegrableSet1_and hD hD') f hnn
-    hflatAnd hχandabs hfabs
-  have value_D := prop_4_2_chi_f_rep_value D hD f hnn hflatD hχDabs hfabs
-  have value_D' := prop_4_2_chi_f_rep_value D' hD' f hnn hflatD' hχD'abs hfabs
+    hflatAndDom hχAndDom hfDom hflatAnd hχandabs hfabs
+  have value_D := prop_4_2_chi_f_rep_value D hD f hnn
+    hflatDDom hχDDom hfDom hflatD hχDabs hfabs
+  have value_D' := prop_4_2_chi_f_rep_value D' hD' f hnn
+    hflatD'Dom hχD'Dom hfDom hflatD' hχD'abs hfabs
   have hchi : (seriesSum_of_abs hχorabs).sum + (seriesSum_of_abs hχandabs).sum
             = (seriesSum_of_abs hχDabs).sum + (seriesSum_of_abs hχD'abs).sum :=
-    chi_or_add_and_value hD hD' (seriesSum_of_abs hχDabs) (seriesSum_of_abs hχD'abs)
+    chi_or_add_and_value hD hD' hχDDom hχD'Dom hχOrDom hχAndDom
+      (seriesSum_of_abs hχDabs) (seriesSum_of_abs hχD'abs)
       (seriesSum_of_abs hχorabs) (seriesSum_of_abs hχandabs)
   rw [seriesSum_unique hr
-        (add_seriesSum_value (seriesSum_of_abs hflatOr) (seriesSum_of_abs hflatAnd)),
+        (add_seriesSum_value hflatOrDom hflatAndDom
+          (seriesSum_of_abs hflatOr) (seriesSum_of_abs hflatAnd)),
       seriesSum_unique hr'
-        (add_seriesSum_value (seriesSum_of_abs hflatD) (seriesSum_of_abs hflatD'))]
+        (add_seriesSum_value hflatDDom hflatD'Dom
+          (seriesSum_of_abs hflatD) (seriesSum_of_abs hflatD'))]
   show (seriesSum_of_abs hflatOr).sum + (seriesSum_of_abs hflatAnd).sum
      = (seriesSum_of_abs hflatD).sum + (seriesSum_of_abs hflatD').sum
   rw [value_Or, value_And, value_D, value_D',
@@ -1073,49 +1164,55 @@ theorem relIntegral_or_add_and {S : IntSpaceRC X R} {D D' : BSet X}
 /-- Technical lemma used in the public import closure. -/
 theorem chi_and_value {S : IntSpaceRC X R} {D D' : BSet X}
     (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') {x : X}
-    (hDc : RSeq.SeriesSum (fun n => (hD.rep.fn n).toFun x))
-    (hD'c : RSeq.SeriesSum (fun n => (hD'.rep.fn n).toFun x))
-    (handc : RSeq.SeriesSum (fun n => ((IntegrableSet1_and hD hD').rep.fn n).toFun x)) :
+    (hDDom : hD.rep.MemAt x) (hD'Dom : hD'.rep.MemAt x)
+    (handDom : (IntegrableSet1_and hD hD').rep.MemAt x)
+    (hDc : RSeq.SeriesSum (fun n => hD.rep.valueAt x hDDom n))
+    (hD'c : RSeq.SeriesSum (fun n => hD'.rep.valueAt x hD'Dom n))
+    (handc : RSeq.SeriesSum (fun n =>
+      (IntegrableSet1_and hD hD').rep.valueAt x handDom n)) :
     handc.sum = COF.min hDc.sum hD'c.sum := by
-  obtain ⟨hmin, hmineq⟩ := min2_value hD.rep hD'.rep x hDc hD'c
+  obtain ⟨hmin, hmineq⟩ := min2_value hD.rep hD'.rep x
+    hDDom hD'Dom hDc hD'c
   rw [seriesSum_unique handc hmin]; exact hmineq
 
 /-- Technical lemma used in the public import closure. -/
 theorem chi_and_value_valid {S : IntSpaceRC X R} {A B : BSet X}
     (hA : IntegrableSet1 S A) (hB : IntegrableSet1 S B) (hAB : IntegrableSet1 S (BSet.and A B)) {x : X}
-    (hAabs : RSeq.SeriesSum (fun n => COF.abs ((hA.rep.fn n).toFun x)))
-    (hBabs : RSeq.SeriesSum (fun n => COF.abs ((hB.rep.fn n).toFun x)))
-    (hABabs : RSeq.SeriesSum (fun n => COF.abs ((hAB.rep.fn n).toFun x))) :
+    (hADom : hA.rep.MemAt x) (hBDom : hB.rep.MemAt x)
+    (hABDom : hAB.rep.MemAt x)
+    (hAabs : RSeq.SeriesSum (fun n => COF.abs (hA.rep.valueAt x hADom n)))
+    (hBabs : RSeq.SeriesSum (fun n => COF.abs (hB.rep.valueAt x hBDom n)))
+    (hABabs : RSeq.SeriesSum (fun n => COF.abs (hAB.rep.valueAt x hABDom n))) :
     (seriesSum_of_abs hABabs).sum
       = COF.min (seriesSum_of_abs hAabs).sum (seriesSum_of_abs hBabs).sum := by
-  rcases (hAB.valid x hABabs).1 with hS1 | hS2
+  rcases (hAB.valid x hABDom hABabs).1 with hS1 | hS2
   · have hAB1 : (seriesSum_of_abs hABabs).sum = 1 :=
-      (hAB.valid x hABabs).2.1 hS1 (seriesSum_of_abs hABabs)
+      (hAB.valid x hABDom hABabs).2.1 hS1 (seriesSum_of_abs hABabs)
     obtain ⟨xA1, xB1⟩ := hS1
     have hA1 : (seriesSum_of_abs hAabs).sum = 1 :=
-      (hA.valid x hAabs).2.1 xA1 (seriesSum_of_abs hAabs)
+      (hA.valid x hADom hAabs).2.1 xA1 (seriesSum_of_abs hAabs)
     have hB1 : (seriesSum_of_abs hBabs).sum = 1 :=
-      (hB.valid x hBabs).2.1 xB1 (seriesSum_of_abs hBabs)
+      (hB.valid x hBDom hBabs).2.1 xB1 (seriesSum_of_abs hBabs)
     rw [hAB1, hA1, hB1]
     exact (le_antisymm (cof_min_le_left 1 1) (le_min (le_refl 1) (le_refl 1))).symm
   · have hAB0 : (seriesSum_of_abs hABabs).sum = 0 :=
-      (hAB.valid x hABabs).2.2 hS2 (seriesSum_of_abs hABabs)
+      (hAB.valid x hABDom hABabs).2.2 hS2 (seriesSum_of_abs hABabs)
     rw [hAB0]
     rcases hS2 with (⟨xA1, xB2⟩ | ⟨xA2, xB1⟩) | ⟨xA2, xB2⟩
     · have hA1 : (seriesSum_of_abs hAabs).sum = 1 :=
-        (hA.valid x hAabs).2.1 xA1 (seriesSum_of_abs hAabs)
+        (hA.valid x hADom hAabs).2.1 xA1 (seriesSum_of_abs hAabs)
       have hB0 : (seriesSum_of_abs hBabs).sum = 0 :=
-        (hB.valid x hBabs).2.2 xB2 (seriesSum_of_abs hBabs)
+        (hB.valid x hBDom hBabs).2.2 xB2 (seriesSum_of_abs hBabs)
       rw [hA1, hB0]; exact ((COF_min_comm 1 0).trans min_zero_one).symm
     · have hA0 : (seriesSum_of_abs hAabs).sum = 0 :=
-        (hA.valid x hAabs).2.2 xA2 (seriesSum_of_abs hAabs)
+        (hA.valid x hADom hAabs).2.2 xA2 (seriesSum_of_abs hAabs)
       have hB1 : (seriesSum_of_abs hBabs).sum = 1 :=
-        (hB.valid x hBabs).2.1 xB1 (seriesSum_of_abs hBabs)
+        (hB.valid x hBDom hBabs).2.1 xB1 (seriesSum_of_abs hBabs)
       rw [hA0, hB1]; exact min_zero_one.symm
     · have hA0 : (seriesSum_of_abs hAabs).sum = 0 :=
-        (hA.valid x hAabs).2.2 xA2 (seriesSum_of_abs hAabs)
+        (hA.valid x hADom hAabs).2.2 xA2 (seriesSum_of_abs hAabs)
       have hB0 : (seriesSum_of_abs hBabs).sum = 0 :=
-        (hB.valid x hBabs).2.2 xB2 (seriesSum_of_abs hBabs)
+        (hB.valid x hBDom hBabs).2.2 xB2 (seriesSum_of_abs hBabs)
       rw [hA0, hB0]
       exact (le_antisymm (cof_min_le_left 0 0) (le_min (le_refl 0) (le_refl 0))).symm
 
@@ -1135,34 +1232,40 @@ theorem relIntegral_and_mono {S : IntSpaceRC X R} {B : BSet X} (hB : IsMeasurabl
       (hB D' hD').rep.domain_isFull)
     (prop_4_2_chi_f_rep (BSet.and D B) (hB D hD) f hnn)
     (prop_4_2_chi_f_rep (BSet.and D' B) (hB D' hD') f hnn) ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨hxDB, hxD'B⟩, hxf⟩, hxχDB⟩, hxχD'B⟩ := hx
-  obtain ⟨_, ⟨hflat_DB⟩⟩ := hxDB
-  obtain ⟨_, ⟨hflat_D'B⟩⟩ := hxD'B
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχ_DB⟩⟩ := hxχDB
-  obtain ⟨_, ⟨hχ_D'B⟩⟩ := hxχD'B
-  have hval_DB := prop_4_2_chi_f_rep_value (BSet.and D B) (hB D hD) f hnn hflat_DB hχ_DB hfabs
-  have hval_D'B := prop_4_2_chi_f_rep_value (BSet.and D' B) (hB D' hD') f hnn hflat_D'B hχ_D'B hfabs
+  obtain ⟨hflat_DBDom, ⟨hflat_DB⟩⟩ := hxDB
+  obtain ⟨hflat_D'BDom, ⟨hflat_D'B⟩⟩ := hxD'B
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχ_DBDom, ⟨hχ_DB⟩⟩ := hxχDB
+  obtain ⟨hχ_D'BDom, ⟨hχ_D'B⟩⟩ := hxχD'B
+  have hval_DB := prop_4_2_chi_f_rep_value (BSet.and D B) (hB D hD) f hnn
+    hflat_DBDom hχ_DBDom hfDom hflat_DB hχ_DB hfabs
+  have hval_D'B := prop_4_2_chi_f_rep_value (BSet.and D' B) (hB D' hD') f hnn
+    hflat_D'BDom hχ_D'BDom hfDom hflat_D'B hχ_D'B hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflat_DB),
       seriesSum_unique hr' (seriesSum_of_abs hflat_D'B), hval_DB, hval_D'B]
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
-  rcases ((hB D hD).valid x hχ_DB).1 with hS1 | hS2
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
+  rcases ((hB D hD).valid x hχ_DBDom hχ_DB).1 with hS1 | hS2
   · have hDB1 : (seriesSum_of_abs hχ_DB).sum = 1 :=
-      ((hB D hD).valid x hχ_DB).2.1 hS1 (seriesSum_of_abs hχ_DB)
+      ((hB D hD).valid x hχ_DBDom hχ_DB).2.1 hS1 (seriesSum_of_abs hχ_DB)
     obtain ⟨xD1, xB1⟩ := hS1
     have hD'B1 : (seriesSum_of_abs hχ_D'B).sum = 1 :=
-      ((hB D' hD').valid x hχ_D'B).2.1 ⟨hsub xD1, xB1⟩ (seriesSum_of_abs hχ_D'B)
+      ((hB D' hD').valid x hχ_D'BDom hχ_D'B).2.1
+        ⟨hsub xD1, xB1⟩ (seriesSum_of_abs hχ_D'B)
     rw [hDB1, hD'B1]; exact le_refl _
   · have hDB0 : (seriesSum_of_abs hχ_DB).sum = 0 :=
-      ((hB D hD).valid x hχ_DB).2.2 hS2 (seriesSum_of_abs hχ_DB)
+      ((hB D hD).valid x hχ_DBDom hχ_DB).2.2 hS2 (seriesSum_of_abs hχ_DB)
     rw [hDB0, zero_mul]
-    rcases ((hB D' hD').valid x hχ_D'B).1 with hS1' | hS2'
+    rcases ((hB D' hD').valid x hχ_D'BDom hχ_D'B).1 with hS1' | hS2'
     · have hD'B1 : (seriesSum_of_abs hχ_D'B).sum = 1 :=
-        ((hB D' hD').valid x hχ_D'B).2.1 hS1' (seriesSum_of_abs hχ_D'B)
+        ((hB D' hD').valid x hχ_D'BDom hχ_D'B).2.1 hS1'
+          (seriesSum_of_abs hχ_D'B)
       rw [hD'B1, one_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
     · have hD'B0 : (seriesSum_of_abs hχ_D'B).sum = 0 :=
-        ((hB D' hD').valid x hχ_D'B).2.2 hS2' (seriesSum_of_abs hχ_D'B)
+        ((hB D' hD').valid x hχ_D'BDom hχ_D'B).2.2 hS2'
+          (seriesSum_of_abs hχ_D'B)
       rw [hD'B0, zero_mul]; exact le_refl _
 
 /-- Technical lemma used in the public import closure. -/
@@ -1185,42 +1288,49 @@ theorem relIntegral_and_mono_or_step {S : IntSpaceRC X R} {B : BSet X} (hB : IsM
     (prop_4_2_chi_f_rep (BSet.and D B) (hB D hD) f hnn)
     (prop_4_2_chi_f_rep (BSet.and (BSet.or D A) B)
       (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn) ?_
-  intro x hx hr hr'
+  intro x hx hrDom hr'Dom hr hr'
   obtain ⟨⟨⟨⟨⟨hxDB, hxDAB⟩, hxf⟩, hxχDB⟩, hxχDAB⟩, hxχA⟩ := hx
-  obtain ⟨_, ⟨hflat_DB⟩⟩ := hxDB
-  obtain ⟨_, ⟨hflat_DAB⟩⟩ := hxDAB
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨_, ⟨hχ_DB⟩⟩ := hxχDB
-  obtain ⟨_, ⟨hχ_DAB⟩⟩ := hxχDAB
-  obtain ⟨_, ⟨hχAabs⟩⟩ := hxχA
-  have hval_DB := prop_4_2_chi_f_rep_value (BSet.and D B) (hB D hD) f hnn hflat_DB hχ_DB hfabs
+  obtain ⟨hflat_DBDom, ⟨hflat_DB⟩⟩ := hxDB
+  obtain ⟨hflat_DABDom, ⟨hflat_DAB⟩⟩ := hxDAB
+  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
+  obtain ⟨hχ_DBDom, ⟨hχ_DB⟩⟩ := hxχDB
+  obtain ⟨hχ_DABDom, ⟨hχ_DAB⟩⟩ := hxχDAB
+  obtain ⟨hχADom, ⟨hχAabs⟩⟩ := hxχA
+  have hval_DB := prop_4_2_chi_f_rep_value (BSet.and D B) (hB D hD) f hnn
+    hflat_DBDom hχ_DBDom hfDom hflat_DB hχ_DB hfabs
   have hval_DAB := prop_4_2_chi_f_rep_value (BSet.and (BSet.or D A) B)
-    (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn hflat_DAB hχ_DAB hfabs
+    (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn
+      hflat_DABDom hχ_DABDom hfDom hflat_DAB hχ_DAB hfabs
   rw [seriesSum_unique hr (seriesSum_of_abs hflat_DB),
       seriesSum_unique hr' (seriesSum_of_abs hflat_DAB), hval_DB, hval_DAB]
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum := hnn x hfabs (seriesSum_of_abs hfabs)
-  rcases ((hB D hD).valid x hχ_DB).1 with hS1 | hS2
+  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
+    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
+  rcases ((hB D hD).valid x hχ_DBDom hχ_DB).1 with hS1 | hS2
   · have hDB1 : (seriesSum_of_abs hχ_DB).sum = 1 :=
-      ((hB D hD).valid x hχ_DB).2.1 hS1 (seriesSum_of_abs hχ_DB)
+      ((hB D hD).valid x hχ_DBDom hχ_DB).2.1 hS1 (seriesSum_of_abs hχ_DB)
     obtain ⟨xD1, xB1⟩ := hS1
     have hxDA1 : x ∈ (BSet.or D A).S1 := by
-      rcases (hA.valid x hχAabs).1 with hA1 | hA2
+      rcases (hA.valid x hχADom hχAabs).1 with hA1 | hA2
       · exact Or.inl (Or.inl ⟨xD1, hA1⟩)
       · exact Or.inl (Or.inr ⟨xD1, hA2⟩)
     have hDAB1 : (seriesSum_of_abs hχ_DAB).sum = 1 :=
-      ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DAB).2.1 ⟨hxDA1, xB1⟩
+      ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DABDom hχ_DAB).2.1
+        ⟨hxDA1, xB1⟩
         (seriesSum_of_abs hχ_DAB)
     rw [hDB1, hDAB1]; exact le_refl _
   · have hDB0 : (seriesSum_of_abs hχ_DB).sum = 0 :=
-      ((hB D hD).valid x hχ_DB).2.2 hS2 (seriesSum_of_abs hχ_DB)
+      ((hB D hD).valid x hχ_DBDom hχ_DB).2.2 hS2 (seriesSum_of_abs hχ_DB)
     rw [hDB0, zero_mul]
-    rcases ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DAB).1 with hS1' | hS2'
+    rcases ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
+      x hχ_DABDom hχ_DAB).1 with hS1' | hS2'
     · have hDAB1 : (seriesSum_of_abs hχ_DAB).sum = 1 :=
-        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DAB).2.1 hS1'
+        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
+          x hχ_DABDom hχ_DAB).2.1 hS1'
           (seriesSum_of_abs hχ_DAB)
       rw [hDAB1, one_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
     · have hDAB0 : (seriesSum_of_abs hχ_DAB).sum = 0 :=
-        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DAB).2.2 hS2'
+        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
+          x hχ_DABDom hχ_DAB).2.2 hS2'
           (seriesSum_of_abs hχ_DAB)
       rw [hDAB0, zero_mul]; exact le_refl _
 

@@ -34,8 +34,10 @@ structure Prop412MidRepresentativeSupportData
   mid : Prop412MidRepresentativeData A hA n h
   zero_of_chiA_zero :
     ∀ x
-      (hχAabs : RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x)))
-      (hmid : RSeq.SeriesSum (fun m => (mid.rep.fn m).toFun x)),
+      (hχADom : hA.rep.MemAt x) (hmidDom : mid.rep.MemAt x)
+      (hχAabs : RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x hχADom m)))
+      (hmid : RSeq.SeriesSum (fun m => mid.rep.valueAt x hmidDom m)),
       (BishopC.seriesSum_of_abs hχAabs).sum = 0 ->
         hmid.sum = 0
 
@@ -50,44 +52,63 @@ theorem prop412_abs_truncated_diff_outside_A_zero_from_mid_support
     (F : Prop412MidRepresentativeSupportData A hA n f)
     (G : Prop412MidRepresentativeSupportData A hA n g)
     {x : Y}
-    (hχAabs : RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x)))
+    (hχADom : hA.rep.MemAt x)
+    (hdDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x)
+    (hχAabs : RSeq.SeriesSum (fun m => COF.abs
+      (hA.rep.valueAt x hχADom m)))
     (hdabs : RSeq.SeriesSum
       (fun m => COF.abs
-        (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x)))
+        ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+          x hdDom m)))
     (hχAzero : (BishopC.seriesSum_of_abs hχAabs).sum = 0) :
     (BishopC.seriesSum_of_abs hdabs).sum = 0 := by
   let subRep := F.mid.rep.sub G.mid.rep
+  let hsubAt : BishopC.Sec4RepAbsAt subRep x :=
+    prop412_absVal_absSeries_to_inner_absSeries subRep hdDom hdabs
+  let hsubDom : subRep.MemAt x := hsubAt.fst
   have hsubAbs :
-      RSeq.SeriesSum (fun m => COF.abs ((subRep.fn m).toFun x)) :=
-    prop412_absVal_absSeries_to_inner_absSeries subRep hdabs
+      RSeq.SeriesSum (fun m => COF.abs
+        (subRep.valueAt x hsubDom m)) :=
+    hsubAt.snd
+  let hFDom : F.mid.rep.MemAt x := BishopC.add_dom_left hsubDom
+  let hGnegDom : G.mid.rep.neg.MemAt x := BishopC.add_dom_right hsubDom
+  let hGDom : G.mid.rep.MemAt x := BishopC.neg_dom hGnegDom
   have hFabs :
-      RSeq.SeriesSum (fun m => COF.abs ((F.mid.rep.fn m).toFun x)) := by
-    simpa [subRep, BishopC.IntegrableRep.sub] using
+      RSeq.SeriesSum (fun m => COF.abs
+        (F.mid.rep.valueAt x hFDom m)) := by
+    simpa only [hFDom] using
       (BishopC.add_absSeriesSum_left
-        (r := F.mid.rep) (r' := G.mid.rep.neg) hsubAbs)
+        (r := F.mid.rep) (r' := G.mid.rep.neg) hsubDom hsubAbs)
   have hGnegAbs :
-      RSeq.SeriesSum (fun m => COF.abs (((G.mid.rep.neg).fn m).toFun x)) := by
-    simpa [subRep, BishopC.IntegrableRep.sub] using
+      RSeq.SeriesSum (fun m => COF.abs
+        (G.mid.rep.neg.valueAt x hGnegDom m)) := by
+    simpa only [hGnegDom] using
       (BishopC.add_absSeriesSum_right
-        (r := F.mid.rep) (r' := G.mid.rep.neg) hsubAbs)
+        (r := F.mid.rep) (r' := G.mid.rep.neg) hsubDom hsubAbs)
   have hGabs :
-      RSeq.SeriesSum (fun m => COF.abs ((G.mid.rep.fn m).toFun x)) :=
-    BishopC.neg_absSeriesSum hGnegAbs
-  let hFsum : RSeq.SeriesSum (fun m => (F.mid.rep.fn m).toFun x) :=
+      RSeq.SeriesSum (fun m => COF.abs
+        (G.mid.rep.valueAt x hGDom m)) := by
+    simpa only [hGDom] using BishopC.neg_absSeriesSum hGnegDom hGnegAbs
+  let hFsum : RSeq.SeriesSum
+      (fun m => F.mid.rep.valueAt x hFDom m) :=
     BishopC.seriesSum_of_abs hFabs
-  let hGsum : RSeq.SeriesSum (fun m => (G.mid.rep.fn m).toFun x) :=
+  let hGsum : RSeq.SeriesSum
+      (fun m => G.mid.rep.valueAt x hGDom m) :=
     BishopC.seriesSum_of_abs hGabs
-  let hSubSum : RSeq.SeriesSum (fun m => (subRep.fn m).toFun x) :=
-    BishopC.add_seriesSum_value hFsum
-      (BishopC.neg_seriesSum_value hGsum)
-  obtain ⟨hdSigned, hdSignedEq⟩ := subRep.absVal_signed_value x hSubSum
+  let hSubSum : RSeq.SeriesSum
+      (fun m => subRep.valueAt x hsubDom m) := by
+    simpa only [subRep] using
+      BishopC.add_seriesSum_value hFDom hGnegDom hFsum
+        (BishopC.neg_seriesSum_value hGDom hGsum)
+  obtain ⟨hdSigned, hdSignedEq⟩ :=
+    subRep.absVal_signed_value x hsubDom hSubSum
   have hdf_eq :
       (BishopC.seriesSum_of_abs hdabs).sum = hdSigned.sum := by
     exact BishopC.seriesSum_unique (BishopC.seriesSum_of_abs hdabs) hdSigned
   have hFzero : hFsum.sum = 0 :=
-    F.zero_of_chiA_zero x hχAabs hFsum hχAzero
+    F.zero_of_chiA_zero x hχADom hFDom hχAabs hFsum hχAzero
   have hGzero : hGsum.sum = 0 :=
-    G.zero_of_chiA_zero x hχAabs hGsum hχAzero
+    G.zero_of_chiA_zero x hχADom hGDom hχAabs hGsum hχAzero
   have hSub_zero : hSubSum.sum = 0 := by
     rw [show hSubSum.sum = hFsum.sum + -hGsum.sum from rfl,
       hFzero, hGzero]
@@ -111,29 +132,45 @@ structure Prop412ConcreteRepresentativeValueSeedData
     (F : Prop412MidRepresentativeSupportData A hA n f)
     (G : Prop412MidRepresentativeSupportData A hA n g)
     (x : Y) : Type _ where
+  hχADom : hA.rep.MemAt x
   hχAabs :
-    RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+    RSeq.SeriesSum (fun m => COF.abs (hA.rep.valueAt x hχADom m))
+  hχEDom : hE.rep.MemAt x
   hχEabs :
-    RSeq.SeriesSum (fun m => COF.abs ((hE.rep.fn m).toFun x))
+    RSeq.SeriesSum (fun m => COF.abs (hE.rep.valueAt x hχEDom m))
+  hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x
   hχBadAbs :
     RSeq.SeriesSum
-      (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))
+      (fun m => COF.abs
+        ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))
+  hdDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x
   hdabs :
     RSeq.SeriesSum
       (fun m => COF.abs
-        (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x))
+        ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+          x hdDom m))
+  hχE_d_Dom :
+    (BishopC.prop_4_2_chi_f_rep E hE
+      (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
+      (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).MemAt x
   hχE_d_abs :
     RSeq.SeriesSum
       (fun m => COF.abs
-        (((BishopC.prop_4_2_chi_f_rep E hE
+        ((BishopC.prop_4_2_chi_f_rep E hE
           (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
-          (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).fn m).toFun x))
+          (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).valueAt
+            x hχE_d_Dom m))
+  hχBad_d_Dom :
+    (prop412BadRelRep hA hE
+      (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
+      (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).MemAt x
   hχBad_d_abs :
     RSeq.SeriesSum
       (fun m => COF.abs
-        (((prop412BadRelRep hA hE
+        ((prop412BadRelRep hA hE
           (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
-          (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).fn m).toFun x))
+          (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).valueAt
+            x hχBad_d_Dom m))
 
 /-- Convert raw pointwise seed data into the G180 representative witness data,
 with outside-`A` zero derived from support. -/
@@ -152,16 +189,22 @@ def prop412_representative_value_witness_from_concrete_support_seed
       (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
       (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)
       x where
+  hχADom := Seed.hχADom
   hχAabs := Seed.hχAabs
+  hχEDom := Seed.hχEDom
   hχEabs := Seed.hχEabs
+  hχBadDom := Seed.hχBadDom
   hχBadAbs := Seed.hχBadAbs
+  hdDom := Seed.hdDom
   hdabs := Seed.hdabs
+  hχE_d_Dom := Seed.hχE_d_Dom
   hχE_d_abs := Seed.hχE_d_abs
+  hχBad_d_Dom := Seed.hχBad_d_Dom
   hχBad_d_abs := Seed.hχBad_d_abs
   outside_A_zero := by
     intro hχAzero
     exact prop412_abs_truncated_diff_outside_A_zero_from_mid_support
-      F G Seed.hχAabs Seed.hdabs hχAzero
+      F G Seed.hχADom Seed.hdDom Seed.hχAabs Seed.hdabs hχAzero
 
 /-- Pointwise seed data over the common domain. -/
 structure Prop412ComplementPointwiseConcreteSupportSeedData
@@ -181,14 +224,22 @@ structure Prop412ComplementPointwiseConcreteSupportSeedData
         (prop412BadRelRep hA hE
           (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
           (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).domain,
-      ∀ (hcomp : RSeq.SeriesSum
-          (fun m => ((prop412ComplementRep hE
+      ∀ (hcompDom : (prop412ComplementRep hE
             (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
-            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).fn m).toFun x))
+            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).MemAt x)
+        (hbadDom : (prop412BadRelRep hA hE
+            (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
+            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).MemAt x)
+        (hcomp : RSeq.SeriesSum
+          (fun m => (prop412ComplementRep hE
+            (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
+            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).valueAt
+              x hcompDom m))
         (hbad : RSeq.SeriesSum
-          (fun m => ((prop412BadRelRep hA hE
+          (fun m => (prop412BadRelRep hA hE
             (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
-            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).fn m).toFun x)),
+            (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid)).valueAt
+              x hbadDom m)),
         Prop412ConcreteRepresentativeValueSeedData A E hA hE n f g F G x
 
 /-- Concrete support seed data imply the representative-value data expected
@@ -207,9 +258,9 @@ def prop412_representative_value_data_from_concrete_support_seed
       (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid)
       (prop412_abs_truncated_diff_rep_nonneg_from_mid_data F.mid G.mid) where
   data := by
-    intro x hx hcomp hbad
+    intro x hx hcompDom hbadDom hcomp hbad
     exact prop412_representative_value_witness_from_concrete_support_seed
-      hA hE F G (PData.data x hx hcomp hbad)
+      hA hE F G (PData.data x hx hcompDom hbadDom hcomp hbad)
 
 /-- Full estimate from concrete support data: value data and outside-`A` zero
 are now both derived. -/
@@ -233,11 +284,15 @@ theorem prop412_full_integral_le_from_concrete_truncated_abs_diff_support_data
           eps)
     (hbadBound :
       ∀ (x : Y)
+        (hdDom : (prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
         (hdfabs : RSeq.SeriesSum
           (fun m => COF.abs
-            (((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).fn m).toFun x)))
+            ((prop412AbsTruncatedDiffRepFromMidData F.mid G.mid).valueAt
+              x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)) :
     BishopC.Le

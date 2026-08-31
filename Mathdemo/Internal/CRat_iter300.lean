@@ -56,30 +56,50 @@ structure Prop412MidRepresentativeConstructorSourceData
   rep : BishopC.IntegrableRep S
   value_eq :
     ∀ x (hxh : x ∈ h.dom)
+      (hchiDom : hA.rep.MemAt x) (hrepDom : rep.MemAt x)
       (hchi_abs : RSeq.SeriesSum
-        (fun m => COF.abs ((hA.rep.fn m).toFun x)))
-      (hrep : RSeq.SeriesSum (fun m => (rep.fn m).toFun x)),
+        (fun m => COF.abs (hA.rep.valueAt x hchiDom m)))
+      (hrep : RSeq.SeriesSum (fun m => rep.valueAt x hrepDom m)),
       hrep.sum =
         prop412ScalarMid n
           ((BishopC.seriesSum_of_abs hchi_abs).sum * h.toFun x hxh)
   dom_of_mid_value :
     ∀ x
-      (_hrep : RSeq.SeriesSum (fun m => (rep.fn m).toFun x)),
+      (hrepDom : rep.MemAt x)
+      (_hrep : RSeq.SeriesSum (fun m => rep.valueAt x hrepDom m)),
       x ∈ h.dom
+  chiA_dom_of_mid_value :
+    ∀ x
+      (hrepDom : rep.MemAt x)
+      (_hrep : RSeq.SeriesSum (fun m => rep.valueAt x hrepDom m)),
+      hA.rep.MemAt x
   chiA_abs_of_mid_value :
     ∀ x
-      (_hrep : RSeq.SeriesSum (fun m => (rep.fn m).toFun x)),
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+      (hrepDom : rep.MemAt x)
+      (hrep : RSeq.SeriesSum (fun m => rep.valueAt x hrepDom m)),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x
+          (chiA_dom_of_mid_value x hrepDom hrep) m))
   dom_of_mid_abs :
     ∀ x
+      (hrepDom : rep.MemAt x)
       (_hrep_abs : RSeq.SeriesSum
-        (fun m => COF.abs ((rep.fn m).toFun x))),
+        (fun m => COF.abs (rep.valueAt x hrepDom m))),
       x ∈ h.dom
+  chiA_dom_of_mid_abs :
+    ∀ x
+      (hrepDom : rep.MemAt x)
+      (_hrep_abs : RSeq.SeriesSum
+        (fun m => COF.abs (rep.valueAt x hrepDom m))),
+      hA.rep.MemAt x
   chiA_abs_of_mid_abs :
     ∀ x
-      (_hrep_abs : RSeq.SeriesSum
-        (fun m => COF.abs ((rep.fn m).toFun x))),
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+      (hrepDom : rep.MemAt x)
+      (hrep_abs : RSeq.SeriesSum
+        (fun m => COF.abs (rep.valueAt x hrepDom m))),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x
+          (chiA_dom_of_mid_abs x hrepDom hrep_abs) m))
 
 /-- The raw constructor source immediately gives the basic mid representative
 data used since G181. -/
@@ -106,12 +126,15 @@ def prop412_mid_support_data_from_constructor_source_data
     Prop412MidRepresentativeSupportData A hA n h where
   mid := prop412_mid_data_from_constructor_source_data Src
   zero_of_chiA_zero := by
-    intro x hchi_abs hmid hchi_zero
+    intro x hchiDom hmidDom hchi_abs hmid hchi_zero
     have hdom : x ∈ h.dom :=
-      Src.dom_of_mid_value x hmid
+      Src.dom_of_mid_value x hmidDom hmid
+    have hchiFromMidDom : hA.rep.MemAt x :=
+      Src.chiA_dom_of_mid_value x hmidDom hmid
     have hchi_from_mid :
-        RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x)) :=
-      Src.chiA_abs_of_mid_value x hmid
+        RSeq.SeriesSum (fun m => COF.abs
+          (hA.rep.valueAt x hchiFromMidDom m)) :=
+      Src.chiA_abs_of_mid_value x hmidDom hmid
     have hchi_value_eq :
         (BishopC.seriesSum_of_abs hchi_from_mid).sum =
           (BishopC.seriesSum_of_abs hchi_abs).sum := by
@@ -123,7 +146,7 @@ def prop412_mid_support_data_from_constructor_source_data
           prop412ScalarMid n
             ((BishopC.seriesSum_of_abs hchi_from_mid).sum *
               h.toFun x hdom) :=
-      Src.value_eq x hdom hchi_from_mid hmid
+      Src.value_eq x hdom hchiFromMidDom hmidDom hchi_from_mid hmid
     rw [hval, hchi_value_eq, hchi_zero, zero_mul,
       prop412_scalarMid_zero]
 
@@ -139,11 +162,14 @@ def prop412_mid_bound_source_data_from_constructor_source_data
     Prop412MidRepresentativeBoundSourceData
       (prop412_mid_support_data_from_constructor_source_data Src) where
   dom_of_mid_abs := by
-    intro x hrep_abs
-    exact Src.dom_of_mid_abs x hrep_abs
+    intro x hrepDom hrep_abs
+    exact Src.dom_of_mid_abs x hrepDom hrep_abs
+  chiA_dom_of_mid_abs := by
+    intro x hrepDom hrep_abs
+    exact Src.chiA_dom_of_mid_abs x hrepDom hrep_abs
   chiA_abs_of_mid_abs := by
-    intro x hrep_abs
-    exact Src.chiA_abs_of_mid_abs x hrep_abs
+    intro x hrepDom hrep_abs
+    exact Src.chiA_abs_of_mid_abs x hrepDom hrep_abs
 
 /-- Constructor from Bishop-style raw mid data to the G197 full-support shape. -/
 def prop412_mid_full_support_data_from_constructor_source_data

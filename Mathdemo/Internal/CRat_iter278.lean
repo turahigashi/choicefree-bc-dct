@@ -134,10 +134,12 @@ structure Prop412ComplementPointwiseChiMembershipData
     ∀ x ∈
       (prop412ComplementRep hE d hdnn).domain ∩
         (prop412BadRelRep hA hE d hdnn).domain,
-      ∀ (hcomp : RSeq.SeriesSum
-          (fun m => ((prop412ComplementRep hE d hdnn).fn m).toFun x))
+      ∀ (hcompDom : (prop412ComplementRep hE d hdnn).MemAt x)
+        (hbadDom : (prop412BadRelRep hA hE d hdnn).MemAt x)
+        (hcomp : RSeq.SeriesSum
+          (fun m => (prop412ComplementRep hE d hdnn).valueAt x hcompDom m))
         (hbad : RSeq.SeriesSum
-          (fun m => ((prop412BadRelRep hA hE d hdnn).fn m).toFun x)),
+          (fun m => (prop412BadRelRep hA hE d hdnn).valueAt x hbadDom m)),
         Prop412PointwiseChiMembershipDatum A E x hcomp.sum hbad.sum
 
 /-- Convert pointwise chi-membership data into the scalar support datum used
@@ -152,8 +154,8 @@ def prop412_scalar_support_data_from_chi_membership
     (CData : Prop412ComplementPointwiseChiMembershipData A E hA hE d hdnn) :
     Prop412ComplementPointwiseScalarData A E hA hE d hdnn where
   data := by
-    intro x hx hcomp hbad
-    rcases CData.data x hx hcomp hbad with
+    intro x hx hcompDom hbadDom hcomp hbad
+    rcases CData.data x hx hcompDom hbadDom hcomp hbad with
       ⟨chiA, chiE, chiBad, dval, hcomp_eq, hbad_eq, hmem, houtside⟩
     exact
       { chiA := chiA
@@ -186,9 +188,13 @@ theorem prop412_full_integral_le_from_value_bound_chi_membership_data
           eps)
     (hbadBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (CData : Prop412ComplementPointwiseChiMembershipData A E hA hE d hdnn) :

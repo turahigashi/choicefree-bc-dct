@@ -46,29 +46,29 @@ theorem prop412_measure1_mono_of_s1_subset
   refine BishopC.prop_1_11
     (BishopC.isFull_inter hD.rep.domain_isFull hE.rep.domain_isFull)
     hD.rep hE.rep ?_
-  intro x hx hd he
+  intro x hx hdDom heDom hd he
   obtain ⟨hxD, hxE⟩ := hx
   obtain ⟨_, hDabs_ne⟩ := hxD
   obtain ⟨_, hEabs_ne⟩ := hxE
   obtain ⟨hDabs⟩ := hDabs_ne
   obtain ⟨hEabs⟩ := hEabs_ne
-  rcases (hD.valid x hDabs).1 with hD1 | hD2
+  rcases (hD.valid x hdDom hDabs).1 with hD1 | hD2
   · have hd1 : hd.sum = 1 :=
-      (hD.valid x hDabs).2.1 hD1 hd
+      (hD.valid x hdDom hDabs).2.1 hD1 hd
     have he1 : he.sum = 1 :=
-      (hE.valid x hEabs).2.1 (hsub hD1) he
+      (hE.valid x heDom hEabs).2.1 (hsub hD1) he
     rw [hd1, he1]
     exact BishopC.le_refl _
   · have hd0 : hd.sum = 0 :=
-      (hD.valid x hDabs).2.2 hD2 hd
+      (hD.valid x hdDom hDabs).2.2 hD2 hd
     rw [hd0]
-    rcases (hE.valid x hEabs).1 with hE1 | hE2
+    rcases (hE.valid x heDom hEabs).1 with hE1 | hE2
     · have he1 : he.sum = 1 :=
-        (hE.valid x hEabs).2.1 hE1 he
+        (hE.valid x heDom hEabs).2.1 hE1 he
       rw [he1]
       exact BishopC.le_of_lt COFO.one_pos
     · have he0 : he.sum = 0 :=
-        (hE.valid x hEabs).2.2 hE2 he
+        (hE.valid x heDom hEabs).2.2 hE2 he
       rw [he0]
       exact BishopC.le_refl _
 

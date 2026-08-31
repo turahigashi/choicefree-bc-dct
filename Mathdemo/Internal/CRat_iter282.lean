@@ -31,26 +31,29 @@ convergence of its `absVal` representative. -/
 def prop412_absVal_absSeries_to_inner_absSeries
     {R : Type*} [COFOC R] {Y : Type} {S : BishopC.IntSpaceRC Y R}
     (r : BishopC.IntegrableRep S) {x : Y}
+    (habsDom : r.absVal.MemAt x)
     (habs : RSeq.SeriesSum
-      (fun n => COF.abs ((r.absVal.fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) := by
-  let u : Nat -> R := fun j => COF.abs ((r.absDiffFn j).toFun x)
-  let v : Nat -> R := fun k => COF.abs ((r.fn k).toFun x)
+      (fun n => COF.abs (r.absVal.valueAt x habsDom n))) :
+    BishopC.Sec4RepAbsAt r x := by
+  have hrDom : r.MemAt x := by
+    intro k
+    have hk := habsDom (3 * k + 1)
+    simpa only [BishopC.IntegrableRep.absVal, BishopC.seqMerge3_one] using hk
+  let u : Nat -> R := fun j => COF.abs
+    ((r.absDiffFn j).toFun x (r.absDiffFn_memAt hrDom j))
+  let v : Nat -> R := fun k => COF.abs (r.valueAt x hrDom k)
   let w : Nat -> R :=
-    fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)
+    fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x (hrDom k))
   have hmerge : RSeq.SeriesSum (BishopC.seqMerge3 u v w) := by
     refine BishopC.seriesSum_congr (fun n => ?_) habs
-    dsimp [u, v, w]
-    change COF.abs
-        (((BishopC.seqMerge3 r.absDiffFn r.fn
-          (fun k => BFunR.smul (-1) (r.fn k)) n).toFun x)) =
-      BishopC.seqMerge3
-        (fun j => COF.abs ((r.absDiffFn j).toFun x))
-        (fun k => COF.abs ((r.fn k).toFun x))
-        (fun k => COF.abs ((BFunR.smul (-1) (r.fn k)).toFun x)) n
-    exact BishopC.seqMerge3_map
-      (fun g : BFunR Y R => COF.abs (g.toFun x))
-      r.absDiffFn r.fn (fun k => BFunR.smul (-1) (r.fn k)) n
+    rcases BishopC.natMod3 n with ⟨k, rfl⟩ | ⟨k, rfl⟩ | ⟨k, rfl⟩
+    · simp only [BishopC.IntegrableRep.valueAt,
+        BishopC.IntegrableRep.absVal, BishopC.seqMerge3_zero, u]
+    · simp only [BishopC.IntegrableRep.valueAt,
+        BishopC.IntegrableRep.absVal, BishopC.seqMerge3_one, v]
+    · simp only [BishopC.IntegrableRep.valueAt,
+        BishopC.IntegrableRep.absVal, BishopC.seqMerge3_two, w]
+  refine ⟨hrDom, ?_⟩
   dsimp [v] at hmerge ⊢
   exact prop412_seriesSum_merge3_second_of_nonneg
     (u := u) (v := v) (w := w)
@@ -64,9 +67,12 @@ structure Prop412GoodSetChiAAbsData
     {R : Type*} [COFOC R] {Y : Type} {S : BishopC.IntSpaceRC Y R}
     (A E : BishopC.BSet Y)
     (hA : BishopC.IntegrableSet1 S A) : Type _ where
+  chiA_dom_on_good :
+    ∀ x, x ∈ E.S1 -> hA.rep.MemAt x
   chiA_abs_on_good :
-    ∀ x, x ∈ E.S1 ->
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+    ∀ x (hxE : x ∈ E.S1),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (chiA_dom_on_good x hxE) m))
 
 /-- Build the G173 value datum for the concrete absolute-difference
 representative from the two explicit mid representatives. -/
@@ -83,34 +89,48 @@ noncomputable def prop412_truncated_abs_value_data_from_mid_reps
     Prop412TruncatedAbsValueData A E hA
       (prop412AbsTruncatedDiffRepFromMidData F G)
       n f g hEf hEg where
+  chiA_dom_on_good := K.chiA_dom_on_good
   chiA_abs_on_good := K.chiA_abs_on_good
   value_eq := by
-    intro x hxE hdfabs
+    intro x hxE hdDom hdfabs
     let subRep := F.rep.sub G.rep
+    let hsubAt : BishopC.Sec4RepAbsAt subRep x :=
+      prop412_absVal_absSeries_to_inner_absSeries subRep hdDom hdfabs
+    let hsubDom : subRep.MemAt x := hsubAt.fst
     have hsubAbs :
-        RSeq.SeriesSum (fun m => COF.abs ((subRep.fn m).toFun x)) :=
-      prop412_absVal_absSeries_to_inner_absSeries subRep hdfabs
+        RSeq.SeriesSum (fun m => COF.abs
+          (subRep.valueAt x hsubDom m)) :=
+      hsubAt.snd
+    let hFDom : F.rep.MemAt x := BishopC.add_dom_left hsubDom
+    let hGnegDom : G.rep.neg.MemAt x := BishopC.add_dom_right hsubDom
+    let hGDom : G.rep.MemAt x := BishopC.neg_dom hGnegDom
     have hFabs :
-        RSeq.SeriesSum (fun m => COF.abs ((F.rep.fn m).toFun x)) := by
-      simpa [subRep, BishopC.IntegrableRep.sub] using
+        RSeq.SeriesSum (fun m => COF.abs
+          (F.rep.valueAt x hFDom m)) := by
+      simpa only [hFDom] using
         (BishopC.add_absSeriesSum_left
-          (r := F.rep) (r' := G.rep.neg) hsubAbs)
+          (r := F.rep) (r' := G.rep.neg) hsubDom hsubAbs)
     have hGnegAbs :
-        RSeq.SeriesSum (fun m => COF.abs (((G.rep.neg).fn m).toFun x)) := by
-      simpa [subRep, BishopC.IntegrableRep.sub] using
+        RSeq.SeriesSum (fun m => COF.abs
+          (G.rep.neg.valueAt x hGnegDom m)) := by
+      simpa only [hGnegDom] using
         (BishopC.add_absSeriesSum_right
-          (r := F.rep) (r' := G.rep.neg) hsubAbs)
+          (r := F.rep) (r' := G.rep.neg) hsubDom hsubAbs)
     have hGabs :
-        RSeq.SeriesSum (fun m => COF.abs ((G.rep.fn m).toFun x)) :=
-      BishopC.neg_absSeriesSum hGnegAbs
-    let hFsum : RSeq.SeriesSum (fun m => (F.rep.fn m).toFun x) :=
+        RSeq.SeriesSum (fun m => COF.abs
+          (G.rep.valueAt x hGDom m)) := by
+      simpa only [hGDom] using BishopC.neg_absSeriesSum hGnegDom hGnegAbs
+    let hFsum : RSeq.SeriesSum (fun m => F.rep.valueAt x hFDom m) :=
       BishopC.seriesSum_of_abs hFabs
-    let hGsum : RSeq.SeriesSum (fun m => (G.rep.fn m).toFun x) :=
+    let hGsum : RSeq.SeriesSum (fun m => G.rep.valueAt x hGDom m) :=
       BishopC.seriesSum_of_abs hGabs
-    let hSubSum : RSeq.SeriesSum (fun m => (subRep.fn m).toFun x) :=
-      BishopC.add_seriesSum_value hFsum
-        (BishopC.neg_seriesSum_value hGsum)
-    obtain ⟨hdSigned, hdSignedEq⟩ := subRep.absVal_signed_value x hSubSum
+    let hSubSum : RSeq.SeriesSum
+        (fun m => subRep.valueAt x hsubDom m) := by
+      simpa only [subRep] using
+        BishopC.add_seriesSum_value hFDom hGnegDom hFsum
+          (BishopC.neg_seriesSum_value hGDom hGsum)
+    obtain ⟨hdSigned, hdSignedEq⟩ :=
+      subRep.absVal_signed_value x hsubDom hSubSum
     have hdf_eq :
         (BishopC.seriesSum_of_abs hdfabs).sum = hdSigned.sum := by
       exact BishopC.seriesSum_unique (BishopC.seriesSum_of_abs hdfabs) hdSigned
@@ -123,8 +143,10 @@ noncomputable def prop412_truncated_abs_value_data_from_mid_reps
             ((BishopC.seriesSum_of_abs (K.chiA_abs_on_good x hxE)).sum *
               g.toFun x (hEg hxE)) := by
       have hFval := F.value_eq x (hEf hxE)
+        (K.chiA_dom_on_good x hxE) hFDom
         (K.chiA_abs_on_good x hxE) hFsum
       have hGval := G.value_eq x (hEg hxE)
+        (K.chiA_dom_on_good x hxE) hGDom
         (K.chiA_abs_on_good x hxE) hGsum
       rw [show hSubSum.sum = hFsum.sum + -hGsum.sum from rfl,
         hFval, hGval]
@@ -161,11 +183,15 @@ structure Prop412ConcreteTruncatedAbsDiffValueWitnessData
       (prop412_abs_truncated_diff_rep_nonneg_from_mid_data f_mid g_mid)
   bad_set_n_bound :
     ∀ (x : Y)
+      (hdDom : (prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).MemAt x)
+      (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
       (hdfabs : RSeq.SeriesSum
         (fun m => COF.abs
-          (((prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).fn m).toFun x)))
+          ((prop412AbsTruncatedDiffRepFromMidData f_mid g_mid).valueAt
+            x hdDom m)))
       (hχBadAbs : RSeq.SeriesSum
-        (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+        (fun m => COF.abs
+          ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
       (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
         BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R)
 

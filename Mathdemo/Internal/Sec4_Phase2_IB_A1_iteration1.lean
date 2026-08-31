@@ -116,21 +116,24 @@ theorem sec4_min2_repNonneg
     {r s : IntegrableRep S}
     (hrnn : RepNonneg r) (hsnn : RepNonneg s) :
     RepNonneg (IntegrableRep.min2 r s) := by
-  intro x habs hx
+  intro x hdom habs hx
+  let hrDom : r.MemAt x := min2_dom_left hdom
+  let hsDom : s.MemAt x := min2_dom_right hdom
   let hrAbs : RSeq.SeriesSum
-      (fun n => COF.abs ((r.fn n).toFun x)) :=
-    min2_absSeriesSum_left (r := r) (s := s) habs
+      (fun n => COF.abs (r.valueAt x hrDom n)) :=
+    min2_absSeriesSum_left (r := r) (s := s) hdom habs
   let hsAbs : RSeq.SeriesSum
-      (fun n => COF.abs ((s.fn n).toFun x)) :=
-    min2_absSeriesSum_right (r := r) (s := s) habs
-  let hrVal : RSeq.SeriesSum (fun n => (r.fn n).toFun x) :=
+      (fun n => COF.abs (s.valueAt x hsDom n)) :=
+    min2_absSeriesSum_right (r := r) (s := s) hdom habs
+  let hrVal : RSeq.SeriesSum (fun n => r.valueAt x hrDom n) :=
     seriesSum_of_abs hrAbs
-  let hsVal : RSeq.SeriesSum (fun n => (s.fn n).toFun x) :=
+  let hsVal : RSeq.SeriesSum (fun n => s.valueAt x hsDom n) :=
     seriesSum_of_abs hsAbs
-  let hm := min2_value r s x hrVal hsVal
+  let hm := min2_value r s x hrDom hsDom hrVal hsVal
   have hx_eq : hx.sum = hm.val.sum := seriesSum_unique hx hm.val
   rw [hx_eq, hm.property]
-  exact BishopC.le_min (hrnn x hrAbs hrVal) (hsnn x hsAbs hsVal)
+  exact BishopC.le_min
+    (hrnn x hrDom hrAbs hrVal) (hsnn x hsDom hsAbs hsVal)
 
 
 /--
@@ -145,15 +148,13 @@ This is the exact abstraction of the hard `seriesSumRep_L1_value` /
 structure Sec4SeriesSumRepL1PointBridge
     (F : Nat → IntegrableRep S)
     (hsum : RSeq.SeriesSum (fun m => (F m).normL1))
-    (x : X)
-    (hflatabs : RSeq.SeriesSum
-      (fun n => COF.abs (((seriesSumRep_L1 F hsum).fn n).toFun x))) where
+    (x : X) where
+  rowDom : ∀ m : Nat, (F m).MemAt x
   rowAbs : ∀ m : Nat,
-    RSeq.SeriesSum (fun n => COF.abs (((F m).fn n).toFun x))
+    RSeq.SeriesSum (fun n => COF.abs ((F m).valueAt x (rowDom m) n))
   rowVal : ∀ m : Nat,
-    RSeq.SeriesSum (fun n => ((F m).fn n).toFun x)
+    RSeq.SeriesSum (fun n => (F m).valueAt x (rowDom m) n)
   rows : RSeq.SeriesSum (fun m => (rowVal m).sum)
-  value_eq : (seriesSum_of_abs hflatabs).sum = rows.sum
 
 
 /--
@@ -166,21 +167,26 @@ noncomputable def sec4_seriesSumRep_L1_repNonneg_of_bridge
     (F : Nat → IntegrableRep S)
     (hsum : RSeq.SeriesSum (fun m => (F m).normL1))
     (hFnn : ∀ m : Nat, RepNonneg (F m))
-    (bridge : ∀ x hflatabs,
-      Sec4SeriesSumRepL1PointBridge (S := S) F hsum x hflatabs) :
+    (bridge : ∀ x
+      (hflatDom : (seriesSumRep_L1 F hsum).MemAt x)
+      (hflatabs : RSeq.SeriesSum (fun n => COF.abs
+        ((seriesSumRep_L1 F hsum).valueAt x hflatDom n))),
+      { B : Sec4SeriesSumRepL1PointBridge (S := S) F hsum x //
+        (seriesSum_of_abs hflatabs).sum = B.rows.sum }) :
     RepNonneg (seriesSumRep_L1 F hsum) := by
-  intro x hflatabs hx
-  let B := bridge x hflatabs
+  intro x hflatDom hflatabs hx
+  let BW := bridge x hflatDom hflatabs
+  let B := BW.val
   have hrows_nonneg :
       Nonneg (B.rows.sum) :=
     seriesSum_nonneg
-      (fun m => hFnn m x (B.rowAbs m) (B.rowVal m))
+      (fun m => hFnn m x (B.rowDom m) (B.rowAbs m) (B.rowVal m))
       B.rows
   have hx_to_rows : hx.sum = B.rows.sum := by
     calc
       hx.sum = (seriesSum_of_abs hflatabs).sum :=
         seriesSum_unique hx (seriesSum_of_abs hflatabs)
-      _ = B.rows.sum := B.value_eq
+      _ = B.rows.sum := BW.property
   rw [hx_to_rows]
   exact hrows_nonneg
 
@@ -236,21 +242,28 @@ structure Sec4IBValueBridge
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (H : Sec4IBTailData (S := S) B hB f hnn) : Prop where
   domain :
-    ∀ x, RSeq.SeriesSum
-      (fun n => COF.abs (((genIB_rep_from_tailData B hB f hnn H).fn n).toFun x)) →
+    ∀ x (hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x),
+      RSeq.SeriesSum (fun n => COF.abs
+        ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)) →
       x ∈ B.S1 ∪ B.S2
   value_one :
     ∀ x,
       x ∈ B.S1 →
+      ∀ hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x,
       ∀ hflatabs : RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_tailData B hB f hnn H).fn n).toFun x)),
-      ∀ hfabs : RSeq.SeriesSum (fun n => COF.abs ((f.fn n).toFun x)),
+        (fun n => COF.abs
+          ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)),
+      ∀ hfDom : f.MemAt x,
+      ∀ hfabs : RSeq.SeriesSum
+        (fun n => COF.abs (f.valueAt x hfDom n)),
       (seriesSum_of_abs hflatabs).sum = (seriesSum_of_abs hfabs).sum
   value_zero :
     ∀ x,
       x ∈ B.S2 →
+      ∀ hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x,
       ∀ hflatabs : RSeq.SeriesSum
-        (fun n => COF.abs (((genIB_rep_from_tailData B hB f hnn H).fn n).toFun x)),
+        (fun n => COF.abs
+          ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)),
       (seriesSum_of_abs hflatabs).sum = 0
 
 

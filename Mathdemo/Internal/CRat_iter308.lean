@@ -47,12 +47,18 @@ structure Prop412IntegrableSetRepresentativeSource
     {S : BishopC.IntSpaceRC Y R}
     {A : BishopC.BSet Y}
     (hA : BishopC.IntegrableSet1 S A) : Type _ where
+  chi_dom_on_s1 :
+    ∀ x, x ∈ A.S1 -> hA.rep.MemAt x
   chi_abs_on_s1 :
-    ∀ x, x ∈ A.S1 ->
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+    ∀ x (hx : x ∈ A.S1),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (chi_dom_on_s1 x hx) m))
+  chi_dom_on_s2 :
+    ∀ x, x ∈ A.S2 -> hA.rep.MemAt x
   chi_abs_on_s2 :
-    ∀ x, x ∈ A.S2 ->
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+    ∀ x (hx : x ∈ A.S2),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (chi_dom_on_s2 x hx) m))
   membership_to_characteristic_rep_abs_is_source_data : Prop
 
 /-- If a good set `E` is included in `A¹`, the source-level integrable-set
@@ -66,6 +72,9 @@ def prop412_good_set_chiA_abs_from_integrable_set_source
     (ASource : Prop412IntegrableSetRepresentativeSource hA)
     (hEsubA : E.S1 ⊆ A.S1) :
     Prop412GoodSetChiAAbsData A E hA where
+  chiA_dom_on_good := by
+    intro x hxE
+    exact ASource.chi_dom_on_s1 x (hEsubA hxE)
   chiA_abs_on_good := by
     intro x hxE
     exact ASource.chi_abs_on_s1 x (hEsubA hxE)

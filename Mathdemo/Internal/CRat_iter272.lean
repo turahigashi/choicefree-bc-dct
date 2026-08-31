@@ -35,10 +35,12 @@ theorem prop412_chiE_one_mem_s1
     {E : BishopC.BSet Y}
     (hE : BishopC.IntegrableSet1 S E)
     {x : Y}
-    (hχEabs : RSeq.SeriesSum (fun n => COF.abs ((hE.rep.fn n).toFun x)))
+    (hχEDom : hE.rep.MemAt x)
+    (hχEabs : RSeq.SeriesSum (fun n => COF.abs
+      (hE.rep.valueAt x hχEDom n)))
     (hχEone : (BishopC.seriesSum_of_abs hχEabs).sum = 1) :
     x ∈ E.S1 := by
-  have hvalid := hE.valid x hχEabs
+  have hvalid := hE.valid x hχEDom hχEabs
   rcases hvalid.1 with hxE | hxE2
   · exact hxE
   · exfalso
@@ -62,12 +64,17 @@ structure Prop412TruncatedAbsValueData
     (d : BishopC.IntegrableRep S)
     (n : Nat) (f g : BishopC.PFunR Y R)
     (hEf : E.S1 ⊆ f.dom) (hEg : E.S1 ⊆ g.dom) : Type _ where
+  chiA_dom_on_good :
+    ∀ x, x ∈ E.S1 -> hA.rep.MemAt x
   chiA_abs_on_good :
-    ∀ x, x ∈ E.S1 ->
-      RSeq.SeriesSum (fun m => COF.abs ((hA.rep.fn m).toFun x))
+    ∀ x (hxE : x ∈ E.S1),
+      RSeq.SeriesSum (fun m => COF.abs
+        (hA.rep.valueAt x (chiA_dom_on_good x hxE) m))
   value_eq :
     ∀ x (hxE : x ∈ E.S1)
-      (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x))),
+      (hdDom : d.MemAt x)
+      (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+        (d.valueAt x hdDom m))),
       (BishopC.seriesSum_of_abs hdfabs).sum =
         COF.abs
           (prop412ScalarMid n
@@ -96,13 +103,16 @@ theorem prop412_good_set_hpoint_from_truncated_value_data
           (COF.abs (f.toFun x (hEf hxE) - g.toFun x (hEg hxE)))
           eps) :
     ∀ (x : Y)
-      (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
-      (hχEabs : RSeq.SeriesSum (fun m => COF.abs ((hE.rep.fn m).toFun x))),
+      (hdDom : d.MemAt x) (hχEDom : hE.rep.MemAt x)
+      (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+        (d.valueAt x hdDom m)))
+      (hχEabs : RSeq.SeriesSum (fun m => COF.abs
+        (hE.rep.valueAt x hχEDom m))),
       (BishopC.seriesSum_of_abs hχEabs).sum = 1 ->
         BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum eps := by
-  intro x hdfabs hχEabs hχEone
+  intro x hdDom hχEDom hdfabs hχEabs hχEone
   have hxE : x ∈ E.S1 :=
-    prop412_chiE_one_mem_s1 hE hχEabs hχEone
+    prop412_chiE_one_mem_s1 hE hχEDom hχEabs hχEone
   have hscalar :
       COF.lt
         (COF.abs
@@ -114,8 +124,9 @@ theorem prop412_good_set_hpoint_from_truncated_value_data
                 g.toFun x (hEg hxE))))
         eps :=
     prop412_scalar_mid_chiA_lt_on_good_set hA hEsubA hxE
-      (D.chiA_abs_on_good x hxE) n (hfg x hxE)
-  rw [D.value_eq x hxE hdfabs]
+      (D.chiA_dom_on_good x hxE) (D.chiA_abs_on_good x hxE)
+      n (hfg x hxE)
+  rw [D.value_eq x hxE hdDom hdfabs]
   exact BishopC.le_of_lt hscalar
 
 /-- Good-set relative integral estimate with the G172 scalar bridge already

@@ -49,117 +49,137 @@ theorem theorem415_abs_error_dominated_by_g_add_absf
     (fn : Nat -> BishopC.IntegrableRep S)
     (f g : BishopC.IntegrableRep S)
     (hfn_dom : forall n, BishopC.RepNonneg (g.sub (fn n).absVal)) :
-    forall n,
+  forall n,
       BishopC.RepNonneg
         ((g.add f.absVal).sub
           (BishopC.thm_4_15_abs_error (S := S) fn f n)) := by
-  intro n x habs hx
+  intro n x htotalDom habs hx
   let err : BishopC.IntegrableRep S :=
     BishopC.thm_4_15_abs_error (S := S) fn f n
   let subRep : BishopC.IntegrableRep S := (fn n).sub f
+  let hmajorantDom : (g.add f.absVal).MemAt x :=
+    BishopC.add_dom_left htotalDom
+  let herrNegDom : err.neg.MemAt x := BishopC.add_dom_right htotalDom
+  let herrDom : err.MemAt x := BishopC.neg_dom herrNegDom
   have hmajorant_abs :
       RSeq.SeriesSum
-        (fun k => COF.abs (((g.add f.absVal).fn k).toFun x)) :=
-    BishopC.add_absSeriesSum_left habs
+        (fun k => COF.abs ((g.add f.absVal).valueAt x hmajorantDom k)) := by
+    simpa only [hmajorantDom] using
+      BishopC.add_absSeriesSum_left htotalDom habs
   have herr_neg_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((err.neg.fn k).toFun x)) :=
-    BishopC.add_absSeriesSum_right habs
+      RSeq.SeriesSum
+        (fun k => COF.abs (err.neg.valueAt x herrNegDom k)) := by
+    simpa only [herrNegDom] using
+      BishopC.add_absSeriesSum_right htotalDom habs
   have herr_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((err.fn k).toFun x)) :=
-    BishopC.neg_absSeriesSum herr_neg_abs
-  have hg_abs : RSeq.SeriesSum (fun k => COF.abs ((g.fn k).toFun x)) :=
-    BishopC.add_absSeriesSum_left hmajorant_abs
+      RSeq.SeriesSum (fun k => COF.abs (err.valueAt x herrDom k)) := by
+    simpa only [herrDom] using
+      BishopC.neg_absSeriesSum herrNegDom herr_neg_abs
+  let hgDom : g.MemAt x := BishopC.add_dom_left hmajorantDom
+  let hfAbsDom : f.absVal.MemAt x := BishopC.add_dom_right hmajorantDom
+  have hg_abs :
+      RSeq.SeriesSum (fun k => COF.abs (g.valueAt x hgDom k)) := by
+    simpa only [hgDom] using
+      BishopC.add_absSeriesSum_left hmajorantDom hmajorant_abs
   have hfAbs_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((f.absVal.fn k).toFun x)) :=
-    BishopC.add_absSeriesSum_right hmajorant_abs
-  let hg_sum : RSeq.SeriesSum (fun k => (g.fn k).toFun x) :=
+      RSeq.SeriesSum
+        (fun k => COF.abs (f.absVal.valueAt x hfAbsDom k)) := by
+    simpa only [hfAbsDom] using
+      BishopC.add_absSeriesSum_right hmajorantDom hmajorant_abs
+  let hg_sum : RSeq.SeriesSum (fun k => g.valueAt x hgDom k) :=
     BishopC.seriesSum_of_abs hg_abs
-  let hfAbs_sum : RSeq.SeriesSum (fun k => (f.absVal.fn k).toFun x) :=
+  let hfAbs_sum :
+      RSeq.SeriesSum (fun k => f.absVal.valueAt x hfAbsDom k) :=
     BishopC.seriesSum_of_abs hfAbs_abs
-  let herr_sum : RSeq.SeriesSum (fun k => (err.fn k).toFun x) :=
+  let herr_sum : RSeq.SeriesSum (fun k => err.valueAt x herrDom k) :=
     BishopC.seriesSum_of_abs herr_abs
   let hmajorant_sum :
-      RSeq.SeriesSum (fun k => ((g.add f.absVal).fn k).toFun x) :=
-    BishopC.add_seriesSum_value hg_sum hfAbs_sum
+      RSeq.SeriesSum
+        (fun k => (g.add f.absVal).valueAt x hmajorantDom k) := by
+    simpa only [hmajorantDom] using
+      BishopC.add_seriesSum_value hgDom hfAbsDom hg_sum hfAbs_sum
   let htotal :
       RSeq.SeriesSum
-        (fun k => (((g.add f.absVal).sub err).fn k).toFun x) :=
-    BishopC.add_seriesSum_value hmajorant_sum
-      (BishopC.neg_seriesSum_value herr_sum)
+        (fun k => ((g.add f.absVal).sub err).valueAt x htotalDom k) := by
+    simpa only [BishopC.IntegrableRep.sub] using
+      BishopC.add_seriesSum_value hmajorantDom herrNegDom hmajorant_sum
+        (BishopC.neg_seriesSum_value herrDom herr_sum)
   have hx_eq : hx.sum = htotal.sum := BishopC.seriesSum_unique hx htotal
-  let u : Nat -> R := fun j => COF.abs ((subRep.absDiffFn j).toFun x)
-  let v : Nat -> R := fun k => COF.abs ((subRep.fn k).toFun x)
-  let w : Nat -> R := fun k =>
-    COF.abs ((BFunR.smul (-1) (subRep.fn k)).toFun x)
-  have hmerge : RSeq.SeriesSum (BishopC.seqMerge3 u v w) := by
-    refine BishopC.seriesSum_congr (fun m => ?_) herr_abs
-    dsimp [u, v, w, err, subRep, BishopC.thm_4_15_abs_error]
-    change COF.abs
-        (((BishopC.seqMerge3 ((fn n).sub f).absDiffFn ((fn n).sub f).fn
-          (fun k => BFunR.smul (-1) (((fn n).sub f).fn k)) m).toFun x)) =
-      BishopC.seqMerge3
-        (fun j => COF.abs ((((fn n).sub f).absDiffFn j).toFun x))
-        (fun k => COF.abs ((((fn n).sub f).fn k).toFun x))
-        (fun k => COF.abs
-          ((BFunR.smul (-1) (((fn n).sub f).fn k)).toFun x)) m
-    exact BishopC.seqMerge3_map (fun q : BFunR Y R => COF.abs (q.toFun x))
-      ((fn n).sub f).absDiffFn ((fn n).sub f).fn
-      (fun k => BFunR.smul (-1) (((fn n).sub f).fn k)) m
+  let hsubAt : BishopC.Sec4RepAbsAt subRep x :=
+    _root_.BishopCReal.BishopRegularSeqChapter4.Proposition412.TruncatedIntegralBridge.prop412_absVal_absSeries_to_inner_absSeries subRep
+        (by simpa only [err, subRep, BishopC.thm_4_15_abs_error] using herrDom)
+        (by simpa only [err, subRep, BishopC.thm_4_15_abs_error] using herr_abs)
+  let hsubDom : subRep.MemAt x := hsubAt.fst
   have hsub_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((subRep.fn k).toFun x)) := by
-    dsimp [v] at hmerge ⊢
-    exact BishopC.seriesSum_merge3_second_of_nonneg
-      (u := u) (v := v) (w := w)
-      (fun _ => BishopC.abs_nonneg _)
-      (fun _ => BishopC.abs_nonneg _)
-      (fun _ => BishopC.abs_nonneg _)
-      hmerge
+      RSeq.SeriesSum (fun k => COF.abs (subRep.valueAt x hsubDom k)) :=
+    hsubAt.snd
+  let hfnDom : (fn n).MemAt x := BishopC.add_dom_left hsubDom
+  let hfNegDom : f.neg.MemAt x := BishopC.add_dom_right hsubDom
+  let hfDom : f.MemAt x := BishopC.neg_dom hfNegDom
   have hfn_abs :
-      RSeq.SeriesSum (fun k => COF.abs (((fn n).fn k).toFun x)) :=
-    BishopC.add_absSeriesSum_left hsub_abs
+      RSeq.SeriesSum (fun k => COF.abs ((fn n).valueAt x hfnDom k)) := by
+    simpa only [hfnDom] using
+      BishopC.add_absSeriesSum_left hsubDom hsub_abs
+  have hf_neg_abs :
+      RSeq.SeriesSum (fun k => COF.abs (f.neg.valueAt x hfNegDom k)) := by
+    simpa only [hfNegDom] using
+      BishopC.add_absSeriesSum_right hsubDom hsub_abs
   have hf_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((f.fn k).toFun x)) :=
-    BishopC.neg_absSeriesSum (BishopC.add_absSeriesSum_right hsub_abs)
-  let hfn_sum : RSeq.SeriesSum (fun k => ((fn n).fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => COF.abs (f.valueAt x hfDom k)) := by
+    simpa only [hfDom] using BishopC.neg_absSeriesSum hfNegDom hf_neg_abs
+  let hfn_sum : RSeq.SeriesSum (fun k => (fn n).valueAt x hfnDom k) :=
     BishopC.seriesSum_of_abs hfn_abs
-  let hf_sum : RSeq.SeriesSum (fun k => (f.fn k).toFun x) :=
+  let hf_sum : RSeq.SeriesSum (fun k => f.valueAt x hfDom k) :=
     BishopC.seriesSum_of_abs hf_abs
-  let hsub_sum : RSeq.SeriesSum (fun k => (subRep.fn k).toFun x) :=
+  let hsub_sum : RSeq.SeriesSum (fun k => subRep.valueAt x hsubDom k) :=
     BishopC.seriesSum_of_abs hsub_abs
   have hsub_eq : hsub_sum.sum = hfn_sum.sum - hf_sum.sum := by
     have heq :=
       BishopC.seriesSum_unique hsub_sum
-        (BishopC.add_seriesSum_value hfn_sum
-          (BishopC.neg_seriesSum_value hf_sum))
+        (BishopC.add_seriesSum_value hfnDom hfNegDom hfn_sum
+          (BishopC.neg_seriesSum_value hfDom hf_sum))
     change hsub_sum.sum = hfn_sum.sum + -hf_sum.sum at heq
     rwa [sub_eq_add_neg]
-  obtain ⟨herr_alt, herr_alt_eq⟩ := subRep.absVal_pointSum x hsub_sum
+  obtain ⟨herr_alt, herr_alt_eq⟩ :=
+    subRep.absVal_pointSum x hsubDom hsub_sum
   have herr_eq :
       herr_sum.sum = COF.abs (hfn_sum.sum - hf_sum.sum) := by
     have heq : herr_sum.sum = herr_alt.sum :=
       BishopC.seriesSum_unique herr_sum herr_alt
     rw [heq, herr_alt_eq, hsub_eq]
+  let hfnAbsValDom : (fn n).absVal.MemAt x :=
+    (fn n).mem_absVal_dom hfnDom
   have hfn_absVal_abs :
-      RSeq.SeriesSum (fun k => COF.abs (((fn n).absVal.fn k).toFun x)) :=
-    (fn n).absVal_absSeries hfn_abs
+      RSeq.SeriesSum
+        (fun k => COF.abs ((fn n).absVal.valueAt x hfnAbsValDom k)) := by
+    simpa only [BishopC.IntegrableRep.valueAt, hfnAbsValDom] using
+      (fn n).absVal_absSeries hfnDom hfn_abs
   let hfn_absVal_sum :
-      RSeq.SeriesSum (fun k => ((fn n).absVal.fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => (fn n).absVal.valueAt x hfnAbsValDom k) :=
     BishopC.seriesSum_of_abs hfn_absVal_abs
   obtain ⟨hfn_absVal_alt, hfn_absVal_alt_eq⟩ :=
-    (fn n).absVal_pointSum x hfn_sum
+    (fn n).absVal_pointSum x hfnDom hfn_sum
   have hfn_absVal_sum_eq :
       hfn_absVal_sum.sum = COF.abs hfn_sum.sum := by
     rw [BishopC.seriesSum_unique hfn_absVal_sum hfn_absVal_alt,
       hfn_absVal_alt_eq]
+  let hfnSubAt : BishopC.Sec4RepAbsAt (g.sub (fn n).absVal) x :=
+    BishopC.sec4_sub_absSeriesSum_fwd
+      (r := g) (s := (fn n).absVal)
+      ⟨hgDom, hg_abs⟩ ⟨hfnAbsValDom, hfn_absVal_abs⟩
   have hfn_sub_abs :
-      RSeq.SeriesSum
-        (fun k => COF.abs (((g.sub (fn n).absVal).fn k).toFun x)) :=
-    BishopC.sec4_sub_absSeriesSum_fwd hg_abs hfn_absVal_abs
+      RSeq.SeriesSum (fun k => COF.abs
+        ((g.sub (fn n).absVal).valueAt x hfnSubAt.fst k)) :=
+    hfnSubAt.snd
+  let hfnAbsValNegDom : (fn n).absVal.neg.MemAt x :=
+    BishopC.IntegrableRep.neg_memAt hfnAbsValDom
   let hfn_sub_sum : RSeq.SeriesSum
-      (fun k => ((g.sub (fn n).absVal).fn k).toFun x) :=
-    BishopC.add_seriesSum_value hg_sum
-      (BishopC.neg_seriesSum_value hfn_absVal_sum)
-  have hfn_nonneg := hfn_dom n x hfn_sub_abs hfn_sub_sum
+      (fun k => (g.sub (fn n).absVal).valueAt x hfnSubAt.fst k) := by
+    simpa only [BishopC.IntegrableRep.sub] using
+      BishopC.add_seriesSum_value hgDom hfnAbsValNegDom hg_sum
+        (BishopC.neg_seriesSum_value hfnAbsValDom hfn_absVal_sum)
+  have hfn_nonneg :=
+    hfn_dom n x hfnSubAt.fst hfn_sub_abs hfn_sub_sum
   have hfn_abs_le_g : BishopC.Le (COF.abs hfn_sum.sum) hg_sum.sum := by
     have hle_absVal : BishopC.Le hfn_absVal_sum.sum hg_sum.sum :=
       BishopC.le_of_nonneg_sub (by
@@ -167,14 +187,17 @@ theorem theorem415_abs_error_dominated_by_g_add_absf
             hg_sum.sum + -hfn_absVal_sum.sum from by ring]
         exact hfn_nonneg)
     rwa [← hfn_absVal_sum_eq]
+  let hfAbsValDom : f.absVal.MemAt x := f.mem_absVal_dom hfDom
   have hf_absVal_abs :
-      RSeq.SeriesSum (fun k => COF.abs ((f.absVal.fn k).toFun x)) :=
-    f.absVal_absSeries hf_abs
+      RSeq.SeriesSum
+        (fun k => COF.abs (f.absVal.valueAt x hfAbsValDom k)) := by
+    simpa only [BishopC.IntegrableRep.valueAt, hfAbsValDom] using
+      f.absVal_absSeries hfDom hf_abs
   let hf_absVal_sum :
-      RSeq.SeriesSum (fun k => (f.absVal.fn k).toFun x) :=
+      RSeq.SeriesSum (fun k => f.absVal.valueAt x hfAbsValDom k) :=
     BishopC.seriesSum_of_abs hf_absVal_abs
   obtain ⟨hf_absVal_alt, hf_absVal_alt_eq⟩ :=
-    f.absVal_pointSum x hf_sum
+    f.absVal_pointSum x hfDom hf_sum
   have hf_absVal_sum_eq :
       hf_absVal_sum.sum = COF.abs hf_sum.sum := by
     rw [BishopC.seriesSum_unique hf_absVal_sum hf_absVal_alt,

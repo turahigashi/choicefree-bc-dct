@@ -48,8 +48,11 @@ theorem prop412_good_set_relIntegral_le
     (eps : R)
     (hpoint :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun n => COF.abs ((d.fn n).toFun x)))
-        (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hE.rep.fn n).toFun x))),
+        (hdDom : d.MemAt x) (hχDom : hE.rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun n => COF.abs
+          (d.valueAt x hdDom n)))
+        (hχabs : RSeq.SeriesSum (fun n => COF.abs
+          (hE.rep.valueAt x hχDom n))),
         (BishopC.seriesSum_of_abs hχabs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum eps) :
     BishopC.Le
@@ -68,8 +71,11 @@ theorem prop412_good_set_relIntegral_lt_of_lt_budget
     (eps eta : R)
     (hpoint :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun n => COF.abs ((d.fn n).toFun x)))
-        (hχabs : RSeq.SeriesSum (fun n => COF.abs ((hE.rep.fn n).toFun x))),
+        (hdDom : d.MemAt x) (hχDom : hE.rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun n => COF.abs
+          (d.valueAt x hdDom n)))
+        (hχabs : RSeq.SeriesSum (fun n => COF.abs
+          (hE.rep.valueAt x hχDom n))),
         (BishopC.seriesSum_of_abs hχabs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum eps)
     (hbudget : COF.lt (eps * BishopC.measure1 S hE) eta) :

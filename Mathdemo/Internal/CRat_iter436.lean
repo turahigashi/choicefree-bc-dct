@@ -19,32 +19,24 @@ outer row series of the original row representatives. -/
 noncomputable def stageA15_seriesSumRep_L1_value_rows
     (F : Nat -> IntegrableRep S)
     (hsum : RSeq.SeriesSum (fun m => (F m).normL1)) {x : X}
+    (hflatDom : (seriesSumRep_L1 F hsum).MemAt x)
     (hflatabs : RSeq.SeriesSum
-      (fun n => COF.abs (((seriesSumRep_L1 F hsum).fn n).toFun x))) :
+      (fun n => COF.abs
+        ((seriesSumRep_L1 F hsum).valueAt x hflatDom n))) :
     { hser : RSeq.SeriesSum (fun m =>
         (seriesSum_of_abs
-          (seriesSumRep_L1_row_absConv F hsum hflatabs m)).sum) //
+          (seriesSumRep_L1_row_absConv F hsum hflatDom hflatabs m)).sum) //
         (seriesSum_of_abs hflatabs).sum = hser.sum } := by
-  obtain ⟨hV, eV⟩ := seriesSumRep_L1_value F hsum hflatabs
-  refine ⟨seriesSum_congr (fun m => ?_) hV, eV⟩
-  rw [show
+  let P := sec4_make_pointBridge F hsum x hflatDom hflatabs
+  let hser : RSeq.SeriesSum (fun m =>
+      (seriesSum_of_abs
+        (seriesSumRep_L1_row_absConv F hsum hflatDom hflatabs m)).sum) :=
+    seriesSum_congr
+      (fun m => seriesSum_unique (P.val.rowVal m)
         (seriesSum_of_abs
-          (row_seriesSum
-            (fun i j => abs_nonneg (((G_m F i).fn j).toFun x))
-            (add_absSeriesSum_left hflatabs) m)).sum
-          = (IntegrableRep.ofL_value (psi_m_mem F m) x).val.sum
-        from seriesSum_unique _ _,
-      show
-        (seriesSum_of_abs
-          (row_seriesSum
-            (fun i j => abs_nonneg (((tail_m F i).fn j).toFun x))
-            (add_absSeriesSum_right hflatabs) m)).sum
-          = (IntegrableRep.tailFrom_value (F m) (Nm F m) x
-              (seriesSum_of_abs
-                (seriesSumRep_L1_row_absConv F hsum hflatabs m))).val.sum
-        from seriesSum_unique _ _]
-  exact seriesSumRep_L1_hsplit_value F m
-    (seriesSum_of_abs (seriesSumRep_L1_row_absConv F hsum hflatabs m))
+          (seriesSumRep_L1_row_absConv F hsum hflatDom hflatabs m)))
+      P.val.rows
+  exact ⟨hser, P.property.trans (seriesSum_unique P.val.rows hser)⟩
 
 /-- A cutoff-difference row has the expected point value:
 `lambda_m(x) = min(v,m+1) - min(v,m)`, where `v = chi_A * |f|`. -/
@@ -52,8 +44,11 @@ theorem stageA15_lambda_value_eq_cutoff_diff
     {df : DataPFunR X R} (hm : IsMeasurableData S df)
     (A : BSet X) (hA : IntegrableSet1 S A) (m : Nat) {x : X}
     (hp : (DataPFunR.chiMulAbs (S := S) hA df).domData x)
+    (hlamDom :
+      (thm_4_13_lambda (thm46CutoffSeq hm A hA) m).MemAt x)
     (hlamabs : RSeq.SeriesSum (fun k =>
-      COF.abs (((thm_4_13_lambda (thm46CutoffSeq hm A hA) m).fn k).toFun x))) :
+      COF.abs ((thm_4_13_lambda (thm46CutoffSeq hm A hA) m).valueAt
+        x hlamDom k))) :
     (seriesSum_of_abs hlamabs).sum
       = COF.min ((DataPFunR.chiMulAbs (S := S) hA df).toFun x hp)
           ((m + 1 : Nat) : R)
@@ -61,38 +56,44 @@ theorem stageA15_lambda_value_eq_cutoff_diff
           (m : R) := by
   let p := DataPFunR.chiMulAbs (S := S) hA df
   let fn := thm46CutoffSeq hm A hA
+  let hsubDom : ((fn (m + 1)).add (fn m).neg).MemAt x := by
+    simpa [fn, thm_4_13_lambda, IntegrableRep.sub] using hlamDom
   have hsubabs : RSeq.SeriesSum (fun k =>
-      COF.abs ((((fn (m + 1)).add (fn m).neg).fn k).toFun x)) := by
+      COF.abs (((fn (m + 1)).add (fn m).neg).valueAt x hsubDom k)) := by
     simpa [fn, thm_4_13_lambda, IntegrableRep.sub] using hlamabs
-  have hnext_abs : RSeq.SeriesSum (fun k => COF.abs (((fn (m + 1)).fn k).toFun x)) :=
-    add_absSeriesSum_left hsubabs
-  have hcurr_abs : RSeq.SeriesSum (fun k => COF.abs (((fn m).fn k).toFun x)) :=
-    neg_absSeriesSum (add_absSeriesSum_right hsubabs)
+  let hnextDom : (fn (m + 1)).MemAt x := add_dom_left hsubDom
+  let hnegCurrDom : (fn m).neg.MemAt x := add_dom_right hsubDom
+  let hcurrDom : (fn m).MemAt x := neg_dom hnegCurrDom
+  have hnext_abs : RSeq.SeriesSum
+      (fun k => COF.abs ((fn (m + 1)).valueAt x hnextDom k)) :=
+    add_absSeriesSum_left hsubDom hsubabs
+  have hcurr_abs : RSeq.SeriesSum
+      (fun k => COF.abs ((fn m).valueAt x hcurrDom k)) :=
+    neg_absSeriesSum hnegCurrDom
+      (add_absSeriesSum_right hsubDom hsubabs)
   let hnext := seriesSum_of_abs hnext_abs
   let hcurr := seriesSum_of_abs hcurr_abs
   have hsub_sum :
       (seriesSum_of_abs hsubabs).sum = hnext.sum - hcurr.sum := by
     have heq :=
       seriesSum_unique (seriesSum_of_abs hsubabs)
-        (add_seriesSum_value hnext (neg_seriesSum_value hcurr))
+        (add_seriesSum_value hnextDom hnegCurrDom hnext
+          (neg_seriesSum_value hcurrDom hcurr))
     change (seriesSum_of_abs hsubabs).sum = hnext.sum + -hcurr.sum at heq
     rwa [sub_eq_add_neg]
   have hnext_val :
       hnext.sum = COF.min (p.toFun x hp) ((m + 1 : Nat) : R) := by
-    have hv := (hm.represents A hA (m + 1)).value x hp hnext_abs
+    have hv :=
+      (hm.represents A hA (m + 1)).value x hp hnextDom hnext_abs
     simpa [p, DataPFunR.cutNat, DataPFunR.cutConst, hnext] using hv
   have hcurr_val :
       hcurr.sum = COF.min (p.toFun x hp) (m : R) := by
-    have hv := (hm.represents A hA m).value x hp hcurr_abs
+    have hv := (hm.represents A hA m).value x hp hcurrDom hcurr_abs
     simpa [p, DataPFunR.cutNat, DataPFunR.cutConst, hcurr] using hv
   have hsub_sum' :
       (seriesSum_of_abs hlamabs).sum = hnext.sum - hcurr.sum := by
-    let hsub_signed : RSeq.SeriesSum (fun k =>
-        ((thm_4_13_lambda (thm46CutoffSeq hm A hA) m).fn k).toFun x) :=
-      seriesSum_congr (fun k => by
-        simp [fn, thm_4_13_lambda, IntegrableRep.sub])
-        (seriesSum_of_abs hsubabs)
-    have hsame := seriesSum_unique (seriesSum_of_abs hlamabs) hsub_signed
+    have hsame := seriesSum_unique
+      (seriesSum_of_abs hlamabs) (seriesSum_of_abs hsubabs)
     change (seriesSum_of_abs hlamabs).sum = (seriesSum_of_abs hsubabs).sum at hsame
     exact hsame.trans hsub_sum
   rw [hsub_sum', hnext_val, hcurr_val]
@@ -108,41 +109,46 @@ noncomputable def thm46MCTRep_represents_chiMulAbs
       (thm46MCTRep hm A hA c hlim)
       (DataPFunR.chiMulAbs (S := S) hA df) where
   value := by
-    intro x hp hrabs
+    intro x hp hrDom hrabs
     dsimp [thm46MCTRep, thm_4_13_monotone_convergence_faithful,
-      thm_4_13_monotone_convergence] at hrabs ⊢
+      thm_4_13_monotone_convergence] at hrDom hrabs ⊢
     let p := DataPFunR.chiMulAbs (S := S) hA df
     let fn := thm46CutoffSeq hm A hA
     let lambda := thm_4_13_lambda fn
     let hmono := thm_4_13_h_mono_of_nonneg fn (thm46CutoffSeq_mono hm A hA)
     let hsum := thm_4_13_lambda_sum fn hmono c hlim
     let g := seriesSumRep_L1 lambda hsum
-    have h0abs : RSeq.SeriesSum (fun k => COF.abs (((fn 0).fn k).toFun x)) :=
-      add_absSeriesSum_left hrabs
-    have hgabs : RSeq.SeriesSum (fun k => COF.abs (((g).fn k).toFun x)) :=
-      add_absSeriesSum_right hrabs
+    let h0Dom : (fn 0).MemAt x := add_dom_left hrDom
+    let hgDom : g.MemAt x := add_dom_right hrDom
+    have h0abs : RSeq.SeriesSum
+        (fun k => COF.abs ((fn 0).valueAt x h0Dom k)) :=
+      add_absSeriesSum_left hrDom hrabs
+    have hgabs : RSeq.SeriesSum
+        (fun k => COF.abs (g.valueAt x hgDom k)) :=
+      add_absSeriesSum_right hrDom hrabs
     let h0 := seriesSum_of_abs h0abs
     let hg := seriesSum_of_abs hgabs
     obtain ⟨hRows, hG_rows⟩ :=
-      stageA15_seriesSumRep_L1_value_rows lambda hsum hgabs
+      stageA15_seriesSumRep_L1_value_rows lambda hsum hgDom hgabs
     let v := p.toFun x hp
     have h0_val : h0.sum = COF.min v (0 : R) := by
-      have hv := (hm.represents A hA 0).value x hp h0abs
+      have hv := (hm.represents A hA 0).value x hp h0Dom h0abs
       simpa [p, v, fn, DataPFunR.cutNat, DataPFunR.cutConst, h0] using hv
     have hterm : forall m,
         (seriesSum_of_abs
-          (seriesSumRep_L1_row_absConv lambda hsum hgabs m)).sum
+          (seriesSumRep_L1_row_absConv lambda hsum hgDom hgabs m)).sum
           = COF.min v ((m + 1 : Nat) : R) - COF.min v (m : R) := by
       intro m
       simpa [lambda, fn, p, v] using
         stageA15_lambda_value_eq_cutoff_diff
           (S := S) hm A hA m hp
-          (seriesSumRep_L1_row_absConv lambda hsum hgabs m)
+          (seriesSumRep_L1_F_memAt lambda hsum hgDom m)
+          (seriesSumRep_L1_row_absConv lambda hsum hgDom hgabs m)
     have htelescope : forall N,
         RSeq.partialSum
           (fun m =>
             (seriesSum_of_abs
-              (seriesSumRep_L1_row_absConv lambda hsum hgabs m)).sum) N
+              (seriesSumRep_L1_row_absConv lambda hsum hgDom hgabs m)).sum) N
           = COF.min v ((N + 1 : Nat) : R) - COF.min v (0 : R) := by
       intro N
       induction N with
@@ -153,9 +159,10 @@ noncomputable def thm46MCTRep_represents_chiMulAbs
             RSeq.partialSum
                 (fun m =>
                   (seriesSum_of_abs
-                    (seriesSumRep_L1_row_absConv lambda hsum hgabs m)).sum) N
+                    (seriesSumRep_L1_row_absConv lambda hsum hgDom hgabs m)).sum) N
               + (seriesSum_of_abs
-                  (seriesSumRep_L1_row_absConv lambda hsum hgabs (N + 1))).sum
+                  (seriesSumRep_L1_row_absConv lambda hsum hgDom hgabs
+                    (N + 1))).sum
               = COF.min v (((N + 1) + 1 : Nat) : R) - COF.min v (0 : R)
           rw [ih, hterm (N + 1)]
           ring
@@ -170,7 +177,7 @@ noncomputable def thm46MCTRep_represents_chiMulAbs
     have htotal :
         (seriesSum_of_abs hrabs).sum = h0.sum + hg.sum := by
       exact seriesSum_unique (seriesSum_of_abs hrabs)
-        (add_seriesSum_value h0 hg)
+        (add_seriesSum_value h0Dom hgDom h0 hg)
     calc
       (seriesSum_of_abs hrabs).sum = h0.sum + hg.sum := htotal
       _ = COF.min v (0 : R) + hRows.sum := by

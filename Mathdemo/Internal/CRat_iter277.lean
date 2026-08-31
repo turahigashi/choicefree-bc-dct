@@ -89,10 +89,12 @@ structure Prop412ComplementPointwiseScalarData
     ∀ x ∈
       (prop412ComplementRep hE d hdnn).domain ∩
         (prop412BadRelRep hA hE d hdnn).domain,
-      ∀ (hcomp : RSeq.SeriesSum
-          (fun m => ((prop412ComplementRep hE d hdnn).fn m).toFun x))
+      ∀ (hcompDom : (prop412ComplementRep hE d hdnn).MemAt x)
+        (hbadDom : (prop412BadRelRep hA hE d hdnn).MemAt x)
+        (hcomp : RSeq.SeriesSum
+          (fun m => (prop412ComplementRep hE d hdnn).valueAt x hcompDom m))
         (hbad : RSeq.SeriesSum
-          (fun m => ((prop412BadRelRep hA hE d hdnn).fn m).toFun x)),
+          (fun m => (prop412BadRelRep hA hE d hdnn).valueAt x hbadDom m)),
         Prop412PointwiseScalarDatum hcomp.sum hbad.sum
 
 /-- Scalar support data implies the pointwise domination datum used in G177. -/
@@ -105,8 +107,8 @@ def prop412_pointwise_bad_data_from_scalar_support
     (SData : Prop412ComplementPointwiseScalarData A E hA hE d hdnn) :
     Prop412ComplementPointwiseBadData A E hA hE d hdnn where
   pointwise_le := by
-    intro x hx hcomp hbad
-    rcases SData.data x hx hcomp hbad with
+    intro x hx hcompDom hbadDom hcomp hbad
+    rcases SData.data x hx hcompDom hbadDom hcomp hbad with
       ⟨chiA, chiE, chiBad, dval, hcomp_eq, hbad_eq, cases⟩
     rw [hcomp_eq, hbad_eq]
     exact prop412_scalar_complement_le_bad_from_support_cases cases
@@ -131,9 +133,13 @@ theorem prop412_full_integral_le_from_value_bound_scalar_support_data
           eps)
     (hbadBound :
       ∀ (x : Y)
-        (hdfabs : RSeq.SeriesSum (fun m => COF.abs ((d.fn m).toFun x)))
+        (hdDom : d.MemAt x)
+        (hχBadDom : (prop412_bad_set_integrable hA hE).rep.MemAt x)
+        (hdfabs : RSeq.SeriesSum (fun m => COF.abs
+          (d.valueAt x hdDom m)))
         (hχBadAbs : RSeq.SeriesSum
-          (fun m => COF.abs (((prop412_bad_set_integrable hA hE).rep.fn m).toFun x))),
+          (fun m => COF.abs
+            ((prop412_bad_set_integrable hA hE).rep.valueAt x hχBadDom m))),
         (BishopC.seriesSum_of_abs hχBadAbs).sum = 1 ->
           BishopC.Le (BishopC.seriesSum_of_abs hdfabs).sum (n : R))
     (SData : Prop412ComplementPointwiseScalarData A E hA hE d hdnn) :

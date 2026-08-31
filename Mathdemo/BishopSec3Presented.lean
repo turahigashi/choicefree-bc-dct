@@ -835,34 +835,71 @@ noncomputable def thm_3_6_ramp_compC {X : Type*} {S : IntSpaceC X}
 
 #print axioms BishopSec3P.thm_3_6_ramp_compC
 
+/-- Every component of the ramp representation is defined wherever the source
+representation is defined. -/
+theorem thm_3_6_ramp_comp_memAtC {X : Type*} {S : IntSpaceC X}
+    (h : IntegrableRepC3 S) (u v : CReal)
+    (hpos : PosEventuallyData (CReal.sub v u))
+    (wu : CutConstWitnessC u) {x : X} (hdom : h.MemAt x) :
+    (thm_3_6_ramp_compC h u v hpos wu).MemAt x := by
+  let inv := CReal.invPos (CReal.sub v u) hpos
+  have hcutDom : (h.cutConstVal u wu).MemAt x :=
+    h.cutConstVal_memAt u wu hdom
+  have hsubDom : (h.sub (h.cutConstVal u wu)).MemAt x :=
+    IntegrableRepC3.sub_memAt hdom hcutDom
+  have hsmulDom :
+      (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).MemAt x :=
+    IntegrableRepC3.smul_memAt inv hsubDom
+  exact (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).cutConstVal_memAt
+    CReal.one oneWitnessC hsmulDom
+
+#print axioms BishopSec3P.thm_3_6_ramp_comp_memAtC
+
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (u v : CReal)
     (hpos : PosEventuallyData (CReal.sub v u))
     (wu : CutConstWitnessC u)
-    (x : X) (hx : RepSeriesSum (fun n => (h.fn n).toFun x)) :
+    (x : X) (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun n => h.valueAt x hdom n)) :
     { hr : RepSeriesSum
-        (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x) //
+        (fun n => (thm_3_6_ramp_compC h u v hpos wu).valueAt x
+          (thm_3_6_ramp_comp_memAtC h u v hpos wu hdom) n) //
       relEventually hr.sum (rampFnC u v hx.sum hpos) } := by
   let inv := CReal.invPos (CReal.sub v u) hpos
-  -- Technical note.
-  let hcut := IntegrableRepC3.cutConstVal_signed_valueC h u wu x hx
+  let hcutDom : (h.cutConstVal u wu).MemAt x :=
+    h.cutConstVal_memAt u wu hdom
+  let hcutRaw := IntegrableRepC3.cutConstVal_signed_valueC h u wu x hdom hx
+  let hcut : RepSeriesSum
+      (fun n => (h.cutConstVal u wu).valueAt x hcutDom n) := by
+    simpa [IntegrableRepC3.valueAt] using hcutRaw.val
+  let hnegDom : (h.cutConstVal u wu).neg.MemAt x :=
+    IntegrableRepC3.neg_memAt hcutDom
   let hneg : RepSeriesSum
-      (fun n => (((h.cutConstVal u wu).neg).fn n).toFun x) :=
-    neg_seriesSum_valueC3 (r := h.cutConstVal u wu) (x := x) hcut.val
+      (fun n => (h.cutConstVal u wu).neg.valueAt x hnegDom n) :=
+    neg_seriesSum_valueC3 (r := h.cutConstVal u wu) (x := x) hcutDom hcut
+  let hsubDom : (h.sub (h.cutConstVal u wu)).MemAt x :=
+    IntegrableRepC3.sub_memAt hdom hcutDom
   let hsub : RepSeriesSum
-      (fun n => ((h.sub (h.cutConstVal u wu)).fn n).toFun x) :=
-    add_seriesSum_valueC3 (r := h) (r' := (h.cutConstVal u wu).neg) (x := x) hx hneg
+      (fun n => (h.sub (h.cutConstVal u wu)).valueAt x hsubDom n) := by
+    simpa [IntegrableRepC3.sub, hsubDom, hnegDom] using
+      add_seriesSum_valueC3 (r := h) (r' := (h.cutConstVal u wu).neg) (x := x)
+        hdom hnegDom hx hneg
   -- hsub.sum defeq CReal.add hx.sum (CReal.neg hcut.val.sum)
   have hsub_sum : relEventually hsub.sum
       (CReal.add hx.sum (CReal.neg (CReal.min hx.sum u))) := by
-    change relEventually (CReal.add hx.sum (CReal.neg hcut.val.sum)) _
-    exact addSeq_respects_eventually hx.sum hx.sum (CReal.neg hcut.val.sum)
+    change relEventually (CReal.add hx.sum (CReal.neg hcut.sum)) _
+    exact addSeq_respects_eventually hx.sum hx.sum (CReal.neg hcut.sum)
       (CReal.neg (CReal.min hx.sum u)) (relEventually_refl hx.sum)
-      (negSeq_respects_eventually hcut.val.sum (CReal.min hx.sum u) hcut.property)
+      (negSeq_respects_eventually hcut.sum (CReal.min hx.sum u) hcutRaw.property)
+  let hsmulDom :
+      (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).MemAt x :=
+    IntegrableRepC3.smul_memAt inv hsubDom
   let hsmul : RepSeriesSum
-      (fun n => ((IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).fn n).toFun x) :=
-    smul_seriesSum_valueC3 inv (r := h.sub (h.cutConstVal u wu)) (x := x) hsub
+      (fun n => (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))).valueAt x
+        hsmulDom n) :=
+    smul_seriesSum_valueC3 inv (r := h.sub (h.cutConstVal u wu)) (x := x)
+      hsubDom hsub
   -- hsmul.sum defeq CReal.mul inv hsub.sum
   have hsmul_sum : relEventually hsmul.sum
       (CReal.mul inv (CReal.add hx.sum (CReal.neg (CReal.min hx.sum u)))) := by
@@ -872,10 +909,13 @@ noncomputable def thm36A1_ramp_comp_value_witnessC {X : Type*} {S : IntSpaceC X}
       (relEventually_refl inv) hsub_sum
   -- Technical note.
   let hout := IntegrableRepC3.cutConstVal_signed_valueC
-    (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))) CReal.one oneWitnessC x hsmul
+    (IntegrableRepC3.smul inv (h.sub (h.cutConstVal u wu))) CReal.one oneWitnessC x
+      hsmulDom hsmul
   -- Technical note.
   let hrout : RepSeriesSum
-      (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x) := hout.val
+      (fun n => (thm_3_6_ramp_compC h u v hpos wu).valueAt x
+        (thm_3_6_ramp_comp_memAtC h u v hpos wu hdom) n) := by
+    simpa [IntegrableRepC3.valueAt, thm_3_6_ramp_compC] using hout.val
   refine ⟨hrout, ?_⟩
   show relEventually hout.val.sum (rampFnC u v hx.sum hpos)
   -- Technical note.
@@ -895,11 +935,13 @@ theorem thm36A1_ramp_comp_valueC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (u v : CReal)
     (hpos : PosEventuallyData (CReal.sub v u))
     (wu : CutConstWitnessC u)
-    (x : X) (hx : RepSeriesSum (fun n => (h.fn n).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun n => h.valueAt x hdom n))
+    (hrdom : (thm_3_6_ramp_compC h u v hpos wu).MemAt x)
     (hr : RepSeriesSum
-      (fun n => ((thm_3_6_ramp_compC h u v hpos wu).fn n).toFun x)) :
+      (fun n => (thm_3_6_ramp_compC h u v hpos wu).valueAt x hrdom n)) :
     relEventually hr.sum (rampFnC u v hx.sum hpos) := by
-  let hw := thm36A1_ramp_comp_value_witnessC h u v hpos wu x hx
+  let hw := thm36A1_ramp_comp_value_witnessC h u v hpos wu x hdom hx
   have h1 : hr.sum ≈ hw.val.sum := repSeriesSum_unique hr hw.val
   have h2 : hw.val.sum ≈ rampFnC u v hx.sum hpos := hw.property
   exact Setoid.trans h1 h2
@@ -1057,15 +1099,15 @@ theorem thm36A2_codeRep_integral_monoC {X : Type*} {S : IntSpaceC X}
       (thm36A2_codeRepC h ha E d).integral := by
   refine prop_1_11C h.domain_isFull
     (thm36A2_codeRepC h ha E c) (thm36A2_codeRepC h ha E d) ?_
-  intro x hx hr hr'
-  obtain ⟨_, ⟨hxabs⟩⟩ := hx
-  have hxsum : RepSeriesSum (fun n => (h.fn n).toFun x) := seriesSum_of_absC hxabs
+  intro x hx hcdom hddom hr hr'
+  obtain ⟨hdom, ⟨hxabs⟩⟩ := hx
+  have hxsum : RepSeriesSum (fun n => h.valueAt x hdom n) := seriesSum_of_absC hxabs
   have hcval : relEventually hr.sum (thm36A2_codeRepFnC E c hxsum.sum) :=
     thm36A1_ramp_comp_valueC h (thm36A2_codeUC E c) (thm36A2_codeVC E c)
-      (thm36A2_codeUV_dataC E c) (thm36A2_codeU_signC ha E c) x hxsum hr
+      (thm36A2_codeUV_dataC E c) (thm36A2_codeU_signC ha E c) x hdom hxsum hcdom hr
   have hdval : relEventually hr'.sum (thm36A2_codeRepFnC E d hxsum.sum) :=
     thm36A1_ramp_comp_valueC h (thm36A2_codeUC E d) (thm36A2_codeVC E d)
-      (thm36A2_codeUV_dataC E d) (thm36A2_codeU_signC ha E d) x hxsum hr'
+      (thm36A2_codeUV_dataC E d) (thm36A2_codeU_signC ha E d) x hdom hxsum hddom hr'
   have hle : RegularSeqLe (thm36A2_codeRepFnC E c hxsum.sum)
       (thm36A2_codeRepFnC E d hxsum.sum) :=
     thm36A2_codeRepFn_le_globalC hab E c d hcd hxsum.sum
@@ -17002,15 +17044,17 @@ noncomputable def thm36B_smoothPointData_of_apartC {X : Type*} {S : IntSpaceC X}
 /-- `h` has an absolutely convergent point value at `x`, with sum at least `t`. -/
 def thm36D_upperSetC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (t : CReal) : Set X :=
-  {x | ∃ (_habs : RepSeriesSum (fun n => CReal.abs ((h.fn n).toFun x)))
-      (hx : RepSeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x)
+      (_habs : RepSeriesSum (fun n => CReal.abs (h.valueAt x hdom n)))
+      (hx : RepSeriesSum (fun n => h.valueAt x hdom n)),
       RegularSeqLe t hx.sum}
 
 /-- `h` has an absolutely convergent point value at `x`, with sum below `t`. -/
 def thm36D_lowerSetC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (t : CReal) : Set X :=
-  {x | ∃ (_habs : RepSeriesSum (fun n => CReal.abs ((h.fn n).toFun x)))
-      (hx : RepSeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x)
+      (_habs : RepSeriesSum (fun n => CReal.abs (h.valueAt x hdom n)))
+      (hx : RepSeriesSum (fun n => h.valueAt x hdom n)),
       regularSeqLtProp hx.sum t}
 
 theorem thm36D_levelSets_disjointC {X : Type*} {S : IntSpaceC X}
@@ -17018,8 +17062,8 @@ theorem thm36D_levelSets_disjointC {X : Type*} {S : IntSpaceC X}
     ∀ x ∈ thm36D_upperSetC h t, ∀ y ∈ thm36D_lowerSetC h t, x ≠ y := by
   intro x hx y hy hxy
   subst y
-  rcases hx with ⟨_habsx, hxsum, hle⟩
-  rcases hy with ⟨_habsy, hysum, hlt⟩
+  rcases hx with ⟨_hdomx, _habsx, hxsum, hle⟩
+  rcases hy with ⟨_hdomy, _habsy, hysum, hlt⟩
   have hsame : hxsum.sum ≈ hysum.sum := repSeriesSum_unique hxsum hysum
   have hltx : regularSeqLtProp hxsum.sum t :=
     regularSeqLtProp_of_left_eventual hsame hlt
@@ -17043,15 +17087,17 @@ def thm36D_levelBSetC {X : Type*} {S : IntSpaceC X}
 /-- `h` has an absolutely convergent point value at `x`, with sum strictly above `t`. -/
 def thm36D_upperSetStrictC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (t : CReal) : Set X :=
-  {x | ∃ (_habs : RepSeriesSum (fun n => CReal.abs ((h.fn n).toFun x)))
-      (hx : RepSeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x)
+      (_habs : RepSeriesSum (fun n => CReal.abs (h.valueAt x hdom n)))
+      (hx : RepSeriesSum (fun n => h.valueAt x hdom n)),
       regularSeqLtProp t hx.sum}
 
 /-- `h` has an absolutely convergent point value at `x`, with sum at most `t`. -/
 def thm36D_lowerSetWeakC {X : Type*} {S : IntSpaceC X}
     (h : IntegrableRepC3 S) (t : CReal) : Set X :=
-  {x | ∃ (_habs : RepSeriesSum (fun n => CReal.abs ((h.fn n).toFun x)))
-      (hx : RepSeriesSum (fun n => (h.fn n).toFun x)),
+  {x | ∃ (hdom : h.MemAt x)
+      (_habs : RepSeriesSum (fun n => CReal.abs (h.valueAt x hdom n)))
+      (hx : RepSeriesSum (fun n => h.valueAt x hdom n)),
       RegularSeqLe hx.sum t}
 
 theorem thm36D_levelSetsB_disjointC {X : Type*} {S : IntSpaceC X}
@@ -17060,8 +17106,8 @@ theorem thm36D_levelSetsB_disjointC {X : Type*} {S : IntSpaceC X}
       ∀ y ∈ thm36D_lowerSetWeakC h t, x ≠ y := by
   intro x hx y hy hxy
   subst y
-  rcases hx with ⟨_habsx, hxsum, hlt⟩
-  rcases hy with ⟨_habsy, hysum, hle⟩
+  rcases hx with ⟨_hdomx, _habsx, hxsum, hlt⟩
+  rcases hy with ⟨_hdomy, _habsy, hysum, hle⟩
   have hsame : hxsum.sum ≈ hysum.sum := repSeriesSum_unique hxsum hysum
   have hlt_y : regularSeqLtProp t hysum.sum :=
     regularSeqLtProp_of_right_eventual hsame hlt
@@ -18240,97 +18286,131 @@ def repSeriesSum_merge3_middle_of_nonnegC {a b c : Nat → CReal}
   exact repCloseAtGauge_triangle_succ (k + 1)
     (bc1_repClose_of_relEventually hfin_inj (k + 2)) hclose
 
+/-- Membership in the absolute-value representation exposes membership in its
+middle lane, the original representation. -/
+theorem IntegrableRepC3_of_absVal_memAtC {X : Type*} {S : IntSpaceC X}
+    {r : IntegrableRepC3 S} {x : X} (hdom : r.absVal.MemAt x) : r.MemAt x := by
+  intro k
+  simpa [IntegrableRepC3.absVal, bc1_seqMerge3_one] using hdom (3 * k + 1)
+
 /-- Absolute convergence of `r.absVal` exposes absolute convergence of `r` at
 that point: the middle lane of the three-way merge is the original `r.fn`. -/
 noncomputable def IntegrableRepC3_absVal_absSeriesSum_midC {X : Type*} {S : IntSpaceC X}
-    (r : IntegrableRepC3 S) (x : X)
+    (r : IntegrableRepC3 S) (x : X) (hdom : r.absVal.MemAt x)
     (habs : RepSeriesSum
-      (fun n => absSeq (((r.absVal).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) := by
+      (fun n => absSeq (r.absVal.valueAt x hdom n))) :
+    RepSeriesSum (fun n => absSeq
+      (r.valueAt x (IntegrableRepC3_of_absVal_memAtC hdom) n)) := by
   let negFn : Nat → BFunC X :=
     fun k => BFunC.smul (CReal.neg CReal.one) (r.fn k)
-  let aseq : Nat → CReal := fun k => absSeq ((r.absDiffFn k).toFun x)
-  let bseq : Nat → CReal := fun k => absSeq ((r.fn k).toFun x)
-  let cseq : Nat → CReal := fun k => absSeq ((negFn k).toFun x)
+  let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC hdom
+  let hadom : ∀ k, x ∈ (r.absDiffFn k).dom := r.absDiffFn_memAt hrdom
+  let hcdom : ∀ k, x ∈ (negFn k).dom := fun k => by
+    simpa [negFn, BFunC.smul] using hrdom k
+  let aval : Nat → CReal := fun k => (r.absDiffFn k).toFun x (hadom k)
+  let bval : Nat → CReal := fun k => r.valueAt x hrdom k
+  let cval : Nat → CReal := fun k => (negFn k).toFun x (hcdom k)
+  let aseq : Nat → CReal := fun k => absSeq (aval k)
+  let bseq : Nat → CReal := fun k => absSeq (bval k)
+  let cseq : Nat → CReal := fun k => absSeq (cval k)
   let hmerge : RepSeriesSum (bc1_seqMerge3 aseq bseq cseq) := by
-    refine repSeriesSum_congr
-      (by
-        simpa [IntegrableRepC3.absVal, negFn] using habs) ?_
+    refine repSeriesSum_congr habs ?_
     intro n
-    change relEventually (bc1_seqMerge3 aseq bseq cseq n)
-      (absSeq ((bc1_seqMerge3 r.absDiffFn r.fn negFn n).toFun x))
+    have hv : r.absVal.valueAt x hdom n =
+        bc1_seqMerge3 aval bval cval n := by
+      simpa [IntegrableRepC3.absVal, IntegrableRepC3.valueAt, aval, bval, cval,
+        negFn] using
+        BFunC.seqMerge3_toFun r.absDiffFn r.fn negFn x hadom hrdom hcdom n
     have hmap :
-        absSeq ((bc1_seqMerge3 r.absDiffFn r.fn negFn n).toFun x) =
+        absSeq (bc1_seqMerge3 aval bval cval n) =
           bc1_seqMerge3 aseq bseq cseq n := by
       simpa [aseq, bseq, cseq] using
-        bc1_seqMerge3_map (fun g : BFunC X => absSeq (g.toFun x))
-          r.absDiffFn r.fn negFn n
-    rw [← hmap]
+        bc1_seqMerge3_map absSeq aval bval cval n
+    rw [hv, hmap]
     exact relEventually_refl _
   simpa [bseq] using
     repSeriesSum_merge3_middle_of_nonnegC
       (a := aseq) (b := bseq) (c := cseq)
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((r.absDiffFn k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (aval k)))
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((r.fn k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (bval k)))
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((negFn k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (cval k)))
       hmerge
 
 /-- The canonical absolute-value representative is pointwise nonnegative. -/
 theorem IntegrableRepC3_absVal_repNonnegC {X : Type*} {S : IntSpaceC X}
     (r : IntegrableRepC3 S) : RepNonnegC r.absVal := by
-  intro x habs hx
-  let hrabs : RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC r x habs
-  let hr : RepSeriesSum (fun n => (r.fn n).toFun x) :=
+  intro x hdom habs hx
+  let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC hdom
+  let hrabs : RepSeriesSum (fun n => absSeq (r.valueAt x hrdom n)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC r x hdom habs
+  let hr : RepSeriesSum (fun n => r.valueAt x hrdom n) :=
     seriesSum_of_absC hrabs
-  obtain ⟨hmodel, hmodel_eq⟩ := r.absVal_signed_value x hr
+  obtain ⟨hmodel, hmodel_eq⟩ := r.absVal_signed_value x hrdom hr
   have hx_eq : hx.sum ≈ hmodel.sum := repSeriesSum_unique hx hmodel
   have htarget : RegularSeqNonneg (CReal.abs hr.sum) :=
     regularSeqNonneg_of_zero_le (absSeq_nonnegative_regularSeqLe hr.sum)
   exact regularSeqNonneg_of_eventual
     (relEventually_trans _ _ _ hx_eq hmodel_eq) htarget
 
+/-- Membership in a constant-cut representation exposes membership in the
+middle lane, the original representation. -/
+theorem IntegrableRepC3_of_cutConstVal_memAtC {X : Type*} {S : IntSpaceC X}
+    {r : IntegrableRepC3 S} {a : CReal} {w : CutConstWitnessC a} {x : X}
+    (hdom : (r.cutConstVal a w).MemAt x) : r.MemAt x := by
+  intro k
+  simpa [IntegrableRepC3.cutConstVal, bc1_seqMerge3_one] using hdom (3 * k + 1)
+
 /-- Absolute convergence of the `cutConstVal` representation exposes the
 middle lane, i.e. absolute convergence of the original represented function
 at the same point. -/
 noncomputable def cutConstVal_absSeriesSum_midC {X : Type*} {S : IntSpaceC X}
     (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a)
-    (x : X)
+    (x : X) (hdom : (r.cutConstVal a w).MemAt x)
     (hcut : RepSeriesSum
-      (fun n => absSeq (((r.cutConstVal a w).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) := by
+      (fun n => absSeq ((r.cutConstVal a w).valueAt x hdom n))) :
+    RepSeriesSum (fun n => absSeq
+      (r.valueAt x (IntegrableRepC3_of_cutConstVal_memAtC hdom) n)) := by
   let negFn : Nat → BFunC X :=
     fun k => BFunC.smul (CReal.neg CReal.one) (r.fn k)
-  let aseq : Nat → CReal := fun k => absSeq ((r.cutConstDiffFn a k).toFun x)
-  let bseq : Nat → CReal := fun k => absSeq ((r.fn k).toFun x)
-  let cseq : Nat → CReal := fun k => absSeq ((negFn k).toFun x)
+  let hrdom : r.MemAt x := IntegrableRepC3_of_cutConstVal_memAtC hdom
+  let hadom : ∀ k, x ∈ (r.cutConstDiffFn a k).dom :=
+    r.cutConstDiffFn_memAt a hrdom
+  let hcdom : ∀ k, x ∈ (negFn k).dom := fun k => by
+    simpa [negFn, BFunC.smul] using hrdom k
+  let aval : Nat → CReal := fun k => (r.cutConstDiffFn a k).toFun x (hadom k)
+  let bval : Nat → CReal := fun k => r.valueAt x hrdom k
+  let cval : Nat → CReal := fun k => (negFn k).toFun x (hcdom k)
+  let aseq : Nat → CReal := fun k => absSeq (aval k)
+  let bseq : Nat → CReal := fun k => absSeq (bval k)
+  let cseq : Nat → CReal := fun k => absSeq (cval k)
   let hmerge : RepSeriesSum (bc1_seqMerge3 aseq bseq cseq) := by
-    refine repSeriesSum_congr
-      (by
-        simpa [IntegrableRepC3.cutConstVal, negFn] using hcut) ?_
+    refine repSeriesSum_congr hcut ?_
     intro n
-    change relEventually (bc1_seqMerge3 aseq bseq cseq n)
-      (absSeq ((bc1_seqMerge3 (r.cutConstDiffFn a) r.fn negFn n).toFun x))
+    have hv : (r.cutConstVal a w).valueAt x hdom n =
+        bc1_seqMerge3 aval bval cval n := by
+      simpa [IntegrableRepC3.cutConstVal, IntegrableRepC3.valueAt, aval, bval, cval,
+        negFn] using
+        BFunC.seqMerge3_toFun (r.cutConstDiffFn a) r.fn negFn x
+          hadom hrdom hcdom n
     have hmap :
-        absSeq ((bc1_seqMerge3 (r.cutConstDiffFn a) r.fn negFn n).toFun x) =
+        absSeq (bc1_seqMerge3 aval bval cval n) =
           bc1_seqMerge3 aseq bseq cseq n := by
       simpa [aseq, bseq, cseq] using
-        bc1_seqMerge3_map (fun g : BFunC X => absSeq (g.toFun x))
-          (r.cutConstDiffFn a) r.fn negFn n
-    rw [← hmap]
+        bc1_seqMerge3_map absSeq aval bval cval n
+    rw [hv, hmap]
     exact relEventually_refl _
   simpa [bseq] using
     repSeriesSum_merge3_middle_of_nonnegC
       (a := aseq) (b := bseq) (c := cseq)
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((r.cutConstDiffFn a k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (aval k)))
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((r.fn k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (bval k)))
       (fun k => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe ((negFn k).toFun x)))
+        (absSeq_nonnegative_regularSeqLe (cval k)))
       hmerge
 
 /-- Cancel a positive scalar from an absolutely convergent scaled CReal series. -/
@@ -18802,45 +18882,81 @@ noncomputable def thm36Cb_pointTermBC (z : CReal) : Nat → CReal
         (thm36C_rampFnRC h a b hab ha spD (n + 1) z)
         (thm36C_rampFnRC h a b hab ha spD n z)
 
+/-- The B-side ramp is defined wherever the source representation is defined. -/
+theorem thm36Cb_rampB_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36C_rampRC h a b hab ha spD n).MemAt x := by
+  simpa [thm36C_rampRC] using
+    thm_3_6_ramp_comp_memAtC h
+      (thm36C_tC h a b hab ha spD)
+      (thm36C_levelRC h a b hab ha spD n)
+      (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
+      (thm36C_t_signC h a b hab ha spD) hdom
+
+/-- The B-side signed telescope term is defined on the source domain. -/
+theorem thm36Cb_signedTermB_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_signedTermBC h a b hab ha spD n).MemAt x := by
+  cases n with
+  | zero => simpa [thm36Cb_signedTermBC] using
+      thm36Cb_rampB_memAtC h a b hab ha spD 0 hdom
+  | succ n =>
+      simpa [thm36Cb_signedTermBC] using
+        IntegrableRepC3.sub_memAt
+          (thm36Cb_rampB_memAtC h a b hab ha spD (n + 1) hdom)
+          (thm36Cb_rampB_memAtC h a b hab ha spD n hdom)
+
+/-- The collapse-free B term has the signed term's domain. -/
+theorem thm36Cb_termB_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Cb_termBC h a b hab ha spD n).MemAt x := by
+  simpa [thm36Cb_termBC] using
+    thm36Cb_signedTermB_memAtC h a b hab ha spD n hdom
+
 /-- Value witness for a B-side ramp representative. -/
 noncomputable def thm36Cb_rampB_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hr : RepSeriesSum
-      (fun m => ((thm36C_rampRC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36C_rampRC h a b hab ha spD n).valueAt x
+        (thm36Cb_rampB_memAtC h a b hab ha spD n hdom) m) //
       hr.sum ≈ thm36C_rampFnRC h a b hab ha spD n hx.sum} := by
   simpa [thm36C_rampRC, thm36C_rampFnRC] using
     thm36A1_ramp_comp_value_witnessC h
       (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n)
       (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-      (thm36C_t_signC h a b hab ha spD) x hx
+      (thm36C_t_signC h a b hab ha spD) x hdom hx
 
 /-- Value witness for the B-side signed telescope term. -/
 noncomputable def thm36Cb_signedTermB_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RepSeriesSum
-      (fun m => ((thm36Cb_signedTermBC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_signedTermBC h a b hab ha spD n).valueAt x
+        (thm36Cb_signedTermB_memAtC h a b hab ha spD n hdom) m) //
       hv.sum ≈ thm36Cb_pointTermBC h a b hab ha spD hx.sum n} := by
   cases n with
   | zero =>
-      let W := thm36Cb_rampB_value_witnessC h a b hab ha spD 0 x hx
+      let W := thm36Cb_rampB_value_witnessC h a b hab ha spD 0 x hdom hx
       let hv : RepSeriesSum
-          (fun m => ((thm36Cb_signedTermBC h a b hab ha spD 0).fn m).toFun x) := by
-        simpa [thm36Cb_signedTermBC] using W.val
+          (fun m => (thm36Cb_signedTermBC h a b hab ha spD 0).valueAt x
+            (thm36Cb_signedTermB_memAtC h a b hab ha spD 0 hdom) m) := by
+        simpa [thm36Cb_signedTermBC, IntegrableRepC3.valueAt] using W.val
       refine ⟨hv, ?_⟩
       change W.val.sum ≈ thm36Cb_pointTermBC h a b hab ha spD hx.sum 0
       simpa [thm36Cb_pointTermBC] using W.property
   | succ n =>
-      let Wn := thm36Cb_rampB_value_witnessC h a b hab ha spD n x hx
-      let Ws := thm36Cb_rampB_value_witnessC h a b hab ha spD (n + 1) x hx
+      let Wn := thm36Cb_rampB_value_witnessC h a b hab ha spD n x hdom hx
+      let Ws := thm36Cb_rampB_value_witnessC h a b hab ha spD (n + 1) x hdom hx
       let hsub : RepSeriesSum
-          (fun m => ((thm36Cb_signedTermBC h a b hab ha spD (n + 1)).fn m).toFun x) := by
-        simpa [thm36Cb_signedTermBC] using
+          (fun m => (thm36Cb_signedTermBC h a b hab ha spD (n + 1)).valueAt x
+            (thm36Cb_signedTermB_memAtC h a b hab ha spD (n + 1) hdom) m) := by
+        simpa [thm36Cb_signedTermBC, IntegrableRepC3.valueAt] using
           sub_seriesSum_valueC3
             (r := thm36C_rampRC h a b hab ha spD (n + 1))
-            (r' := thm36C_rampRC h a b hab ha spD n) (x := x) Ws.val Wn.val
+            (r' := thm36C_rampRC h a b hab ha spD n) (x := x)
+            (thm36Cb_rampB_memAtC h a b hab ha spD (n + 1) hdom)
+            (thm36Cb_rampB_memAtC h a b hab ha spD n hdom) Ws.val Wn.val
       refine ⟨hsub, ?_⟩
       have hsub_sum : hsub.sum ≈ CReal.sub Ws.val.sum Wn.val.sum := by
         change relEventually (CReal.add Ws.val.sum (CReal.neg Wn.val.sum)) _
@@ -18861,14 +18977,17 @@ noncomputable def thm36Cb_signedTermB_value_witnessC
 /-- Collapse-free term value witness for the B-side telescope. -/
 noncomputable def thm36Cb_termB_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RepSeriesSum
-      (fun m => ((thm36Cb_termBC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Cb_termBC h a b hab ha spD n).valueAt x
+        (thm36Cb_termB_memAtC h a b hab ha spD n hdom) m) //
       hv.sum ≈ thm36Cb_pointTermBC h a b hab ha spD hx.sum n} := by
-  let W := thm36Cb_signedTermB_value_witnessC h a b hab ha spD n x hx
+  let W := thm36Cb_signedTermB_value_witnessC h a b hab ha spD n x hdom hx
   let hv : RepSeriesSum
-      (fun m => ((thm36Cb_termBC h a b hab ha spD n).fn m).toFun x) := by
-    simpa [thm36Cb_termBC] using W.val
+      (fun m => (thm36Cb_termBC h a b hab ha spD n).valueAt x
+        (thm36Cb_termB_memAtC h a b hab ha spD n hdom) m) := by
+    simpa [thm36Cb_termBC, IntegrableRepC3.valueAt] using W.val
   refine ⟨hv, ?_⟩
   change W.val.sum ≈ thm36Cb_pointTermBC h a b hab ha spD hx.sum n
   exact W.property
@@ -18907,20 +19026,21 @@ theorem thm36Cb_partialSum_pointTermBC (z : CReal) :
 /-- Pointwise partial sums of the actual B terms recover the right-ramp
 value at the point value of `h`. -/
 theorem thm36Cb_partialSum_termB_valuesC
-    (x : X) (hx : RepSeriesSum (fun m => (h.fn m).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m))
     (n : Nat) :
     regularSeqFinSum
         (fun j => (thm36Cb_termB_value_witnessC
-          h a b hab ha spD j x hx).val.sum) n
+          h a b hab ha spD j x hdom hx).val.sum) n
       ≈ thm36C_rampFnRC h a b hab ha spD n hx.sum := by
   have hterms : ∀ j : Nat,
-      (thm36Cb_termB_value_witnessC h a b hab ha spD j x hx).val.sum
+      (thm36Cb_termB_value_witnessC h a b hab ha spD j x hdom hx).val.sum
         ≈ thm36Cb_pointTermBC h a b hab ha spD hx.sum j :=
-    fun j => (thm36Cb_termB_value_witnessC h a b hab ha spD j x hx).property
+    fun j => (thm36Cb_termB_value_witnessC h a b hab ha spD j x hdom hx).property
   have hfin :
       regularSeqFinSum
           (fun j => (thm36Cb_termB_value_witnessC
-            h a b hab ha spD j x hx).val.sum) n
+            h a b hab ha spD j x hdom hx).val.sum) n
         ≈ regularSeqFinSum (thm36Cb_pointTermBC h a b hab ha spD hx.sum) n :=
     bc1_regularSeqFinSum_congr_terms _ _ hterms n
   exact Setoid.trans hfin
@@ -18929,25 +19049,26 @@ theorem thm36Cb_partialSum_termB_valuesC
 theorem thm36_normL1_eq_integral_on_fullC {A : Set X}
     (hA : IsFullC S A) (r : IntegrableRepC3 S)
     (hnn : ∀ x, x ∈ A →
-      ∀ (hx : RepSeriesSum (fun n => (r.fn n).toFun x)), RegularSeqNonneg hx.sum) :
+      ∀ (hdom : r.MemAt x)
+        (hx : RepSeriesSum (fun n => r.valueAt x hdom n)), RegularSeqNonneg hx.sum) :
     r.normL1 ≈ r.integral := by
   change r.absVal.integral ≈ r.integral
   refine regularSeqLe_antisymm_eventuallyC ?_ ?_
   · refine prop_1_11C hA r.absVal r ?_
-    intro x hxA hr_abs hr
-    obtain ⟨hs_abs, hs_abs_eq⟩ := r.absVal_signed_value x hr
+    intro x hxA habsDom hrdom hr_abs hr
+    obtain ⟨hs_abs, hs_abs_eq⟩ := r.absVal_signed_value x hrdom hr
     have huniq : hr_abs.sum ≈ hs_abs.sum := repSeriesSum_unique hr_abs hs_abs
-    have hnonneg : RegularSeqNonneg hr.sum := hnn x hxA hr
+    have hnonneg : RegularSeqNonneg hr.sum := hnn x hxA hrdom hr
     have habs_eq : CReal.abs hr.sum ≈ hr.sum := CReal.abs_of_nonneg_E hnonneg
     have hpoint : hr_abs.sum ≈ hr.sum :=
       relEventually_trans _ _ _ huniq
         (relEventually_trans _ _ _ hs_abs_eq habs_eq)
     exact regularSeqLe_of_relEventually hpoint
   · refine prop_1_11C hA r r.absVal ?_
-    intro x hxA hr hr_abs
-    obtain ⟨hs_abs, hs_abs_eq⟩ := r.absVal_signed_value x hr
+    intro x hxA hrdom habsDom hr hr_abs
+    obtain ⟨hs_abs, hs_abs_eq⟩ := r.absVal_signed_value x hrdom hr
     have huniq : hr_abs.sum ≈ hs_abs.sum := repSeriesSum_unique hr_abs hs_abs
-    have hnonneg : RegularSeqNonneg hr.sum := hnn x hxA hr
+    have hnonneg : RegularSeqNonneg hr.sum := hnn x hxA hrdom hr
     have habs_eq : CReal.abs hr.sum ≈ hr.sum := CReal.abs_of_nonneg_E hnonneg
     have hpoint : hr_abs.sum ≈ hr.sum :=
       relEventually_trans _ _ _ huniq
@@ -18981,45 +19102,89 @@ noncomputable def thm36Ca_pointTermAC (z : CReal) : Nat → CReal
         (thm36C_rampFnLC h a b hab ha spD (n + 1) z)
         (thm36C_rampFnLC h a b hab ha spD n z)
 
+/-- The A-side ramp is defined wherever the source representation is defined. -/
+theorem thm36Ca_rampA_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36C_rampLC h a b hab ha spD n).MemAt x := by
+  simpa [thm36C_rampLC] using
+    thm_3_6_ramp_comp_memAtC h
+      (thm36C_levelLC h a b hab ha spD n)
+      (thm36C_tC h a b hab ha spD)
+      (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
+      (thm36C_levelL_signC h a b hab ha spD n) hdom
+
+/-- The A-side signed telescope term is defined on the source domain. -/
+theorem thm36Ca_signedTermA_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Ca_signedTermAC h a b hab ha spD n).MemAt x := by
+  cases n with
+  | zero => simpa [thm36Ca_signedTermAC] using
+      thm36Ca_rampA_memAtC h a b hab ha spD 0 hdom
+  | succ n =>
+      simpa [thm36Ca_signedTermAC] using
+        IntegrableRepC3.sub_memAt
+          (thm36Ca_rampA_memAtC h a b hab ha spD (n + 1) hdom)
+          (thm36Ca_rampA_memAtC h a b hab ha spD n hdom)
+
+/-- The A-side decrement is defined on the source domain. -/
+theorem thm36Ca_decrementA_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Ca_decrementAC h a b hab ha spD n).MemAt x := by
+  simpa [thm36Ca_decrementAC] using
+    IntegrableRepC3.sub_memAt
+      (thm36Ca_rampA_memAtC h a b hab ha spD n hdom)
+      (thm36Ca_rampA_memAtC h a b hab ha spD (n + 1) hdom)
+
+/-- The collapse-free A term has the signed term's domain. -/
+theorem thm36Ca_termA_memAtC (n : Nat) {x : X} (hdom : h.MemAt x) :
+    (thm36Ca_termAC h a b hab ha spD n).MemAt x := by
+  simpa [thm36Ca_termAC] using
+    thm36Ca_signedTermA_memAtC h a b hab ha spD n hdom
+
 /-- Value witness for an A-side left-ramp representative. -/
 noncomputable def thm36Ca_rampA_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hr : RepSeriesSum
-      (fun m => ((thm36C_rampLC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36C_rampLC h a b hab ha spD n).valueAt x
+        (thm36Ca_rampA_memAtC h a b hab ha spD n hdom) m) //
       hr.sum ≈ thm36C_rampFnLC h a b hab ha spD n hx.sum} := by
   simpa [thm36C_rampLC, thm36C_rampFnLC] using
     thm36A1_ramp_comp_value_witnessC h
       (thm36C_levelLC h a b hab ha spD n)
       (thm36C_tC h a b hab ha spD)
       (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
-      (thm36C_levelL_signC h a b hab ha spD n) x hx
+      (thm36C_levelL_signC h a b hab ha spD n) x hdom hx
 
 /-- Value witness for the A-side signed telescope term. -/
 noncomputable def thm36Ca_signedTermA_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RepSeriesSum
-      (fun m => ((thm36Ca_signedTermAC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Ca_signedTermAC h a b hab ha spD n).valueAt x
+        (thm36Ca_signedTermA_memAtC h a b hab ha spD n hdom) m) //
       hv.sum ≈ thm36Ca_pointTermAC h a b hab ha spD hx.sum n} := by
   cases n with
   | zero =>
-      let W := thm36Ca_rampA_value_witnessC h a b hab ha spD 0 x hx
+      let W := thm36Ca_rampA_value_witnessC h a b hab ha spD 0 x hdom hx
       let hv : RepSeriesSum
-          (fun m => ((thm36Ca_signedTermAC h a b hab ha spD 0).fn m).toFun x) := by
-        simpa [thm36Ca_signedTermAC] using W.val
+          (fun m => (thm36Ca_signedTermAC h a b hab ha spD 0).valueAt x
+            (thm36Ca_signedTermA_memAtC h a b hab ha spD 0 hdom) m) := by
+        simpa [thm36Ca_signedTermAC, IntegrableRepC3.valueAt] using W.val
       refine ⟨hv, ?_⟩
       change W.val.sum ≈ thm36Ca_pointTermAC h a b hab ha spD hx.sum 0
       simpa [thm36Ca_pointTermAC] using W.property
   | succ n =>
-      let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hx
-      let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hx
+      let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hdom hx
+      let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hdom hx
       let hsub : RepSeriesSum
-          (fun m => ((thm36Ca_signedTermAC h a b hab ha spD (n + 1)).fn m).toFun x) := by
-        simpa [thm36Ca_signedTermAC] using
+          (fun m => (thm36Ca_signedTermAC h a b hab ha spD (n + 1)).valueAt x
+            (thm36Ca_signedTermA_memAtC h a b hab ha spD (n + 1) hdom) m) := by
+        simpa [thm36Ca_signedTermAC, IntegrableRepC3.valueAt] using
           sub_seriesSum_valueC3
             (r := thm36C_rampLC h a b hab ha spD (n + 1))
-            (r' := thm36C_rampLC h a b hab ha spD n) (x := x) Ws.val Wn.val
+            (r' := thm36C_rampLC h a b hab ha spD n) (x := x)
+            (thm36Ca_rampA_memAtC h a b hab ha spD (n + 1) hdom)
+            (thm36Ca_rampA_memAtC h a b hab ha spD n hdom) Ws.val Wn.val
       refine ⟨hsub, ?_⟩
       have hsub_sum : hsub.sum ≈ CReal.sub Ws.val.sum Wn.val.sum := by
         change relEventually (CReal.add Ws.val.sum (CReal.neg Wn.val.sum)) _
@@ -19040,14 +19205,17 @@ noncomputable def thm36Ca_signedTermA_value_witnessC
 /-- Collapse-free term value witness for the A-side telescope. -/
 noncomputable def thm36Ca_termA_value_witnessC
     (n : Nat) (x : X)
-    (hx : RepSeriesSum (fun m => (h.fn m).toFun x)) :
+    (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m)) :
     {hv : RepSeriesSum
-      (fun m => ((thm36Ca_termAC h a b hab ha spD n).fn m).toFun x) //
+      (fun m => (thm36Ca_termAC h a b hab ha spD n).valueAt x
+        (thm36Ca_termA_memAtC h a b hab ha spD n hdom) m) //
       hv.sum ≈ thm36Ca_pointTermAC h a b hab ha spD hx.sum n} := by
-  let W := thm36Ca_signedTermA_value_witnessC h a b hab ha spD n x hx
+  let W := thm36Ca_signedTermA_value_witnessC h a b hab ha spD n x hdom hx
   let hv : RepSeriesSum
-      (fun m => ((thm36Ca_termAC h a b hab ha spD n).fn m).toFun x) := by
-    simpa [thm36Ca_termAC] using W.val
+      (fun m => (thm36Ca_termAC h a b hab ha spD n).valueAt x
+        (thm36Ca_termA_memAtC h a b hab ha spD n hdom) m) := by
+    simpa [thm36Ca_termAC, IntegrableRepC3.valueAt] using W.val
   refine ⟨hv, ?_⟩
   change W.val.sum ≈ thm36Ca_pointTermAC h a b hab ha spD hx.sum n
   exact W.property
@@ -19086,20 +19254,21 @@ theorem thm36Ca_partialSum_pointTermAC (z : CReal) :
 /-- Pointwise partial sums of the actual A terms recover the left-ramp
 value at the point value of `h`. -/
 theorem thm36Ca_partialSum_termA_valuesC
-    (x : X) (hx : RepSeriesSum (fun m => (h.fn m).toFun x))
+    (x : X) (hdom : h.MemAt x)
+    (hx : RepSeriesSum (fun m => h.valueAt x hdom m))
     (n : Nat) :
     regularSeqFinSum
         (fun j => (thm36Ca_termA_value_witnessC
-          h a b hab ha spD j x hx).val.sum) n
+          h a b hab ha spD j x hdom hx).val.sum) n
       ≈ thm36C_rampFnLC h a b hab ha spD n hx.sum := by
   have hterms : ∀ j : Nat,
-      (thm36Ca_termA_value_witnessC h a b hab ha spD j x hx).val.sum
+      (thm36Ca_termA_value_witnessC h a b hab ha spD j x hdom hx).val.sum
         ≈ thm36Ca_pointTermAC h a b hab ha spD hx.sum j :=
-    fun j => (thm36Ca_termA_value_witnessC h a b hab ha spD j x hx).property
+    fun j => (thm36Ca_termA_value_witnessC h a b hab ha spD j x hdom hx).property
   have hfin :
       regularSeqFinSum
           (fun j => (thm36Ca_termA_value_witnessC
-            h a b hab ha spD j x hx).val.sum) n
+            h a b hab ha spD j x hdom hx).val.sum) n
         ≈ regularSeqFinSum (thm36Ca_pointTermAC h a b hab ha spD hx.sum) n :=
     bc1_regularSeqFinSum_congr_terms _ _ hterms n
   exact Setoid.trans hfin
@@ -19107,11 +19276,12 @@ theorem thm36Ca_partialSum_termA_valuesC
 
 theorem thm36Ca_rampA_nonneg_on_domainC
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hrdom : (thm36C_rampLC h a b hab ha spD n).MemAt x)
     (hr : RepSeriesSum
-      (fun m => ((thm36C_rampLC h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36C_rampLC h a b hab ha spD n).valueAt x hrdom m)) :
     RegularSeqNonneg hr.sum := by
-  rcases hxdom with ⟨_hdom, ⟨hxabs⟩⟩
-  let hx : RepSeriesSum (fun m => (h.fn m).toFun x) := seriesSum_of_absC hxabs
+  rcases hxdom with ⟨hdom, ⟨hxabs⟩⟩
+  let hx : RepSeriesSum (fun m => h.valueAt x hdom m) := seriesSum_of_absC hxabs
   have hval : hr.sum ≈
       rampFnC (thm36C_levelLC h a b hab ha spD n)
         (thm36C_tC h a b hab ha spD) hx.sum
@@ -19121,7 +19291,7 @@ theorem thm36Ca_rampA_nonneg_on_domainC
         (thm36C_levelLC h a b hab ha spD n)
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_levelL_signC h a b hab ha spD n) x hx hr
+        (thm36C_levelL_signC h a b hab ha spD n) x hdom hx hrdom hr
   exact regularSeqNonneg_of_eventual hval
     (regularSeqNonneg_of_zero_le
       (rampFnC_zero_leC (thm36C_levelLC h a b hab ha spD n)
@@ -19130,19 +19300,23 @@ theorem thm36Ca_rampA_nonneg_on_domainC
 
 theorem thm36Ca_decrementA_nonneg_on_domainC
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hddom : (thm36Ca_decrementAC h a b hab ha spD n).MemAt x)
     (hd : RepSeriesSum
-      (fun m => ((thm36Ca_decrementAC h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36Ca_decrementAC h a b hab ha spD n).valueAt x hddom m)) :
     RegularSeqNonneg hd.sum := by
-  rcases hxdom with ⟨_hdom, ⟨hxabs⟩⟩
-  let hx : RepSeriesSum (fun m => (h.fn m).toFun x) := seriesSum_of_absC hxabs
-  let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hx
-  let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hx
+  rcases hxdom with ⟨hdom, ⟨hxabs⟩⟩
+  let hx : RepSeriesSum (fun m => h.valueAt x hdom m) := seriesSum_of_absC hxabs
+  let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hdom hx
+  let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hdom hx
   let hcan : RepSeriesSum
-      (fun m => ((thm36Ca_decrementAC h a b hab ha spD n).fn m).toFun x) := by
-    simpa [thm36Ca_decrementAC] using
+      (fun m => (thm36Ca_decrementAC h a b hab ha spD n).valueAt x
+        (thm36Ca_decrementA_memAtC h a b hab ha spD n hdom) m) := by
+    simpa [thm36Ca_decrementAC, IntegrableRepC3.valueAt] using
       sub_seriesSum_valueC3
         (r := thm36C_rampLC h a b hab ha spD n)
-        (r' := thm36C_rampLC h a b hab ha spD (n + 1)) (x := x) Wn.val Ws.val
+        (r' := thm36C_rampLC h a b hab ha spD (n + 1)) (x := x)
+        (thm36Ca_rampA_memAtC h a b hab ha spD n hdom)
+        (thm36Ca_rampA_memAtC h a b hab ha spD (n + 1) hdom) Wn.val Ws.val
   have hsum : hd.sum ≈ CReal.sub Wn.val.sum Ws.val.sum := by
     have huniq : hd.sum ≈ hcan.sum := repSeriesSum_unique hd hcan
     have hcan_sum : hcan.sum ≈ CReal.sub Wn.val.sum Ws.val.sum := by
@@ -19170,7 +19344,148 @@ theorem thm36Ca_decrementA_nonneg_on_domainC
   exact regularSeqNonneg_of_eventual
     (relEventually_trans _ _ _ hsum hmodel) hdiff_nn
 
-set_option maxHeartbeats 1600000 in
+/-- Membership in a finite function sum exposes membership in each summand. -/
+private theorem BFunC.mem_of_seqSum_memC {Y : Type*} (u : Nat → BFunC Y)
+    (y : Y) : ∀ N, y ∈ (BFunC.seqSum u N).dom →
+      ∀ n, n ≤ N → y ∈ (u n).dom
+  | 0, hy, n, hn => by
+      have hzero : n = 0 := Nat.eq_zero_of_le_zero hn
+      subst n
+      simpa [BFunC.seqSum] using hy
+  | N + 1, hy, n, hn => by
+      change y ∈ (BFunC.seqSum u N).dom ∩ (u (N + 1)).dom at hy
+      by_cases hlast : n = N + 1
+      · simpa [hlast] using hy.2
+      · exact BFunC.mem_of_seqSum_memC u y N hy.1 n (by omega)
+
+/-- A point in an L1 sum representation lies in every source row.  The finite
+prefix is recovered from the `G_m` lane and the remainder from `tail_m`. -/
+private theorem seriesSumRep_L1_row_memAtC3 {Y : Type*} {T : IntSpaceC Y}
+    (F : Nat → IntegrableRepC3 T)
+    (hsum : RepSeriesSum (fun m => (F m).normL1)) {y : Y}
+    (hdom : (seriesSumRep_L1C F hsum).MemAt y) : ∀ m, (F m).MemAt y := by
+  intro m
+  let hGflat := seriesSumRep_L1_left_memAtC F hsum hdom
+  let hTflat := seriesSumRep_L1_right_memAtC F hsum hdom
+  let hGm : (G_mC F m).MemAt y :=
+    seriesIntegrable_row_memAtC (G_mC F) (G_m_abs_seriesSumC F hsum) hGflat m
+  let hTm : (tail_mC F m).MemAt y :=
+    seriesIntegrable_row_memAtC (tail_mC F) (tail_m_abs_seriesSumC F) hTflat m
+  let N := NmC F m
+  have hpsi : y ∈ (psi_mC F m).dom := by
+    have hzero := hGm 0
+    simpa [G_mC, IntegrableRepC3.ofL] using hzero
+  intro n
+  by_cases hn : n ≤ N
+  · exact BFunC.mem_of_seqSum_memC (F m).fn y N hpsi n hn
+  · have htail := hTm (n - (N + 1))
+    have hindex : N + 1 + (n - (N + 1)) = n := by omega
+    simpa [tail_mC, IntegrableRepC3.tailFrom, N, hindex] using htail
+
+/-- Absolute convergence of an L1 sum representation exposes absolute
+convergence of every source row. -/
+private noncomputable def seriesSumRep_L1_row_absSeriesC3
+    {Y : Type*} {T : IntSpaceC Y}
+    (F : Nat → IntegrableRepC3 T)
+    (hsum : RepSeriesSum (fun m => (F m).normL1)) {y : Y}
+    (hdom : (seriesSumRep_L1C F hsum).MemAt y)
+    (habs : RepSeriesSum (fun n => absSeq
+      ((seriesSumRep_L1C F hsum).valueAt y hdom n))) (m : Nat) :
+    RepSeriesSum (fun n => absSeq ((F m).valueAt y
+      (seriesSumRep_L1_row_memAtC3 F hsum hdom m) n)) := by
+  let hTflat := seriesSumRep_L1_right_memAtC F hsum hdom
+  let hTabs := seriesSumRep_L1_right_absSeriesC F hsum hdom habs
+  let hTmDom : (tail_mC F m).MemAt y :=
+    seriesIntegrable_row_memAtC (tail_mC F) (tail_m_abs_seriesSumC F) hTflat m
+  let hTmAbs : RepSeriesSum (fun n => absSeq ((tail_mC F m).valueAt y hTmDom n)) :=
+    seriesIntegrable_rowAbsSeriesC (tail_mC F) (tail_m_abs_seriesSumC F)
+      hTflat hTabs m
+  let hFdom : (F m).MemAt y := seriesSumRep_L1_row_memAtC3 F hsum hdom m
+  let N := NmC F m
+  let htail : RepSeriesSum
+      (fun l => absSeq ((F m).valueAt y hFdom (N + 1 + l))) := by
+    simpa [tail_mC, IntegrableRepC3.tailFrom, IntegrableRepC3.valueAt,
+      Nat.add_assoc, N] using hTmAbs
+  exact repSeriesSum_of_tailC N htail
+
+/-- Transport convergence of a summable raw row series through a termwise
+model and a finite telescoping identity.  Keeping the raw series abstract here
+avoids repeatedly normalizing the very large dependent type produced by
+`seriesSumRep_L1_valueC`. -/
+private noncomputable def repSeriesTendsto_of_series_telescopeC3
+    {raw row u : Nat → CReal} (hraw : RepSeriesSum raw)
+    (hterm : ∀ m, raw m ≈ row m)
+    (hpartial : ∀ n, regularSeqFinSum row n ≈ u n)
+    (l : CReal) (helimit : l ≈ hraw.sum) :
+    RepSeriesTendsto u l :=
+  { mod := fun k => hraw.tends.mod (k + 2)
+    close := by
+      intro k n hn
+      have hraw_row : regularSeqFinSum raw n ≈ regularSeqFinSum row n :=
+        bc1_regularSeqFinSum_congr_terms raw row hterm n
+      have hu_raw : u n ≈ regularSeqFinSum raw n :=
+        relEventually_trans _ _ _ (Setoid.symm (hpartial n)) (Setoid.symm hraw_row)
+      have hu_raw_close : RepCloseAtGauge (k + 3) (u n) (regularSeqFinSum raw n) :=
+        bc1_repClose_of_relEventually hu_raw (k + 3)
+      have hraw_close : RepCloseAtGauge (k + 3)
+          (regularSeqFinSum raw n) hraw.sum :=
+        hraw.tends.close (k + 2) n hn
+      have hu_sum : RepCloseAtGauge (k + 2) (u n) hraw.sum :=
+        repCloseAtGauge_triangle_succ (k + 2) hu_raw_close hraw_close
+      have hsum_l : RepCloseAtGauge (k + 2) hraw.sum l :=
+        bc1_repClose_of_relEventually (Setoid.symm helimit) (k + 2)
+      exact repCloseAtGauge_triangle_succ (k + 1) hu_sum hsum_l }
+
+set_option maxHeartbeats 1200000 in
+-- reason: the explicit left/right row models prevent an otherwise explosive
+-- `whnf` comparison of the dependent sequence hidden in `seriesSumRep_L1_valueC`.
+/-- A generic pointwise value bridge for `seriesSumRep_L1C`: if every source
+row has a chosen value model and those row values telescope to `u`, then the
+point values of the flattened L1 representative converge along `u`. -/
+private noncomputable def seriesSumRep_L1_tendsto_of_row_telescopeC3
+    {Y : Type*} {T : IntSpaceC Y}
+    (F : Nat → IntegrableRepC3 T)
+    (hsum : RepSeriesSum (fun m => (F m).normL1)) (y : Y)
+    (hflatdom : (seriesSumRep_L1C F hsum).MemAt y)
+    (hflatabs : RepSeriesSum (fun n => absSeq
+      ((seriesSumRep_L1C F hsum).valueAt y hflatdom n)))
+    (hrowdom : ∀ m, (F m).MemAt y)
+    (hrow : ∀ m, RepSeriesSum (fun n => (F m).valueAt y (hrowdom m) n))
+    (rowVals u : Nat → CReal)
+    (hroweq : ∀ m, (hrow m).sum ≈ rowVals m)
+    (hpartial : ∀ n, regularSeqFinSum rowVals n ≈ u n) :
+    RepSeriesTendsto u (seriesSum_of_absC hflatabs).sum := by
+  obtain ⟨hV, eV⟩ := seriesSumRep_L1_valueC F hsum hflatdom hflatabs
+  exact repSeriesTendsto_of_series_telescopeC3 hV
+    (fun m => by
+      refine relEventually_trans _ _ _ ?_ (hroweq m)
+      apply relEventually_symm
+      let hGdom := seriesSumRep_L1_left_memAtC F hsum hflatdom
+      let hTdom := seriesSumRep_L1_right_memAtC F hsum hflatdom
+      let hGabs := seriesSumRep_L1_left_absSeriesC F hsum hflatdom hflatabs
+      let hTabs := seriesSumRep_L1_right_absSeriesC F hsum hflatdom hflatabs
+      let hGrow := seriesIntegrable_rowAbsSeriesC (G_mC F)
+        (G_m_abs_seriesSumC F hsum) hGdom hGabs m
+      let hTrow := seriesIntegrable_rowAbsSeriesC (tail_mC F)
+        (tail_m_abs_seriesSumC F) hTdom hTabs m
+      let hPsiDom : y ∈ (psi_mC F m).dom :=
+        BFunC.seqSum_mem (F m).fn y (hrowdom m) (NmC F m)
+      let hGmodel := IntegrableRepC3.ofL_value (psi_m_memC F m) y hPsiDom
+      let hTmodel := IntegrableRepC3.tailFrom_valueC (F m) (NmC F m) y
+        (hrowdom m) (hrow m)
+      change relEventually (hrow m).sum
+        (addSeq (seriesSum_of_absC hGrow).sum (seriesSum_of_absC hTrow).sum)
+      refine relEventually_trans _ _ _
+        (relEventually_symm _ _
+          (seriesSumRep_L1_hsplit_valueC F m (hrowdom m) (hrow m))) ?_
+      exact addSeq_respects_eventually _ _ _ _
+        (relEventually_symm _ _
+          (repSeriesSum_unique (seriesSum_of_absC hGrow) hGmodel.1))
+        (relEventually_symm _ _
+          (repSeriesSum_unique (seriesSum_of_absC hTrow) hTmodel.1)))
+    hpartial (seriesSum_of_absC hflatabs).sum eV
+
+set_option maxHeartbeats 4000000 in
 -- This is the A-side signed analogue of the B-side nonnegative norm proof:
 -- pointwise `|r_{n+1}-r_n|` is identified with the positive decrement
 -- `r_n-r_{n+1}` on the full domain.
@@ -19183,25 +19498,37 @@ theorem thm36Ca_signedDiff_normL1C (n : Nat) :
       (thm36C_rampLC h a b hab ha spD n)
   let d : IntegrableRepC3 S := thm36Ca_decrementAC h a b hab ha spD n
   have hpoint : ∀ x, x ∈ h.domain →
-      ∀ (hsabs : RepSeriesSum (fun m => ((s.absVal.fn m).toFun x)))
-        (hd : RepSeriesSum (fun m => (d.fn m).toFun x)),
+      ∀ (hsabsDom : s.absVal.MemAt x) (hdDom : d.MemAt x)
+        (hsabs : RepSeriesSum (fun m => s.absVal.valueAt x hsabsDom m))
+        (hd : RepSeriesSum (fun m => d.valueAt x hdDom m)),
         hsabs.sum ≈ hd.sum := by
-    intro x hxdom hsabs hd
-    rcases hxdom with ⟨_hdom, ⟨hxabs⟩⟩
-    let hx : RepSeriesSum (fun m => (h.fn m).toFun x) := seriesSum_of_absC hxabs
-    let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hx
-    let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hx
-    let hs : RepSeriesSum (fun m => (s.fn m).toFun x) := by
-      dsimp [s, IntegrableRepC3.sub]
+    intro x hxdom hsabsDom hdDom hsabs hd
+    rcases hxdom with ⟨hdom, ⟨hxabs⟩⟩
+    let hx : RepSeriesSum (fun m => h.valueAt x hdom m) := seriesSum_of_absC hxabs
+    let Wn := thm36Ca_rampA_value_witnessC h a b hab ha spD n x hdom hx
+    let Ws := thm36Ca_rampA_value_witnessC h a b hab ha spD (n + 1) x hdom hx
+    let hnDom := thm36Ca_rampA_memAtC h a b hab ha spD n hdom
+    let hsDom := thm36Ca_rampA_memAtC h a b hab ha spD (n + 1) hdom
+    let hsubDom : s.MemAt x := by
+      dsimp [s]
+      exact IntegrableRepC3.sub_memAt hsDom hnDom
+    let hdecDom : d.MemAt x := by
+      dsimp [d]
+      exact thm36Ca_decrementA_memAtC h a b hab ha spD n hdom
+    let hs : RepSeriesSum (fun m => s.valueAt x hsubDom m) := by
+      dsimp [s]
       exact sub_seriesSum_valueC3
         (r := thm36C_rampLC h a b hab ha spD (n + 1))
-        (r' := thm36C_rampLC h a b hab ha spD n) (x := x) Ws.val Wn.val
-    let hd0 : RepSeriesSum (fun m => (d.fn m).toFun x) := by
-      dsimp [d, thm36Ca_decrementAC]
-      exact sub_seriesSum_valueC3
+        (r' := thm36C_rampLC h a b hab ha spD n) (x := x)
+        hsDom hnDom Ws.val Wn.val
+    let hd0 : RepSeriesSum (fun m => d.valueAt x hdecDom m) := by
+      dsimp [d]
+      simpa [thm36Ca_decrementAC, IntegrableRepC3.valueAt] using
+        sub_seriesSum_valueC3
         (r := thm36C_rampLC h a b hab ha spD n)
-        (r' := thm36C_rampLC h a b hab ha spD (n + 1)) (x := x) Wn.val Ws.val
-    obtain ⟨habsModel, habsModel_eq⟩ := s.absVal_signed_value x hs
+        (r' := thm36C_rampLC h a b hab ha spD (n + 1)) (x := x)
+        hnDom hsDom Wn.val Ws.val
+    obtain ⟨habsModel, habsModel_eq⟩ := s.absVal_signed_value x hsubDom hs
     have hsabs_eq : hsabs.sum ≈ habsModel.sum := repSeriesSum_unique hsabs habsModel
     have hs_sum : hs.sum ≈ CReal.sub Ws.val.sum Wn.val.sum := by
       change relEventually (CReal.add Ws.val.sum (CReal.neg Wn.val.sum)) _
@@ -19213,7 +19540,7 @@ theorem thm36Ca_signedDiff_normL1C (n : Nat) :
         (subSeq_eq_add_neg_eventually Wn.val.sum Ws.val.sum)
     have hnn : RegularSeqNonneg hd0.sum :=
       thm36Ca_decrementA_nonneg_on_domainC h a b hab ha spD n x
-        ⟨_hdom, ⟨hxabs⟩⟩ hd0
+        ⟨hdom, ⟨hxabs⟩⟩ hdecDom hd0
     calc
       hsabs.sum ≈ habsModel.sum := hsabs_eq
       _ ≈ CReal.abs hs.sum := habsModel_eq
@@ -19231,11 +19558,12 @@ theorem thm36Ca_signedDiff_normL1C (n : Nat) :
   change s.absVal.integral ≈ d.integral
   refine regularSeqLe_antisymm_eventuallyC ?_ ?_
   · refine prop_1_11C h.domain_isFull s.absVal d ?_
-    intro x hx hsabs hd
-    exact regularSeqLe_of_relEventually (hpoint x hx hsabs hd)
+    intro x hx hsabsDom hdDom hsabs hd
+    exact regularSeqLe_of_relEventually (hpoint x hx hsabsDom hdDom hsabs hd)
   · refine prop_1_11C h.domain_isFull d s.absVal ?_
-    intro x hx hd hsabs
-    exact regularSeqLe_of_relEventually (Setoid.symm (hpoint x hx hsabs hd))
+    intro x hx hdDom hsabsDom hd hsabs
+    exact regularSeqLe_of_relEventually
+      (Setoid.symm (hpoint x hx hsabsDom hdDom hsabs hd))
 
 theorem thm36Ca_signedTermA_normL1C (m : Nat) :
     (thm36Ca_signedTermAC h a b hab ha spD m).normL1 ≈
@@ -19245,7 +19573,8 @@ theorem thm36Ca_signedTermA_normL1C (m : Nat) :
   cases m with
   | zero =>
       exact thm36_normL1_eq_integral_on_fullC h.domain_isFull _
-        (fun x hxdom hx => thm36Ca_rampA_nonneg_on_domainC h a b hab ha spD 0 x hxdom hx)
+        (fun x hxdom hdom hx =>
+          thm36Ca_rampA_nonneg_on_domainC h a b hab ha spD 0 x hxdom hdom hx)
   | succ n =>
       exact thm36Ca_signedDiff_normL1C h a b hab ha spD n
 
@@ -19492,75 +19821,32 @@ theorem thm36Ca_fA_integralC :
   exact relEventually_trans _ _ _ W.property
     (repSeriesSum_unique W.val (thm36Ca_termIntegralSeriesAC h a b hab ha spD))
 
-set_option maxHeartbeats 1600000 in
--- Same L1 value-continuity plumbing as the B-side representative, now for the
--- signed A-side telescope.
-/-- Pointwise value series for the A-side L1 representative:
-`f_A(x) = Σ_m termA_m(x)`. -/
-noncomputable def thm36Ca_fA_value_seriesC (x : X)
-    (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)))
-    (hx : RepSeriesSum (fun n => (h.fn n).toFun x)) :
-    { hser : RepSeriesSum
-        (fun m => (thm36Ca_termA_value_witnessC
-          h a b hab ha spD m x hx).val.sum) //
-      (seriesSum_of_absC hfabs).sum ≈ hser.sum } := by
-  obtain ⟨hV, eV⟩ := seriesSumRep_L1_valueC
-    (thm36Ca_termAC h a b hab ha spD)
-    (thm36Ca_normSeriesAC h a b hab ha spD) hfabs
-  refine ⟨repSeriesSum_congr hV (fun m => ?_), eV⟩
-  let Wm := thm36Ca_termA_value_witnessC h a b hab ha spD m x hx
-  refine relEventually_trans _ _ _
-    (relEventually_symm _ _
-      (seriesSumRep_L1_hsplit_valueC
-        (thm36Ca_termAC h a b hab ha spD) m Wm.val)) ?_
-  exact addSeq_respects_eventually _ _ _ _
-    (relEventually_symm _ _
-      (repSeriesSum_unique
-        (seriesSum_of_absC (row_seriesSumC
-          (fun p q => regularSeqNonneg_of_zero_le
-            (absSeq_nonnegative_regularSeqLe
-              (((G_mC (thm36Ca_termAC h a b hab ha spD) p).fn q).toFun x)))
-          (add_absSeriesSum_leftC hfabs) m))
-        (IntegrableRepC3.ofL_value
-          (psi_m_memC (thm36Ca_termAC h a b hab ha spD) m) x).1))
-    (relEventually_symm _ _
-      (repSeriesSum_unique
-        (seriesSum_of_absC (row_seriesSumC
-          (fun p q => regularSeqNonneg_of_zero_le
-            (absSeq_nonnegative_regularSeqLe
-              (((tail_mC (thm36Ca_termAC h a b hab ha spD) p).fn q).toFun x)))
-          (add_absSeriesSum_rightC hfabs) m))
-        (IntegrableRepC3.tailFrom_valueC
-          (thm36Ca_termAC h a b hab ha spD m)
-          (NmC (thm36Ca_termAC h a b hab ha spD) m) x Wm.val).1))
+/-- A representation's domain witness together with pointwise absolute
+summability. -/
+structure Thm36RepAbsAtC {Y : Type*} {T : IntSpaceC Y}
+    (r : IntegrableRepC3 T) (y : Y) : Type _ where
+  dom : r.MemAt y
+  absSeries : RepSeriesSum (fun n => absSeq (r.valueAt y dom n))
 
 /-- From absolute convergence of the A-side L1 limit representative at `x`,
 recover absolute convergence of the zeroth A telescope term. -/
 noncomputable def thm36D_termA0Abs_of_fAAbsC (x : X)
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x))) :
-    RepSeriesSum
-      (fun n => absSeq (((thm36Ca_termAC h a b hab ha spD 0).fn n).toFun x)) := by
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n))) :
+    Thm36RepAbsAtC (thm36Ca_termAC h a b hab ha spD 0) x := by
   let F : Nat → IntegrableRepC3 S := thm36Ca_termAC h a b hab ha spD
-  let N : Nat := NmC F 0
-  let hTailRow : RepSeriesSum
-      (fun q => absSeq (((tail_mC F 0).fn q).toFun x)) :=
-    row_seriesSumC
-      (fun p q => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe (((tail_mC F p).fn q).toFun x)))
-      (add_absSeriesSum_rightC hfabs) 0
-  let htail : RepSeriesSum
-      (fun l => absSeq (((F 0).fn (N + 1 + l)).toFun x)) := by
-    simpa [F, N, tail_mC, IntegrableRepC3.tailFrom, Nat.add_assoc] using hTailRow
-  simpa [F] using repSeriesSum_of_tailC N htail
+  let hsum := thm36Ca_normSeriesAC h a b hab ha spD
+  let hrowDom : (F 0).MemAt x := seriesSumRep_L1_row_memAtC3 F hsum hfdom 0
+  let hrowAbs : RepSeriesSum (fun n => absSeq ((F 0).valueAt x hrowDom n)) :=
+    seriesSumRep_L1_row_absSeriesC3 F hsum hfdom hfabs 0
+  exact ⟨hrowDom, by simpa [F, IntegrableRepC3.valueAt] using hrowAbs⟩
 
 /-- From absolute convergence of the zeroth A ramp at `x`, recover absolute
 convergence of the original representative `h` at `x`. -/
 noncomputable def thm36D_hAbsA_of_rampA0AbsC (x : X)
-    (hramp : RepSeriesSum
-      (fun n => absSeq (((thm36C_rampLC h a b hab ha spD 0).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((h.fn n).toFun x)) := by
+    (hramp : Thm36RepAbsAtC (thm36C_rampLC h a b hab ha spD 0) x) :
+    Thm36RepAbsAtC h x := by
   let lo : CReal := thm36C_levelLC h a b hab ha spD 0
   let up : CReal := thm36C_tC h a b hab ha spD
   let hpos : PosEventuallyData (CReal.sub up lo) :=
@@ -19570,91 +19856,113 @@ noncomputable def thm36D_hAbsA_of_rampA0AbsC (x : X)
   let c : CReal := CReal.invPos (CReal.sub up lo) hpos
   let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo wu)
   let q : IntegrableRepC3 S := IntegrableRepC3.smul c r
+  let hcutDom : (q.cutConstVal CReal.one oneWitnessC).MemAt x := by
+    simpa [thm36C_rampLC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp.dom
   let hcut : RepSeriesSum
-      (fun n => absSeq (((q.cutConstVal CReal.one oneWitnessC).fn n).toFun x)) := by
-    simpa [thm36C_rampLC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp
-  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcut
+      (fun n => absSeq ((q.cutConstVal CReal.one oneWitnessC).valueAt x hcutDom n)) := by
+    simpa [thm36C_rampLC, thm_3_6_ramp_compC, IntegrableRepC3.valueAt,
+      lo, up, c, r, q] using hramp.absSeries
+  let qDom : q.MemAt x := IntegrableRepC3_of_cutConstVal_memAtC hcutDom
+  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcutDom hcut
+  let rDom : r.MemAt x := by
+    intro n
+    simpa [q, IntegrableRepC3.smul, BFunC.smul] using qDom n
   let hscaled : RepSeriesSum
-      (fun n => CReal.abs (CReal.mul c ((r.fn n).toFun x))) := by
-    simpa [IntegrableRepC3.smul, BFunC.smul, q, c, r] using hq
+      (fun n => CReal.abs (CReal.mul c (r.valueAt x rDom n))) := by
+    simpa [IntegrableRepC3.smul, IntegrableRepC3.valueAt, BFunC.smul, q, c, r]
+      using hq
   have hc : regularSeqLtProp CReal.zero c :=
     regularSeqLtProp_zero_of_posData
       (CReal.invPos_posData (CReal.sub up lo) hpos)
   let hr := thm36D_absSeries_of_pos_smulC c hc
-    (fun n => (r.fn n).toFun x) hscaled
-  simpa [r, IntegrableRepC3.sub] using
-    (add_absSeriesSum_leftC
-      (r := h) (r' := (h.cutConstVal lo wu).neg) (x := x) hr)
+    (fun n => r.valueAt x rDom n) hscaled
+  let rAddDom : (h.add (h.cutConstVal lo wu).neg).MemAt x := by
+    simpa [r, IntegrableRepC3.sub] using rDom
+  let hrAdd : RepSeriesSum (fun n => absSeq
+      ((h.add (h.cutConstVal lo wu).neg).valueAt x rAddDom n)) := by
+    simpa [r, IntegrableRepC3.sub, IntegrableRepC3.valueAt] using hr
+  let hDom : h.MemAt x := IntegrableRepC3.add_left_memAt rAddDom
+  let hAbs : RepSeriesSum (fun n => absSeq (h.valueAt x hDom n)) :=
+    add_absSeriesSum_leftC rAddDom hrAdd
+  exact ⟨hDom, hAbs⟩
 
 /-- From absolute convergence of the A-side L1 limit representative at `x`,
 recover absolute convergence of the original `h` at `x`. -/
 noncomputable def thm36D_hAbsA_of_fAAbsC (x : X)
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((h.fn n).toFun x)) := by
-  let hterm0 := thm36D_termA0Abs_of_fAAbsC h a b hab ha spD x hfabs
-  let hramp : RepSeriesSum
-      (fun n => absSeq (((thm36C_rampLC h a b hab ha spD 0).fn n).toFun x)) := by
-    simpa [thm36Ca_termAC, thm36Ca_signedTermAC] using hterm0
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n))) :
+    Thm36RepAbsAtC h x := by
+  let hterm0 := thm36D_termA0Abs_of_fAAbsC h a b hab ha spD x hfdom hfabs
+  let hrampDom : (thm36C_rampLC h a b hab ha spD 0).MemAt x := by
+    simpa [thm36Ca_termAC, thm36Ca_signedTermAC] using hterm0.dom
+  let hrampAbs : RepSeriesSum (fun n => absSeq
+      ((thm36C_rampLC h a b hab ha spD 0).valueAt x hrampDom n)) := by
+    simpa [thm36Ca_termAC, thm36Ca_signedTermAC, IntegrableRepC3.valueAt]
+      using hterm0.absSeries
+  let hramp : Thm36RepAbsAtC (thm36C_rampLC h a b hab ha spD 0) x :=
+    ⟨hrampDom, hrampAbs⟩
   exact thm36D_hAbsA_of_rampA0AbsC h a b hab ha spD x hramp
 
 /-- Absolute-value point sequence of the A-side L1 representative. -/
-noncomputable def thm36D_fAAbsSeqC (x : X) : Nat → CReal :=
-  fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)
+noncomputable def thm36D_fAAbsSeqC (x : X)
+    (hdom : (thm36Ca_fAC h a b hab ha spD).MemAt x) : Nat → CReal :=
+  fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hdom n)
 
 /-- Point-value sequence of the A-side L1 representative. -/
-noncomputable def thm36D_fAValSeqC (x : X) : Nat → CReal :=
-  fun n => ((thm36Ca_fAC h a b hab ha spD).fn n).toFun x
+noncomputable def thm36D_fAValSeqC (x : X)
+    (hdom : (thm36Ca_fAC h a b hab ha spD).MemAt x) : Nat → CReal :=
+  fun n => (thm36Ca_fAC h a b hab ha spD).valueAt x hdom n
 
 set_option maxHeartbeats 1200000 in
--- Transport the A-side L1 value-series limit through the pointwise telescope.
+-- Transport the A-side L1 value-series limit through explicit row models and
+-- the pointwise telescope, without normalizing the flattened dependent row.
 /-- Left-ramp point values at `h(x)` converge to the point value of `f_A`. -/
 noncomputable def thm36D_rampTendsA_of_hSum_fAAbsC (x : X)
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)))
-    (hSum : RepSeriesSum (fun n => (h.fn n).toFun x)) :
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n)))
+    (hdom : h.MemAt x)
+    (hSum : RepSeriesSum (fun n => h.valueAt x hdom n)) :
     RepSeriesTendsto
       (fun n => thm36C_rampFnLC h a b hab ha spD n hSum.sum)
       (seriesSum_of_absC hfabs).sum := by
-  let fSum := seriesSum_of_absC hfabs
-  let V := thm36Ca_fA_value_seriesC h a b hab ha spD x hfabs hSum
+  let F : Nat → IntegrableRepC3 S := thm36Ca_termAC h a b hab ha spD
+  let hsum := thm36Ca_normSeriesAC h a b hab ha spD
+  let hrowdom : ∀ m, (F m).MemAt x := fun m => by
+    simpa [F] using thm36Ca_termA_memAtC h a b hab ha spD m hdom
+  let hrow : ∀ m, RepSeriesSum
+      (fun n => (F m).valueAt x (hrowdom m) n) := fun m => by
+    simpa [F, IntegrableRepC3.valueAt] using
+      (thm36Ca_termA_value_witnessC
+        h a b hab ha spD m x hdom hSum).val
   let rowVals : Nat → CReal :=
-    fun j => (thm36Ca_termA_value_witnessC
-      h a b hab ha spD j x hSum).val.sum
-  exact
-    { mod := fun k => V.val.tends.mod (k + 2)
-      close := by
-        intro k n hn
-        have hpartial :
-            regularSeqFinSum rowVals n ≈
-              thm36C_rampFnLC h a b hab ha spD n hSum.sum := by
-          simpa [rowVals] using
-            thm36Ca_partialSum_termA_valuesC h a b hab ha spD x hSum n
-        have hpart_close : RepCloseAtGauge (k + 3)
-            (thm36C_rampFnLC h a b hab ha spD n hSum.sum)
-            (regularSeqFinSum rowVals n) :=
-          bc1_repClose_of_relEventually
-            (relEventually_symm _ _ hpartial) (k + 3)
-        have hrow : RepCloseAtGauge (k + 3)
-            (regularSeqFinSum rowVals n) V.val.sum :=
-          V.val.tends.close (k + 2) n hn
-        have hrV : RepCloseAtGauge (k + 2)
-            (thm36C_rampFnLC h a b hab ha spD n hSum.sum) V.val.sum :=
-          repCloseAtGauge_triangle_succ (k + 2) hpart_close hrow
-        have hVf : RepCloseAtGauge (k + 2) V.val.sum fSum.sum :=
-          bc1_repClose_of_relEventually
-            (relEventually_symm _ _ V.property) (k + 2)
-        exact repCloseAtGauge_triangle_succ (k + 1) hrV hVf }
+    fun m => (thm36Ca_termA_value_witnessC
+      h a b hab ha spD m x hdom hSum).val.sum
+  let ramps : Nat → CReal := fun n =>
+    thm36C_rampFnLC h a b hab ha spD n hSum.sum
+  let ht := seriesSumRep_L1_tendsto_of_row_telescopeC3
+    F hsum x hfdom hfabs hrowdom hrow rowVals ramps
+    (fun m => repSeriesSum_unique (hrow m)
+      (thm36Ca_termA_value_witnessC
+        h a b hab ha spD m x hdom hSum).val)
+    (fun n => by
+      simpa [rowVals, ramps] using
+        thm36Ca_partialSum_termA_valuesC
+          h a b hab ha spD x hdom hSum n)
+  simpa [F, hsum, thm36Ca_fAC, ramps] using ht
 
 theorem thm36D_pointA_mem_unionC (x : X)
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x))) :
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n))) :
     x ∈ thm36D_upperSetC h (thm36C_tC h a b hab ha spD) ∪
       thm36D_lowerSetC h (thm36C_tC h a b hab ha spD) := by
-  let hAbs := thm36D_hAbsA_of_fAAbsC h a b hab ha spD x hfabs
-  let hSum := seriesSum_of_absC hAbs
+  let hAbs := thm36D_hAbsA_of_fAAbsC h a b hab ha spD x hfdom hfabs
+  let hSum := seriesSum_of_absC hAbs.absSeries
   let fSum := seriesSum_of_absC hfabs
-  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x hfabs hSum
+  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x
+    hfdom hfabs hAbs.dom hSum
   rcases regularSeqLtProp_cotrans CReal.zero CReal.one fSum.sum CReal.one_pos_E
       with hpos | hltOne
   · have hty : RegularSeqLe (thm36C_tC h a b hab ha spD) hSum.sum := by
@@ -19668,7 +19976,7 @@ theorem thm36D_pointA_mem_unionC (x : X)
       have h00 : regularSeqLtProp CReal.zero CReal.zero :=
         regularSeqLtProp_of_right_eventual hz0 hpos
       exact regularSeqLtProp_irrefl CReal.zero h00
-    exact Or.inl ⟨hAbs, hSum, hty⟩
+    exact Or.inl ⟨hAbs.dom, hAbs.absSeries, hSum, hty⟩
   · have hyt : regularSeqLtProp hSum.sum (thm36C_tC h a b hab ha spD) := by
       let WN := thm36D_limit_lt_eventuallyC rt hltOne
       exact rampFnC_lt_one_imp
@@ -19677,18 +19985,20 @@ theorem thm36D_pointA_mem_unionC (x : X)
         hSum.sum
         (thm36C_levelL_t_posEventuallyDataC h a b hab ha spD WN.val)
         WN.property
-    exact Or.inr ⟨hAbs, hSum, hyt⟩
+    exact Or.inr ⟨hAbs.dom, hAbs.absSeries, hSum, hyt⟩
 
 theorem thm36D_upperA_valueC (x : X)
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)))
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n)))
     (hx : x ∈ thm36D_upperSetC h (thm36C_tC h a b hab ha spD))
     (hf : RepSeriesSum
-      (fun n => ((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n)) :
     hf.sum ≈ CReal.one := by
-  rcases hx with ⟨_habs, hxsum, hle⟩
+  rcases hx with ⟨hdom, _habs, hxsum, hle⟩
   let fSum := seriesSum_of_absC hfabs
-  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x hfabs hxsum
+  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x
+    hfdom hfabs hdom hxsum
   have hz1 : fSum.sum ≈ CReal.one :=
     thm36D_tendsto_eventually_constC rt 0
       (fun n _ => thm36D_rampL_always_oneC h a b hab ha spD hxsum.sum hle n)
@@ -19696,24 +20006,20 @@ theorem thm36D_upperA_valueC (x : X)
     (repSeriesSum_unique hf fSum) hz1
 
 theorem thm36D_lowerA_valueC (x : X)
-    (hfabs : RepSeriesSum (thm36D_fAAbsSeqC h a b hab ha spD x))
+    (hfdom : (thm36Ca_fAC h a b hab ha spD).MemAt x)
+    (hfabs : RepSeriesSum (thm36D_fAAbsSeqC h a b hab ha spD x hfdom))
     (hx : x ∈ thm36D_lowerSetC h (thm36C_tC h a b hab ha spD))
-    (hf : RepSeriesSum (thm36D_fAValSeqC h a b hab ha spD x)) :
+    (hf : RepSeriesSum (thm36D_fAValSeqC h a b hab ha spD x hfdom)) :
     hf.sum ≈ CReal.zero := by
-  rcases hx with ⟨_habs, hxsum, hlt⟩
-  let hfabsRaw : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)) := by
-    simpa [thm36D_fAAbsSeqC] using hfabs
-  let hfRaw : RepSeriesSum
-      (fun n => ((thm36Ca_fAC h a b hab ha spD).fn n).toFun x) := by
-    simpa [thm36D_fAValSeqC] using hf
-  let fSum := seriesSum_of_absC hfabsRaw
-  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x hfabsRaw hxsum
+  rcases hx with ⟨hdom, _habs, hxsum, hlt⟩
+  let fSum := seriesSum_of_absC hfabs
+  let rt := thm36D_rampTendsA_of_hSum_fAAbsC h a b hab ha spD x
+    hfdom hfabs hdom hxsum
   obtain ⟨N, hN⟩ := thm36D_rampL_eventually_zeroC h a b hab ha spD hxsum.sum hlt
   have hz0 : fSum.sum ≈ CReal.zero :=
     thm36D_tendsto_eventually_constC rt N hN
   exact relEventually_trans _ _ _
-    (repSeriesSum_unique hfRaw fSum) hz0
+    (repSeriesSum_unique hf fSum) hz0
 
 theorem thm36D_isFull_monoA_C {A B : Set X}
     (hA : IsFullC S A) (hsub : A ⊆ B) : IsFullC S B := by
@@ -19733,31 +20039,31 @@ noncomputable def thm36D_integrableSetA_directC :
       (thm36D_upperSetC h (thm36C_tC h a b hab ha spD) ∪
         thm36D_lowerSetC h (thm36C_tC h a b hab ha spD)) := by
     intro x hxdom
-    rcases hxdom with ⟨_hdom, ⟨hfabs⟩⟩
+    rcases hxdom with ⟨hfdom, ⟨hfabs⟩⟩
     let hfabsRaw : RepSeriesSum
-        (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)) := by
-      simpa [f] using hfabs
-    exact thm36D_pointA_mem_unionC h a b hab ha spD x hfabsRaw
+        (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n)) := by
+      simpa [f, IntegrableRepC3.valueAt] using hfabs
+    exact thm36D_pointA_mem_unionC h a b hab ha spD x hfdom hfabsRaw
   refine
     { full := thm36D_isFull_monoA_C (S := S) (IntegrableRepC3.domain_isFull f) hsub
       rep := f
       valid := ?_ }
-  intro x hfabs
+  intro x hfdom hfabs
   let hfabsRaw : RepSeriesSum
-      (fun n => absSeq (((thm36Ca_fAC h a b hab ha spD).fn n).toFun x)) := by
-    simpa [f] using hfabs
-  refine ⟨thm36D_pointA_mem_unionC h a b hab ha spD x hfabsRaw, ?_, ?_⟩
+      (fun n => absSeq ((thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n)) := by
+    simpa [f, IntegrableRepC3.valueAt] using hfabs
+  refine ⟨thm36D_pointA_mem_unionC h a b hab ha spD x hfdom hfabsRaw, ?_, ?_⟩
   · intro hx hf
     let hfRaw : RepSeriesSum
-        (fun n => ((thm36Ca_fAC h a b hab ha spD).fn n).toFun x) := by
-      simpa [f] using hf
-    exact thm36D_upperA_valueC h a b hab ha spD x hfabsRaw hx hfRaw
+        (fun n => (thm36Ca_fAC h a b hab ha spD).valueAt x hfdom n) := by
+      simpa [f, IntegrableRepC3.valueAt] using hf
+    exact thm36D_upperA_valueC h a b hab ha spD x hfdom hfabsRaw hx hfRaw
   · intro hx hf
-    let hfabsH : RepSeriesSum (thm36D_fAAbsSeqC h a b hab ha spD x) := by
+    let hfabsH : RepSeriesSum (thm36D_fAAbsSeqC h a b hab ha spD x hfdom) := by
       simpa [thm36D_fAAbsSeqC] using hfabsRaw
-    let hfH : RepSeriesSum (thm36D_fAValSeqC h a b hab ha spD x) := by
+    let hfH : RepSeriesSum (thm36D_fAValSeqC h a b hab ha spD x hfdom) := by
       simpa [f, thm36D_fAValSeqC] using hf
-    exact thm36D_lowerA_valueC h a b hab ha spD x hfabsH hx hfH
+    exact thm36D_lowerA_valueC h a b hab ha spD x hfdom hfabsH hx hfH
 
 /-- The concrete A-pair package has measure/integral `lambdaBar`. -/
 theorem thm36D_integrableSetA_measureC :
@@ -19781,11 +20087,12 @@ noncomputable def thm36D_level_setsA_integrableC :
 
 theorem thm36Cb_rampB_nonneg_on_domainC
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hrdom : (thm36C_rampRC h a b hab ha spD n).MemAt x)
     (hr : RepSeriesSum
-      (fun m => ((thm36C_rampRC h a b hab ha spD n).fn m).toFun x)) :
+      (fun m => (thm36C_rampRC h a b hab ha spD n).valueAt x hrdom m)) :
     RegularSeqNonneg hr.sum := by
-  rcases hxdom with ⟨_hdom, ⟨hxabs⟩⟩
-  let hx : RepSeriesSum (fun m => (h.fn m).toFun x) := seriesSum_of_absC hxabs
+  rcases hxdom with ⟨hdom, ⟨hxabs⟩⟩
+  let hx : RepSeriesSum (fun m => h.valueAt x hdom m) := seriesSum_of_absC hxabs
   have hval : hr.sum ≈
       rampFnC (thm36C_tC h a b hab ha spD)
         (thm36C_levelRC h a b hab ha spD n) hx.sum
@@ -19795,7 +20102,7 @@ theorem thm36Cb_rampB_nonneg_on_domainC
         (thm36C_tC h a b hab ha spD)
         (thm36C_levelRC h a b hab ha spD n)
         (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_t_signC h a b hab ha spD) x hx hr
+        (thm36C_t_signC h a b hab ha spD) x hdom hx hrdom hr
   exact regularSeqNonneg_of_eventual hval
     (rampFnC_bound (thm36C_tC h a b hab ha spD)
       (thm36C_levelRC h a b hab ha spD n) hx.sum
@@ -19803,28 +20110,26 @@ theorem thm36Cb_rampB_nonneg_on_domainC
 
 theorem thm36Cb_decrementB_nonneg_on_domainC
     (n : Nat) (x : X) (hxdom : x ∈ h.domain)
+    (hddom : ((thm36C_rampRC h a b hab ha spD (n + 1)).sub
+      (thm36C_rampRC h a b hab ha spD n)).MemAt x)
     (hd : RepSeriesSum
-      (fun m => (((thm36C_rampRC h a b hab ha spD (n + 1)).sub
-          (thm36C_rampRC h a b hab ha spD n)).fn m).toFun x)) :
+      (fun m => ((thm36C_rampRC h a b hab ha spD (n + 1)).sub
+        (thm36C_rampRC h a b hab ha spD n)).valueAt x hddom m)) :
     RegularSeqNonneg hd.sum := by
-  rcases hxdom with ⟨_hdom, ⟨hxabs⟩⟩
-  let hx : RepSeriesSum (fun m => (h.fn m).toFun x) := seriesSum_of_absC hxabs
-  let Wn := thm36A1_ramp_comp_value_witnessC h
-        (thm36C_tC h a b hab ha spD)
-        (thm36C_levelRC h a b hab ha spD n)
-        (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD n)
-        (thm36C_t_signC h a b hab ha spD) x hx
-  let Ws := thm36A1_ramp_comp_value_witnessC h
-        (thm36C_tC h a b hab ha spD)
-        (thm36C_levelRC h a b hab ha spD (n + 1))
-        (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD (n + 1))
-        (thm36C_t_signC h a b hab ha spD) x hx
+  rcases hxdom with ⟨hdom, ⟨hxabs⟩⟩
+  let hx : RepSeriesSum (fun m => h.valueAt x hdom m) := seriesSum_of_absC hxabs
+  let hnDom := thm36Cb_rampB_memAtC h a b hab ha spD n hdom
+  let hsDom := thm36Cb_rampB_memAtC h a b hab ha spD (n + 1) hdom
+  let Wn := thm36Cb_rampB_value_witnessC h a b hab ha spD n x hdom hx
+  let Ws := thm36Cb_rampB_value_witnessC h a b hab ha spD (n + 1) x hdom hx
   let hsub : RepSeriesSum
-      (fun m => (((thm36C_rampRC h a b hab ha spD (n + 1)).sub
-          (thm36C_rampRC h a b hab ha spD n)).fn m).toFun x) := by
+      (fun m => ((thm36C_rampRC h a b hab ha spD (n + 1)).sub
+        (thm36C_rampRC h a b hab ha spD n)).valueAt x
+          (IntegrableRepC3.sub_memAt hsDom hnDom) m) := by
     exact sub_seriesSum_valueC3
       (r := thm36C_rampRC h a b hab ha spD (n + 1))
-      (r' := thm36C_rampRC h a b hab ha spD n) (x := x) Ws.val Wn.val
+      (r' := thm36C_rampRC h a b hab ha spD n) (x := x)
+      hsDom hnDom Ws.val Wn.val
   have hd_eq : hd.sum ≈ hsub.sum := repSeriesSum_unique hd hsub
   have hsub_sum : hsub.sum ≈ CReal.sub Ws.val.sum Wn.val.sum := by
     change relEventually (CReal.add Ws.val.sum (CReal.neg Wn.val.sum)) _
@@ -19871,12 +20176,13 @@ theorem thm36Cb_signedTermB_normL1C (m : Nat) :
   cases m with
   | zero =>
       exact thm36_normL1_eq_integral_on_fullC h.domain_isFull _
-        (fun x hxdom hx => thm36Cb_rampB_nonneg_on_domainC h a b hab ha spD 0 x hxdom hx)
+        (fun x hxdom hdom hx =>
+          thm36Cb_rampB_nonneg_on_domainC h a b hab ha spD 0 x hxdom hdom hx)
   | succ n =>
       exact thm36_normL1_eq_integral_on_fullC h.domain_isFull _
-        (fun x hxdom hx => by
+        (fun x hxdom hdom hx => by
           simpa [thm36Cb_signedTermBC] using
-            thm36Cb_decrementB_nonneg_on_domainC h a b hab ha spD n x hxdom hx)
+            thm36Cb_decrementB_nonneg_on_domainC h a b hab ha spD n x hxdom hdom hx)
 
 set_option maxHeartbeats 2000000 in
 -- The recursive telescope unfolds the successor B term and several quotient
@@ -20000,70 +20306,20 @@ theorem thm36Cb_fB_integralC :
   exact relEventually_trans _ _ _ W.property
     (repSeriesSum_unique W.val (thm36Cb_termIntegralSeriesBC h a b hab ha spD))
 
-set_option maxHeartbeats 1600000 in
--- This is the same `seriesSumRep_L1_valueC` / `hsplit` plumbing as
--- `IntegrableRepC3.prop_4_2_rep_value_seriesC`, specialized to the B-side
--- telescope terms.
-/-- Pointwise value series for the B-side L1 representative:
-`f_B(x) = Σ_m termB_m(x)`. -/
-noncomputable def thm36Cb_fB_value_seriesC (x : X)
-    (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)))
-    (hx : RepSeriesSum (fun n => (h.fn n).toFun x)) :
-    { hser : RepSeriesSum
-        (fun m => (thm36Cb_termB_value_witnessC
-          h a b hab ha spD m x hx).val.sum) //
-      (seriesSum_of_absC hfabs).sum ≈ hser.sum } := by
-  obtain ⟨hV, eV⟩ := seriesSumRep_L1_valueC
-    (thm36Cb_termBC h a b hab ha spD)
-    (thm36Cb_normSeriesBC h a b hab ha spD) hfabs
-  refine ⟨repSeriesSum_congr hV (fun m => ?_), eV⟩
-  let Wm := thm36Cb_termB_value_witnessC h a b hab ha spD m x hx
-  refine relEventually_trans _ _ _
-    (relEventually_symm _ _
-      (seriesSumRep_L1_hsplit_valueC
-        (thm36Cb_termBC h a b hab ha spD) m Wm.val)) ?_
-  exact addSeq_respects_eventually _ _ _ _
-    (relEventually_symm _ _
-      (repSeriesSum_unique
-        (seriesSum_of_absC (row_seriesSumC
-          (fun p q => regularSeqNonneg_of_zero_le
-            (absSeq_nonnegative_regularSeqLe
-              (((G_mC (thm36Cb_termBC h a b hab ha spD) p).fn q).toFun x)))
-          (add_absSeriesSum_leftC hfabs) m))
-        (IntegrableRepC3.ofL_value
-          (psi_m_memC (thm36Cb_termBC h a b hab ha spD) m) x).1))
-    (relEventually_symm _ _
-      (repSeriesSum_unique
-        (seriesSum_of_absC (row_seriesSumC
-          (fun p q => regularSeqNonneg_of_zero_le
-            (absSeq_nonnegative_regularSeqLe
-              (((tail_mC (thm36Cb_termBC h a b hab ha spD) p).fn q).toFun x)))
-          (add_absSeriesSum_rightC hfabs) m))
-        (IntegrableRepC3.tailFrom_valueC
-          (thm36Cb_termBC h a b hab ha spD m)
-          (NmC (thm36Cb_termBC h a b hab ha spD) m) x Wm.val).1))
-
 /-- From absolute convergence of the L1-limit representative `f_B` at `x`,
 recover absolute convergence of the zeroth B telescope term.  Only the tail
 row is needed; the finite prefix is restored by `repSeriesSum_of_tailC`. -/
 noncomputable def thm36D_termB0Abs_of_fBAbsC (x : X)
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x))) :
-    RepSeriesSum
-      (fun n => absSeq (((thm36Cb_termBC h a b hab ha spD 0).fn n).toFun x)) := by
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n))) :
+    Thm36RepAbsAtC (thm36Cb_termBC h a b hab ha spD 0) x := by
   let F : Nat → IntegrableRepC3 S := thm36Cb_termBC h a b hab ha spD
-  let N : Nat := NmC F 0
-  let hTailRow : RepSeriesSum
-      (fun q => absSeq (((tail_mC F 0).fn q).toFun x)) :=
-    row_seriesSumC
-      (fun p q => regularSeqNonneg_of_zero_le
-        (absSeq_nonnegative_regularSeqLe (((tail_mC F p).fn q).toFun x)))
-      (add_absSeriesSum_rightC hfabs) 0
-  let htail : RepSeriesSum
-      (fun l => absSeq (((F 0).fn (N + 1 + l)).toFun x)) := by
-    simpa [F, N, tail_mC, IntegrableRepC3.tailFrom, Nat.add_assoc] using hTailRow
-  simpa [F] using repSeriesSum_of_tailC N htail
+  let hsum := thm36Cb_normSeriesBC h a b hab ha spD
+  let hrowDom : (F 0).MemAt x := seriesSumRep_L1_row_memAtC3 F hsum hfdom 0
+  let hrowAbs : RepSeriesSum (fun n => absSeq ((F 0).valueAt x hrowDom n)) :=
+    seriesSumRep_L1_row_absSeriesC3 F hsum hfdom hfabs 0
+  exact ⟨hrowDom, by simpa [F, IntegrableRepC3.valueAt] using hrowAbs⟩
 
 /-- From absolute convergence of the zeroth B ramp at `x`, recover absolute
 convergence of the original representative `h` at `x`.  This reverses the
@@ -20071,9 +20327,8 @@ right-ramp construction: cut at `t`, scale by `(level_0 - t)^{-1}`, then cut
 at `1`; middle-lane extraction and positive-scalar cancellation remove those
 operations. -/
 noncomputable def thm36D_hAbsB_of_rampB0AbsC (x : X)
-    (hramp : RepSeriesSum
-      (fun n => absSeq (((thm36C_rampRC h a b hab ha spD 0).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((h.fn n).toFun x)) := by
+    (hramp : Thm36RepAbsAtC (thm36C_rampRC h a b hab ha spD 0) x) :
+    Thm36RepAbsAtC h x := by
   let lo : CReal := thm36C_tC h a b hab ha spD
   let up : CReal := thm36C_levelRC h a b hab ha spD 0
   let hpos : PosEventuallyData (CReal.sub up lo) :=
@@ -20083,98 +20338,119 @@ noncomputable def thm36D_hAbsB_of_rampB0AbsC (x : X)
   let c : CReal := CReal.invPos (CReal.sub up lo) hpos
   let r : IntegrableRepC3 S := h.sub (h.cutConstVal lo wu)
   let q : IntegrableRepC3 S := IntegrableRepC3.smul c r
+  let hcutDom : (q.cutConstVal CReal.one oneWitnessC).MemAt x := by
+    simpa [thm36C_rampRC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp.dom
   let hcut : RepSeriesSum
-      (fun n => absSeq (((q.cutConstVal CReal.one oneWitnessC).fn n).toFun x)) := by
-    simpa [thm36C_rampRC, thm_3_6_ramp_compC, lo, up, c, r, q] using hramp
-  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcut
+      (fun n => absSeq ((q.cutConstVal CReal.one oneWitnessC).valueAt x hcutDom n)) := by
+    simpa [thm36C_rampRC, thm_3_6_ramp_compC, IntegrableRepC3.valueAt,
+      lo, up, c, r, q] using hramp.absSeries
+  let qDom : q.MemAt x := IntegrableRepC3_of_cutConstVal_memAtC hcutDom
+  let hq := cutConstVal_absSeriesSum_midC q CReal.one oneWitnessC x hcutDom hcut
+  let rDom : r.MemAt x := by
+    intro n
+    simpa [q, IntegrableRepC3.smul, BFunC.smul] using qDom n
   let hscaled : RepSeriesSum
-      (fun n => CReal.abs (CReal.mul c ((r.fn n).toFun x))) := by
-    simpa [IntegrableRepC3.smul, BFunC.smul, q, c, r] using hq
+      (fun n => CReal.abs (CReal.mul c (r.valueAt x rDom n))) := by
+    simpa [IntegrableRepC3.smul, IntegrableRepC3.valueAt, BFunC.smul, q, c, r]
+      using hq
   have hc : regularSeqLtProp CReal.zero c :=
     regularSeqLtProp_zero_of_posData
       (CReal.invPos_posData (CReal.sub up lo) hpos)
   let hr := thm36D_absSeries_of_pos_smulC c hc
-    (fun n => (r.fn n).toFun x) hscaled
-  simpa [r, IntegrableRepC3.sub] using
-    (add_absSeriesSum_leftC
-      (r := h) (r' := (h.cutConstVal lo wu).neg) (x := x) hr)
+    (fun n => r.valueAt x rDom n) hscaled
+  let rAddDom : (h.add (h.cutConstVal lo wu).neg).MemAt x := by
+    simpa [r, IntegrableRepC3.sub] using rDom
+  let hrAdd : RepSeriesSum (fun n => absSeq
+      ((h.add (h.cutConstVal lo wu).neg).valueAt x rAddDom n)) := by
+    simpa [r, IntegrableRepC3.sub, IntegrableRepC3.valueAt] using hr
+  let hDom : h.MemAt x := IntegrableRepC3.add_left_memAt rAddDom
+  let hAbs : RepSeriesSum (fun n => absSeq (h.valueAt x hDom n)) :=
+    add_absSeriesSum_leftC rAddDom hrAdd
+  exact ⟨hDom, hAbs⟩
 
 /-- From absolute convergence of the B-side L1 limit representative at `x`,
 recover absolute convergence of the original `h` at `x`. -/
 noncomputable def thm36D_hAbsB_of_fBAbsC (x : X)
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x))) :
-    RepSeriesSum (fun n => absSeq ((h.fn n).toFun x)) := by
-  let hterm0 := thm36D_termB0Abs_of_fBAbsC h a b hab ha spD x hfabs
-  let hramp : RepSeriesSum
-      (fun n => absSeq (((thm36C_rampRC h a b hab ha spD 0).fn n).toFun x)) := by
-    simpa [thm36Cb_termBC, thm36Cb_signedTermBC] using hterm0
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n))) :
+    Thm36RepAbsAtC h x := by
+  let hterm0 := thm36D_termB0Abs_of_fBAbsC h a b hab ha spD x hfdom hfabs
+  let hrampDom : (thm36C_rampRC h a b hab ha spD 0).MemAt x := by
+    simpa [thm36Cb_termBC, thm36Cb_signedTermBC] using hterm0.dom
+  let hrampAbs : RepSeriesSum (fun n => absSeq
+      ((thm36C_rampRC h a b hab ha spD 0).valueAt x hrampDom n)) := by
+    simpa [thm36Cb_termBC, thm36Cb_signedTermBC, IntegrableRepC3.valueAt]
+      using hterm0.absSeries
+  let hramp : Thm36RepAbsAtC (thm36C_rampRC h a b hab ha spD 0) x :=
+    ⟨hrampDom, hrampAbs⟩
   exact thm36D_hAbsB_of_rampB0AbsC h a b hab ha spD x hramp
 
 /-- Absolute-value point sequence of the B-side L1 representative. -/
-noncomputable def thm36D_fBAbsSeqC (x : X) : Nat → CReal :=
-  fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)
+noncomputable def thm36D_fBAbsSeqC (x : X)
+    (hdom : (thm36Cb_fBC h a b hab ha spD).MemAt x) : Nat → CReal :=
+  fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hdom n)
 
 /-- Point-value sequence of the B-side L1 representative. -/
-noncomputable def thm36D_fBValSeqC (x : X) : Nat → CReal :=
-  fun n => ((thm36Cb_fBC h a b hab ha spD).fn n).toFun x
+noncomputable def thm36D_fBValSeqC (x : X)
+    (hdom : (thm36Cb_fBC h a b hab ha spD).MemAt x) : Nat → CReal :=
+  fun n => (thm36Cb_fBC h a b hab ha spD).valueAt x hdom n
 
 /-- Right-ramp value sequence at a fixed point value `z`. -/
 noncomputable def thm36D_rampValueSeqBC (z : CReal) : Nat → CReal :=
   fun n => thm36C_rampFnRC h a b hab ha spD n z
 
 set_option maxHeartbeats 1200000 in
--- This transports the L1 value-series limit through two quotient-close
--- triangles and the pointwise telescope identity.
+-- Transport the B-side L1 value-series limit through explicit row models and
+-- the pointwise telescope, without normalizing the flattened dependent row.
 /-- Right-ramp point values at `h(x)` converge to the point value of `f_B`. -/
 noncomputable def thm36D_rampTendsB_of_hSum_fBAbsC (x : X)
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)))
-    (hSum : RepSeriesSum (fun n => (h.fn n).toFun x)) :
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n)))
+    (hdom : h.MemAt x)
+    (hSum : RepSeriesSum (fun n => h.valueAt x hdom n)) :
     RepSeriesTendsto
       (fun n => thm36C_rampFnRC h a b hab ha spD n hSum.sum)
       (seriesSum_of_absC hfabs).sum := by
-  let fSum := seriesSum_of_absC hfabs
-  let V := thm36Cb_fB_value_seriesC h a b hab ha spD x hfabs hSum
+  let F : Nat → IntegrableRepC3 S := thm36Cb_termBC h a b hab ha spD
+  let hsum := thm36Cb_normSeriesBC h a b hab ha spD
+  let hrowdom : ∀ m, (F m).MemAt x := fun m => by
+    simpa [F] using thm36Cb_termB_memAtC h a b hab ha spD m hdom
+  let hrow : ∀ m, RepSeriesSum
+      (fun n => (F m).valueAt x (hrowdom m) n) := fun m => by
+    simpa [F, IntegrableRepC3.valueAt] using
+      (thm36Cb_termB_value_witnessC
+        h a b hab ha spD m x hdom hSum).val
   let rowVals : Nat → CReal :=
-    fun j => (thm36Cb_termB_value_witnessC
-      h a b hab ha spD j x hSum).val.sum
-  exact
-    { mod := fun k => V.val.tends.mod (k + 2)
-      close := by
-        intro k n hn
-        have hpartial :
-            regularSeqFinSum rowVals n ≈
-              thm36C_rampFnRC h a b hab ha spD n hSum.sum := by
-          simpa [rowVals] using
-            thm36Cb_partialSum_termB_valuesC h a b hab ha spD x hSum n
-        have hpart_close : RepCloseAtGauge (k + 3)
-            (thm36C_rampFnRC h a b hab ha spD n hSum.sum)
-            (regularSeqFinSum rowVals n) :=
-          bc1_repClose_of_relEventually
-            (relEventually_symm _ _ hpartial) (k + 3)
-        have hrow : RepCloseAtGauge (k + 3)
-            (regularSeqFinSum rowVals n) V.val.sum :=
-          V.val.tends.close (k + 2) n hn
-        have hrV : RepCloseAtGauge (k + 2)
-            (thm36C_rampFnRC h a b hab ha spD n hSum.sum) V.val.sum :=
-          repCloseAtGauge_triangle_succ (k + 2) hpart_close hrow
-        have hVf : RepCloseAtGauge (k + 2) V.val.sum fSum.sum :=
-          bc1_repClose_of_relEventually
-            (relEventually_symm _ _ V.property) (k + 2)
-        exact repCloseAtGauge_triangle_succ (k + 1) hrV hVf }
+    fun m => (thm36Cb_termB_value_witnessC
+      h a b hab ha spD m x hdom hSum).val.sum
+  let ramps : Nat → CReal := fun n =>
+    thm36C_rampFnRC h a b hab ha spD n hSum.sum
+  let ht := seriesSumRep_L1_tendsto_of_row_telescopeC3
+    F hsum x hfdom hfabs hrowdom hrow rowVals ramps
+    (fun m => repSeriesSum_unique (hrow m)
+      (thm36Cb_termB_value_witnessC
+        h a b hab ha spD m x hdom hSum).val)
+    (fun n => by
+      simpa [rowVals, ramps] using
+        thm36Cb_partialSum_termB_valuesC
+          h a b hab ha spD x hdom hSum n)
+  simpa [F, hsum, thm36Cb_fBC, ramps] using ht
 
 /-- Pointwise B-side classifier: absolute convergence of `f_B` at `x` places
 `x` in `{h>t} ∪ {h≤t}`. -/
 theorem thm36D_pointB_mem_unionC (x : X)
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x))) :
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n))) :
     x ∈ thm36D_upperSetStrictC h (thm36C_tC h a b hab ha spD) ∪
       thm36D_lowerSetWeakC h (thm36C_tC h a b hab ha spD) := by
-  let hAbs := thm36D_hAbsB_of_fBAbsC h a b hab ha spD x hfabs
-  let hSum := seriesSum_of_absC hAbs
+  let hAbs := thm36D_hAbsB_of_fBAbsC h a b hab ha spD x hfdom hfabs
+  let hSum := seriesSum_of_absC hAbs.absSeries
   let fSum := seriesSum_of_absC hfabs
-  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x hfabs hSum
+  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x
+    hfdom hfabs hAbs.dom hSum
   rcases regularSeqLtProp_cotrans CReal.zero CReal.one fSum.sum CReal.one_pos_E
       with hpos | hltOne
   · have hty : regularSeqLtProp (thm36C_tC h a b hab ha spD) hSum.sum := by
@@ -20185,7 +20461,7 @@ theorem thm36D_pointB_mem_unionC (x : X)
         hSum.sum
         (thm36C_t_levelR_posEventuallyDataC h a b hab ha spD WN.val)
         WN.property
-    exact Or.inl ⟨hAbs, hSum, hty⟩
+    exact Or.inl ⟨hAbs.dom, hAbs.absSeries, hSum, hty⟩
   · have hyt : RegularSeqLe hSum.sum (thm36C_tC h a b hab ha spD) := by
       apply regularSeqLe_of_not_ltQuot
       intro h_t_lt
@@ -20198,21 +20474,23 @@ theorem thm36D_pointB_mem_unionC (x : X)
       have h11 : regularSeqLtProp CReal.one CReal.one :=
         regularSeqLtProp_of_left_eventual (Setoid.symm hz1) hltOne
       exact regularSeqLtProp_irrefl CReal.one h11
-    exact Or.inr ⟨hAbs, hSum, hyt⟩
+    exact Or.inr ⟨hAbs.dom, hAbs.absSeries, hSum, hyt⟩
 
 /-- On the strict upper side `{h>t}`, the B-side representative has value `1`. -/
 theorem thm36D_upperB_valueC (x : X)
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
     (hfabs : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)))
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n)))
     (hx : x ∈ thm36D_upperSetStrictC h (thm36C_tC h a b hab ha spD))
     (hf : RepSeriesSum
-      (fun n => ((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)) :
+      (fun n => (thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n)) :
     hf.sum ≈ CReal.one := by
-  rcases hx with ⟨_habs, hxsum, hlt⟩
-  let hAbs := thm36D_hAbsB_of_fBAbsC h a b hab ha spD x hfabs
-  let hSum := seriesSum_of_absC hAbs
+  rcases hx with ⟨hdom, _habs, hxsum, hlt⟩
+  let hAbs := thm36D_hAbsB_of_fBAbsC h a b hab ha spD x hfdom hfabs
+  let hSum := seriesSum_of_absC hAbs.absSeries
   let fSum := seriesSum_of_absC hfabs
-  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x hfabs hSum
+  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x
+    hfdom hfabs hAbs.dom hSum
   have hsame : hxsum.sum ≈ hSum.sum := repSeriesSum_unique hxsum hSum
   have hltD : regularSeqLtProp (thm36C_tC h a b hab ha spD) hSum.sum :=
     regularSeqLtProp_of_right_eventual hsame hlt
@@ -20227,24 +20505,20 @@ set_option maxHeartbeats 1200000 in
 -- several quotient-order congruences.
 /-- On the weak lower side `{h≤t}`, the B-side representative has value `0`. -/
 theorem thm36D_lowerB_valueC (x : X)
-    (hfabs : RepSeriesSum (thm36D_fBAbsSeqC h a b hab ha spD x))
+    (hfdom : (thm36Cb_fBC h a b hab ha spD).MemAt x)
+    (hfabs : RepSeriesSum (thm36D_fBAbsSeqC h a b hab ha spD x hfdom))
     (hx : x ∈ thm36D_lowerSetWeakC h (thm36C_tC h a b hab ha spD))
-    (hf : RepSeriesSum (thm36D_fBValSeqC h a b hab ha spD x)) :
+    (hf : RepSeriesSum (thm36D_fBValSeqC h a b hab ha spD x hfdom)) :
     hf.sum ≈ CReal.zero := by
-  rcases hx with ⟨_habs, hxsum, hle⟩
-  let hfabsRaw : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)) := by
-    simpa [thm36D_fBAbsSeqC] using hfabs
-  let hfRaw : RepSeriesSum
-      (fun n => ((thm36Cb_fBC h a b hab ha spD).fn n).toFun x) := by
-    simpa [thm36D_fBValSeqC] using hf
-  let fSum := seriesSum_of_absC hfabsRaw
-  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x hfabsRaw hxsum
+  rcases hx with ⟨hdom, _habs, hxsum, hle⟩
+  let fSum := seriesSum_of_absC hfabs
+  let rt := thm36D_rampTendsB_of_hSum_fBAbsC h a b hab ha spD x
+    hfdom hfabs hdom hxsum
   have hz0 : fSum.sum ≈ CReal.zero :=
     thm36D_tendsto_eventually_constC rt 0
       (fun n _ => thm36D_rampR_always_zeroC h a b hab ha spD hxsum.sum hle n)
   exact relEventually_trans _ _ _
-    (repSeriesSum_unique hfRaw fSum) hz0
+    (repSeriesSum_unique hf fSum) hz0
 
 /-- Full sets are upward closed under subset inclusion. -/
 theorem thm36D_isFull_monoC {A B : Set X}
@@ -20265,31 +20539,31 @@ noncomputable def thm36D_integrableSetB_directC :
       (thm36D_upperSetStrictC h (thm36C_tC h a b hab ha spD) ∪
         thm36D_lowerSetWeakC h (thm36C_tC h a b hab ha spD)) := by
     intro x hxdom
-    rcases hxdom with ⟨_hdom, ⟨hfabs⟩⟩
+    rcases hxdom with ⟨hfdom, ⟨hfabs⟩⟩
     let hfabsRaw : RepSeriesSum
-        (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)) := by
-      simpa [f] using hfabs
-    exact thm36D_pointB_mem_unionC h a b hab ha spD x hfabsRaw
+        (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n)) := by
+      simpa [f, IntegrableRepC3.valueAt] using hfabs
+    exact thm36D_pointB_mem_unionC h a b hab ha spD x hfdom hfabsRaw
   refine
     { full := thm36D_isFull_monoC (S := S) (IntegrableRepC3.domain_isFull f) hsub
       rep := f
       valid := ?_ }
-  intro x hfabs
+  intro x hfdom hfabs
   let hfabsRaw : RepSeriesSum
-      (fun n => absSeq (((thm36Cb_fBC h a b hab ha spD).fn n).toFun x)) := by
-    simpa [f] using hfabs
-  refine ⟨thm36D_pointB_mem_unionC h a b hab ha spD x hfabsRaw, ?_, ?_⟩
+      (fun n => absSeq ((thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n)) := by
+    simpa [f, IntegrableRepC3.valueAt] using hfabs
+  refine ⟨thm36D_pointB_mem_unionC h a b hab ha spD x hfdom hfabsRaw, ?_, ?_⟩
   · intro hx hf
     let hfRaw : RepSeriesSum
-        (fun n => ((thm36Cb_fBC h a b hab ha spD).fn n).toFun x) := by
-      simpa [f] using hf
-    exact thm36D_upperB_valueC h a b hab ha spD x hfabsRaw hx hfRaw
+        (fun n => (thm36Cb_fBC h a b hab ha spD).valueAt x hfdom n) := by
+      simpa [f, IntegrableRepC3.valueAt] using hf
+    exact thm36D_upperB_valueC h a b hab ha spD x hfdom hfabsRaw hx hfRaw
   · intro hx hf
-    let hfabsH : RepSeriesSum (thm36D_fBAbsSeqC h a b hab ha spD x) := by
+    let hfabsH : RepSeriesSum (thm36D_fBAbsSeqC h a b hab ha spD x hfdom) := by
       simpa [thm36D_fBAbsSeqC] using hfabsRaw
-    let hfH : RepSeriesSum (thm36D_fBValSeqC h a b hab ha spD x) := by
+    let hfH : RepSeriesSum (thm36D_fBValSeqC h a b hab ha spD x hfdom) := by
       simpa [f, thm36D_fBValSeqC] using hf
-    exact thm36D_lowerB_valueC h a b hab ha spD x hfabsH hx hfH
+    exact thm36D_lowerB_valueC h a b hab ha spD x hfdom hfabsH hx hfH
 
 /-- The concrete B-pair package has measure/integral `lambdaBar`. -/
 theorem thm36D_integrableSetB_measureC :
@@ -20598,12 +20872,12 @@ theorem lemma43CutConstVal_integral_monoC {X : Type*} {S : IntSpaceC X}
     (isFull_interC (isFull_interC (f.cutConstVal a wa).domain_isFull
       (f.cutConstVal b wb).domain_isFull) f.domain_isFull)
     (f.cutConstVal a wa) (f.cutConstVal b wb) ?_
-  intro x hx hr hr'
+  intro x hx hleftDom hrightDom hr hr'
   obtain ⟨⟨_hxa, _hxb⟩, hxf⟩ := hx
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  let hf : RepSeriesSum (fun n => (f.fn n).toFun x) := seriesSum_of_absC hfabs
-  obtain ⟨hca, hca_eq⟩ := f.cutConstVal_signed_valueC a wa x hf
-  obtain ⟨hcb, hcb_eq⟩ := f.cutConstVal_signed_valueC b wb x hf
+  obtain ⟨hfdom, ⟨hfabs⟩⟩ := hxf
+  let hf : RepSeriesSum (fun n => f.valueAt x hfdom n) := seriesSum_of_absC hfabs
+  obtain ⟨hca, hca_eq⟩ := f.cutConstVal_signed_valueC a wa x hfdom hf
+  obtain ⟨hcb, hcb_eq⟩ := f.cutConstVal_signed_valueC b wb x hfdom hf
   have hmin : RegularSeqLe (CReal.min hf.sum a) (CReal.min hf.sum b) := by
     apply CReal.le_minC
     · exact regularSeqLe_trans (CReal.min_le_leftC hf.sum a)
@@ -20674,16 +20948,17 @@ theorem lemma43CutHalfPowIntegral_le_cutSmallC {X : Type*} {S : IntSpaceC X}
       (h.cutSmallVal n).domain_isFull) h.domain_isFull)
     (h.cutConstVal (halfPow n) (lemma43HalfPowSignC n))
     (h.cutSmallVal n) ?_
-  intro x hx hr hr'
+  intro x hx hleftDom hrightDom hr hr'
   obtain ⟨⟨_hxL, _hxR⟩, hxf⟩ := hx
-  obtain ⟨_, ⟨hfabs⟩⟩ := hxf
-  let hf : RepSeriesSum (fun k => (h.fn k).toFun x) := seriesSum_of_absC hfabs
+  obtain ⟨hfdom, ⟨hfabs⟩⟩ := hxf
+  let hf : RepSeriesSum (fun k => h.valueAt x hfdom k) := seriesSum_of_absC hfabs
   obtain ⟨hleft, hleft_eq⟩ :=
-    h.cutConstVal_signed_valueC (halfPow n) (lemma43HalfPowSignC n) x hf
-  obtain ⟨habsVal, habsVal_eq⟩ := h.absVal_signed_value x hf
+    h.cutConstVal_signed_valueC (halfPow n) (lemma43HalfPowSignC n) x hfdom hf
+  let habsDom : h.absVal.MemAt x := h.mem_absVal_dom hfdom
+  obtain ⟨habsVal, habsVal_eq⟩ := h.absVal_signed_value x hfdom hf
   obtain ⟨hright, hright_eq0⟩ :=
     h.absVal.cutConstVal_signed_valueC
-      (constSeq (eps n)) (epsConstWitnessC n) x habsVal
+      (constSeq (eps n)) (epsConstWitnessC n) x habsDom habsVal
   have hright_eq : hright.sum ≈ CReal.min habsVal.sum (halfPow n) := by
     simpa [halfPow, CReal.epsSeq] using hright_eq0
   have eL : hr.sum ≈ CReal.min hf.sum (halfPow n) :=
@@ -20692,7 +20967,7 @@ theorem lemma43CutHalfPowIntegral_le_cutSmallC {X : Type*} {S : IntSpaceC X}
     have huniq : hr'.sum ≈ hright.sum := by
       simpa [IntegrableRepC3.cutSmallVal] using repSeriesSum_unique hr' hright
     exact relEventually_trans _ _ _ huniq hright_eq
-  have hnonneg : RegularSeqNonneg hf.sum := hnn x hfabs hf
+  have hnonneg : RegularSeqNonneg hf.sum := hnn x hfdom hfabs hf
   have habs_hf : CReal.abs hf.sum ≈ hf.sum := CReal.abs_of_nonneg_E hnonneg
   have habsVal_to_hf : habsVal.sum ≈ hf.sum :=
     relEventually_trans _ _ _ habsVal_eq habs_hf
@@ -20791,19 +21066,20 @@ theorem lemma43CutConstVal_nonnegC {X : Type*} {S : IntSpaceC X}
     (r : IntegrableRepC3 S) (a : CReal) (w : CutConstWitnessC a)
     (hr : RepNonnegC r) :
     RepNonnegC (r.cutConstVal a w) := by
-  intro x hcutAbs hcutSigned
-  let hbaseAbs : RepSeriesSum (fun n => absSeq ((r.fn n).toFun x)) :=
-    cutConstVal_absSeriesSum_midC r a w x hcutAbs
-  let hbaseSigned : RepSeriesSum (fun n => (r.fn n).toFun x) :=
+  intro x hcutDom hcutAbs hcutSigned
+  let hbaseDom : r.MemAt x := IntegrableRepC3_of_cutConstVal_memAtC hcutDom
+  let hbaseAbs : RepSeriesSum (fun n => absSeq (r.valueAt x hbaseDom n)) :=
+    cutConstVal_absSeriesSum_midC r a w x hcutDom hcutAbs
+  let hbaseSigned : RepSeriesSum (fun n => r.valueAt x hbaseDom n) :=
     seriesSum_of_absC hbaseAbs
-  let hval := r.cutConstVal_signed_valueC a w x hbaseSigned
+  let hval := r.cutConstVal_signed_valueC a w x hbaseDom hbaseSigned
   have huniq : relEventually hcutSigned.sum hval.val.sum :=
     repSeriesSum_unique hcutSigned hval.val
   have hto_min : relEventually hcutSigned.sum (CReal.min hbaseSigned.sum a) :=
     relEventually_trans hcutSigned.sum hval.val.sum (CReal.min hbaseSigned.sum a)
       huniq hval.property
   have hminnn : RegularSeqNonneg (CReal.min hbaseSigned.sum a) :=
-    lemma43Min_nonnegC (hr x hbaseAbs hbaseSigned) w.not_neg
+    lemma43Min_nonnegC (hr x hbaseDom hbaseAbs hbaseSigned) w.not_neg
   exact regularSeqNonneg_of_eventual hto_min hminnn
 
 /-- The alpha cutoff integral is absolutely bounded by the dyadic small cutoff
@@ -20995,26 +21271,30 @@ theorem lemma43ComplementIntegral_nonnegC {X : Type*} {S : IntSpaceC X}
         r0.domain_isFull rL.domain_isFull) h.domain_isFull)
         chi.domain_isFull) hA.rep.domain_isFull)
       r0 rL ?_
-    intro x hx hr hr'
+    intro x hx hr0Dom hrLDom hr hr'
     obtain ⟨⟨⟨⟨hx0, hxL⟩, hxh⟩, hxchi⟩, hxAchi⟩ := hx
-    obtain ⟨_, ⟨_h0abs⟩⟩ := hx0
-    obtain ⟨_, ⟨_hLabs⟩⟩ := hxL
-    obtain ⟨_, ⟨hhabs⟩⟩ := hxh
-    obtain ⟨_, ⟨hchiabs⟩⟩ := hxchi
-    obtain ⟨_, ⟨hAchiabs⟩⟩ := hxAchi
-    let hv := seriesSum_of_absC hhabs
-    let chiVal := seriesSum_of_absC hAchiabs
-    let chiFVal := seriesSum_of_absC hchiabs
+    obtain ⟨_hr0Dom, ⟨_h0abs⟩⟩ := hx0
+    obtain ⟨_hrLDom, ⟨_hLabs⟩⟩ := hxL
+    obtain ⟨hhdom, ⟨hhabs⟩⟩ := hxh
+    obtain ⟨hchidom, ⟨hchiabs⟩⟩ := hxchi
+    obtain ⟨hAchidom, ⟨hAchiabs⟩⟩ := hxAchi
+    let hv : RepSeriesSum (fun k => h.valueAt x hhdom k) := seriesSum_of_absC hhabs
+    let chiVal : RepSeriesSum (fun k => hA.rep.valueAt x hAchidom k) :=
+      seriesSum_of_absC hAchiabs
+    let chiFVal : RepSeriesSum (fun k => chi.valueAt x hchidom k) :=
+      seriesSum_of_absC hchiabs
     have hchi_value : chiFVal.sum ≈ CReal.mul chiVal.sum hv.sum := by
       exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hA h hnn
-        hchiabs hAchiabs hhabs
-    let hsub0Model := sub_seriesSum_valueC3 (r := h) (r' := h) (x := x) hv hv
+        hchidom hchiabs hAchidom hAchiabs hhdom hhabs
+    let hsub0Model := sub_seriesSum_valueC3 (r := h) (r' := h) (x := x)
+      hhdom hhdom hv hv
     have hsub0_to_sub : hsub0Model.sum ≈ CReal.sub hv.sum hv.sum := by
       change relEventually (addSeq hv.sum (negSeq hv.sum)) (subSeq hv.sum hv.sum)
       exact relEventually_symm _ _ (subSeq_eq_add_neg_eventually hv.sum hv.sum)
     have h0canon : hr.sum ≈ CReal.sub hv.sum hv.sum := by
       exact Setoid.trans (repSeriesSum_unique hr hsub0Model) hsub0_to_sub
-    let hsubModel := sub_seriesSum_valueC3 (r := h) (r' := chi) (x := x) hv chiFVal
+    let hsubModel := sub_seriesSum_valueC3 (r := h) (r' := chi) (x := x)
+      hhdom hchidom hv chiFVal
     have hmodel_to_subchi : hsubModel.sum ≈ CReal.sub hv.sum chiFVal.sum := by
       change relEventually (addSeq hv.sum (negSeq chiFVal.sum))
         (subSeq hv.sum chiFVal.sum)
@@ -21030,14 +21310,14 @@ theorem lemma43ComplementIntegral_nonnegC {X : Type*} {S : IntSpaceC X}
       exact Setoid.trans hmodel_to_subchi hsub_transport
     have hLcanon : hr'.sum ≈ CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum) := by
       exact Setoid.trans (repSeriesSum_unique hr' hsubModel) hsub_to_canon
-    have hvalid := hA.valid x hAchiabs
+    have hvalid := hA.valid x hAchidom hAchiabs
     have hχ01 : chiVal.sum ≈ CReal.zero ∨ chiVal.sum ≈ CReal.one := by
       rcases hvalid.1 with hxS1 | hxS2
       · exact Or.inr (hvalid.2.1 hxS1 chiVal)
       · exact Or.inl (hvalid.2.2 hxS2 chiVal)
     have hright_nn : RegularSeqNonneg
         (CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum)) :=
-      lemma43SubMulChi_nonnegC (hnn x hhabs hv) hχ01
+      lemma43SubMulChi_nonnegC (hnn x hhdom hhabs hv) hχ01
     have hmid : RegularSeqLe
         (CReal.sub hv.sum hv.sum)
         (CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum)) :=
@@ -21076,20 +21356,23 @@ theorem lemma43ComplementIntegral_le_cutAlphaC {X : Type*} {S : IntSpaceC X}
       rL.domain_isFull rR.domain_isFull) h.domain_isFull)
       chi.domain_isFull) hA.rep.domain_isFull)
     rL rR ?_
-  intro x hx hr hr'
+  intro x hx hrLDom hrRDom hr hr'
   obtain ⟨⟨⟨⟨hxL, hxR⟩, hxh⟩, hxchi⟩, hxAchi⟩ := hx
-  obtain ⟨_, ⟨_hLabs⟩⟩ := hxL
-  obtain ⟨_, ⟨_hRabs⟩⟩ := hxR
-  obtain ⟨_, ⟨hhabs⟩⟩ := hxh
-  obtain ⟨_, ⟨hchiabs⟩⟩ := hxchi
-  obtain ⟨_, ⟨hAchiabs⟩⟩ := hxAchi
-  let hv := seriesSum_of_absC hhabs
-  let chiVal := seriesSum_of_absC hAchiabs
-  let chiFVal := seriesSum_of_absC hchiabs
+  obtain ⟨_hrLDom, ⟨_hLabs⟩⟩ := hxL
+  obtain ⟨_hrRDom, ⟨_hRabs⟩⟩ := hxR
+  obtain ⟨hhdom, ⟨hhabs⟩⟩ := hxh
+  obtain ⟨hchidom, ⟨hchiabs⟩⟩ := hxchi
+  obtain ⟨hAchidom, ⟨hAchiabs⟩⟩ := hxAchi
+  let hv : RepSeriesSum (fun k => h.valueAt x hhdom k) := seriesSum_of_absC hhabs
+  let chiVal : RepSeriesSum (fun k => hA.rep.valueAt x hAchidom k) :=
+    seriesSum_of_absC hAchiabs
+  let chiFVal : RepSeriesSum (fun k => chi.valueAt x hchidom k) :=
+    seriesSum_of_absC hchiabs
   have hchi_value : chiFVal.sum ≈ CReal.mul chiVal.sum hv.sum := by
     exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hA h hnn
-      hchiabs hAchiabs hhabs
-  let hsubModel := sub_seriesSum_valueC3 (r := h) (r' := chi) (x := x) hv chiFVal
+      hchidom hchiabs hAchidom hAchiabs hhdom hhabs
+  let hsubModel := sub_seriesSum_valueC3 (r := h) (r' := chi) (x := x)
+    hhdom hchidom hv chiFVal
   have hmodel_to_subchi : hsubModel.sum ≈ CReal.sub hv.sum chiFVal.sum := by
     change relEventually (addSeq hv.sum (negSeq chiFVal.sum))
       (subSeq hv.sum chiFVal.sum)
@@ -21106,22 +21389,22 @@ theorem lemma43ComplementIntegral_le_cutAlphaC {X : Type*} {S : IntSpaceC X}
   have hLcanon : hr.sum ≈ CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum) := by
     exact Setoid.trans (repSeriesSum_unique hr hsubModel) hsub_to_canon
   obtain ⟨hcutModel, hcut_eq⟩ :=
-    h.cutConstVal_signed_valueC (D.alpha n) (lemma43AlphaSignC D n) x hv
+    h.cutConstVal_signed_valueC (D.alpha n) (lemma43AlphaSignC D n) x hhdom hv
   have hRcanon : hr'.sum ≈ CReal.min hv.sum (D.alpha n) := by
     exact Setoid.trans (repSeriesSum_unique hr' hcutModel) hcut_eq
-  have hvalid := hA.valid x hAchiabs
+  have hvalid := hA.valid x hAchidom hAchiabs
   have hmid : RegularSeqLe
       (CReal.sub hv.sum (CReal.mul chiVal.sum hv.sum))
       (CReal.min hv.sum (D.alpha n)) := by
     rcases hvalid.1 with hxS1 | hxS2
     · have hχ1 : chiVal.sum ≈ CReal.one := hvalid.2.1 hxS1 chiVal
       exact lemma43SubMulOneRight_le_minC hχ1
-        (hnn x hhabs hv) (lemma43AlphaNonnegC D n)
+        (hnn x hhdom hhabs hv) (lemma43AlphaNonnegC D n)
     · have hχ0 : chiVal.sum ≈ CReal.zero := hvalid.2.2 hxS2 chiVal
       have hxLower : x ∈ thm36D_lowerSetC h (D.alpha n) := by
         rw [← D.A_s2 n]
         exact hxS2
-      rcases hxLower with ⟨_hxdom, hxv0, hlt⟩
+      rcases hxLower with ⟨_hxdom, _hxabs, hxv0, hlt⟩
       have hltv : regularSeqLtProp hv.sum (D.alpha n) := by
         exact regularSeqLtProp_of_left_eventual (repSeriesSum_unique hv hxv0) hlt
       have hsmall : RegularSeqLe hv.sum (D.alpha n) :=
@@ -21297,8 +21580,9 @@ theorem lemma43ComplementIntegral_le_of_le_funC {X : Type*} {S : IntSpaceC X}
     {C : BishopC.BSet X} (hC : IntegrableSet1C S C)
     (g g' : IntegrableRepC3 S) (hnn : RepNonnegC g) (hnn' : RepNonnegC g')
     (hle : ∀ (x : X)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x)
-      (gv' : RepSeriesSum fun k => (g'.fn k).toFun x),
+      (hgdom : g.MemAt x) (hg'dom : g'.MemAt x)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k)
+      (gv' : RepSeriesSum fun k => g'.valueAt x hg'dom k),
         RegularSeqLe gv.sum gv'.sum) :
     RegularSeqLe
       (g.sub (IntegrableRepC3.prop_4_2_chi_f_repC C hC g)).integral
@@ -21314,29 +21598,34 @@ theorem lemma43ComplementIntegral_le_of_le_funC {X : Type*} {S : IntSpaceC X}
       g'.domain_isFull) chiG.domain_isFull)
       (isFull_interC chiG'.domain_isFull hC.rep.domain_isFull))
     rL rR ?_
-  intro x hx hr hr'
+  intro x hx hrLDom hrRDom hr hr'
   obtain ⟨⟨⟨⟨⟨hxL, hxR⟩, hxg⟩, hxg'⟩, hxchiG⟩, hxchiG_hC⟩ := hx
   obtain ⟨hxchiG', hxCchi⟩ := hxchiG_hC
-  obtain ⟨_, ⟨_hLabs⟩⟩ := hxL
-  obtain ⟨_, ⟨_hRabs⟩⟩ := hxR
-  obtain ⟨_, ⟨hgabs⟩⟩ := hxg
-  obtain ⟨_, ⟨hg'abs⟩⟩ := hxg'
-  obtain ⟨_, ⟨hchiGabs⟩⟩ := hxchiG
-  obtain ⟨_, ⟨hchiG'abs⟩⟩ := hxchiG'
-  obtain ⟨_, ⟨hCchiabs⟩⟩ := hxCchi
-  let gv := seriesSum_of_absC hgabs
-  let gv' := seriesSum_of_absC hg'abs
-  let chiVal := seriesSum_of_absC hCchiabs
-  let chiGVal := seriesSum_of_absC hchiGabs
-  let chiG'Val := seriesSum_of_absC hchiG'abs
+  obtain ⟨_hrLDom, ⟨_hLabs⟩⟩ := hxL
+  obtain ⟨_hrRDom, ⟨_hRabs⟩⟩ := hxR
+  obtain ⟨hgdom, ⟨hgabs⟩⟩ := hxg
+  obtain ⟨hg'dom, ⟨hg'abs⟩⟩ := hxg'
+  obtain ⟨hchiGdom, ⟨hchiGabs⟩⟩ := hxchiG
+  obtain ⟨hchiG'dom, ⟨hchiG'abs⟩⟩ := hxchiG'
+  obtain ⟨hCdom, ⟨hCchiabs⟩⟩ := hxCchi
+  let gv : RepSeriesSum (fun k => g.valueAt x hgdom k) := seriesSum_of_absC hgabs
+  let gv' : RepSeriesSum (fun k => g'.valueAt x hg'dom k) := seriesSum_of_absC hg'abs
+  let chiVal : RepSeriesSum (fun k => hC.rep.valueAt x hCdom k) :=
+    seriesSum_of_absC hCchiabs
+  let chiGVal : RepSeriesSum (fun k => chiG.valueAt x hchiGdom k) :=
+    seriesSum_of_absC hchiGabs
+  let chiG'Val : RepSeriesSum (fun k => chiG'.valueAt x hchiG'dom k) :=
+    seriesSum_of_absC hchiG'abs
   have hchiG_value : chiGVal.sum ≈ CReal.mul chiVal.sum gv.sum := by
     exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hC g hnn
-      hchiGabs hCchiabs hgabs
+      hchiGdom hchiGabs hCdom hCchiabs hgdom hgabs
   have hchiG'_value : chiG'Val.sum ≈ CReal.mul chiVal.sum gv'.sum := by
     exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hC g' hnn'
-      hchiG'abs hCchiabs hg'abs
-  let hsubL := sub_seriesSum_valueC3 (r := g) (r' := chiG) (x := x) gv chiGVal
-  let hsubR := sub_seriesSum_valueC3 (r := g') (r' := chiG') (x := x) gv' chiG'Val
+      hchiG'dom hchiG'abs hCdom hCchiabs hg'dom hg'abs
+  let hsubL := sub_seriesSum_valueC3 (r := g) (r' := chiG) (x := x)
+    hgdom hchiGdom gv chiGVal
+  let hsubR := sub_seriesSum_valueC3 (r := g') (r' := chiG') (x := x)
+    hg'dom hchiG'dom gv' chiG'Val
   have hmodelL_to_sub : hsubL.sum ≈ CReal.sub gv.sum chiGVal.sum := by
     change relEventually (addSeq gv.sum (negSeq chiGVal.sum))
       (subSeq gv.sum chiGVal.sum)
@@ -21361,7 +21650,7 @@ theorem lemma43ComplementIntegral_le_of_le_funC {X : Type*} {S : IntSpaceC X}
         (CReal.mul chiVal.sum gv'.sum) (relEventually_refl gv'.sum) hchiG'_value
     exact Setoid.trans (Setoid.trans (repSeriesSum_unique hr' hsubR) hmodelR_to_sub)
       htransport
-  have hvalid := hC.valid x hCchiabs
+  have hvalid := hC.valid x hCdom hCchiabs
   have hχ01 : chiVal.sum ≈ CReal.zero ∨ chiVal.sum ≈ CReal.one := by
     rcases hvalid.1 with hxS1 | hxS2
     · exact Or.inr (hvalid.2.1 hxS1 chiVal)
@@ -21369,7 +21658,7 @@ theorem lemma43ComplementIntegral_le_of_le_funC {X : Type*} {S : IntSpaceC X}
   have hmid : RegularSeqLe
       (CReal.sub gv.sum (CReal.mul chiVal.sum gv.sum))
       (CReal.sub gv'.sum (CReal.mul chiVal.sum gv'.sum)) :=
-    lemma43SubMulChi_monoC hχ01 (hle x gv gv')
+    lemma43SubMulChi_monoC hχ01 (hle x hgdom hg'dom gv gv')
   exact regularSeqLe_of_left_eventual hLcanon
     (regularSeqLe_of_right_eventual (Setoid.symm hRcanon) hmid)
 
@@ -21514,8 +21803,9 @@ noncomputable def lemma43UniformComplementData_of_majorant_halfPowC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (fv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fv : RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe fv.sum gv.sum)
     (K : Nat) :
     Lemma414UniformComplementDataC fn hnn (halfPow K) := by
@@ -21589,8 +21879,9 @@ noncomputable def lemma43UniformComplementData_of_majorantC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (fv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fv : RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe fv.sum gv.sum)
     (eps : CReal) (heps : regularSeqLtProp CReal.zero eps) :
     Lemma414UniformComplementDataC fn hnn eps := by
@@ -21619,8 +21910,11 @@ noncomputable def thm_4_15_integral_convergence_from_majorant_measure_convergeC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -21641,8 +21935,11 @@ noncomputable def thm_4_15_integral_convergence_from_majorant_smooth_measure_con
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : ∀ n (x : X)
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -21668,8 +21965,11 @@ noncomputable def thm_4_15_integral_convergence_from_majorant_measure_converge_a
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -21683,8 +21983,11 @@ noncomputable def thm_4_15_integral_convergence_from_majorant_smooth_measure_con
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : ∀ n (x : X)
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -21702,8 +22005,11 @@ noncomputable def goalB_dominated_convergence_dataC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : ∀ n (x : X)
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -21715,18 +22021,20 @@ noncomputable def goalB_dominated_convergence_dataC
 theorem RepNonnegC_addC {X : Type*} {S : IntSpaceC X}
     (r s : IntegrableRepC3 S) (hr : RepNonnegC r) (hs : RepNonnegC s) :
     RepNonnegC (r.add s) := by
-  intro x habs hx
-  let hrabs : RepSeriesSum (fun k => absSeq ((r.fn k).toFun x)) :=
-    add_absSeriesSum_leftC (r := r) (r' := s) (x := x) habs
-  let hsabs : RepSeriesSum (fun k => absSeq ((s.fn k).toFun x)) :=
-    add_absSeriesSum_rightC (r := r) (r' := s) (x := x) habs
-  let hrv : RepSeriesSum (fun k => (r.fn k).toFun x) := seriesSum_of_absC hrabs
-  let hsv : RepSeriesSum (fun k => (s.fn k).toFun x) := seriesSum_of_absC hsabs
-  let hmodel : RepSeriesSum (fun k => ((r.add s).fn k).toFun x) :=
-    add_seriesSum_valueC3 (r := r) (r' := s) (x := x) hrv hsv
+  intro x haddDom habs hx
+  let hrdom : r.MemAt x := IntegrableRepC3.add_left_memAt haddDom
+  let hsdom : s.MemAt x := IntegrableRepC3.add_right_memAt haddDom
+  let hrabs : RepSeriesSum (fun k => absSeq (r.valueAt x hrdom k)) :=
+    add_absSeriesSum_leftC (r := r) (r' := s) (x := x) haddDom habs
+  let hsabs : RepSeriesSum (fun k => absSeq (s.valueAt x hsdom k)) :=
+    add_absSeriesSum_rightC (r := r) (r' := s) (x := x) haddDom habs
+  let hrv : RepSeriesSum (fun k => r.valueAt x hrdom k) := seriesSum_of_absC hrabs
+  let hsv : RepSeriesSum (fun k => s.valueAt x hsdom k) := seriesSum_of_absC hsabs
+  let hmodel : RepSeriesSum (fun k => (r.add s).valueAt x haddDom k) :=
+    add_seriesSum_valueC3 (r := r) (r' := s) (x := x) hrdom hsdom hrv hsv
   have hxeq : hx.sum ≈ hmodel.sum := repSeriesSum_unique hx hmodel
   exact regularSeqNonneg_of_eventual hxeq
-    (regularSeqNonneg_add (hr x hrabs hrv) (hs x hsabs hsv))
+    (regularSeqNonneg_add (hr x hrdom hrabs hrv) (hs x hsdom hsabs hsv))
 
 /-- Scalar triangle inequality in the form `|a-b| <= |a|+|b|`. -/
 theorem regularSeqLe_abs_sub_le_add_absC (a b : CReal) :
@@ -21753,10 +22061,11 @@ theorem lemma43ComplementIntegral_le_of_le_funWithAbsC {X : Type*} {S : IntSpace
     {C : BishopC.BSet X} (hC : IntegrableSet1C S C)
     (u v : IntegrableRepC3 S) (hunn : RepNonnegC u) (hvnn : RepNonnegC v)
     (hle : ∀ (x : X)
-      (huabs : RepSeriesSum fun k => CReal.abs ((u.fn k).toFun x))
-      (hvabs : RepSeriesSum fun k => CReal.abs ((v.fn k).toFun x))
-      (huv : RepSeriesSum fun k => (u.fn k).toFun x)
-      (hvv : RepSeriesSum fun k => (v.fn k).toFun x),
+      (hudom : u.MemAt x) (hvdom : v.MemAt x)
+      (huabs : RepSeriesSum fun k => CReal.abs (u.valueAt x hudom k))
+      (hvabs : RepSeriesSum fun k => CReal.abs (v.valueAt x hvdom k))
+      (huv : RepSeriesSum fun k => u.valueAt x hudom k)
+      (hvv : RepSeriesSum fun k => v.valueAt x hvdom k),
         RegularSeqLe huv.sum hvv.sum) :
     RegularSeqLe
       (u.sub (IntegrableRepC3.prop_4_2_chi_f_repC C hC u)).integral
@@ -21772,29 +22081,34 @@ theorem lemma43ComplementIntegral_le_of_le_funWithAbsC {X : Type*} {S : IntSpace
       v.domain_isFull) chiU.domain_isFull)
       (isFull_interC chiV.domain_isFull hC.rep.domain_isFull))
     rL rR ?_
-  intro x hx hr hr'
+  intro x hx hrLDom hrRDom hr hr'
   obtain ⟨⟨⟨⟨⟨hxL, hxR⟩, hxu⟩, hxv⟩, hxchiU⟩, hxchiV_hC⟩ := hx
   obtain ⟨hxchiV, hxCchi⟩ := hxchiV_hC
-  obtain ⟨_, ⟨_hLabs⟩⟩ := hxL
-  obtain ⟨_, ⟨_hRabs⟩⟩ := hxR
-  obtain ⟨_, ⟨huabs⟩⟩ := hxu
-  obtain ⟨_, ⟨hvabs⟩⟩ := hxv
-  obtain ⟨_, ⟨hchiUabs⟩⟩ := hxchiU
-  obtain ⟨_, ⟨hchiVabs⟩⟩ := hxchiV
-  obtain ⟨_, ⟨hCchiabs⟩⟩ := hxCchi
-  let uv := seriesSum_of_absC huabs
-  let vv := seriesSum_of_absC hvabs
-  let chiVal := seriesSum_of_absC hCchiabs
-  let chiUVal := seriesSum_of_absC hchiUabs
-  let chiVVal := seriesSum_of_absC hchiVabs
+  obtain ⟨_hrLDom, ⟨_hLabs⟩⟩ := hxL
+  obtain ⟨_hrRDom, ⟨_hRabs⟩⟩ := hxR
+  obtain ⟨hudom, ⟨huabs⟩⟩ := hxu
+  obtain ⟨hvdom, ⟨hvabs⟩⟩ := hxv
+  obtain ⟨hchiUdom, ⟨hchiUabs⟩⟩ := hxchiU
+  obtain ⟨hchiVdom, ⟨hchiVabs⟩⟩ := hxchiV
+  obtain ⟨hCdom, ⟨hCchiabs⟩⟩ := hxCchi
+  let uv : RepSeriesSum (fun k => u.valueAt x hudom k) := seriesSum_of_absC huabs
+  let vv : RepSeriesSum (fun k => v.valueAt x hvdom k) := seriesSum_of_absC hvabs
+  let chiVal : RepSeriesSum (fun k => hC.rep.valueAt x hCdom k) :=
+    seriesSum_of_absC hCchiabs
+  let chiUVal : RepSeriesSum (fun k => chiU.valueAt x hchiUdom k) :=
+    seriesSum_of_absC hchiUabs
+  let chiVVal : RepSeriesSum (fun k => chiV.valueAt x hchiVdom k) :=
+    seriesSum_of_absC hchiVabs
   have hchiU_value : chiUVal.sum ≈ CReal.mul chiVal.sum uv.sum := by
     exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hC u hunn
-      hchiUabs hCchiabs huabs
+      hchiUdom hchiUabs hCdom hCchiabs hudom huabs
   have hchiV_value : chiVVal.sum ≈ CReal.mul chiVal.sum vv.sum := by
     exact IntegrableRepC3.prop_4_2_chi_f_rep_valueC hC v hvnn
-      hchiVabs hCchiabs hvabs
-  let hsubL := sub_seriesSum_valueC3 (r := u) (r' := chiU) (x := x) uv chiUVal
-  let hsubR := sub_seriesSum_valueC3 (r := v) (r' := chiV) (x := x) vv chiVVal
+      hchiVdom hchiVabs hCdom hCchiabs hvdom hvabs
+  let hsubL := sub_seriesSum_valueC3 (r := u) (r' := chiU) (x := x)
+    hudom hchiUdom uv chiUVal
+  let hsubR := sub_seriesSum_valueC3 (r := v) (r' := chiV) (x := x)
+    hvdom hchiVdom vv chiVVal
   have hmodelL_to_sub : hsubL.sum ≈ CReal.sub uv.sum chiUVal.sum := by
     change relEventually (addSeq uv.sum (negSeq chiUVal.sum))
       (subSeq uv.sum chiUVal.sum)
@@ -21817,7 +22131,7 @@ theorem lemma43ComplementIntegral_le_of_le_funWithAbsC {X : Type*} {S : IntSpace
         (CReal.mul chiVal.sum vv.sum) (relEventually_refl vv.sum) hchiV_value
     exact Setoid.trans (Setoid.trans (repSeriesSum_unique hr' hsubR) hmodelR_to_sub)
       htransport
-  have hvalid := hC.valid x hCchiabs
+  have hvalid := hC.valid x hCdom hCchiabs
   have hχ01 : chiVal.sum ≈ CReal.zero ∨ chiVal.sum ≈ CReal.one := by
     rcases hvalid.1 with hxS1 | hxS2
     · exact Or.inr (hvalid.2.1 hxS1 chiVal)
@@ -21825,7 +22139,7 @@ theorem lemma43ComplementIntegral_le_of_le_funWithAbsC {X : Type*} {S : IntSpace
   have hmid : RegularSeqLe
       (CReal.sub uv.sum (CReal.mul chiVal.sum uv.sum))
       (CReal.sub vv.sum (CReal.mul chiVal.sum vv.sum)) :=
-    lemma43SubMulChi_monoC hχ01 (hle x huabs hvabs uv vv)
+    lemma43SubMulChi_monoC hχ01 (hle x hudom hvdom huabs hvabs uv vv)
   exact regularSeqLe_of_left_eventual hLcanon
     (regularSeqLe_of_right_eventual (Setoid.symm hRcanon) hmid)
 
@@ -21836,10 +22150,11 @@ noncomputable def lemma43UniformComplementData_of_majorantWithAbs_halfPowC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (fvabs : RepSeriesSum fun k => CReal.abs (((fn n).fn k).toFun x))
-      (gvabs : RepSeriesSum fun k => CReal.abs ((g.fn k).toFun x))
-      (fv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fvabs : RepSeriesSum fun k => CReal.abs ((fn n).valueAt x hfdom k))
+      (gvabs : RepSeriesSum fun k => CReal.abs (g.valueAt x hgdom k))
+      (fv : RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe fv.sum gv.sum)
     (K : Nat) :
     Lemma414UniformComplementDataC fn hnn (halfPow K) := by
@@ -21888,10 +22203,11 @@ noncomputable def lemma43UniformComplementData_of_majorantWithAbsC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (D : Lemma43LevelSetSeqDataC g)
     (hdom : ∀ n (x : X)
-      (fvabs : RepSeriesSum fun k => CReal.abs (((fn n).fn k).toFun x))
-      (gvabs : RepSeriesSum fun k => CReal.abs ((g.fn k).toFun x))
-      (fv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfdom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (fvabs : RepSeriesSum fun k => CReal.abs ((fn n).valueAt x hfdom k))
+      (gvabs : RepSeriesSum fun k => CReal.abs (g.valueAt x hgdom k))
+      (fv : RepSeriesSum fun k => (fn n).valueAt x hfdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe fv.sum gv.sum)
     (eps : CReal) (heps : regularSeqLtProp CReal.zero eps) :
     Lemma414UniformComplementDataC fn hnn eps := by
@@ -21923,8 +22239,9 @@ structure Lemma415ConvergeInMeasureDataC {X : Type*} {S : IntSpaceC X}
               (PProd
                 (regularSeqLtProp ((IntegrableSet1_subC hA hC).rep.integral) eps)
                 (∀ (x : X)
-                  (hfabs : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)))
-                  (hfnabs : RepSeriesSum (fun m => absSeq (((fn n).fn m).toFun x))),
+                  (hfdom : f.MemAt x) (hfndom : (fn n).MemAt x)
+                  (hfabs : RepSeriesSum (fun m => absSeq (f.valueAt x hfdom m)))
+                  (hfnabs : RepSeriesSum (fun m => absSeq ((fn n).valueAt x hfndom m))),
                     regularSeqLtProp
                       (CReal.abs
                         (CReal.sub (seriesSum_of_absC hfabs).sum
@@ -21943,23 +22260,32 @@ noncomputable def lemma415_absError_convergeInMeasureToZeroDataC
     intro n hn
     obtain ⟨C, hC, hsub, hmeasure, hsmall⟩ := hN n hn
     refine ⟨C, hC, hsub, hmeasure, ?_⟩
-    intro x herrabs _hχabs _hχone
+    intro x herrdom _hχdom herrabs _hχabs _hχone
     let r : IntegrableRepC3 S := (fn n).sub f
-    let hsubabs : RepSeriesSum (fun m => absSeq ((r.fn m).toFun x)) :=
-      IntegrableRepC3_absVal_absSeriesSum_midC r x herrabs
-    let hfnabs : RepSeriesSum (fun m => absSeq (((fn n).fn m).toFun x)) :=
-      add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x) hsubabs
-    let hfnegabs : RepSeriesSum (fun m => absSeq (((f.neg).fn m).toFun x)) :=
-      add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x) hsubabs
-    let hfabs : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)) :=
-      neg_absSeriesSumC (r := f) (x := x) hfnegabs
-    let hfnv : RepSeriesSum (fun m => ((fn n).fn m).toFun x) := seriesSum_of_absC hfnabs
-    let hfv : RepSeriesSum (fun m => (f.fn m).toFun x) := seriesSum_of_absC hfabs
-    let herrv : RepSeriesSum (fun m => (r.fn m).toFun x) :=
-      sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x) hfnv hfv
-    obtain ⟨habsModel, habsModel_eq⟩ := r.absVal_signed_value x herrv
+    let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC herrdom
+    let haddDom : ((fn n).add f.neg).MemAt x := by
+      simpa [r, IntegrableRepC3.sub] using hrdom
+    let hfndom : (fn n).MemAt x := IntegrableRepC3.add_left_memAt haddDom
+    let hfnegdom : f.neg.MemAt x := IntegrableRepC3.add_right_memAt haddDom
+    let hfdom : f.MemAt x := IntegrableRepC3.of_neg_memAt hfnegdom
+    let hsubabs : RepSeriesSum (fun m => absSeq (r.valueAt x hrdom m)) :=
+      IntegrableRepC3_absVal_absSeriesSum_midC r x herrdom herrabs
+    let hfnabs : RepSeriesSum (fun m => absSeq ((fn n).valueAt x hfndom m)) :=
+      add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x) haddDom hsubabs
+    let hfnegabs : RepSeriesSum (fun m => absSeq (f.neg.valueAt x hfnegdom m)) :=
+      add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x) haddDom hsubabs
+    let hfabs : RepSeriesSum (fun m => absSeq (f.valueAt x hfdom m)) :=
+      neg_absSeriesSumC (r := f) (x := x) hfdom hfnegabs
+    let hfnv : RepSeriesSum (fun m => (fn n).valueAt x hfndom m) :=
+      seriesSum_of_absC hfnabs
+    let hfv : RepSeriesSum (fun m => f.valueAt x hfdom m) :=
+      seriesSum_of_absC hfabs
+    let herrv : RepSeriesSum (fun m => r.valueAt x hrdom m) :=
+      sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x)
+        hfndom hfdom hfnv hfv
+    obtain ⟨habsModel, habsModel_eq⟩ := r.absVal_signed_value x hrdom herrv
     let herrSigned : RepSeriesSum
-        (fun m => (((thm_4_15_abs_errorC fn f n).fn m).toFun x)) :=
+        (fun m => (thm_4_15_abs_errorC fn f n).valueAt x herrdom m) :=
       seriesSum_of_absC herrabs
     have herr_to_abs : herrSigned.sum ≈ CReal.abs (CReal.sub hfnv.sum hfv.sum) := by
       have huniq : herrSigned.sum ≈ habsModel.sum := by
@@ -21985,51 +22311,75 @@ noncomputable def lemma415_absError_convergeInMeasureToZeroDataC
       exact relEventually_trans _ _ _ h1
         (relEventually_trans _ _ _ h2
           (absSeq_subSeq_comm_eventually hfnv.sum hfv.sum))
-    exact regularSeqLtProp_of_left_eventual houter (hsmall x hfabs hfnabs)
+    exact regularSeqLtProp_of_left_eventual houter
+      (hsmall x hfdom hfndom hfabs hfnabs)
 
 /-- Pointwise adapter: `|fn| <= g` implies `|fn-f| <= g+|f|`. -/
 theorem lemma415_absError_le_majorant_add_absLimitC
     {X : Type*} {S : IntSpaceC X}
     (fn : Nat → IntegrableRepC3 S) (f g : IntegrableRepC3 S)
     (hfn_bound : ∀ n (x : X)
-      (hfnv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe (CReal.abs hfnv.sum) hgv.sum) :
     ∀ n (x : X)
-      (herrabs : RepSeriesSum fun k => CReal.abs (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (hHabs : RepSeriesSum fun k => CReal.abs ((((g.add f.absVal).fn k).toFun x)))
-      (herrv : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (hHv : RepSeriesSum fun k => (((g.add f.absVal).fn k).toFun x)),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hHdom : (g.add f.absVal).MemAt x)
+      (herrabs : RepSeriesSum fun k => CReal.abs
+        ((thm_4_15_abs_errorC fn f n).valueAt x herrdom k))
+      (hHabs : RepSeriesSum fun k => CReal.abs
+        ((g.add f.absVal).valueAt x hHdom k))
+      (herrv : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (hHv : RepSeriesSum fun k => (g.add f.absVal).valueAt x hHdom k),
         RegularSeqLe herrv.sum hHv.sum := by
-  intro n x herrabs hHabs herrv hHv
+  intro n x herrdom hHdom herrabs hHabs herrv hHv
   let H : IntegrableRepC3 S := g.add f.absVal
   let r : IntegrableRepC3 S := (fn n).sub f
-  let hsubabs : RepSeriesSum (fun m => absSeq ((r.fn m).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC r x herrabs
-  let hfnabs : RepSeriesSum (fun m => absSeq (((fn n).fn m).toFun x)) :=
-    add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x) hsubabs
-  let hfnegabs : RepSeriesSum (fun m => absSeq (((f.neg).fn m).toFun x)) :=
-    add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x) hsubabs
-  let hfabs_from_err : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)) :=
-    neg_absSeriesSumC (r := f) (x := x) hfnegabs
-  let hfnv : RepSeriesSum (fun m => ((fn n).fn m).toFun x) := seriesSum_of_absC hfnabs
-  let hfv_from_err : RepSeriesSum (fun m => (f.fn m).toFun x) := seriesSum_of_absC hfabs_from_err
-  let hgvabs : RepSeriesSum (fun m => absSeq ((g.fn m).toFun x)) :=
-    add_absSeriesSum_leftC (r := g) (r' := f.absVal) (x := x) hHabs
-  let hfAbsValAbs : RepSeriesSum (fun m => absSeq (((f.absVal).fn m).toFun x)) :=
-    add_absSeriesSum_rightC (r := g) (r' := f.absVal) (x := x) hHabs
-  let hgv : RepSeriesSum (fun m => (g.fn m).toFun x) := seriesSum_of_absC hgvabs
-  let hfabs_from_H : RepSeriesSum (fun m => absSeq ((f.fn m).toFun x)) :=
-    IntegrableRepC3_absVal_absSeriesSum_midC f x hfAbsValAbs
-  let hfv_from_H : RepSeriesSum (fun m => (f.fn m).toFun x) := seriesSum_of_absC hfabs_from_H
-  let hfAbsValV : RepSeriesSum (fun m => ((f.absVal).fn m).toFun x) :=
+  let hrdom : r.MemAt x := IntegrableRepC3_of_absVal_memAtC herrdom
+  let herrAddDom : ((fn n).add f.neg).MemAt x := by
+    simpa [r, IntegrableRepC3.sub] using hrdom
+  let hfndom : (fn n).MemAt x := IntegrableRepC3.add_left_memAt herrAddDom
+  let hfnegdom : f.neg.MemAt x := IntegrableRepC3.add_right_memAt herrAddDom
+  let hfdomErr : f.MemAt x := IntegrableRepC3.of_neg_memAt hfnegdom
+  let hgdom : g.MemAt x := IntegrableRepC3.add_left_memAt hHdom
+  let hfAbsValDom : f.absVal.MemAt x := IntegrableRepC3.add_right_memAt hHdom
+  let hfdomH : f.MemAt x := IntegrableRepC3_of_absVal_memAtC hfAbsValDom
+  let hsubabs : RepSeriesSum (fun m => absSeq (r.valueAt x hrdom m)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC r x herrdom herrabs
+  let hfnabs : RepSeriesSum (fun m => absSeq ((fn n).valueAt x hfndom m)) :=
+    add_absSeriesSum_leftC (r := fn n) (r' := f.neg) (x := x)
+      herrAddDom hsubabs
+  let hfnegabs : RepSeriesSum (fun m => absSeq (f.neg.valueAt x hfnegdom m)) :=
+    add_absSeriesSum_rightC (r := fn n) (r' := f.neg) (x := x)
+      herrAddDom hsubabs
+  let hfabs_from_err : RepSeriesSum (fun m => absSeq (f.valueAt x hfdomErr m)) :=
+    neg_absSeriesSumC (r := f) (x := x) hfdomErr hfnegabs
+  let hfnv : RepSeriesSum (fun m => (fn n).valueAt x hfndom m) :=
+    seriesSum_of_absC hfnabs
+  let hfv_from_err : RepSeriesSum (fun m => f.valueAt x hfdomErr m) :=
+    seriesSum_of_absC hfabs_from_err
+  let hgvabs : RepSeriesSum (fun m => absSeq (g.valueAt x hgdom m)) :=
+    add_absSeriesSum_leftC (r := g) (r' := f.absVal) (x := x) hHdom hHabs
+  let hfAbsValAbs : RepSeriesSum
+      (fun m => absSeq (f.absVal.valueAt x hfAbsValDom m)) :=
+    add_absSeriesSum_rightC (r := g) (r' := f.absVal) (x := x) hHdom hHabs
+  let hgv : RepSeriesSum (fun m => g.valueAt x hgdom m) := seriesSum_of_absC hgvabs
+  let hfabs_from_H : RepSeriesSum (fun m => absSeq (f.valueAt x hfdomH m)) :=
+    IntegrableRepC3_absVal_absSeriesSum_midC f x hfAbsValDom hfAbsValAbs
+  let hfv_from_H : RepSeriesSum (fun m => f.valueAt x hfdomH m) :=
+    seriesSum_of_absC hfabs_from_H
+  let hfAbsValV : RepSeriesSum (fun m => f.absVal.valueAt x hfAbsValDom m) :=
     seriesSum_of_absC hfAbsValAbs
-  let hHmodel : RepSeriesSum (fun m => ((H.fn m).toFun x)) :=
-    add_seriesSum_valueC3 (r := g) (r' := f.absVal) (x := x) hgv hfAbsValV
-  let herrSubV : RepSeriesSum (fun m => (r.fn m).toFun x) :=
-    sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x) hfnv hfv_from_err
-  obtain ⟨herrAbsModel, herrAbs_eq⟩ := r.absVal_signed_value x herrSubV
-  obtain ⟨hfAbsModel, hfAbs_eq⟩ := f.absVal_signed_value x hfv_from_H
+  let hHmodel : RepSeriesSum (fun m => H.valueAt x hHdom m) :=
+    add_seriesSum_valueC3 (r := g) (r' := f.absVal) (x := x)
+      hgdom hfAbsValDom hgv hfAbsValV
+  let herrSubV : RepSeriesSum (fun m => r.valueAt x hrdom m) :=
+    sub_seriesSum_valueC3 (r := fn n) (r' := f) (x := x)
+      hfndom hfdomErr hfnv hfv_from_err
+  obtain ⟨herrAbsModel, herrAbs_eq⟩ := r.absVal_signed_value x hrdom herrSubV
+  obtain ⟨hfAbsModel, hfAbs_eq⟩ := f.absVal_signed_value x hfdomH hfv_from_H
   have herr_to_abs_sub : herrv.sum ≈ CReal.abs (CReal.sub hfnv.sum hfv_from_err.sum) := by
     have huniq : herrv.sum ≈ herrAbsModel.sum := by
       simpa [thm_4_15_abs_errorC, r] using repSeriesSum_unique herrv herrAbsModel
@@ -22058,7 +22408,7 @@ theorem lemma415_absError_le_majorant_add_absLimitC
   have hsum_le : RegularSeqLe
       (CReal.add (CReal.abs hfnv.sum) (CReal.abs hfv_from_err.sum))
       (CReal.add hgv.sum hfAbsValV.sum) :=
-    regularSeqLe_add (hfn_bound n x hfnv hgv) hf_abs_le
+    regularSeqLe_add (hfn_bound n x hfndom hgdom hfnv hgv) hf_abs_le
   exact regularSeqLe_of_left_eventual herr_to_abs_sub
     (regularSeqLe_of_right_eventual (Setoid.symm hH_to_sum)
       (regularSeqLe_trans htri hsum_le))
@@ -22070,10 +22420,14 @@ noncomputable def goalB_dominated_convergence_dataWithAbsC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC g)
     (hdom : ∀ n (x : X)
-      (evabs : RepSeriesSum fun k => CReal.abs (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gvabs : RepSeriesSum fun k => CReal.abs ((g.fn k).toFun x))
-      (ev : RepSeriesSum fun k => (((thm_4_15_abs_errorC fn f n).fn k).toFun x))
-      (gv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (herrdom : (thm_4_15_abs_errorC fn f n).MemAt x)
+      (hgdom : g.MemAt x)
+      (evabs : RepSeriesSum fun k => CReal.abs
+        ((thm_4_15_abs_errorC fn f n).valueAt x herrdom k))
+      (gvabs : RepSeriesSum fun k => CReal.abs (g.valueAt x hgdom k))
+      (ev : RepSeriesSum fun k =>
+        (thm_4_15_abs_errorC fn f n).valueAt x herrdom k)
+      (gv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe ev.sum gv.sum)
     (hconv : Lemma414ConvergeInMeasureToZeroDataC (thm_4_15_abs_errorC fn f)) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=
@@ -22095,8 +22449,9 @@ noncomputable def goalB_classical_dominated_convergence_dataC
     (g : IntegrableRepC3 S) (hgnn : RepNonnegC g)
     (Dsmooth : Lemma43DyadicSmoothDataC (g.add f.absVal))
     (hfn_bound : ∀ n (x : X)
-      (hfnv : RepSeriesSum fun k => ((fn n).fn k).toFun x)
-      (hgv : RepSeriesSum fun k => (g.fn k).toFun x),
+      (hfndom : (fn n).MemAt x) (hgdom : g.MemAt x)
+      (hfnv : RepSeriesSum fun k => (fn n).valueAt x hfndom k)
+      (hgv : RepSeriesSum fun k => g.valueAt x hgdom k),
         RegularSeqLe (CReal.abs hfnv.sum) hgv.sum)
     (hconv : Lemma415ConvergeInMeasureDataC fn f) :
     RepSeriesTendsto (fun n => (fn n).integral) f.integral :=

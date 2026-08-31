@@ -51,9 +51,8 @@ def Sec4LambdaRowsAbsAt
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (x : X) : Type _ :=
   ∀ k : Nat,
-    RSeq.SeriesSum
-      (fun m => COF.abs
-        ((((prop_4_2_lambda_k A hA f (prop_4_2_n_k f) k).fn m).toFun x)))
+    Sec4RepAbsAt
+      (prop_4_2_lambda_k A hA f (prop_4_2_n_k f) k) x
 
 
 /--
@@ -66,18 +65,22 @@ noncomputable def sec4_lambdaRowsAbs_of_chiFFlatAbs
     (A : BSet X) (hA : IntegrableSet1 S A)
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (x : X)
-    (hflatabs :
-      RSeq.SeriesSum
-        (fun m => COF.abs (((prop_4_2_chi_f_rep A hA f hnn).fn m).toFun x))) :
+    (hflat : Sec4RepAbsAt (prop_4_2_chi_f_rep A hA f hnn) x) :
     Sec4LambdaRowsAbsAt (S := S) A hA f x := by
   intro k
-  unfold prop_4_2_chi_f_rep at hflatabs
-  exact seriesSumRep_L1_row_absConv
+  let hflatDom := hflat.fst
+  let hflatabs := hflat.snd
+  unfold prop_4_2_chi_f_rep at hflatDom hflatabs
+  let hrowDom := seriesSumRep_L1_F_memAt
+    (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
+    _ hflatDom k
+  exact ⟨hrowDom, seriesSumRep_L1_row_absConv
     (prop_4_2_lambda_k A hA f (prop_4_2_n_k f))
     _
     (x := x)
+    hflatDom
     hflatabs
-    k
+    k⟩
 
 
 /-! ## 2. The remaining internal primitive package -/
@@ -93,7 +96,7 @@ def Sec4FAbsOfLambdaRowsOnS1
     (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
   ∀ (A : BSet X) (hA : IntegrableSet1 S A) (x : X), x ∈ A.S1 →
     Sec4LambdaRowsAbsAt (S := S) A hA f x →
-    RSeq.SeriesSum (fun m => COF.abs (((f.fn m).toFun x)))
+    Sec4RepAbsAt f x
 
 
 /--

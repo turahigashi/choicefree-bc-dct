@@ -51,19 +51,22 @@ representative.
 noncomputable def sec4_natSmuled_abs_cancel
     (m : Nat) (hmpos : 0 < m)
     (r : IntegrableRep S) (x : X)
+    (hdom : (r.smul (((m : Nat) : R))).MemAt x)
     (habs : RSeq.SeriesSum
-      (fun n => COF.abs (((r.smul (((m : Nat) : R))).fn n).toFun x))) :
-    RSeq.SeriesSum (fun n => COF.abs ((r.fn n).toFun x)) := by
+      (fun n => COF.abs
+        ((r.smul (((m : Nat) : R))).valueAt x hdom n))) :
+    Sec4RepAbsAt r x := by
+  let hrDom : r.MemAt x := smul_dom hdom
   let hc : COF.lt 0 (((m : Nat) : R)) :=
     sec4_natCast_pos (R := R) hmpos
   let hscaled : RSeq.SeriesSum
-      (fun n => COF.abs ((((m : Nat) : R) * ((r.fn n).toFun x)))) :=
+      (fun n => COF.abs ((((m : Nat) : R) * r.valueAt x hrDom n))) :=
     seriesSum_congr
       (fun n => by
-        rw [smul_fn_toFun (((m : Nat) : R)) r n x])
+        rw [smul_fn_toFun (((m : Nat) : R)) r n x hrDom])
       habs
-  exact sec4_absSeries_of_pos_smul (((m : Nat) : R)) hc
-    (fun n => (r.fn n).toFun x) hscaled
+  exact ⟨hrDom, sec4_absSeries_of_pos_smul (((m : Nat) : R)) hc
+    (fun n => r.valueAt x hrDom n) hscaled⟩
 
 
 /--
@@ -77,31 +80,43 @@ explicit zero series; in the positive branch it cancels the scalar, reads
 noncomputable def sec4_natSmuled_chi_zero_on_s2
     (m : Nat) (A : BSet X) (hA : IntegrableSet1 S A)
     (x : X) (hxA : x ∈ A.S2)
+    (hdom : (hA.rep.smul (((m : Nat) : R))).MemAt x)
     (habs : RSeq.SeriesSum
-      (fun n => COF.abs ((((hA.rep.smul (((m : Nat) : R))).fn n).toFun x)))) :
+      (fun n => COF.abs
+        ((hA.rep.smul (((m : Nat) : R))).valueAt x hdom n))) :
     (seriesSum_of_abs habs).sum = 0 := by
+  let hχDom : hA.rep.MemAt x := smul_dom hdom
   by_cases hm : m = 0
   · subst hm
     let hz : RSeq.SeriesSum
-        (fun n => ((hA.rep.smul (((0 : Nat) : R))).fn n).toFun x) :=
+        (fun n => (hA.rep.smul (((0 : Nat) : R))).valueAt x hdom n) :=
       seriesSum_congr
         (fun n => by
-          rw [smul_fn_toFun (((0 : Nat) : R)) hA.rep n x, Nat.cast_zero]
-          ring)
-        (sec4_zeroSeries_transparent (R := R))
+          simpa only [Nat.cast_zero] using
+            (show (0 : R) = (hA.rep.smul (0 : R)).valueAt x
+                (IntegrableRep.smul_memAt (a := (0 : R)) hχDom) n by
+              calc
+                (0 : R) = (0 : R) * hA.rep.valueAt x hχDom n := by ring
+                _ = (hA.rep.smul (0 : R)).valueAt x
+                    (IntegrableRep.smul_memAt (a := (0 : R)) hχDom) n :=
+                  (smul_fn_toFun (0 : R) hA.rep n x hχDom).symm))
+        (sec4_seriesSum_zero_const (R := R))
     have hz0 : hz.sum = (0 : R) := rfl
     exact (seriesSum_unique (seriesSum_of_abs habs) hz).trans hz0
   · have hmpos : 0 < m := Nat.pos_of_ne_zero hm
+    let hχAt : Sec4RepAbsAt hA.rep x :=
+      sec4_natSmuled_abs_cancel (S := S)
+        m hmpos hA.rep x hdom habs
     let hχabs : RSeq.SeriesSum
-        (fun n => COF.abs ((hA.rep.fn n).toFun x)) :=
-      sec4_natSmuled_abs_cancel (S := S) m hmpos hA.rep x habs
-    let hχ : RSeq.SeriesSum (fun n => (hA.rep.fn n).toFun x) :=
+        (fun n => COF.abs (hA.rep.valueAt x hχAt.fst n)) :=
+      hχAt.snd
+    let hχ : RSeq.SeriesSum (fun n => hA.rep.valueAt x hχAt.fst n) :=
       seriesSum_of_abs hχabs
     have hχzero : hχ.sum = 0 :=
-      (hA.valid x hχabs).2.2 hxA hχ
+      (hA.valid x hχAt.fst hχabs).2.2 hxA hχ
     let hsmul : RSeq.SeriesSum
-        (fun n => ((hA.rep.smul (((m : Nat) : R))).fn n).toFun x) :=
-      smul_seriesSum_value (((m : Nat) : R)) hχ
+        (fun n => (hA.rep.smul (((m : Nat) : R))).valueAt x hdom n) := by
+      simpa using smul_seriesSum_value (((m : Nat) : R)) hχAt.fst hχ
     have heq :
         (seriesSum_of_abs habs).sum = hsmul.sum :=
       seriesSum_unique (seriesSum_of_abs habs) hsmul
@@ -125,30 +140,35 @@ existing `repNonneg_sub_cutNatVal`.  Thus `min(0, nonnegative)=0`.
 theorem sec4_lambdaRowZeroOnS2
     (f : IntegrableRep S) (hnn : RepNonneg f) :
     Sec4LambdaRowZeroOnS2 (S := S) f hnn := by
-  intro A hA x hxA k hrowabs
+  intro A hA x hxA k hrowDom hrowabs
   cases k with
   | zero =>
-      dsimp [prop_4_2_lambda_k] at hrowabs
+      dsimp [prop_4_2_lambda_k] at hrowDom hrowabs
+      let hleftDom := min2_dom_left hrowDom
+      let hrightDom := min2_dom_right hrowDom
       let hleftAbs :=
-        min2_absSeriesSum_left hrowabs
+        min2_absSeriesSum_left hrowDom hrowabs
       let hrightAbs :=
-        min2_absSeriesSum_right hrowabs
+        min2_absSeriesSum_right hrowDom hrowabs
       let hleftVal : RSeq.SeriesSum
-          (fun n => ((hA.rep.smul (((prop_4_2_n_k f 0 : Nat) : R))).fn n).toFun x) :=
+          (fun n =>
+            (hA.rep.smul (((prop_4_2_n_k f 0 : Nat) : R))).valueAt
+              x hleftDom n) :=
         seriesSum_of_abs hleftAbs
       let hrightVal : RSeq.SeriesSum
-          (fun n => (((f.sub (prop_4_2_min_f_n f 0)).fn n).toFun x)) :=
+          (fun n => (f.sub (prop_4_2_min_f_n f 0)).valueAt
+            x hrightDom n) :=
         seriesSum_of_abs hrightAbs
       let hmin :=
         min2_value
           (hA.rep.smul (((prop_4_2_n_k f 0 : Nat) : R)))
           (f.sub (prop_4_2_min_f_n f 0))
-          x hleftVal hrightVal
+          x hleftDom hrightDom hleftVal hrightVal
       have hleft0 : hleftVal.sum = 0 :=
         sec4_natSmuled_chi_zero_on_s2 (S := S)
-          (prop_4_2_n_k f 0) A hA x hxA hleftAbs
+          (prop_4_2_n_k f 0) A hA x hxA hleftDom hleftAbs
       have hrightNN : Nonneg hrightVal.sum :=
-        (repNonneg_sub_cutNatVal f 0) x hrightAbs hrightVal
+        (repNonneg_sub_cutNatVal f 0) x hrightDom hrightAbs hrightVal
       have hmin0 : COF.min hleftVal.sum hrightVal.sum = 0 := by
         rw [hleft0]
         exact cof_min_eq_left_of_le hrightNN
@@ -158,29 +178,33 @@ theorem sec4_lambdaRowZeroOnS2
         _ = COF.min hleftVal.sum hrightVal.sum := hmin.property
         _ = 0 := hmin0
   | succ k =>
-      dsimp [prop_4_2_lambda_k] at hrowabs
+      dsimp [prop_4_2_lambda_k] at hrowDom hrowabs
       let coeff : Nat := prop_4_2_n_k f (k + 1) - prop_4_2_n_k f k
       let cut : Nat := prop_4_2_n_k f k
+      let hleftDom := min2_dom_left hrowDom
+      let hrightDom := min2_dom_right hrowDom
       let hleftAbs :=
-        min2_absSeriesSum_left hrowabs
+        min2_absSeriesSum_left hrowDom hrowabs
       let hrightAbs :=
-        min2_absSeriesSum_right hrowabs
+        min2_absSeriesSum_right hrowDom hrowabs
       let hleftVal : RSeq.SeriesSum
-          (fun n => ((hA.rep.smul (((coeff : Nat) : R))).fn n).toFun x) :=
+          (fun n => (hA.rep.smul (((coeff : Nat) : R))).valueAt
+            x hleftDom n) :=
         seriesSum_of_abs hleftAbs
       let hrightVal : RSeq.SeriesSum
-          (fun n => (((f.sub (prop_4_2_min_f_n f cut)).fn n).toFun x)) :=
+          (fun n => (f.sub (prop_4_2_min_f_n f cut)).valueAt
+            x hrightDom n) :=
         seriesSum_of_abs hrightAbs
       let hmin :=
         min2_value
           (hA.rep.smul (((coeff : Nat) : R)))
           (f.sub (prop_4_2_min_f_n f cut))
-          x hleftVal hrightVal
+          x hleftDom hrightDom hleftVal hrightVal
       have hleft0 : hleftVal.sum = 0 :=
         sec4_natSmuled_chi_zero_on_s2 (S := S)
-          coeff A hA x hxA hleftAbs
+          coeff A hA x hxA hleftDom hleftAbs
       have hrightNN : Nonneg hrightVal.sum :=
-        (repNonneg_sub_cutNatVal f cut) x hrightAbs hrightVal
+        (repNonneg_sub_cutNatVal f cut) x hrightDom hrightAbs hrightVal
       have hmin0 : COF.min hleftVal.sum hrightVal.sum = 0 := by
         rw [hleft0]
         exact cof_min_eq_left_of_le hrightNN
@@ -201,12 +225,13 @@ noncomputable def sec4_lambda0ChiAbs_of_n0_pos
     (f : IntegrableRep S) (hnn : RepNonneg f)
     (hn0pos : 0 < prop_4_2_n_k f 0) :
     Sec4Lambda0ChiAbsOfAbs (S := S) f hnn := by
-  intro A hA x hrowabs
-  dsimp [prop_4_2_lambda_k] at hrowabs
+  intro A hA x hrowDom hrowabs
+  dsimp [prop_4_2_lambda_k] at hrowDom hrowabs
+  let hleftDom := min2_dom_left hrowDom
   let hleftAbs :=
-    min2_absSeriesSum_left hrowabs
+    min2_absSeriesSum_left hrowDom hrowabs
   exact sec4_natSmuled_abs_cancel (S := S)
-    (prop_4_2_n_k f 0) hn0pos hA.rep x hleftAbs
+    (prop_4_2_n_k f 0) hn0pos hA.rep x hleftDom hleftAbs
 
 
 /-! ## 4. Near-final tools: only cover abs and coefficient positivity remain -/

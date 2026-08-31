@@ -55,24 +55,16 @@ noncomputable def orOfS1Selector
       (min2_dom_of_left_right hAdom hBdom) m
   abs_on_s1 := by
     intro x hx
-    change RSeq.SeriesSum
-      (fun m => COF.abs ((((HA.base.rep.add HB.base.rep).sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-    exact OrS1Case.outputAbs (S := S) HA HB (s1Case hx)
+    exact (OrS1Case.outputAbs (S := S) HA HB (s1Case hx)).snd
   abs_on_s2 := by
     intro x hx
-    have hAabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) :=
-      HA.abs_on_s2 x hx.1
-    have hBabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) :=
-      HB.abs_on_s2 x hx.2
-    change RSeq.SeriesSum
-      (fun m => COF.abs ((((HA.base.rep.add HB.base.rep).sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-    exact sub_absSeriesSum_of_left_right
-      (add_absSeriesSum_of_left_right hAabs hBabs)
-      (min2_absSeriesSum_of_left_right hAabs hBabs)
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s2 x hx.1, HA.abs_on_s2 x hx.1⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s2 x hx.2, HB.abs_on_s2 x hx.2⟩
+    exact (sub_absSeriesSum_of_left_right
+      (add_absSeriesSum_of_left_right hAat hBat)
+      (min2_absSeriesSum_of_left_right hAat hBat)).snd
 
 
 @[simp] theorem orOfS1Selector_base
@@ -111,20 +103,14 @@ noncomputable def andOfS2Selector
     exact AndS2Case.outputDom (S := S) HA HB (s2Case hx) m
   abs_on_s1 := by
     intro x hx
-    have hAabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) :=
-      HA.abs_on_s1 x hx.1
-    have hBabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) :=
-      HB.abs_on_s1 x hx.2
-    change RSeq.SeriesSum
-      (fun m => COF.abs (((IntegrableRep.min2 HA.base.rep HB.base.rep).fn m).toFun x))
-    exact min2_absSeriesSum_of_left_right hAabs hBabs
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s1 x hx.1, HA.abs_on_s1 x hx.1⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s1 x hx.2, HB.abs_on_s1 x hx.2⟩
+    exact (min2_absSeriesSum_of_left_right hAat hBat).snd
   abs_on_s2 := by
     intro x hx
-    change RSeq.SeriesSum
-      (fun m => COF.abs (((IntegrableRep.min2 HA.base.rep HB.base.rep).fn m).toFun x))
-    exact AndS2Case.outputAbs (S := S) HA HB (s2Case hx)
+    exact (AndS2Case.outputAbs (S := S) HA HB (s2Case hx)).snd
 
 
 @[simp] theorem andOfS2Selector_base
@@ -165,23 +151,15 @@ noncomputable def subOfS2Selector
     exact SubS2Case.outputDom (S := S) HA HB (s2Case hx) m
   abs_on_s1 := by
     intro x hx
-    have hAabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) :=
-      HA.abs_on_s1 x hx.1
-    have hBabs : RSeq.SeriesSum
-        (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) :=
-      HB.abs_on_s2 x hx.2
-    change RSeq.SeriesSum
-      (fun m => COF.abs (((HA.base.rep.sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-    exact sub_absSeriesSum_of_left_right hAabs
-      (min2_absSeriesSum_of_left_right hAabs hBabs)
+    let hAat : Sec4RepAbsAt HA.base.rep x :=
+      ⟨HA.dom_on_s1 x hx.1, HA.abs_on_s1 x hx.1⟩
+    let hBat : Sec4RepAbsAt HB.base.rep x :=
+      ⟨HB.dom_on_s2 x hx.2, HB.abs_on_s2 x hx.2⟩
+    exact (sub_absSeriesSum_of_left_right hAat
+      (min2_absSeriesSum_of_left_right hAat hBat)).snd
   abs_on_s2 := by
     intro x hx
-    change RSeq.SeriesSum
-      (fun m => COF.abs (((HA.base.rep.sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x))
-    exact SubS2Case.outputAbs (S := S) HA HB (s2Case hx)
+    exact (SubS2Case.outputAbs (S := S) HA HB (s2Case hx)).snd
 
 
 @[simp] theorem subOfS2Selector_base

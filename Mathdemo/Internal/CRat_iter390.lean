@@ -85,22 +85,22 @@ def leftAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     {x : X} (c : OrS1Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HA.base.rep x := by
   cases c with
-  | both ha hb => exact HA.abs_on_s1 x ha
-  | leftOnly ha hb => exact HA.abs_on_s1 x ha
-  | rightOnly ha hb => exact HA.abs_on_s2 x ha
+  | both ha hb => exact ⟨HA.dom_on_s1 x ha, HA.abs_on_s1 x ha⟩
+  | leftOnly ha hb => exact ⟨HA.dom_on_s1 x ha, HA.abs_on_s1 x ha⟩
+  | rightOnly ha hb => exact ⟨HA.dom_on_s2 x ha, HA.abs_on_s2 x ha⟩
 
 
 def rightAbs
     {A B : BSet X}
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : OrS1Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HB.base.rep x := by
   cases c with
-  | both ha hb => exact HB.abs_on_s1 x hb
-  | leftOnly ha hb => exact HB.abs_on_s2 x hb
-  | rightOnly ha hb => exact HB.abs_on_s1 x hb
+  | both ha hb => exact ⟨HB.dom_on_s1 x hb, HB.abs_on_s1 x hb⟩
+  | leftOnly ha hb => exact ⟨HB.dom_on_s2 x hb, HB.abs_on_s2 x hb⟩
+  | rightOnly ha hb => exact ⟨HB.dom_on_s1 x hb, HB.abs_on_s1 x hb⟩
 
 
 theorem outputDom
@@ -116,14 +116,13 @@ theorem outputDom
     (min2_dom_of_left_right (leftDom (S := S) HA c) (rightDom (S := S) HB c))
 
 
-def outputAbs
+noncomputable def outputAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : OrS1Case A B x) :
-    RSeq.SeriesSum
-      (fun m => COF.abs ((((HA.base.rep.add HB.base.rep).sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x)) :=
+    Sec4RepAbsAt ((HA.base.rep.add HB.base.rep).sub
+      (IntegrableRep.min2 HA.base.rep HB.base.rep)) x :=
   sub_absSeriesSum_of_left_right
     (add_absSeriesSum_of_left_right (leftAbs (S := S) HA c) (rightAbs (S := S) HB c))
     (min2_absSeriesSum_of_left_right (leftAbs (S := S) HA c) (rightAbs (S := S) HB c))
@@ -169,22 +168,22 @@ def leftAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     {x : X} (c : AndS2Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HA.base.rep x := by
   cases c with
-  | leftOnly ha hb => exact HA.abs_on_s1 x ha
-  | rightOnly ha hb => exact HA.abs_on_s2 x ha
-  | neither ha hb => exact HA.abs_on_s2 x ha
+  | leftOnly ha hb => exact ⟨HA.dom_on_s1 x ha, HA.abs_on_s1 x ha⟩
+  | rightOnly ha hb => exact ⟨HA.dom_on_s2 x ha, HA.abs_on_s2 x ha⟩
+  | neither ha hb => exact ⟨HA.dom_on_s2 x ha, HA.abs_on_s2 x ha⟩
 
 
 def rightAbs
     {A B : BSet X}
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : AndS2Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HB.base.rep x := by
   cases c with
-  | leftOnly ha hb => exact HB.abs_on_s2 x hb
-  | rightOnly ha hb => exact HB.abs_on_s1 x hb
-  | neither ha hb => exact HB.abs_on_s2 x hb
+  | leftOnly ha hb => exact ⟨HB.dom_on_s2 x hb, HB.abs_on_s2 x hb⟩
+  | rightOnly ha hb => exact ⟨HB.dom_on_s1 x hb, HB.abs_on_s1 x hb⟩
+  | neither ha hb => exact ⟨HB.dom_on_s2 x hb, HB.abs_on_s2 x hb⟩
 
 
 theorem outputDom
@@ -197,13 +196,12 @@ theorem outputDom
   min2_dom_of_left_right (leftDom (S := S) HA c) (rightDom (S := S) HB c)
 
 
-def outputAbs
+noncomputable def outputAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : AndS2Case A B x) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((IntegrableRep.min2 HA.base.rep HB.base.rep).fn m).toFun x)) :=
+    Sec4RepAbsAt (IntegrableRep.min2 HA.base.rep HB.base.rep) x :=
   min2_absSeriesSum_of_left_right (leftAbs (S := S) HA c) (rightAbs (S := S) HB c)
 
 
@@ -247,22 +245,22 @@ def leftAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     {x : X} (c : SubS2Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HA.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HA.base.rep x := by
   cases c with
-  | both ha hb => exact HA.abs_on_s1 x ha
-  | neither ha hb => exact HA.abs_on_s2 x ha
-  | leftFalse ha hb => exact HA.abs_on_s2 x ha
+  | both ha hb => exact ⟨HA.dom_on_s1 x ha, HA.abs_on_s1 x ha⟩
+  | neither ha hb => exact ⟨HA.dom_on_s2 x ha, HA.abs_on_s2 x ha⟩
+  | leftFalse ha hb => exact ⟨HA.dom_on_s2 x ha, HA.abs_on_s2 x ha⟩
 
 
 def rightAbs
     {A B : BSet X}
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : SubS2Case A B x) :
-    RSeq.SeriesSum (fun k => COF.abs ((HB.base.rep.fn k).toFun x)) := by
+    Sec4RepAbsAt HB.base.rep x := by
   cases c with
-  | both ha hb => exact HB.abs_on_s1 x hb
-  | neither ha hb => exact HB.abs_on_s2 x hb
-  | leftFalse ha hb => exact HB.abs_on_s1 x hb
+  | both ha hb => exact ⟨HB.dom_on_s1 x hb, HB.abs_on_s1 x hb⟩
+  | neither ha hb => exact ⟨HB.dom_on_s2 x hb, HB.abs_on_s2 x hb⟩
+  | leftFalse ha hb => exact ⟨HB.dom_on_s1 x hb, HB.abs_on_s1 x hb⟩
 
 
 theorem outputDom
@@ -278,14 +276,13 @@ theorem outputDom
     (min2_dom_of_left_right (leftDom (S := S) HA c) (rightDom (S := S) HB c))
 
 
-def outputAbs
+noncomputable def outputAbs
     {A B : BSet X}
     (HA : IntegrableSet1WithDef23 (S := S) A)
     (HB : IntegrableSet1WithDef23 (S := S) B)
     {x : X} (c : SubS2Case A B x) :
-    RSeq.SeriesSum
-      (fun m => COF.abs (((HA.base.rep.sub
-        (IntegrableRep.min2 HA.base.rep HB.base.rep)).fn m).toFun x)) :=
+    Sec4RepAbsAt (HA.base.rep.sub
+      (IntegrableRep.min2 HA.base.rep HB.base.rep)) x :=
   sub_absSeriesSum_of_left_right
     (leftAbs (S := S) HA c)
     (min2_absSeriesSum_of_left_right (leftAbs (S := S) HA c) (rightAbs (S := S) HB c))

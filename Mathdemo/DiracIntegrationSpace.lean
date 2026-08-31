@@ -40,10 +40,13 @@ variable {X : Type u}
 def diracL (x₀ : X) : Set (BFunC X) := {f | x₀ ∈ f.dom}
 
 /-- Evaluation at `x₀`. -/
-def diracI (x₀ : X) (f : BFunC X) : CReal := f.toFun x₀
+def diracI (x₀ : X) (f : BFunC X) (hf : f ∈ diracL x₀) : CReal :=
+  f.toFun x₀ hf
 
 /-- The constant function `1`, defined at every point. -/
-def oneEverywhere (X : Type u) : BFunC X := ⟨fun _ => CReal.one, Set.univ⟩
+def oneEverywhere (X : Type u) : BFunC X where
+  dom := Set.univ
+  toFun := fun _ _ => CReal.one
 
 /-- The Archimedean upper bound of `BishopSec1P.exists_nat_geC`, with the witness
 made explicit so that it can be used as data.  The statement of `exists_nat_geC`
@@ -214,11 +217,11 @@ noncomputable def diracDef11 (x₀ : X) : IntegrationSpaceDef11 X where
     trivial
   I_p := Setoid.refl _
   cutNat_tendsto := by
-    intro f _hf
-    exact cutNat_tendsto_point (f.toFun x₀)
+    intro f hf _hcut
+    exact cutNat_tendsto_point (f.toFun x₀ hf)
   cutSmallSrc_tendsto := by
-    intro f _hf
-    exact cutSmallSrc_tendsto_point (f.toFun x₀)
+    intro f hf _hcut
+    exact cutSmallSrc_tendsto_point (f.toFun x₀ hf)
 
 /-- Truncation at an arbitrary constant stays in `L`, because truncation does
 not change the domain.  The adapter no longer needs this (it derives the

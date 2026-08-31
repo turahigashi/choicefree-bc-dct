@@ -32,34 +32,39 @@ set_option linter.unusedVariables false
 
 namespace RepDefinedAt
 
-/-- A single-term `ofL` representative is pointwise defined at every point. -/
-def ofL {g : BFunR X R} (hg : g ∈ S.L) (x : X) :
-    RepDefinedAt (S := S) (IntegrableRep.ofL hg) x :=
-  seriesSum_congr
-    (fun n => by
-      change (if n = 0 then COF.abs (g.toFun x) else (0 : R)) =
-        COF.abs (((if n = 0 then g else BFunR.smul (0 : R) g).toFun x))
-      by_cases hn : n = 0
-      · rw [if_pos hn, if_pos hn]
-      · rw [if_neg hn, if_neg hn]
-        change (0 : R) = COF.abs ((0 : R) * g.toFun x)
-        rw [show (0 : R) * g.toFun x = (0 : R) from by ring, COFO.abs_zero])
-    (seriesSum_single (COF.abs (g.toFun x)))
+/-- A single-term `ofL` representative is pointwise defined on the domain of
+its source partial function. -/
+def ofL {g : BFunR X R} (hg : g ∈ S.L) {x : X} (hx : x ∈ g.dom) :
+    RepDefinedAt (S := S) (IntegrableRep.ofL hg) x := by
+  let hdom : (IntegrableRep.ofL hg).MemAt x :=
+    IntegrableRep.ofL_memAt hg hx
+  refine ⟨hdom, seriesSum_congr (fun n => ?_)
+    (seriesSum_single (COF.abs (g.toFun x hx)))⟩
+  by_cases hn : n = 0
+  · subst hn
+    rfl
+  · simp only [IntegrableRep.valueAt, IntegrableRep.ofL, hn, if_false,
+      BFunR.smul, zero_mul, COFO.abs_zero]
 
 
 /-- A tail representative is pointwise defined wherever the original
 representative is pointwise defined. -/
 def tailFrom {r : IntegrableRep S} (p : Nat) {x : X}
     (hr : RepDefinedAt (S := S) r x) :
-    RepDefinedAt (S := S) (r.tailFrom p) x :=
-  seriesSum_tail hr p
+    RepDefinedAt (S := S) (r.tailFrom p) x := by
+  let hdom : (r.tailFrom p).MemAt x := r.tailFrom_memAt p hr.dom
+  refine ⟨hdom, ?_⟩
+  simpa only [IntegrableRep.tailFrom, IntegrableRep.valueAt] using
+    (seriesSum_tail hr.series p)
 
 
 /-- The `G_m` row of the `seriesSumRep_L1` split is an `ofL` representative,
 so it is pointwise defined everywhere. -/
-def Gm (F : Nat → IntegrableRep S) (i : Nat) (x : X) :
+def Gm (F : Nat → IntegrableRep S) (i : Nat) (x : X)
+    (hrow : RepDefinedAt (S := S) (F i) x) :
     RepDefinedAt (S := S) (G_m F i) x :=
-  ofL (S := S) (psi_m_mem F i) x
+  ofL (S := S) (psi_m_mem F i)
+    (BFunR.seqSum_mem (F i).fn x hrow.dom (Nm F i))
 
 
 /-- The `tail_m` row of the `seriesSumRep_L1` split is pointwise defined
@@ -90,7 +95,9 @@ structure SeriesSumRepL1SplitMajorants
   g_majorant : Nat → R
   g_majorant_sum : RSeq.SeriesSum g_majorant
   g_row_abs_le :
-    forall i : Nat, Le ((RepDefinedAt.Gm (S := S) F i x).sum) (g_majorant i)
+    forall i : Nat,
+      Le ((RepDefinedAt.Gm (S := S) F i x (row_abs i)).sum)
+        (g_majorant i)
   tail_majorant : Nat → R
   tail_majorant_sum : RSeq.SeriesSum tail_majorant
   tail_row_abs_le :
@@ -110,7 +117,7 @@ def toPointwiseData
     (M : SeriesSumRepL1SplitMajorants (S := S) F hsum x) :
     SeriesSumRepL1PointwiseData (S := S) F hsum x where
   g_part :=
-    { row_abs := fun i => RepDefinedAt.Gm (S := S) F i x
+    { row_abs := fun i => RepDefinedAt.Gm (S := S) F i x (M.row_abs i)
       majorant := M.g_majorant
       majorant_sum := M.g_majorant_sum
       row_abs_le := M.g_row_abs_le }

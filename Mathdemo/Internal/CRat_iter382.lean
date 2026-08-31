@@ -37,7 +37,8 @@ noncomputable def Sec4Prop42LocalWitness.ofDef23S1
     {f : IntegrableRep S} {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4Prop42LocalWitness (S := S) A hA f x where
   chi_dom := (D.data A hA).dom_on_s1 x hxA
   chi_abs := (D.data A hA).abs_on_s1 x hxA
@@ -54,7 +55,8 @@ noncomputable def Sec4Prop42LocalWitness.ofDef23S2
     {f : IntegrableRep S} {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4Prop42LocalWitness (S := S) A hA f x where
   chi_dom := (D.data A hA).dom_on_s2 x hxA
   chi_abs := (D.data A hA).abs_on_s2 x hxA
@@ -72,7 +74,8 @@ noncomputable def sec4_prop42LocalRowsOnS1_of_def23
     {f : IntegrableRep S} {x : X}
     (hxA : x ∈ A.S1)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4LambdaRowsAbsAt (S := S) A hA f x :=
   sec4_lambdaRowsAbs_of_localWitness
     (S := S) hA
@@ -89,7 +92,8 @@ noncomputable def sec4_prop42LocalRowsOnS2_of_def23
     {f : IntegrableRep S} {x : X}
     (hxA : x ∈ A.S2)
     (hf_dom : forall m : Nat, x ∈ (f.fn m).dom)
-    (hf_abs : RSeq.SeriesSum (fun m => COF.abs ((f.fn m).toFun x))) :
+    (hf_abs : RSeq.SeriesSum (fun m => COF.abs
+      (f.valueAt x hf_dom m))) :
     Sec4LambdaRowsAbsAt (S := S) A hA f x :=
   sec4_lambdaRowsAbs_of_localWitness
     (S := S) hA

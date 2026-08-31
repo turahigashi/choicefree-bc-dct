@@ -69,57 +69,68 @@ theorem thm_4_15_genIB_split_le_on_support
     (VnegA : Sec4GenIBValueBridge (S := S) (BSet.neg A)
       (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn) :
     ∀ x ∈ thm_4_15_ib_split_support (S := S) A B hA hB u hnn,
+      ∀ (hleftDom : (genIB_rep_from_measurable B hB u hnn).MemAt x),
+      ∀ (hrightDom : ((genIB_rep_from_measurable (BSet.and A B)
+          (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).add
+        (genIB_rep_from_measurable (BSet.neg A)
+          (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).MemAt x),
       ∀ (hleft : RSeq.SeriesSum
-        (fun n => ((genIB_rep_from_measurable B hB u hnn).fn n).toFun x))
+        (fun n => (genIB_rep_from_measurable B hB u hnn).valueAt
+          x hleftDom n))
         (hright : RSeq.SeriesSum
-        (fun n =>
-          (((genIB_rep_from_measurable (BSet.and A B)
-              (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).add
-            (genIB_rep_from_measurable (BSet.neg A)
-              (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).fn n).toFun x)),
+        (fun n => ((genIB_rep_from_measurable (BSet.and A B)
+            (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).add
+          (genIB_rep_from_measurable (BSet.neg A)
+            (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn)).valueAt
+              x hrightDom n)),
         Le hleft.sum hright.sum := by
-  intro x hx hleft hright
+  intro x hx _hleftArgDom _hrightArgDom hleft hright
   rcases hx with ⟨⟨⟨⟨hBDom, hABDom⟩, hNegDom⟩, hADom⟩, huDom⟩
-  rcases hBDom.2 with ⟨hBabs⟩
-  rcases hABDom.2 with ⟨hABabs⟩
-  rcases hNegDom.2 with ⟨hNegabs⟩
-  rcases hADom.2 with ⟨hAabs⟩
-  rcases huDom.2 with ⟨huabs⟩
+  rcases hBDom with ⟨hBDomAll, ⟨hBabs⟩⟩
+  rcases hABDom with ⟨hABDomAll, ⟨hABabs⟩⟩
+  rcases hNegDom with ⟨hNegDomAll, ⟨hNegabs⟩⟩
+  rcases hADom with ⟨hADomAll, ⟨hAabs⟩⟩
+  rcases huDom with ⟨huDomAll, ⟨huabs⟩⟩
   let hBsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable B hB u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable B hB u hnn).valueAt
+        x hBDomAll n) :=
     seriesSum_of_abs hBabs
   let hABsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable (BSet.and A B)
-        (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable (BSet.and A B)
+        (isMeasurableSet_of_integrable (S := S) (hB A hA)) u hnn).valueAt
+          x hABDomAll n) :=
     seriesSum_of_abs hABabs
   let hNegsum : RSeq.SeriesSum
-      (fun n => ((genIB_rep_from_measurable (BSet.neg A)
-        (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn).fn n).toFun x) :=
+      (fun n => (genIB_rep_from_measurable (BSet.neg A)
+        (isMeasurableSet_neg_of_integrable (S := S) hA) u hnn).valueAt
+          x hNegDomAll n) :=
     seriesSum_of_abs hNegabs
   have hleft_eq : hleft.sum = hBsum.sum :=
     seriesSum_unique hleft hBsum
   have hright_eq : hright.sum = hABsum.sum + hNegsum.sum :=
-    seriesSum_unique hright (add_seriesSum_value hABsum hNegsum)
+    seriesSum_unique hright
+      (add_seriesSum_value hABDomAll hNegDomAll hABsum hNegsum)
   have hAB_nonneg : Nonneg hABsum.sum :=
     genIB_rep_from_measurable_repNonneg
       (BSet.and A B)
       (isMeasurableSet_of_integrable (S := S) (hB A hA))
-      u hnn x hABabs hABsum
+      u hnn x hABDomAll hABabs hABsum
   have hNeg_nonneg : Nonneg hNegsum.sum :=
     genIB_rep_from_measurable_repNonneg
       (BSet.neg A)
       (isMeasurableSet_neg_of_integrable (S := S) hA)
-      u hnn x hNegabs hNegsum
-  have hBcases := VB.domain x hBabs
-  have hAcases := (hA.valid x hAabs).1
+      u hnn x hNegDomAll hNegabs hNegsum
+  have hBcases := VB.domain x hBDomAll hBabs
+  have hAcases := (hA.valid x hADomAll hAabs).1
   cases hBcases with
   | inl hxB1 =>
       have hB_value : hBsum.sum = (seriesSum_of_abs huabs).sum :=
-        VB.value_s1 x hxB1 hBabs huabs
+        VB.value_s1 x hxB1 hBDomAll hBabs huDomAll huabs
       cases hAcases with
       | inl hxA1 =>
           have hAB_value : hABsum.sum = (seriesSum_of_abs huabs).sum :=
-            VAB.value_s1 x ⟨hxA1, hxB1⟩ hABabs huabs
+            VAB.value_s1 x ⟨hxA1, hxB1⟩
+              hABDomAll hABabs huDomAll huabs
           rw [hleft_eq, hright_eq, hB_value, hAB_value]
           exact le_of_nonneg_sub (by
             rw [show ((seriesSum_of_abs huabs).sum + hNegsum.sum
@@ -127,7 +138,7 @@ theorem thm_4_15_genIB_split_le_on_support
             exact hNeg_nonneg)
       | inr hxA2 =>
           have hNeg_value : hNegsum.sum = (seriesSum_of_abs huabs).sum :=
-            VnegA.value_s1 x hxA2 hNegabs huabs
+            VnegA.value_s1 x hxA2 hNegDomAll hNegabs huDomAll huabs
           rw [hleft_eq, hright_eq, hB_value, hNeg_value]
           exact le_of_nonneg_sub (by
             rw [show (hABsum.sum + (seriesSum_of_abs huabs).sum
@@ -135,7 +146,7 @@ theorem thm_4_15_genIB_split_le_on_support
             exact hAB_nonneg)
   | inr hxB2 =>
       have hB_value : hBsum.sum = 0 :=
-        VB.value_s2 x hxB2 hBabs
+        VB.value_s2 x hxB2 hBDomAll hBabs
       rw [hleft_eq, hright_eq, hB_value]
       exact le_of_nonneg_sub (by
         rw [sub_zero]

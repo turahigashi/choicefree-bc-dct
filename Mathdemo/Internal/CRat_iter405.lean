@@ -159,10 +159,12 @@ noncomputable def definedAt_on_s1
     (W : Prop210CCleanPointwiseMajorantWitness (S := S) Sel A HA hsum)
     (x : X) (hx : x ∈ (BSet.bigAnd A).S1) :
     RepDefinedAt (S := S)
-      (prop_2_10_c_rep_clean (S := S) Sel A HA hsum) x :=
-  prop_2_10_c_rep_clean_definedAt_of_pointwiseFlattenable
-    (S := S) Sel A HA hsum
-    ((HA 0).abs_on_s1 x (Set.mem_iInter.mp hx 0))
+      (prop_2_10_c_rep_clean (S := S) Sel A HA hsum) x := by
+  let hx0 : x ∈ (A 0).S1 := Set.mem_iInter.mp hx 0
+  let h0 : RepDefinedAt (S := S) (HA 0).base.rep x :=
+    ⟨(HA 0).dom_on_s1 x hx0, (HA 0).abs_on_s1 x hx0⟩
+  exact prop_2_10_c_rep_clean_definedAt_of_pointwiseFlattenable
+    (S := S) Sel A HA hsum h0
     ((W.row_bounds_on_s1 x hx).toPointwiseFlattenable)
 
 
