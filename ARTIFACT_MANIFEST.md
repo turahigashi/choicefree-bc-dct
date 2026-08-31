@@ -38,7 +38,7 @@
 - `Mathdemo/SourceIntegrationSpaceDef11.lean`
 - `Mathdemo/DiracIntegrationSpace.lean`
 - `Mathdemo/`
-- `tools/`
+- `tools/` (includes `reachable_core.lean`, which measures how much of the tree the paper's claims reach; recorded run in `logs/reachable_core.txt`)
 - `paper/` (development repository only; excluded from the archived deposit)
 - `logs/`
 - `audits/corn/`

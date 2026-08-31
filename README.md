@@ -194,7 +194,15 @@ of the named `Bishop*` or `Sec4_*` modules.
 
 ## Internal-code status
 
-`Mathdemo/Internal` contains implementation details in the audited transitive import closure. Files named `CRat_iter*` retain historical or generated intermediate stages that are still in the public import closure. These files are not the intended public API, and this artifact does not claim a large-scale cleanup of the internal implementation library.  The paper reports the size of this closure as a measurement rather than as a design: the cost figures of its Section 11 are figures for the development as it was actually built.
+`Mathdemo/Internal` contains implementation details in the audited transitive import closure. Files named `CRat_iter*` retain historical or generated intermediate stages that are still in the public import closure. These files are not the intended public API, and this artifact does not claim a large-scale cleanup of the internal implementation library.  The paper reports the size of this closure as a description of the development as it was actually built, not as a design, and it does not read any declaration count as a cost.
+
+How much of the tree the claims of the paper depend on is measured rather than estimated:
+
+```bash
+lake env lean --run tools/reachable_core.lean
+```
+
+The tool seeds with every declaration of the modules that carry a claim -- the public aliases, the reading interface, the Definition 1.1 transcription, the point-evaluation model, the supplementary check module and the three axiom-check modules -- takes the transitive closure of the constants occurring in the type and in the value of each declaration, and counts only declarations that carry a source position.  On the v0.5.1 tree it reports 2,516 reachable declarations out of 20,796, in 136 of the 511 modules, and it prints `REACHABLE CORE CHECK PASSED` only if the five principal declarations (Theorem 4.15, Theorems 3.5 and 3.6, Lemma 3.4, and the integration-space structure) are all reachable.  The recorded run is `logs/reachable_core.txt`.  Extracting the reachable part as a library is future work; this tool computes the set such an extraction would consist of.
 
 ## Build and audit
 

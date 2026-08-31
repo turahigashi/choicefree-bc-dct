@@ -1,0 +1,15 @@
+# reachable_core.txt --- recorded run of tools/reachable_core.lean
+# artifact_version=0.5.1   date=2026-08-31
+# command: lake env lean --run tools/reachable_core.lean
+
+check BishopSec3P.bishop_cheng_thm_4_15_propC reachable=true
+check BishopSec3P.thm_3_5_smooth_aeC reachable=true
+check BishopSec3P.thm_3_6_all_posC reachable=true
+check BishopSec3P.lemma_3_4DataC reachable=true
+check BishopSec1P.IntSpaceC reachable=true
+seed_declarations: 130
+source_declarations: 20796
+reachable_declarations: 2516
+modules_total: 511
+modules_with_a_reachable_declaration: 136
+REACHABLE CORE CHECK PASSED
