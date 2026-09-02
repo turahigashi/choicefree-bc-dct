@@ -51,7 +51,7 @@ Bishop and Cheng derive the dominated convergence theorem of their integral-firs
 
 This paper reports a Lean~4 formalization of that route: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract real-number object.  The exceptional levels are enumerated and stepped around by Bishop's nested-interval construction, whose case split is decided from rational approximations and returned as data.
 
-For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, instantiated at the two booleans, gives both singletons positive measure: the axioms admit a measure not concentrated at a point.
+For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier development in the Coq Repository at Nijmegen, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, instantiated at the two booleans, gives both singletons positive measure: the axioms admit a measure not concentrated at a point.
 \end{abstract}
 
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
@@ -153,7 +153,7 @@ The axioms admit a model not concentrated at a single point (Section~\ref{sec:fo
 The scalar field is represented by presented real numbers: regular rational approximation sequences equipped with Bishop equality as the working equality relation~\cite{bishop-1967,bishop-bridges-1985}.  A presented real is thus a sequence $(x_n)$ of rationals together with the regularity condition $|x_m-x_n|\le m^{-1}+n^{-1}$, and two presented reals $x,y$ are \emph{equal} ($x\approx y$) when $|x_n-y_n|\le 2/n$ for every $n$: equality of the numbers represented, weaker than literal agreement of the two sequences.  A strict inequality $x<y$ is likewise always carried with a witness---an index and a gauge from which the difference stays positive---so that ``how far apart, and from when'' is part of the datum.  Equality and convergence remain distinct: a sequence of presented reals converges to $l$ when its terms approach $l$ at every gauge with a stated rate, not because its terms are Bishop-equal to $l$.
 
 \paragraph{Gauge and equality conventions.}
-This section follows the $1/n$ convention of Chapter~2 of Bishop's \emph{Foundations of Constructive Analysis}; the implementation and Appendix~\ref{sec:appendix-b} use the equivalent regularity condition with the dyadic gauge $2^{-k}$, and the two are translated by an explicit reindexing---Section~\ref{sec:cost-layerA}.  Equality is taken in the implementation in the tail form $\forall k\,\exists N\,\forall n\ge N\colon|x_n-y_n|\le2^{-k}$---the form stated in Definition~\ref{def:b-real}, and the relation \path{relEventually} in the code.  For regular sequences this is equivalent to the displayed condition---one direction is immediate, and the other follows from regularity, since $|x_n-y_n|\le2\cdot2^{-n}+2\cdot2^{-m}+2^{-k}$ for every $m\ge N$---but the development adopts the tail form as its definition rather than deriving the equivalence internally.
+Equality is taken in the implementation in the tail form $\forall k\,\exists N\,\forall n\ge N\colon|x_n-y_n|\le2^{-k}$---the form stated in Definition~\ref{def:b-real}, and the relation \path{relEventually} in the code.  For regular sequences this is equivalent to the displayed condition---one direction is immediate, and the other follows from regularity, since $|x_n-y_n|\le2\cdot2^{-n}+2\cdot2^{-m}+2^{-k}$ for every $m\ge N$---but the development adopts the tail form as its definition rather than deriving the equivalence internally.
 
 The development does not identify Bishop-equal approximation sequences: the carrier is the type of regular sequences, not a quotient of it, and every statement is a relation between sequences rather than between equivalence classes.  This is a transcription of Bishop's own position in the \emph{Foundations} rather than an implementation convenience: the notes to that chapter state that a real number \emph{is} the regular sequence, and not an equivalence class of regular sequences, arguing that the equivalence-class reading would be inaccurate or meaningless.  Analytic statements are formulated so that they respect the Bishop equivalence relation.
 
@@ -1057,6 +1057,33 @@ These checks do not rebuild Lean but verify the public source closure and the in
 Local reruns are written to:
 \begin{quote}\small\raggedright
 \path{logs/build_audit.rerun.txt}\par \path{logs/static_audit.rerun.txt}\par \path{logs/reading_layer_axioms.rerun.txt}\par \path{logs/public_surface.rerun.txt}\par \path{logs/mathdemo_build.rerun.txt}\par \path{logs/vacuous_statements.rerun.txt}. \end{quote} Every log the audit writes goes to one of these six, so the shipped reference logs stay byte-identical and checksum verification remains meaningful after rerunning the audit; the reference logs are promoted from the rerun files once, when a release is cut, and the checksums are generated after that promotion.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
+
+\section*{Declarations}
+
+\paragraph{Funding.}  No funding was received for conducting this study.
+
+\paragraph{Competing interests.}  The author has no competing interests to declare
+that are relevant to the content of this article.
+
+\paragraph{Author contributions.}  The paper has a single author, who is responsible
+for all of it.
+
+\paragraph{Data and code availability.}  There is no dataset.  The Lean~4 artifact,
+the audit apparatus and the shipped audit logs are archived and citable at
+\doi{10.5281/zenodo.22257007}, and are also at
+\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.6.0},
+which is the commit the deposit was cut from.  Every figure this paper states about
+the artifact is produced by a run recorded in the deposit, and the deposit contains
+the scripts that regenerate them: \path{./build_audit.sh} rebuilds the development
+and re-runs every check reported in Section~\ref{sec:trust}, ending in
+\texttt{BUILD\_AUDIT\_EXIT=0}, and the checksums shipped with it verify that the
+bytes audited are the bytes distributed.  Reproducing the build requires
+Lean~4.30.0 and mathlib~4.30.0; the remaining checks need only Python~3 and
+\texttt{coreutils}.  The reproduced Rocq audit of the CoRN development discussed in
+Section~\ref{sec:related} is packaged under \path{audits/corn/} with its own
+checksum manifest, and pins both the source commit and the Rocq version.
+
+\paragraph{Ethics approval.}  Not applicable.
 
 \section*{Use of AI-assisted tools}
 Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code, and in drafting and revising the prose of this paper.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, reviewed and approved the manuscript text, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.

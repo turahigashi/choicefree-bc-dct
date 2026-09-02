@@ -148,7 +148,10 @@ def main() -> int:
                 'Classical.',
                 # mathlib names the paper prints when it explains a proof, not
                 # declarations of this development
-                'Set.univ', 'Set.mem_univ'}
+                'Set.univ', 'Set.mem_univ',
+                # the release tag, which check_release_consistency.py pins by position
+                # rather than as a declaration name
+                'v0.6.0'}
         named = set()
         for m in re.findall(r'\\(?:path|texttt)\{([^}]*)\}', read(paper)):
             t = m.replace('\\_', '_').strip()
