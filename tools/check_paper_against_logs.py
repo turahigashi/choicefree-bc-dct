@@ -24,6 +24,24 @@ def grab(text: str, pattern: str, what: str) -> str:
         sys.exit(2)
     return m.group(1)
 
+
+# ★The kernel prints two forms.  Counting only "depends on axioms" silently drops
+# the declarations that depend on no axiom at all -- the best ones in the tree --
+# and that is exactly how the figure in the paper went wrong once.
+AXIOM_LINE = re.compile(r"'([^']+)' (?:depends on axioms|does not depend on any axioms)")
+
+
+def axiom_log_names() -> int:
+    """Distinct declaration names carrying kernel axiom output in the shipped logs."""
+    names = set()
+    for path in sorted((ROOT / 'logs').glob('*.txt')):
+        if 'rerun' in path.name:
+            continue
+        text = re.sub(r"\n\s+", " ", read(path))   # the logs wrap long names
+        names.update(AXIOM_LINE.findall(text))
+    return len(names)
+
+
 def main() -> int:
     paper = ROOT / 'paper' / 'paper.tex'
     if not paper.exists():
@@ -48,6 +66,7 @@ def main() -> int:
         ("declarations in the tree",f"{sum(len(decl.findall(read(p))) for p in lean):,}"),
         ("frozen names",            str(len([l for l in read(ROOT/'tools'/'frozen_names.txt').splitlines()
                                              if l.strip() and not l.startswith('#')]))),
+        ("distinct names in the axiom logs", f"{axiom_log_names():,}"),
     ]
     # ★The frozen-name list is a window on the paper; a stale window passes while the
     # claim it checks has become false.  Compare it with what the paper names now.
@@ -88,8 +107,14 @@ def main() -> int:
                 stale.append(t)
 
     bad = 0
+    # ★A bare substring test lets a short figure match inside a longer number
+    # (``114`` inside ``1,148``), so a stale figure can pass.  Require that the
+    # value not be flanked by a digit, a comma between digits, or a decimal point.
+    def present(v: str) -> bool:
+        return re.search(r'(?<![\d.,])' + re.escape(v) + r'(?![\d.,]*\d)', tex) is not None
+
     for label, value in checks:
-        ok = value in tex
+        ok = present(value)
         print(f"{'ok  ' if ok else 'MISS'} {label}: {value}")
         if not ok:
             bad += 1

@@ -18,7 +18,7 @@
 #   Classical        (cited only inside Classical.choice, which is listed below)
 #   lt_cotrans_data  (short form; BishopC.COF.lt_cotrans_data is listed below)
 
-# --- decl (98) ---
+# --- decl ---
 decl BFunC
 decl BishopC.COF.lt_cotrans_data
 decl Classical.choice
@@ -55,7 +55,6 @@ decl IntSpaceC
 decl IntSpaceC.cutNat_tendsto_raw
 decl IntSpaceC.cutSmall_tendsto_raw
 decl IntSpaceC.cutZero_mem
-decl IntegrationSpace
 decl IntegrationSpaceDef11
 decl IntegrationSpaceDef11.I_add
 decl IntegrationSpaceDef11.I_nonneg
@@ -65,7 +64,6 @@ decl IntegrationSpaceDef11.L_resp
 decl IntegrationSpaceDef11.abs_mem
 decl IntegrationSpaceDef11.continuity
 decl IntegrationSpaceDef11.cutPos_mem
-decl IntegrationSpaceDef11.cutSmall_tendsto_of_src
 decl IntegrationSpaceDef11.cutSmall_tendsto_of_src
 decl IntegrationSpaceDef11.pos_witness
 decl IntegrationSpaceDef11.smul_mem
@@ -78,14 +76,13 @@ decl PosEventuallyData
 decl Prop
 decl Quot.sound
 decl Quotient.exact
-decl Real
 decl RegularSeq
 decl RepSeriesTendsto
 decl RepSeriesTendstoEpsPropC
 decl Thm36B1ApartPointDataC
 decl True
 decl Type
-decl add_mem
+decl IntSpaceC.add_mem
 decl bishop_cheng_dominated_convergence_propC
 decl bishop_cheng_thm_4_15_propC
 decl dominated_convergence_from_pointwise_majorant_on_full_data_autoC
@@ -121,7 +118,7 @@ decl boolIndicator_integral_pos
 decl boolTwoPoint_not_concentrated
 decl boolTwoPointDef11
 
-# --- module (8) ---
+# --- module ---
 module Mathdemo
 module Mathdemo.CheckSec3PortAxioms
 module Mathdemo.ChoiceFreeDCTConcreteExamples
@@ -131,7 +128,7 @@ module Mathdemo.FiniteWeightedIntegrationSpace
 module Mathdemo.MathematicalInterface
 module Mathdemo.SourceIntegrationSpaceDef11
 
-# --- ns (3) ---
+# --- ns ---
 ns BishopSec1P
 ns BishopSec3P
 ns ChoiceFreeMeasureDCT
@@ -139,5 +136,7 @@ ns ChoiceFreeMeasureDCT
 # --- dir / corn ---
 corn CMTMeasurableFunctions.v
 corn CMTprofile.v
+corn IntegrationSpace
 dir Mathdemo/Internal/Measure
+dir Mathdemo/Internal/Real
 dir Mathdemo/Internal/Sec4
