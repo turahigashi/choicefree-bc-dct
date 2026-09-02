@@ -92,3 +92,13 @@
 'BishopCheng.twoPoint_norm' depends on axioms: [propext, Quot.sound]
 'BishopCheng.twoPointDef11' depends on axioms: [propext, Quot.sound]
 'BishopCheng.twoPointIntSpaceC' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolPts' does not depend on any axioms
+'BishopCheng.boolTwoPointDef11' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolTwoPointIntSpaceC' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolIndicator' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolIndicator_mem' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolTwoPointDef11_L' depends on axioms: [propext, Quot.sound]
+'BishopCheng.zero_lt_oneC' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolIndicator_integral' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolIndicator_integral_pos' depends on axioms: [propext, Quot.sound]
+'BishopCheng.boolTwoPoint_not_concentrated' depends on axioms: [propext, Quot.sound]

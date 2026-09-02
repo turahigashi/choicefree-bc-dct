@@ -1,130 +1,143 @@
-# frozen_names.txt --- identifiers the paper cites by name.
+# Identifiers and paths the paper cites by name.  Format: "<kind> <name>".
 #
-# A refactor may rename anything EXCEPT these.  Each appears in paper.tex inside
-# \path{} or \texttt{}, so renaming one silently breaks the paper's correspondence
-# tables (Appendix A) and its prose.
+#   decl    a Lean declaration.  Checked by elaborating `#check @<name>` under the
+#           project namespaces opened in tools/generate_frozen_names_check.py.
+#   module  a Lean module.  Checked by the existence of its source file.
+#   dir     a source directory of this tree.  Checked by its existence.
+#   corn    a CoRN source file the paper cites.  Checked by the presence of the
+#           name in the local CoRN audit, or of an href to it that carries the
+#           pinned CoRN commit.
+#   ns      a Lean namespace of this development.  Checked by the presence of a
+#           `namespace <name>` declaration in the sources.
+#   version the toolchain version.  Checked against lean-toolchain.
 #
-# ★Regenerate whenever the paper names a new identifier; a stale list passes while
-# the claim it checks has become false.
-#
-# generated 2026-09-02 from paper.tex; 115 names
-#
-# Excluded on purpose: mathlib and CoRN identifiers, name suffixes the paper
-# discusses (`_autoC`), tokens the audit forbids, and the five vacuous declarations
-# the paper records as removed in v0.4.2.
+# Names dropped on 2026-09-02 because they are not identifiers of this tree:
+#   classical, ring, axiom, noncomputable  (ordinary English words in the prose)
+#   Classical.       (trailing dot; Classical.choice is listed below)
+#   v4               (part of the toolchain version, checked by the build log)
+#   Classical        (cited only inside Classical.choice, which is listed below)
+#   lt_cotrans_data  (short form; BishopC.COF.lt_cotrans_data is listed below)
 
-BFunC
-BishopC.COF.lt_cotrans_data
-BishopCReal.CReal
-BishopCReal.CRealQuot
-BishopCheng.ComplementedSet
-BishopSec1P
-BishopSec3P
-BishopSec3P.bishop_cheng_thm_4_15_propC
-BishopSec3P.lemma43DyadicSmoothDataC_construct
-BishopSec3P.lemma43UniformComplementData_of_majorantC
-BishopSec3P.lemma_3_4DataC
-BishopSec3P.thm_3_5_smooth_aeC
-BishopSec3P.thm_3_6_all_posC
-CMTMeasurableFunctions.v
-CMTprofile.v
-CRealQuot
-ChoiceFreeMeasureDCT
-ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC
-ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profileC
-ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC
-ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_dataC
-ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profileC
-ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
-ChoiceFreeMeasureDCT.integral_convergence_from_majorant_on_full_dataC
-ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
-ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_on_full_dataC
-ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
-ChoiceFreeMeasureDCT.profile_partition_dataC
-ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
-ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
-Classical.
-ConvergeInMeasureC
-CutConstWitnessC
-DominatedOnFullC
-DominatedOnFullDataC
-DominatedOnFullDataC.ofGlobal
-Exists
-I_add
-I_nonneg
-I_resp
-I_smul
-IntSpaceC
-IntegrationSpace
-IntegrationSpaceDef11
-IntegrationSpaceDef11.cutSmall_tendsto_of_src
-IsFullC
-L_resp
-Lemma43DyadicSmoothDataC
-Mathdemo
-Mathdemo.CheckSec3PortAxioms
-Mathdemo.ChoiceFreeDCTConcreteExamples
-Mathdemo.ChoiceFreeDCTExamples
-Mathdemo.DiracIntegrationSpace
-Mathdemo.FiniteWeightedIntegrationSpace
-Mathdemo.MathematicalInterface
-Mathdemo.SourceIntegrationSpaceDef11
-Measure
-PSum
-PUnit
-PosEventuallyData
-Prop
-Quot.sound
-Quotient.exact
-Real
-RegularSeq
-RepSeriesTendsto
-RepSeriesTendstoEpsPropC
-Sec4
-Thm36B1ApartPointDataC
-True
-Type
-abs_mem
-add_mem
-axiom
-bishop_cheng_dominated_convergence_propC
-bishop_cheng_thm_4_15_propC
-classical
-continuity
-cutNat_tendsto_raw
-cutPos_mem
-cutSmall_tendsto_of_src
-cutSmall_tendsto_raw
-cutZero_mem
-dominated_convergence_from_pointwise_majorant_on_full_data_autoC
-exists_nat_geC
-integral_diff_lt_of_abs_error_integral_ltC
-lemma43DyadicSmoothDataC_construct
-lemma43UniformComplementData_of_majorantC
-lemma43UniformComplementData_of_majorantOnFullDataC
-lemma_3_4DataC
-lemma_4_14_local_two_epsilonC
-lemma_4_3_A_n_apart_data
-lt_cotrans_data
-noncomputable
-pos_witness
-profile_level_sets_integrable_apartC
-profile_level_sets_integrable_apart_globalC
-profile_partition_dataC
-profile_smooth_away_from_sequenceC
-propext
-regularSeqLtData_cotrans
-relEventually
-ring
-smul_mem
-srcGauge_le_halfPow
-thm36B1_apartPointDataC
-thm36B1_apart_data
-thm36B1_exists_apart_in_interval
-thm36B_smoothPointDataC_construct
-thm_3_5_smooth_aeC
-thm_3_6_all_posC
-toIntSpaceC
-twoPointDef11
-uniform_complement_from_profile_levelsC
-v4.30.0
+# --- decl (98) ---
+decl BFunC
+decl BishopC.COF.lt_cotrans_data
+decl Classical.choice
+decl BishopCReal.CReal
+decl BishopCReal.CRealQuot
+decl BishopCheng.ComplementedSet
+decl BishopSec3P.bishop_cheng_thm_4_15_propC
+decl BishopSec3P.lemma43DyadicSmoothDataC_construct
+decl BishopSec3P.lemma43UniformComplementData_of_majorantC
+decl BishopSec3P.lemma_3_4DataC
+decl BishopSec3P.thm_3_5_smooth_aeC
+decl BishopSec3P.thm_3_6_all_posC
+decl CRealQuot
+decl ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC
+decl ChoiceFreeMeasureDCT.dominated_convergence_from_error_majorant_profileC
+decl ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_good_set_profileC
+decl ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_on_full_dataC
+decl ChoiceFreeMeasureDCT.dominated_convergence_from_pointwise_majorant_profileC
+decl ChoiceFreeMeasureDCT.integral_convergence_from_majorant_measure_convergenceC
+decl ChoiceFreeMeasureDCT.integral_convergence_from_majorant_on_full_dataC
+decl ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_measure_convergenceC
+decl ChoiceFreeMeasureDCT.l1_error_convergence_from_majorant_on_full_dataC
+decl ChoiceFreeMeasureDCT.profile_level_sets_integrable_apart_globalC
+decl ChoiceFreeMeasureDCT.profile_partition_dataC
+decl ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC
+decl ChoiceFreeMeasureDCT.uniform_complement_from_profile_levelsC
+decl ConvergeInMeasureC
+decl CutConstWitnessC
+decl DominatedOnFullC
+decl DominatedOnFullDataC
+decl DominatedOnFullDataC.ofGlobal
+decl Exists
+decl IntSpaceC
+decl IntSpaceC.cutNat_tendsto_raw
+decl IntSpaceC.cutSmall_tendsto_raw
+decl IntSpaceC.cutZero_mem
+decl IntegrationSpace
+decl IntegrationSpaceDef11
+decl IntegrationSpaceDef11.I_add
+decl IntegrationSpaceDef11.I_nonneg
+decl IntegrationSpaceDef11.I_resp
+decl IntegrationSpaceDef11.I_smul
+decl IntegrationSpaceDef11.L_resp
+decl IntegrationSpaceDef11.abs_mem
+decl IntegrationSpaceDef11.continuity
+decl IntegrationSpaceDef11.cutPos_mem
+decl IntegrationSpaceDef11.cutSmall_tendsto_of_src
+decl IntegrationSpaceDef11.cutSmall_tendsto_of_src
+decl IntegrationSpaceDef11.pos_witness
+decl IntegrationSpaceDef11.smul_mem
+decl IntegrationSpaceDef11.toIntSpaceC
+decl IsFullC
+decl Lemma43DyadicSmoothDataC
+decl PSum
+decl PUnit
+decl PosEventuallyData
+decl Prop
+decl Quot.sound
+decl Quotient.exact
+decl Real
+decl RegularSeq
+decl RepSeriesTendsto
+decl RepSeriesTendstoEpsPropC
+decl Thm36B1ApartPointDataC
+decl True
+decl Type
+decl add_mem
+decl bishop_cheng_dominated_convergence_propC
+decl bishop_cheng_thm_4_15_propC
+decl dominated_convergence_from_pointwise_majorant_on_full_data_autoC
+decl exists_nat_geC
+decl integral_diff_lt_of_abs_error_integral_ltC
+decl lemma43DyadicSmoothDataC_construct
+decl lemma43UniformComplementData_of_majorantC
+decl lemma43UniformComplementData_of_majorantOnFullDataC
+decl lemma_3_4DataC
+decl lemma_4_14_local_two_epsilonC
+decl lemma_4_3_A_n_apart_data
+decl profile_level_sets_integrable_apartC
+decl profile_level_sets_integrable_apart_globalC
+decl profile_partition_dataC
+decl profile_smooth_away_from_sequenceC
+decl propext
+decl regularSeqLtData_cotrans
+decl relEventually
+decl srcGauge_le_halfPow
+decl thm36B1_apartPointDataC
+decl thm36B1_apart_data
+decl thm36B1_exists_apart_in_interval
+decl thm36B_smoothPointDataC_construct
+decl thm_3_5_smooth_aeC
+decl thm_3_6_all_posC
+decl twoPointDef11
+decl uniform_complement_from_profile_levelsC
+version v4.30.0
+
+decl BishopCheng.boolPts
+decl Bool
+decl boolIndicator_integral_pos
+decl boolTwoPoint_not_concentrated
+decl boolTwoPointDef11
+
+# --- module (8) ---
+module Mathdemo
+module Mathdemo.CheckSec3PortAxioms
+module Mathdemo.ChoiceFreeDCTConcreteExamples
+module Mathdemo.ChoiceFreeDCTExamples
+module Mathdemo.DiracIntegrationSpace
+module Mathdemo.FiniteWeightedIntegrationSpace
+module Mathdemo.MathematicalInterface
+module Mathdemo.SourceIntegrationSpaceDef11
+
+# --- ns (3) ---
+ns BishopSec1P
+ns BishopSec3P
+ns ChoiceFreeMeasureDCT
+
+# --- dir / corn ---
+corn CMTMeasurableFunctions.v
+corn CMTprofile.v
+dir Mathdemo/Internal/Measure
+dir Mathdemo/Internal/Sec4

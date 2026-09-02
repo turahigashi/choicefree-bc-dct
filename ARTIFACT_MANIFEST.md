@@ -55,7 +55,7 @@ cd audits/corn && sha256sum -c SHA256SUMS
 
 `./build_audit.sh` runs the public theorem build, the public alias files, and the strengthened static no-choice audit. The script writes local rerun logs to `logs/build_audit.rerun.txt` and `logs/static_audit.rerun.txt`; shipped reference logs remain stable.
 
-Release status: on 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs in the shipped log; the 2870-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 513` — the same closure set as v0.3.0 and v0.4.0. The shipped logs `logs/build_audit.txt`, `logs/static_audit.txt`, `logs/mathdemo_build.txt` and `logs/reading_layer_axioms.txt` record that run (`artifact_version=0.6.0`), taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`; no shipped log names a path from before that regrouping.  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 94 reading-layer declarations (93 report `[propext, Quot.sound]`, one reports no axioms). The 513 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
+Release status: on 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs in the shipped log; the 2870-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 513` — the same closure set as v0.3.0 and v0.4.0. The shipped logs `logs/build_audit.txt`, `logs/static_audit.txt`, `logs/mathdemo_build.txt` and `logs/reading_layer_axioms.txt` record that run (`artifact_version=0.6.0`), taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`; no shipped log names a path from before that regrouping.  Two further evidence logs are shipped: `logs/mathdemo_build.txt`, the aggregate build, and `logs/reading_layer_axioms.txt`, the kernel axiom output of all 104 reading-layer declarations (102 report `[propext, Quot.sound]`, two report no axioms). The 513 Lean files tracked by the repository coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
 
 ## Expected result summary
 
@@ -65,7 +65,10 @@ Release status: on 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 
 - The build log contains no `Classical.choice`, `Classical.choose`, `sorryAx`, `native_decide`, or `Quot.out` in the axiom output for the audited declarations.
 - The strengthened static audit finds no executable occurrence of `sorry`, `admit`, `Classical.choice`, `Classical.choose`, `Classical.`, `native_decide`, `Quot.out`, `unsafe`, `open Classical`, `open scoped Classical`, or standalone `classical` in the public Lean source closure.
 - The packaged CoRN audit reports `CvMeasure`, `DominatedMeasureCvZero`, and `DominatedConvergence` as `Closed under the global context` at CoRN commit `ada7c0b497ff15dd67cf7932c6f20e143a2aee2f` using Rocq 9.0.1.
-- `SHA256SUMS` excludes local rerun logs so that rerunning the audit does not invalidate the shipped reference checksums.
+- `SHA256SUMS` covers the tracked tree with five exclusions: the two checksum files themselves
+  (`SHA256SUMS`, `audits/corn/SHA256SUMS`), the paper sources (`paper/paper.tex`, `paper/paper.pdf`),
+  and `tools/reachable_core.lean`; the local rerun logs are untracked, so rerunning the audit does not
+  invalidate the shipped reference checksums.
 
 ## Development-line additions
 

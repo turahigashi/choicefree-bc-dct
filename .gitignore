@@ -7,6 +7,7 @@ build/
 logs/build_audit.rerun.txt
 logs/static_audit.rerun.txt
 logs/reading_layer_axioms.rerun.txt
+logs/public_surface.rerun.txt
 .lake/reading_layer_axioms_check.lean
 paper/*.aux
 paper/*.log

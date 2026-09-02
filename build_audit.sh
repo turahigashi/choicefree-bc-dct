@@ -35,6 +35,12 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   python3 tools/generate_reading_layer_axioms.py --output .lake/reading_layer_axioms_check.lean
   lake env lean .lake/reading_layer_axioms_check.lean > logs/reading_layer_axioms.rerun.txt
   python3 tools/check_reading_layer_axioms.py logs/reading_layer_axioms.rerun.txt
+  echo "== public-surface invariant =="
+  lake env lean -R . tools/public_surface_check.lean > logs/public_surface.rerun.txt 2>&1
+  diff -u logs/public_surface.txt logs/public_surface.rerun.txt
+  echo "PUBLIC SURFACE INVARIANT PRESERVED"
+  echo "== frozen-name check =="
+  ./tools/check_frozen_names.sh
   echo "== python3 tools/static_no_choice_audit.py =="
   python3 tools/static_no_choice_audit.py | tee "$STATIC_LOG"
 } 2>&1 | tee "$RUN_LOG"

@@ -10,13 +10,22 @@ This file gives the finite generalization: a list of points `pts 0, …, pts N`
 * `L`  = the partial functions defined at every listed point, and
 * `I f = Σ_{i ≤ N} f (pts i)`.
 
-Repetition realizes weights: listing a point `k` times gives it weight `k`, so
-after the normalization required by clause (3) — the constant function with
-value `m⁻¹`, where `m = N + 1` is the number of slots — this family realizes
-every finitely supported measure with positive rational weights of the form
-`k/m`.  The instance provided at the end of the file (`twoPointDef11`) is the
+Repetition realizes integer multiplicities: listing a point `k` times gives it
+multiplicity `k`.  Clause (3) asks only that *some* `p ∈ L` satisfy `I p = 1`;
+it does not rescale `I`.  That clause is discharged here by the constant
+function with value `m⁻¹`, where `m = N + 1` is the number of slots, since the
+`m` copies of `m⁻¹` sum to `1`.  The functional itself stays the unscaled sum,
+so the integral of a characteristic function counts the listed points the set
+contains: an integer between `0` and `m`, and not a weight of the form `k/m`.
+The instance provided in the middle of the file (`twoPointDef11`) is the
 two-slot case with the constant `1/2 = eps 1`, for which the normalization
 identity `eps 1 + eps 1 = eps 0 = 1` is already in the development.
+
+On a general `X` nothing forces the two slots of `twoPointDef11 x₀ x₁` to be
+distinct — this interface carries no apartness structure on `X` — so if
+`x₀ = x₁` the functional is twice the evaluation at `x₀`.  The `Bool` section at
+the end of the file removes that possibility and is what certifies that the
+axioms admit a model which is not a point mass.
 
 The mathematical content beyond the Dirac model is clause (2).  For a single
 point the continuity clause is the identity; for several points it requires
@@ -361,6 +370,72 @@ noncomputable def twoPointIntSpaceC (x₀ x₁ : X) : IntSpaceC X :=
   finPtsIntSpaceC (fun i => match i with | 0 => x₀ | _ => x₁) 1
     (constSeq (eps 1)) twoPoint_norm
 
+/-! ## A closed two-point instance on `Bool`
+
+`twoPointDef11` is unconditional but takes its two points as parameters, and on
+a general `X` they may coincide.  Specializing to `Bool` settles the question:
+`false` and `true` are distinct, and because equality on `Bool` is decidable the
+characteristic function of each is definable without any appeal to choice.  The
+two theorems below show that both singletons carry positive measure, and hence
+that the functional is the evaluation at neither point. -/
+
+/-- The two slots `false` and `true`. -/
+def boolPts : Nat → Bool
+  | 0 => false
+  | _ => true
+
+/-- **A two-point integration space on `Bool`.**  The instance of
+`twoPointDef11` at the two distinct booleans; it has no parameters left. -/
+noncomputable def boolTwoPointDef11 : IntegrationSpaceDef11 Bool :=
+  twoPointDef11 false true
+
+/-- The Definition 2.1 interface for that space. -/
+noncomputable def boolTwoPointIntSpaceC : IntSpaceC Bool :=
+  twoPointIntSpaceC false true
+
+/-- The characteristic function of `{b}`, total on `Bool`. -/
+def boolIndicator (b : Bool) : BFunC Bool where
+  dom := Set.univ
+  toFun := fun x _ => if x = b then CReal.one else CReal.zero
+
+theorem boolIndicator_mem (b : Bool) : boolIndicator b ∈ finPtsL boolPts 1 :=
+  fun _ _ => Set.mem_univ _
+
+/-- The carrier of `boolTwoPointDef11` is the one the theorems below use. -/
+theorem boolTwoPointDef11_L : boolTwoPointDef11.L = finPtsL boolPts 1 := rfl
+
+/-- `0 < 1` on the representative layer. -/
+theorem zero_lt_oneC : regularSeqLtProp CReal.zero CReal.one :=
+  regularSeqLtProp_of_right_eventual halfPow_zero (regularSeqLtProp_zero_halfPow 0)
+
+/-- Each singleton has integral `1`: the sum has one term `1` and one term `0`. -/
+theorem boolIndicator_integral (b : Bool) :
+    relEventually
+      (finPtsI boolPts 1 (boolIndicator b) (boolIndicator_mem b)) CReal.one := by
+  cases b
+  · exact addSeq_zero_right_eventually CReal.one
+  · exact addSeq_zero_left_eventually CReal.one
+
+/-- **Both singletons carry positive measure.**  Since `false` and `true` are
+distinct, the measure of `boolTwoPointDef11` is not carried by one point. -/
+theorem boolIndicator_integral_pos (b : Bool) :
+    regularSeqLtProp CReal.zero
+      (finPtsI boolPts 1 (boolIndicator b) (boolIndicator_mem b)) :=
+  regularSeqLtProp_of_right_eventual
+    (relEventually_symm _ _ (boolIndicator_integral b)) zero_lt_oneC
+
+/-- **The functional is the evaluation at neither point.**  For each `x : Bool`
+an element of `L` is exhibited whose integral is strictly greater than its value
+at `x`; the witness is the characteristic function of the other boolean. -/
+theorem boolTwoPoint_not_concentrated (x : Bool) :
+    ∃ (f : BFunC Bool) (hf : f ∈ finPtsL boolPts 1) (hx : x ∈ f.dom),
+      regularSeqLtProp (f.toFun x hx) (finPtsI boolPts 1 f hf) := by
+  cases x
+  · exact ⟨boolIndicator true, boolIndicator_mem true, Set.mem_univ _,
+      boolIndicator_integral_pos true⟩
+  · exact ⟨boolIndicator false, boolIndicator_mem false, Set.mem_univ _,
+      boolIndicator_integral_pos false⟩
+
 #print axioms BishopCheng.addSeq_add_add_swap_eventually
 #print axioms BishopCheng.regularSeqFinSum_add_termwise
 #print axioms BishopCheng.le_regularSeqFinSum_of_nonneg_upto
@@ -371,5 +446,10 @@ noncomputable def twoPointIntSpaceC (x₀ x₁ : X) : IntSpaceC X :=
 #print axioms BishopCheng.finPtsIntSpaceC
 #print axioms BishopCheng.twoPointDef11
 #print axioms BishopCheng.twoPointIntSpaceC
+#print axioms BishopCheng.boolTwoPointDef11
+#print axioms BishopCheng.boolTwoPointIntSpaceC
+#print axioms BishopCheng.boolIndicator_integral
+#print axioms BishopCheng.boolIndicator_integral_pos
+#print axioms BishopCheng.boolTwoPoint_not_concentrated
 
 end BishopCheng

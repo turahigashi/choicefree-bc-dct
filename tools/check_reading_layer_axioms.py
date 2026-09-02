@@ -6,7 +6,7 @@ declaration reports axioms outside {propext, Quot.sound}.
 """
 import re, sys
 
-EXPECTED = 94
+EXPECTED = 104
 ALLOWED = "[propext, Quot.sound]"
 
 def main(path):

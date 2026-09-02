@@ -54,7 +54,7 @@ def main() -> int:
     frozen_path = ROOT / 'tools' / 'frozen_names.txt'
     stale = []
     if frozen_path.exists():
-        frozen = {l.strip() for l in read(frozen_path).splitlines()
+        frozen = {l.strip().split(None, 1)[1].strip() for l in read(frozen_path).splitlines()
                   if l.strip() and not l.startswith('#')}
         EXCL = {'DominatedConvergence','MeasureTheory','_autoC','admit','extern','simp',
                 'thm_4_15_dominated_convergence','ContinuousOn','lemma33_lt_of_not_le',
@@ -62,7 +62,11 @@ def main() -> int:
                 'sorry','sorryAx','native_decide','unsafe','implemented_by','private',
                 'Classical.choice','Classical.choose','Quot.out','Quotient.out',
                 'ofReduceBool','ConstructiveReals','CR_cv','CRuncountable','CvMeasure',
-                'DominatedMeasureCvZero','mathlib','SHA256SUMS','debug.skipKernelTC'}
+                'DominatedMeasureCvZero','mathlib','SHA256SUMS','debug.skipKernelTC',
+                # ordinary words and keywords the prose prints in \texttt: not identifiers
+                'classical','ring','axiom','noncomputable','lemma','structure','instance',
+                # a banned-token spelling in the static audit, not an identifier
+                'Classical.'}
         named = set()
         for m in re.findall(r'\\(?:path|texttt)\{([^}]*)\}', read(paper)):
             t = m.replace('\\_', '_').strip()
@@ -73,7 +77,12 @@ def main() -> int:
             if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.']*", t) and len(t) > 3:
                 named.add(t)
         src = '\n'.join(read(p) for p in lean)
-        for t in sorted(named - frozen - EXCL):
+        # The paper may print a short form of a name the list records in full.
+        # Treat "X" as listed when some entry ends with ".X" or "/X".
+        def listed(t):
+            return t in frozen or any(f.endswith('.' + t) or f.endswith('/' + t)
+                                      for f in frozen)
+        for t in sorted(n for n in named - EXCL if not listed(n)):
             short = t.split('.')[-1]
             if re.search(r'\b' + re.escape(short) + r'\b', src):
                 stale.append(t)
