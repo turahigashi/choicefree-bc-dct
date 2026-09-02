@@ -35,7 +35,7 @@ For the named public declarations the kernel reports an axiom footprint confined
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
 
 \bigskip
-\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean.  One construction is an exception: the countable-avoidance step of Section~\ref{sec:profile-theory} is described there down to the mechanism---where the cut points are placed and why the width contracts---but the recursion, the width estimate and the Cauchy data are carried out in Appendix~\ref{sec:b-avoidance}, and a reader who wants that step at the level of a proof rather than a description should go there or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  
+\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  One construction is an exception to that level of detail: the countable-avoidance step of Section~\ref{sec:profile-theory} is described there down to the mechanism---where the cut points are placed and why the width contracts---but the recursion, the width estimate and the Cauchy data are carried out in Appendix~\ref{sec:b-avoidance}, and a reader who wants that step at the level of a proof rather than a description should go there.  
 
 Throughout the paper, ``the source'' refers to Bishop and Cheng's memoir \emph{Constructive Measure Theory}~\cite{bishop-cheng-1972}; Bishop's \emph{Foundations of Constructive Analysis}~\cite{bishop-1967} is always cited by name.  
 
@@ -267,8 +267,8 @@ Let $(F,\lambda)$ be a profile on $[a,b]$.  Then all but countably many points o
 \end{theorem}
 
 The statement is the source's, and ``all but countably many'' is read here in its
-constructive sense: what is produced is a sequence, and the points it does not name
-are the smooth ones.  That is the form the development proves and the form the rest
+constructive sense: what is produced is an explicit sequence $T$, and every point
+\emph{apart from} every term of $T$ is smooth.  That is the form the development proves and the form the rest
 of this paper uses, so it is worth having in front of the reader---it is
 Theorem~\ref{thm:b-exception}: one constructs an explicit sequence $T=(T_n)$ such
 that every $t$ \emph{apart from} every $T_n$ is a smooth level.  Apartness, not
@@ -721,7 +721,7 @@ so declarations carrying other modifiers, or not starting at the beginning of a 
 
 The contents were fixed by an explicit criterion rather than by a judgment of mathematical importance.  The starting point is reachability: seed with every declaration of the modules that carry a claim of this paper---the public aliases of Section~\ref{sec:formalization}, the reading interface, the transcription of Definition~1.1 with its adapter, the three concrete models, and the axiom-check modules---and take the transitive closure of the constants occurring in the type and in the value of each declaration.
 
-That closure is not by itself a tree that compiles, and the gap is not small.  The tree the stripping started from held $20{,}817$ declarations.  Reachability selects a minority of them, and more have to be added before the type checker accepts the result: material reached through elaboration rather than through a proof term---instances, \texttt{simp} lemmas, notation---and declarations that the audit modules name in \texttt{\#check} and \texttt{\#print axioms} commands, which are not proof terms at all.  The additions were identified by iterating: remove the complement, compile, and restore what the failure identifies---by name where a constant is unknown, and by locating the elaboration-time dependency where the message names only a class to synthesize or nothing at all.  The contents are a fixed point of that iteration: a set containing the closure on which the build succeeds, obtained by restoring on failure and nothing else.  No minimality among compiling supersets is claimed.  In the tree as shipped the split is $2{,}552$ declarations reachable from the claim-carrying modules against $2{,}879$ not reachable, $5{,}431$ in all; these three figures are produced by \path{tools/reachable_core.lean}, whose output is shipped as \path{logs/reachable_core.txt}.  The reachable ones are connected to a claim of this paper by construction.  For the rest, the description above is of the procedure the authors followed, not of a property the shipped evidence certifies: the iteration logs are not shipped, and what the machine evidence checks is the final build and the final reachability counts.
+That closure is not by itself a tree that compiles, and the gap is not small.  The tree the stripping started from held $20{,}817$ declarations.  Reachability selects a minority of them, and more have to be added before the type checker accepts the result: material reached through elaboration rather than through a proof term---instances, \texttt{simp} lemmas, notation---and declarations that the audit modules name in \texttt{\#check} and \texttt{\#print axioms} commands, which are not proof terms at all.  The additions were identified by iterating: remove the complement, compile, and restore what the failure identifies---by name where a constant is unknown, and by locating the elaboration-time dependency where the message names only a class to synthesize or nothing at all.  The contents are a fixed point of that iteration: a set containing the closure on which the build succeeds, obtained by restoring on failure and nothing else.  No minimality among compiling supersets is claimed.  In the tree as shipped the split is $2{,}552$ declarations reachable from the claim-carrying modules against $2{,}879$ not reachable, $5{,}431$ in all; these three figures are produced by \path{tools/reachable_core.lean}, whose output is shipped as \path{logs/reachable_core.txt}.  The reachable ones are connected to a claim of this paper by construction.  For the rest, the description above is of the procedure the author followed, not of a property the shipped evidence certifies: the iteration logs are not shipped, and what the machine evidence checks is the final build and the final reachability counts.
 
 No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}958$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
@@ -910,7 +910,7 @@ The dependency structure of the proof, with the status of each stage relative to
 \begin{itemize}[leftmargin=2em]
 \item Clauses (1)--(4) of Definition~1.1 $\Rightarrow$ Lemma~1.2 $\Rightarrow$ Corollary~1.3 at $k=1$ $\Rightarrow$ positivity of $I$.  Status: as in the source; that positivity is derivable, so that carrying it as an axiom is unnecessary, is an observation of this development (Appendix~\ref{sec:b-truncation}).
 \item Coded profile and the partition data of Lemma~3.4 $\Rightarrow$ Theorem~3.5 (smoothness) together with the explicit exception sequence.  Status: statements as in the source; the coded form and the sequence-returning form are formalization-specific (Appendices~\ref{sec:b-coded}, \ref{sec:b-exception}).
-\item Presented-real order with cotransitivity as data $\Rightarrow$ countable avoidance by a two-point cut with a margin.  Status: the statement is Bishop's; the two-point cut is where the construction departs from the classical bisection (Appendices~\ref{sec:b-order}, \ref{sec:b-avoidance}).
+\item Presented-real order with cotransitivity as data $\Rightarrow$ countable avoidance by cut points fixed in advance at a margin.  Status: the statement is Bishop's, and so is the comparison against a separated pair; what the formalization supplies is the margin, fixed before the point is read (Appendices~\ref{sec:b-order}, \ref{sec:b-avoidance}).
 \item Avoidance applied to the exception sequence $\Rightarrow$ apart thresholds $\Rightarrow$ Theorem~3.6: the $A$ pair and the $B$ pair constructed independently, with the measure equality; the signed double series over a fixed shell enumeration is consumed here (Appendices~\ref{sec:b-mirror}, \ref{sec:b-series}).
 \item Dyadic levels $\alpha_n\in(2^{-(n+1)},2^{-n})$ as data (source Lemma~4.3) $\Rightarrow$ uniform complement estimate returning $(A,N,\delta)$ (source: hypotheses of Lemma~4.14 and the construction inside Theorem~4.13) $\Rightarrow$ two-part estimate (Lemma~4.14) $\Rightarrow$ Theorem~\ref{thm:prop-dct} $=$ source Theorem~4.15, with full-set domination and the majorant $H=|g|+|f|$ (Appendix~\ref{sec:b-uniform}).
 \end{itemize}
@@ -921,7 +921,7 @@ The differences concentrate at four places.
 
 \emph{(b) From ``countably many'' to an explicit sequence.}  Theorem~3.5's ``all but countably many'' cannot be handed to the avoidance construction as stated; only the form that returns an explicit sequence can be (Appendix~\ref{sec:b-exception}).
 
-\emph{(c) From a one-point bisection to a two-point cut.}  Inside the avoidance, the classical bisection at a midpoint is undecidable.  A margin is introduced, the interval is cut at two points, and the middle is discarded (Appendix~\ref{sec:b-avoidance}).
+\emph{(c) From an appeal to a separated pair to a margin fixed in advance.}  Inside the avoidance, a split at a midpoint is undecidable, and Bishop compares against a separated pair instead.  A margin is fixed before the point is read, the interval is cut at the two points it determines, and the middle is discarded (Appendix~\ref{sec:b-avoidance}).
 
 \emph{(d) The $B$ pair does not follow from the $A$ pair.}  Where the source dismisses the $B$ side as essentially similar, the fact that $\le$ is $\neg<$ forces an independent construction, with the monotonicity and the usable implications reversed (Appendix~\ref{sec:b-mirror}).
 
@@ -970,7 +970,7 @@ The essential point is that \emph{a gap is needed}.  If $x<y$ were not held---if
 \subsection{Countable avoidance by a two-point cut with a margin}
 \label{sec:b-avoidance}
 
-This is the most characteristic construction of the development.  The goal is the following theorem, which is exactly the assertion of Bishop's well-known nested-interval method---the \emph{statement} is known.  Carrying it out as a construction over presented reals, however, cannot use the classical bisection.
+This is the most characteristic construction of the development.  The goal is the following theorem, which is exactly the assertion of Bishop's well-known nested-interval method---the \emph{statement} is known, and so is the method.  Carrying it out as a construction over presented reals, however, cannot use a midpoint split, and needs the comparison points to be fixed in advance.
 
 \begin{theorem}[Countable avoidance; $=$ Lemma~\ref{lem:avoid}]
 \label{thm:b-avoid}
@@ -981,9 +981,11 @@ a<t<b,\qquad 0<|t-s_j|\quad(\forall j).
 No choice principle is used.
 \end{theorem}
 
-\emph{Why the classical bisection fails.}  Classically one takes the midpoint $m=\tfrac{l+r}{2}$ of the current interval $[l,r]$ and keeps the right half if $s_j\le m$, the left half otherwise.  But as noted after Fact~\ref{fact:b-cotrans}, the position of $s_j$ relative to the \emph{single} point $m$ cannot be decided, so this branch cannot be constructed.
+\emph{Why a midpoint split fails.}  A classical argument takes the midpoint $m=\tfrac{l+r}{2}$ of the current interval $[l,r]$ and keeps the right half if $s_j\le m$, the left half otherwise.  But as noted after Fact~\ref{fact:b-cotrans}, the position of $s_j$ relative to the \emph{single} point $m$ cannot be decided, so this branch cannot be constructed.
 
-\emph{The resolution: cut at two points and discard the middle.}  With two points separated by a gap, Fact~\ref{fact:b-cotrans} applies as it stands.
+\emph{Comparing against two separated points: Bishop's step.}  Bishop's own proof of the theorem does not split at a midpoint.  It compares $s_j$ against a \emph{separated pair}, the branch being furnished by the corollary to Proposition~7 of the same chapter~\cite[Ch.~2]{bishop-1967}, and keeps a subinterval clear of $s_j$.  That is Fact~\ref{fact:b-cotrans} applied as it stands, and it is the step this construction follows; nothing below is a departure from it.
+
+\emph{What the formalization adds: a margin fixed in advance.}  What has to be supplied to carry the step out as a construction is the \emph{schedule}: the two points must be produced before $s_j$ is looked at, with a separation known in advance, so that the branch is a function of rational approximations rather than of an appeal to the pair's existence.  That is the margin below, and the width estimate that follows from it.
 
 \begin{definition}[Margin and cut points]
 \label{def:b-margin}
@@ -1035,7 +1037,7 @@ q_L-l=\sigma(w)=\tfrac14w\;\le\;\tfrac14\,(b-a)2^{-n}\;\le\;(b-a)2^{-(n+1)} .
 
 \begin{remark}[Discarding the middle]
 \label{rem:b-middle}
-The surviving interval has $\tfrac14$ of the original width, smaller than the $\tfrac12$ of the classical bisection.  This is not a benefit of faster convergence; it is the consequence of being forced to \emph{abandon the central half}.  The classical argument exhausts the interval by the two-way split ``left or right''; constructively that split is undecidable, and only after surrendering the region between the two cut points does a decidable two-way split appear.  This operation---replacing an undecidable dichotomy by a decidable one purchased with a margin---recurs throughout the development (Appendix~\ref{sec:b-onepoint}).
+The surviving interval has $\tfrac14$ of the original width, smaller than the $\tfrac12$ a midpoint split would give.  This is not a benefit of faster convergence; it is the consequence of being forced to \emph{abandon the central half}.  The classical argument exhausts the interval by the two-way split ``left or right''; constructively that split is undecidable, and only after surrendering the region between the two cut points does a decidable two-way split appear.  This operation---replacing an undecidable dichotomy by a decidable one purchased with a margin---recurs throughout the development (Appendix~\ref{sec:b-onepoint}).
 \end{remark}
 
 \begin{proof}[Proof of Theorem~\ref{thm:b-avoid}]
@@ -1254,7 +1256,7 @@ The difficulties:
 \hline
 Item & Status & Ground \\
 \hline
-Two-point cut with a margin (Appendix~\ref{sec:b-avoidance}) & difficulty & a one-point bisection is undecidable; a margin makes cotransitivity applicable, at the price of discarding the middle \\
+Cut points fixed in advance at a margin (Appendix~\ref{sec:b-avoidance}) & difficulty & comparing against a separated pair is Bishop's step; what the formalization supplies is a margin fixed before the point is read, at the price of discarding the middle \\
 Coded profiles (Appendix~\ref{sec:b-coded}) & difficulty, reusable & no witness extraction from extensional objects; the separation clause \emph{returns} a code \\
 Explicit exception sequence (Appendix~\ref{sec:b-exception}) & difficulty & ``all but countably many'' must become ``away from this sequence'' before avoidance applies \\
 Mirror of the $A$ pair and the $B$ pair (Appendix~\ref{sec:b-mirror}) & difficulty & $\le$ is $\neg<$, so $B$ is not a corollary of $A$; approximation from opposite sides reverses monotonicity and usable implications \\
