@@ -1,6 +1,6 @@
 # choicefree-bc-dct
 
-Version: 0.6.0
+Version: 0.6.0  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
 
 DOI (this version): [10.5281/zenodo.22257007](https://doi.org/10.5281/zenodo.22257007)  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
