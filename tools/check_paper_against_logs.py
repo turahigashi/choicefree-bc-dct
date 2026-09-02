@@ -1,12 +1,21 @@
 #!/usr/bin/env python3
-"""check_paper_against_logs.py --- the paper's figures must match the shipped logs.
+"""check_paper_against_logs.py --- selected numeric invariants and frozen-name coverage.
 
-    python3 tools/check_paper_against_logs.py
+    python3 tools/check_paper_against_logs.py [paper/paper.tex]
 
-Every number the paper states about the artifact is produced by a run recorded in
-`logs/`.  Stating one by hand invites the two to drift, and a paper whose subject is
-auditing cannot afford that.  This script reads the figure out of the log and checks
-that the paper contains it.  It does not edit the paper; it fails.
+Numbers the paper states about the artifact are produced by runs recorded in `logs/`.
+Stating one by hand invites the two to drift, and a paper whose subject is auditing
+cannot afford that.  This script reads a fixed set of figures out of the logs and
+checks that each appears somewhere in the TeX, and that the frozen-name list has not
+gone stale.  It does not edit the paper; it fails.
+
+Its scope is deliberately narrow, and the reader should not take a pass for more than
+it is.  It checks that a value occurs, not that it occurs in the right sentence, and
+it covers only the figures enumerated in `checks()` below.  Numbers stated in the
+paper but outside that list --- the reachability split, the source-item count, the
+public-alias closure, the reading-layer breakdown, the file-placement table --- are
+not compared here, and a passing run is no evidence about them.  Extending the list
+is the way to bring one under machine check.
 """
 from __future__ import annotations
 from pathlib import Path

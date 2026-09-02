@@ -79,8 +79,8 @@ def main : IO Unit := do
     m2 := m2.insert p ((m2.getD p 0) + 1)
   for (k,v) in (m2.toList.toArray.qsort (fun a b => a.2 > b.2)).toList.take 12 do
     IO.println s!"  {v}\t{k}"
-  IO.println s!"\nmodules touched by reachable declarations : {m2.size} / 511"
-  IO.println s!"modules holding unreachable declarations : {m.size} / 511"
+  IO.println s!"\nmodules touched by reachable declarations : {m2.size} / {ourMods.size}"
+  IO.println s!"modules holding unreachable declarations : {m.size} / {ourMods.size}"
   -- ★試行錯誤の痕跡（iter 系）を分離する
   -- モジュール名の最後の成分で判定する
   let isIter (mo : Name) : Bool :=
@@ -104,6 +104,6 @@ def main : IO Unit := do
   IO.println s!"\nby file"
   IO.println s!"  modules containing a reachable declaration : {liveMods.size} / {ourMods.size}"
   IO.println s!"  candidates for removal (containing none) : {dead.size} / {ourMods.size}"
-  IO.println s!"iteration-named modules : {iterMods.size} / 511"
+  IO.println s!"iteration-named modules : {iterMods.size} / {ourMods.size}"
   IO.println s!"  their declarations : {iterAll.size}   reachable {iterUsed.size}  ({(iterUsed.size*100)/(max iterAll.size 1)}%)"
   IO.println s!"  the rest : {restAll.size}   reachable {restUsed.size}  ({(restUsed.size*100)/(max restAll.size 1)}%)"
