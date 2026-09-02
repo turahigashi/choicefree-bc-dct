@@ -214,12 +214,6 @@ noncomputable def genIB_rep_from_residualData
     (sec4IBLayerSetMapData_of_residualData B hB f hnn G)
 
 
-/-- General relative integral from residual analytic data and the raw maps. -/
-noncomputable def genRelIntegral_from_residualData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerResidualData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_residualData B hB f hnn G).integral
 
 
 /-- Non-negativity from residual analytic data and the raw maps. -/

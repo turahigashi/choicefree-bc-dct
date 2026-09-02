@@ -219,66 +219,12 @@ noncomputable def genIB_rep_from_tailData
   (sec4IB_baseRep B hB f hnn).add (sec4IB_tailRep B hB f hnn H)
 
 
-/-- Relative integral from the direct candidate. -/
-noncomputable def genRelIntegral_from_tailData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (H : Sec4IBTailData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_tailData B hB f hnn H).integral
 
 
 /-! ## 4. Bridges for the next kernel-loop chunks -/
 
-/--
-The value-identification target for the direct construction.
-
-This is intentionally stated without introducing a new characteristic function
-object for the general measurable set `B`: on `B.S1` the value must be the
-value of `f`; on `B.S2` it must be zero.  The domain-side union information is
-included because it is needed later for relative-integral convergence theorems.
--/
-structure Sec4IBValueBridge
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (H : Sec4IBTailData (S := S) B hB f hnn) : Prop where
-  domain :
-    ∀ x (hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x),
-      RSeq.SeriesSum (fun n => COF.abs
-        ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)) →
-      x ∈ B.S1 ∪ B.S2
-  value_one :
-    ∀ x,
-      x ∈ B.S1 →
-      ∀ hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x,
-      ∀ hflatabs : RSeq.SeriesSum
-        (fun n => COF.abs
-          ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)),
-      ∀ hfDom : f.MemAt x,
-      ∀ hfabs : RSeq.SeriesSum
-        (fun n => COF.abs (f.valueAt x hfDom n)),
-      (seriesSum_of_abs hflatabs).sum = (seriesSum_of_abs hfabs).sum
-  value_zero :
-    ∀ x,
-      x ∈ B.S2 →
-      ∀ hflatDom : (genIB_rep_from_tailData B hB f hnn H).MemAt x,
-      ∀ hflatabs : RSeq.SeriesSum
-        (fun n => COF.abs
-          ((genIB_rep_from_tailData B hB f hnn H).valueAt x hflatDom n)),
-      (seriesSum_of_abs hflatabs).sum = 0
 
 
-/--
-Consistency target with the previous relative integral for an already integrable
-set.  This is the splice point for the next chunk after the direct construction
-has been kernel-verified.
--/
-structure Sec4IBConsistencyBridge
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (H : Sec4IBTailData (S := S) C (isMeasurableSet_of_integrable hC) f hnn) : Prop where
-  integral_eq :
-    genRelIntegral_from_tailData C (isMeasurableSet_of_integrable hC) f hnn H =
-      relIntegral C hC f hnn
 
 
 end BishopC

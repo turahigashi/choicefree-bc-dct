@@ -194,12 +194,6 @@ noncomputable def genIB_rep_from_layerRelData
     (sec4IBTailData_of_layerRelData B hB f hnn G)
 
 
-/-- General relative integral from the safer value-level layer data. -/
-noncomputable def genRelIntegral_from_layerRelData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_layerRelData B hB f hnn G).integral
 
 
 /-- Non-negativity of the direct representative from the safer layer data. -/

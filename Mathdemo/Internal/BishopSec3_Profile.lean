@@ -71,24 +71,6 @@ structure Profile.p_prime_lt {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
   alpha_pos : COF.lt 0 alpha
   inner : P.p_lt (COF.max a (u - alpha)) (COF.min b (v + alpha)) delta
 
-/-- Technical lemma used in the public import closure. -/
-structure Lemma33Result {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (n : Nat) (eps : R) (delta : R) where
-  N : Nat
-  -- Technical note.
-  pts : Nat → R
-  -- Technical note.
-  pts_zero : pts 0 = a
-  pts_N : pts N = b
-  pts_mono : ∀ i, i < N → COF.lt (pts i) (pts (i + 1))
-  -- Technical note.
-  width_le : ∀ i, i < N → Le (pts (i + 1) - pts i) delta
-  -- Technical note.
-  M : Nat → Nat
-  -- (b) Σ M_i = n
-  sum_M : (List.range N).foldl (fun acc i => acc + M (i + 1)) 0 = n
-  -- (c) p'([a_{i-1}, a_i]) < (M_i + 1)ε
-  p_prime_cond : ∀ i, i < N → P.p_prime_lt (pts i) (pts (i + 1)) ((M (i + 1) + 1 : Nat) * eps)
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -233,10 +215,6 @@ theorem lemma33_sub_pos_of_lt {a b : R} (h : COF.lt a b) :
   convert h' using 1 <;> ring
 
 
-theorem lemma33_sub_nonpos_of_le {a b : R} (h : Le a b) :
-    Le (a - b) 0 := by
-  have h' := lemma33_add_le_add_right (c := -b) h
-  convert h' using 1 <;> ring
 
 
 theorem lemma33_mul_le_mul_right {a b c : R} (hab : Le a b) (hc : Nonneg c) :
@@ -313,30 +291,10 @@ theorem lemma33_natCast_mono {m k : Nat} (h : m ≤ k) : Le (m : R) (k : R) := b
   simpa [Nat.cast_add] using hs
 
 
-theorem lemma33_two_pow_pos (m : Nat) : 0 < 2 ^ m := by
-  induction m with
-  | zero => decide
-  | succ m ih =>
-      rw [pow_succ]
-      exact Nat.mul_pos ih (by decide)
 
 
-/-- `m+1 ≤ 2^(m+1)`. -/
-theorem lemma33_succ_le_two_pow_succ (m : Nat) : m + 1 ≤ 2 ^ (m + 1) := by
-  induction m with
-  | zero => decide
-  | succ m ih =>
-      have hone : 1 ≤ 2 ^ (m + 1) := by omega
-      rw [show m + 1 + 1 = (m + 1) + 1 by omega, pow_succ]
-      omega
 
 
-/-- The dyadic estimate used instead of an ordered inverse of `n+1`. -/
-theorem lemma33_two_mul_succ_le_two_pow (n : Nat) :
-    2 * (n + 1) ≤ 2 ^ (n + 2) := by
-  have h := Nat.mul_le_mul_left 2 (lemma33_succ_le_two_pow_succ n)
-  have he : 2 ^ (n + 2) = 2 * 2 ^ (n + 1) := by rw [pow_succ, Nat.mul_comm]
-  omega
 
 
 /-- Nat `2^m` and the scalar `twoPow m` agree. -/
@@ -402,21 +360,6 @@ theorem lemma33_prefix_le (u v : Nat → R) (N : Nat)
       simpa [lemma33Prefix] using lemma33_add_le_add hpre hlast
 
 
-theorem lemma33_prefix_const_lt (theta : R) (u : Nat → R) (N : Nat)
-    (hN : 0 < N) (h : ∀ j, j < N → COF.lt theta (u j)) :
-    COF.lt ((N : R) * theta) (lemma33Prefix u N) := by
-  induction N with
-  | zero => exact absurd hN (Nat.lt_irrefl 0)
-  | succ N ih =>
-      by_cases hNz : N = 0
-      · subst N
-        simpa [lemma33Prefix] using h 0 (by omega)
-      · have hNpos : 0 < N := Nat.pos_of_ne_zero hNz
-        have hpre : COF.lt ((N : R) * theta) (lemma33Prefix u N) :=
-          ih hNpos (fun j hj => h j (Nat.lt_trans hj (Nat.lt_succ_self N)))
-        have hlast : COF.lt theta (u N) := h N (Nat.lt_succ_self N)
-        have hs := lemma33_add_lt_add hpre hlast
-        convert hs using 1 <;> simp [lemma33Prefix, Nat.cast_succ] <;> ring
 
 
 theorem lemma33_prefix_natCast_mul (u : Nat → Nat) (eps : R) (N : Nat) :
@@ -728,1112 +671,6 @@ theorem lemma33H4_prefix_const_lt (theta : R) (u : Nat → R) (N : Nat)
         convert hs using 1 <;> simp [lemma33Prefix, Nat.cast_succ] <;> ring
 
 
-/-- Iteration 2: the Boolean cotransitive classifier and the constructive
-    approximate floor are wired through the complete Lemma 3.3 proof. -/
-theorem lemma_3_3 {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (eps : R) (heps : COF.lt 0 eps) (n : Nat)
-    (h_cond : COF.lt (P.lambda P.oneCode - P.lambda P.zeroCode)
-      (((n + 1 : Nat) : R) * eps))
-    (delta : R) (hdelta : COF.lt 0 delta) :
-    Nonempty (Lemma33Result P n eps delta) := by
-  let lamOne : R := P.lambda P.oneCode
-  let lamZero : R := P.lambda P.zeroCode
-  let D : R := lamOne - lamZero
-  let q : R := (((n + 1 : Nat) : R))
-
-  have hq : COF.lt 0 q := by
-    dsimp [q]
-    exact lemma33_natCast_succ_pos n
-
-  have hzero_one : Le (0 : R) 1 := le_of_lt COFO.one_pos
-  have hlam01 : Le lamZero lamOne := by
-    dsimp [lamZero, lamOne]
-    exact P.mono P.zeroCode P.oneCode P.has_zero P.has_one
-      (fun x _ _ => by simpa using hzero_one)
-  have hD : Nonneg D := by
-    dsimp [D]
-    exact nonneg_sub_of_le hlam01
-
-  let theta : R := COFO.inv q * D
-  have htheta : Nonneg theta := by
-    dsimp [theta]
-    exact COFO.mul_nonneg (le_of_lt (COFO.inv_pos hq)) hD
-  have htheta_eps : COF.lt theta eps := by
-    have hm : COF.lt theta (COFO.inv q * (q * eps)) :=
-      lemma33_mul_lt_mul_left h_cond (COFO.inv_pos hq)
-    rwa [lemma33_inv_mul_cancel_left hq eps] at hm
-
-  /- Step 1: a dyadic uniform grid.  The extra two powers encode the
-     `2 (n+1)` margin used in the counting contradiction. -/
-  let small : R := COF.halfPow (n + 2) * delta
-  have hsmall : COF.lt 0 small := by
-    dsimp [small]
-    exact COFO.mul_pos (halfPow_pos (n + 2)) hdelta
-  have hsmall_nn : Nonneg small := le_of_lt hsmall
-
-  let xarch : R := (b - a) * COFO.inv small
-  have hxarch : COF.lt 0 xarch := by
-    dsimp [xarch]
-    exact COFO.mul_pos (lemma33_sub_pos_of_lt hab) (COFO.inv_pos hsmall)
-  have hxarch_nn : Nonneg xarch := le_of_lt hxarch
-
-  let m0 : Nat := (COFO.mul_archimedean xarch).1
-  have hm0_arch : Le (COF.abs xarch * COF.halfPow m0) 1 := by
-    exact (COFO.mul_archimedean xarch).2
-  have hm0_arch' : Le (xarch * COF.halfPow m0) 1 := by
-    rw [COFO.abs_of_nonneg hxarch_nn] at hm0_arch
-    exact hm0_arch
-
-  have hparent : Le ((b - a) * COF.halfPow m0) small := by
-    have hm := lemma33_mul_le_mul_right hm0_arch' hsmall_nn
-    have hcancel : COFO.inv small * small = (1 : R) := by
-      calc
-        COFO.inv small * small = small * COFO.inv small := by ring
-        _ = 1 := COFO.mul_inv_cancel hsmall
-    have hleft :
-        (xarch * COF.halfPow m0) * small =
-          (b - a) * COF.halfPow m0 := by
-      dsimp [xarch]
-      calc
-        (((b - a) * COFO.inv small) * COF.halfPow m0) * small =
-            ((b - a) * COF.halfPow m0) * (COFO.inv small * small) := by ring
-        _ = (b - a) * COF.halfPow m0 := by rw [hcancel]; ring
-    have hright : (1 : R) * small = small := by ring
-    rwa [hleft, hright] at hm
-
-  let e : Nat := m0 + 1
-  let d : R := (b - a) * COF.halfPow e
-  have hd : COF.lt 0 d := by
-    dsimp [d, e]
-    exact COFO.mul_pos (lemma33_sub_pos_of_lt hab) (halfPow_pos (m0 + 1))
-  have hd_nn : Nonneg d := le_of_lt hd
-  have hdouble_d : d + d = (b - a) * COF.halfPow m0 := by
-    dsimp [d, e]
-    calc
-      (b - a) * COF.halfPow (m0 + 1) +
-          (b - a) * COF.halfPow (m0 + 1) =
-          (b - a) * (COF.halfPow (m0 + 1) + COF.halfPow (m0 + 1)) := by ring
-      _ = (b - a) * COF.halfPow m0 := by rw [halfPow_succ_add]
-  have hd_small : COF.lt d small := by
-    have hdd : COF.lt d (d + d) := lemma33_lt_add_of_pos_right hd
-    rw [hdouble_d] at hdd
-    exact lt_of_lt_of_le hdd hparent
-  have hd_small_le : Le d small := le_of_lt hd_small
-
-  let K : Nat := 2 ^ e
-  have hKpos : 0 < K := by
-    dsimp [K]
-    exact lemma33H4_two_pow_pos e
-
-  let bpt : Nat → R := fun i => a + (i : R) * d
-  have hbpt_zero : bpt 0 = a := by
-    simp [bpt]
-  have hbpt_K : bpt K = b := by
-    have hpow : ((K : Nat) : R) = twoPow e := by
-      dsimp [K]
-      exact lemma33_natCast_twoPow e
-    have hunit : twoPow e * COF.halfPow e = (1 : R) := by
-      calc
-        twoPow e * COF.halfPow e = COF.halfPow e * twoPow e := by ring
-        _ = 1 := halfPow_mul_twoPow e
-    dsimp [bpt, d]
-    rw [hpow]
-    calc
-      a + twoPow e * ((b - a) * COF.halfPow e) =
-          a + (b - a) * (twoPow e * COF.halfPow e) := by ring
-      _ = a + (b - a) * 1 := by rw [hunit]
-      _ = b := by ring
-
-  have hbpt_sub (i k : Nat) (hki : k ≤ i) :
-      bpt i - bpt k = ((i - k : Nat) : R) * d := by
-    obtain ⟨r, rfl⟩ := Nat.exists_eq_add_of_le hki
-    have hr : (k + r - k : Nat) = r := by omega
-    rw [hr]
-    dsimp [bpt]
-    rw [Nat.cast_add]
-    ring
-
-  have hbpt_lt (i k : Nat) (hik : i < k) : COF.lt (bpt i) (bpt k) := by
-    have hcast : COF.lt (i : R) (k : R) := lemma33_natCast_lt hik
-    have hm : COF.lt ((i : R) * d) ((k : R) * d) :=
-      lemma33_mul_lt_mul_right hcast hd
-    exact lemma33_add_lt_add_left (c := a) hm
-
-  have hbpt_le (i k : Nat) (hik : i ≤ k) : Le (bpt i) (bpt k) := by
-    have hcast : Le (i : R) (k : R) := lemma33_natCast_mono hik
-    have hm : Le ((i : R) * d) ((k : R) * d) :=
-      lemma33_mul_le_mul_right hcast hd_nn
-    exact lemma33_add_le_add_left hm
-
-  have ha_bpt (i : Nat) (hi : i ≤ K) : Le a (bpt i) := by
-    have hi0 : Nonneg (i : R) := lemma33_natCast_nonneg i
-    have hprod : Nonneg ((i : R) * d) := COFO.mul_nonneg hi0 hd_nn
-    have h := lemma33_add_le_add_left (c := a) hprod
-    simpa [bpt] using h
-
-  have hbpt_b (i : Nat) (hi : i ≤ K) : Le (bpt i) b := by
-    have h := hbpt_le i K hi
-    rwa [hbpt_K] at h
-
-  /- The grid width after at most `2(n+1)` steps is at most delta. -/
-  let L : Nat := 2 * (n + 1)
-  have hLsmall : Le ((L : R) * small) delta := by
-    have hnat : L ≤ 2 ^ (n + 2) := by
-      dsimp [L]
-      exact lemma33H4_two_mul_succ_le_two_pow n
-    have hcast : Le (L : R) ((2 ^ (n + 2) : Nat) : R) :=
-      lemma33_natCast_mono hnat
-    have hm := lemma33_mul_le_mul_right hcast hsmall_nn
-    have hpow : (((2 ^ (n + 2) : Nat) : R)) = twoPow (n + 2) :=
-      lemma33_natCast_twoPow (n + 2)
-    have hunit : twoPow (n + 2) * COF.halfPow (n + 2) = (1 : R) := by
-      calc
-        twoPow (n + 2) * COF.halfPow (n + 2) =
-            COF.halfPow (n + 2) * twoPow (n + 2) := by ring
-        _ = 1 := halfPow_mul_twoPow (n + 2)
-    have hright : (((2 ^ (n + 2) : Nat) : R)) * small = delta := by
-      dsimp [small]
-      rw [hpow]
-      calc
-        twoPow (n + 2) * (COF.halfPow (n + 2) * delta) =
-            (twoPow (n + 2) * COF.halfPow (n + 2)) * delta := by ring
-        _ = delta := by rw [hunit]; ring
-    rwa [hright] at hm
-
-  /- Step 2: sigma is one quarter of the common grid width. -/
-  let sigma : R := COF.half * (COF.half * d)
-  have hsigma : COF.lt 0 sigma := by
-    dsimp [sigma]
-    exact COFO.mul_pos COFO.half_pos (COFO.mul_pos COFO.half_pos hd)
-  have hsigma_nn : Nonneg sigma := le_of_lt hsigma
-  have hsigma2 : sigma + sigma = COF.half * d := by
-    dsimp [sigma]
-    calc
-      COF.half * (COF.half * d) + COF.half * (COF.half * d) =
-          (COF.half + COF.half) * (COF.half * d) := by ring
-      _ = COF.half * d := by rw [COF.half_add_half]; ring
-  have hsigma4 : (sigma + sigma) + (sigma + sigma) = d := by
-    rw [hsigma2]
-    calc
-      COF.half * d + COF.half * d = (COF.half + COF.half) * d := by ring
-      _ = d := by rw [COF.half_add_half]; ring
-  have hsigma2_pos : COF.lt 0 (sigma + sigma) := by
-    rw [hsigma2]; exact COFO.mul_pos COFO.half_pos hd
-  have hsigma2_lt_d : COF.lt (sigma + sigma) d := by
-    have h := lemma33_lt_add_of_pos_right (a := sigma + sigma) hsigma2_pos
-    rwa [hsigma4] at h
-
-  /- Steps 3--4: the separator family f_i and the two-step increments alpha_i. -/
-  let Slot : Nat → P.Code → Prop := fun i g =>
-    g ∈ P.F ∧
-    (i = 0 → g = P.oneCode) ∧
-    (i = K + 1 → g = P.zeroCode) ∧
-    (∀ (_hi0 : 0 < i) (_hiK : i ≤ K),
-      (∀ t, Le a t → Le t (bpt (i - 1) + sigma) → g t = 0) ∧
-      (∀ t, Le (bpt i - sigma) t → Le t b → g t = 1))
-
-  have hSlot : ∀ i : Nat, {g : P.Code // Slot i g} := by
-    intro i
-    by_cases hi0 : i = 0
-    · subst i
-      refine ⟨P.oneCode, P.has_one, ?_, ?_, ?_⟩
-      · intro; rfl
-      · intro hbad; exfalso; omega
-      · intro hpos; exfalso; omega
-    by_cases hiMid : 0 < i ∧ i ≤ K
-    · rcases hiMid with ⟨hiPos, hiK⟩
-      let u : R := bpt (i - 1) + sigma
-      let v : R := bpt i - sigma
-      have him1 : i - 1 ≤ K := by omega
-      have hau : Le a u := by
-        have hbase := ha_bpt (i - 1) him1
-        have hs : Le (bpt (i - 1)) (bpt (i - 1) + sigma) := by
-          have hz := lemma33_add_le_add_left (c := bpt (i - 1)) hsigma_nn
-          simpa using hz
-        exact le_trans hbase hs
-      have huv : COF.lt u v := by
-        have hstep : bpt i - bpt (i - 1) = d := by
-          rw [hbpt_sub i (i - 1) (by omega)]
-          have hone : (i - (i - 1) : Nat) = 1 := by omega
-          rw [hone, Nat.cast_one, one_mul]
-        have hraw : COF.lt (bpt (i - 1) + sigma) (bpt i - sigma) := by
-          have h := lemma33_add_lt_add_left (c := bpt (i - 1)) hsigma2_lt_d
-          have h2 := lemma33_add_lt_add_right (c := -sigma) h
-          have e1 : (bpt (i - 1) + (sigma + sigma)) + (-sigma) = bpt (i - 1) + sigma := by
-            ring
-          have e2 : (bpt (i - 1) + d) + (-sigma) = bpt i - sigma := by
-            rw [← hstep]; ring
-          rw [e1, e2] at h2
-          exact h2
-        exact hraw
-      have hvb : Le v b := by
-        have hbi := hbpt_b i hiK
-        have hminus : Le (bpt i - sigma) (bpt i) := by
-          have hneg := lemma33_neg_le_neg hsigma_nn
-          have hz := lemma33_add_le_add_left (c := bpt i) hneg
-          convert hz using 1 <;> ring
-        exact le_trans hminus hbi
-      rcases P.separating u v hau huv hvb with ⟨g, hg, hgz, hgo⟩
-      refine ⟨g, hg, ?_, ?_, ?_⟩
-      · intro h; exact (hi0 h).elim
-      · intro hK1
-        have : K + 1 ≤ K := by omega
-        exfalso; omega
-      · intro _ _
-        constructor
-        · intro t hat htu
-          exact hgz t hat htu
-        · intro t hvt htb
-          exact hgo t hvt htb
-    · refine ⟨P.zeroCode, P.has_zero, ?_, ?_, ?_⟩
-      · intro h; exact (hi0 h).elim
-      · intro _; rfl
-      · intro hiPos hiK
-        exact (hiMid ⟨hiPos, hiK⟩).elim
-
-  let f : Nat → P.Code := fun i => (hSlot i).val
-  have hf_spec (i : Nat) : Slot i (f i) := (hSlot i).property
-  have hf_mem (i : Nat) : f i ∈ P.F := (hf_spec i).1
-  have hf_zero : f 0 = P.oneCode := (hf_spec 0).2.1 rfl
-  have hf_last : f (K + 1) = P.zeroCode := (hf_spec (K + 1)).2.2.1 rfl
-  have hf_left (i : Nat) (hi0 : 0 < i) (hiK : i ≤ K) :
-      ∀ t, Le a t → Le t (bpt (i - 1) + sigma) → f i t = 0 :=
-    (hf_spec i).2.2.2 hi0 hiK |>.1
-  have hf_right (i : Nat) (hi0 : 0 < i) (hiK : i ≤ K) :
-      ∀ t, Le (bpt i - sigma) t → Le t b → f i t = 1 :=
-    (hf_spec i).2.2.2 hi0 hiK |>.2
-
-  have hf_anti (i j : Nat) (hij : i ≤ j) (hj : j ≤ K + 1) :
-      ∀ t, Le a t → Le t b → Le (f j t) (f i t) := by
-    intro t hat htb
-    by_cases hi0 : i = 0
-    · subst i
-      rw [hf_zero]
-      simpa using (P.bound (f j) (hf_mem j) t hat htb).2
-    by_cases hjlast : j = K + 1
-    · subst j
-      rw [hf_last]
-      simpa using (P.bound (f i) (hf_mem i) t hat htb).1
-    by_cases hijEq : i = j
-    · subst j
-      exact le_refl (f i t)
-    have hiPos : 0 < i := Nat.pos_of_ne_zero hi0
-    have hjK : j ≤ K := by omega
-    have hijlt : i < j := by omega
-    have hjPos : 0 < j := Nat.lt_trans hiPos hijlt
-    have hiK : i ≤ K := Nat.le_trans (Nat.le_of_lt hijlt) hjK
-    have hgap : COF.lt (bpt i - sigma) (bpt (j - 1) + sigma) := by
-      have hijm : i ≤ j - 1 := by omega
-      have hbase : Le (bpt i) (bpt (j - 1)) := hbpt_le i (j - 1) hijm
-      have hnegpos : COF.lt (-sigma) sigma := by
-        have hneg0 : COF.lt (-sigma) 0 := by
-          have h := lemma33_add_lt_add_right (c := -sigma) hsigma
-          convert h using 1 <;> ring
-        exact COFO.lt_trans hneg0 hsigma
-      have hlocal : COF.lt (bpt i - sigma) (bpt i + sigma) := by
-        convert lemma33_add_lt_add_left (c := bpt i) hnegpos using 1 <;> ring
-      have hshift : Le (bpt i + sigma) (bpt (j - 1) + sigma) :=
-        lemma33_add_le_add_right hbase
-      exact lt_of_lt_of_le hlocal hshift
-    rcases COF.lt_cotrans hgap t with htRight | htLeft
-    · have hfi : f i t = 1 :=
-        hf_right i hiPos hiK t (le_of_lt htRight) htb
-      rw [hfi]
-      exact (P.bound (f j) (hf_mem j) t hat htb).2
-    · have hfj : f j t = 0 :=
-        hf_left j hjPos hjK t hat (le_of_lt htLeft)
-      rw [hfj]
-      exact (P.bound (f i) (hf_mem i) t hat htb).1
-
-  have hlam_anti (i j : Nat) (hij : i ≤ j) (hj : j ≤ K + 1) :
-      Le (P.lambda (f j)) (P.lambda (f i)) :=
-    P.mono (f j) (f i) (hf_mem j) (hf_mem i) (hf_anti i j hij hj)
-
-  let lam : Nat → R := fun i => P.lambda (f i)
-  have hlam_zero : lam 0 = lamOne := by dsimp only [lam, lamOne]; rw [hf_zero]
-  have hlam_last : lam (K + 1) = lamZero := by dsimp only [lam, lamZero]; rw [hf_last]
-  have hlam_upper (i : Nat) (hi : i ≤ K + 1) : Le (lam i) lamOne := by
-    have h := hlam_anti 0 i (Nat.zero_le i) hi
-    rw [hf_zero] at h; exact h
-  have hlam_lower (i : Nat) (hi : i ≤ K + 1) : Le lamZero (lam i) := by
-    have h := hlam_anti i (K + 1) hi (Nat.le_refl (K + 1))
-    rw [hf_last] at h; exact h
-
-  let alpha : Nat → R := fun i => lam (i - 1) - lam (i + 1)
-  have halpha_nn (i : Nat) (hi0 : 0 < i) (hiK : i ≤ K) : Nonneg (alpha i) := by
-    have hidx : i - 1 ≤ i + 1 := by omega
-    have hle : Le (lam (i + 1)) (lam (i - 1)) :=
-      hlam_anti (i - 1) (i + 1) hidx (by omega)
-    dsimp [alpha]
-    exact nonneg_sub_of_le hle
-
-  /- Iteration 1 core: a data-valued cotransitive classification.
-     `true` is the small branch and `false` is the big branch. -/
-  let cls : Nat → Bool := fun i =>
-    (lemma33H4_classify htheta_eps (alpha i)).1
-  have hcls_small (i : Nat) (hci : cls i = true) :
-      COF.lt (alpha i) eps := by
-    change (lemma33H4_classify htheta_eps (alpha i)).1 = true at hci
-    exact (lemma33H4_classify htheta_eps (alpha i)).2.1 hci
-  have hcls_big (i : Nat) (hci : cls i = false) :
-      COF.lt theta (alpha i) := by
-    change (lemma33H4_classify htheta_eps (alpha i)).1 = false at hci
-    exact (lemma33H4_classify htheta_eps (alpha i)).2.2 hci
-
-  /- Step 6: retain exactly the grid indices
-       i=0 or i=K or cls i=true or cls (i+1)=true.
-     `next` is the least retained index strictly to the right. -/
-  let Good : Nat → Prop := fun i =>
-    i = 0 ∨ i = K ∨
-      (0 < i ∧ i ≤ K ∧ cls i = true) ∨
-      (i < K ∧ cls (i + 1) = true)
-
-  have hGoodK : Good K := by
-    dsimp [Good]
-    exact Or.inr (Or.inl rfl)
-
-  have hCand (k : Nat) (hk : k < K) :
-      ∃ i : Nat, k < i ∧ i ≤ K ∧ Good i :=
-    ⟨K, hk, Nat.le_refl K, hGoodK⟩
-
-  let next : Nat → Nat := fun k =>
-    if hk : k < K then Nat.find (hCand k hk) else K
-
-  have hnext_spec (k : Nat) (hk : k < K) :
-      k < next k ∧ next k ≤ K ∧ Good (next k) := by
-    dsimp [next]
-    rw [dif_pos hk]
-    exact Nat.find_spec (hCand k hk)
-
-  have hnext_eq_K (k : Nat) (hk : ¬ k < K) : next k = K := by
-    dsimp [next]
-    rw [dif_neg hk]
-
-  have hnext_le (k : Nat) : next k ≤ K := by
-    by_cases hk : k < K
-    · exact (hnext_spec k hk).2.1
-    · rw [hnext_eq_K k hk]
-
-  have hnext_min (k m : Nat) (hk : k < K)
-      (hkm : k < m) (hmn : m < next k) : ¬ Good m := by
-    have hnle : next k ≤ K := (hnext_spec k hk).2.1
-    have hmK : m ≤ K := Nat.le_trans (Nat.le_of_lt hmn) hnle
-    have hnot : ¬ (k < m ∧ m ≤ K ∧ Good m) := by
-      dsimp [next] at hmn
-      rw [dif_pos hk] at hmn
-      exact lemma33_not_of_lt_find (hCand k hk) hmn
-    intro hgm
-    exact hnot ⟨hkm, hmK, hgm⟩
-
-  let s : Nat → Nat := lemma33Iter next
-  have hs_zero : s 0 = 0 := by
-    rfl
-  have hs_succ (j : Nat) : s (j + 1) = next (s j) := by
-    rfl
-
-  have hs_le_K (j : Nat) : s j ≤ K := by
-    induction j with
-    | zero =>
-        rw [hs_zero]
-        exact Nat.zero_le K
-    | succ j ih =>
-        rw [hs_succ]
-        exact hnext_le (s j)
-
-  have hs_step (j : Nat) (hj : s j < K) : s j < s (j + 1) := by
-    rw [hs_succ]
-    exact (hnext_spec (s j) hj).1
-
-  have hs_ge_index (j : Nat) (hjK : j ≤ K) : j ≤ s j := by
-    induction j with
-    | zero => exact Nat.zero_le (s 0)
-    | succ j ih =>
-        have hjK' : j ≤ K := Nat.le_trans (Nat.le_succ j) hjK
-        have hij : j ≤ s j := ih hjK'
-        by_cases hsj : s j < K
-        · have hstrict := hs_step j hsj
-          omega
-        · rw [hs_succ, hnext_eq_K (s j) hsj]
-          exact hjK
-
-  have hs_K : s K = K :=
-    Nat.le_antisymm (hs_le_K K) (hs_ge_index K (Nat.le_refl K))
-
-  let N : Nat := Nat.find (show ∃ j : Nat, s j = K from ⟨K, hs_K⟩)
-  have hs_N : s N = K := by
-    dsimp [N]
-    exact Nat.find_spec (show ∃ j : Nat, s j = K from ⟨K, hs_K⟩)
-  have hN_le_K : N ≤ K := by
-    by_contra hbad
-    have hKN : K < N := Nat.lt_of_not_ge hbad
-    have hnot : s K ≠ K := by
-      dsimp [N] at hKN
-      exact lemma33_not_of_lt_find (show ∃ j : Nat, s j = K from ⟨K, hs_K⟩) hKN
-    exact hnot hs_K
-  have hNpos : 0 < N := by
-    by_contra hbad
-    have hNz : N = 0 := Nat.eq_zero_of_not_pos hbad
-    have : (0 : Nat) = K := by simpa [hNz, hs_zero] using hs_N
-    omega
-
-  have hs_lt_K_of_lt_N (j : Nat) (hjN : j < N) : s j < K := by
-    have hnot : s j ≠ K := by
-      dsimp [N] at hjN
-      exact lemma33_not_of_lt_find (show ∃ r : Nat, s r = K from ⟨K, hs_K⟩) hjN
-    have hle := hs_le_K j
-    omega
-
-  have hs_strict (j : Nat) (hjN : j < N) : s j < s (j + 1) :=
-    hs_step j (hs_lt_K_of_lt_N j hjN)
-
-  have hs_good_succ (j : Nat) (hjN : j < N) : Good (s (j + 1)) := by
-    rw [hs_succ]
-    exact (hnext_spec (s j) (hs_lt_K_of_lt_N j hjN)).2.2
-
-  have hs_no_good_between (j m : Nat) (hjN : j < N)
-      (hleft : s j < m) (hright : m < s (j + 1)) : ¬ Good m := by
-    rw [hs_succ] at hright
-    exact hnext_min (s j) m (hs_lt_K_of_lt_N j hjN) hleft hright
-
-  have hs_endpoint_pos (j : Nat) (hjN : j < N) : 0 < s (j + 1) := by
-    have h := hs_strict j hjN
-    omega
-
-  have hs_endpoint_le_K (j : Nat) : s (j + 1) ≤ K := hs_le_K (j + 1)
-
-  /- If a retained right endpoint is in A, the preceding retained endpoint is
-     exactly its immediate predecessor. -/
-  have hs_prev_of_small (j : Nat) (hjN : j < N)
-      (hSmallEnd : cls (s (j + 1)) = true) :
-      s (j + 1) = s j + 1 := by
-    have hki := hs_strict j hjN
-    by_contra hbad
-    have hgap : s j + 1 < s (j + 1) := by omega
-    let m : Nat := s (j + 1) - 1
-    have hm_eq : m + 1 = s (j + 1) := by
-      dsimp [m]
-      omega
-    have hkm : s j < m := by
-      dsimp [m]
-      omega
-    have hmi : m < s (j + 1) := by
-      dsimp [m]
-      omega
-    have hmK : m < K := by
-      have hiK := hs_endpoint_le_K j
-      dsimp [m]
-      omega
-    have hGoodm : Good m := by
-      dsimp [Good]
-      exact Or.inr (Or.inr
-        (Or.inr ⟨hmK, by simpa [hm_eq] using hSmallEnd⟩))
-    exact hs_no_good_between j m hjN hkm hmi hGoodm
-
-  /- For a B endpoint, every original grid index crossed by the selected
-     interval belongs to B. -/
-  have hs_all_big (j m : Nat) (hjN : j < N)
-      (hBigEnd : cls (s (j + 1)) = false)
-      (hleft : s j < m) (hright : m ≤ s (j + 1)) :
-      cls m = false := by
-    by_cases hmi : m = s (j + 1)
-    · subst m
-      exact hBigEnd
-    · cases hcm : cls m with
-      | false => rfl
-      | true =>
-          have hmlt : m < s (j + 1) := by omega
-          have hmPos : 0 < m := by omega
-          have hmK : m ≤ K :=
-            Nat.le_trans hright (hs_endpoint_le_K j)
-          have hGoodm : Good m := by
-            dsimp [Good]
-            exact Or.inr (Or.inr
-              (Or.inl ⟨hmPos, hmK, hcm⟩))
-          exact (hs_no_good_between j m hjN hleft hmlt hGoodm).elim
-
-  /- The common p' witness carried by a selected interval. -/
-  have hpprime_of_gap (k i : Nat) (hki : k < i) (hiK : i ≤ K)
-      (upper : R) (hgap : COF.lt (lam k - lam (i + 1)) upper) :
-      P.p_prime_lt (bpt k) (bpt i) upper := by
-    refine ⟨sigma, hsigma, ?_⟩
-    refine ⟨f (i + 1), hf_mem (i + 1), f k, hf_mem k, ?_, ?_, ?_⟩
-    · intro t hat htb htv
-      have htv' : Le t (bpt i + sigma) :=
-        le_trans htv (lemma33_min_le_right b (bpt i + sigma))
-      by_cases hi : i = K
-      · subst i
-        rw [hf_last]
-        exact P.zeroCode_apply t
-      · have hiLt : i < K := by omega
-        have hz := hf_left (i + 1) (by omega) (by omega) t hat
-          (by rw [Nat.add_sub_cancel]; exact htv')
-        exact hz
-    · intro t hat htb hut
-      have hbase : Le (bpt k - sigma)
-          (COF.max a (bpt k - sigma)) := lemma33_le_max_right a (bpt k - sigma)
-      have hkt : Le (bpt k - sigma) t := le_trans hbase hut
-      by_cases hk : k = 0
-      · subst k
-        rw [hf_zero]
-        exact P.oneCode_apply t
-      · have hkPos : 0 < k := Nat.pos_of_ne_zero hk
-        have hkK : k ≤ K := Nat.le_trans (Nat.le_of_lt hki) hiK
-        exact hf_right k hkPos hkK t hkt htb
-    · dsimp only [lam] at hgap; exact hgap
-
-  /- Step 7(a): every retained interval has width at most delta. -/
-  have hwidth (j : Nat) (hjN : j < N) :
-      Le (bpt (s (j + 1)) - bpt (s j)) delta := by
-    let k : Nat := s j
-    let i : Nat := s (j + 1)
-    have hki : k < i := hs_strict j hjN
-    have hiK : i ≤ K := hs_endpoint_le_K j
-    have hdist : bpt i - bpt k = ((i - k : Nat) : R) * d :=
-      hbpt_sub i k (Nat.le_of_lt hki)
-    by_cases hshort : i - k ≤ L
-    · have hcast : Le ((i - k : Nat) : R) (L : R) :=
-        lemma33_natCast_mono hshort
-      have h1 : Le (((i - k : Nat) : R) * d)
-          (((i - k : Nat) : R) * small) :=
-        mul_le_mul_left hd_small_le (lemma33_natCast_nonneg (i - k))
-      have h2 : Le (((i - k : Nat) : R) * small) ((L : R) * small) :=
-        lemma33_mul_le_mul_right hcast hsmall_nn
-      rw [hdist]
-      exact le_trans (le_trans h1 h2) hLsmall
-    · have hlong : L < i - k := Nat.lt_of_not_ge hshort
-      have hBigEnd : cls i = false := by
-        cases hci : cls i with
-        | false => rfl
-        | true =>
-            have hprev := hs_prev_of_small j hjN hci
-            dsimp [i, k] at hlong hprev
-            exfalso; omega
-      let ell : Nat := i - k
-      have hellPos : 0 < ell := by dsimp [ell]; omega
-      have hAllBig : ∀ r : Nat, r < ell →
-          cls (k + r + 1) = false := by
-        intro r hr
-        apply hs_all_big j (k + r + 1) hjN hBigEnd
-        · omega
-        · dsimp [ell] at hr
-          omega
-      have hAllTheta : ∀ r : Nat, r < ell →
-          COF.lt theta (alpha (k + r + 1)) := by
-        intro r hr
-        exact hcls_big (k + r + 1) (hAllBig r hr)
-      have hlower : COF.lt ((ell : R) * theta)
-          (lemma33Prefix (fun r => alpha (k + r + 1)) ell) :=
-        lemma33H4_prefix_const_lt theta (fun r => alpha (k + r + 1)) ell
-          hellPos hAllTheta
-      have hLell : Le (L : R) (ell : R) :=
-        lemma33_natCast_mono (Nat.le_of_lt hlong)
-      have hscale : Le ((L : R) * theta) ((ell : R) * theta) :=
-        lemma33_mul_le_mul_right hLell htheta
-      have hqcancel : q * COFO.inv q = (1 : R) := COFO.mul_inv_cancel hq
-      have hLtheta : (L : R) * theta = 2 * D := by
-        have hLq : (L : R) * COFO.inv q = 2 := by
-          have e : (L : R) = 2 * q := by
-            show ((2 * (n + 1) : Nat) : R) = 2 * (((n + 1 : Nat) : R))
-            push_cast; ring
-          rw [e, mul_assoc, hqcancel, mul_one]
-        show (L : R) * (COFO.inv q * D) = 2 * D
-        rw [← mul_assoc, hLq]
-      have htwo_lower : COF.lt (2 * D)
-          (lemma33Prefix (fun r => alpha (k + r + 1)) ell) := by
-        rw [← hLtheta]
-        exact lt_of_le_of_lt hscale hlower
-
-      have htel :
-          lemma33Prefix (fun r => alpha (k + r + 1)) ell =
-            lam k + lam (k + 1) - lam i - lam (i + 1) := by
-        have hi : k + ell = i := by dsimp [ell]; omega
-        have hbase := lemma33_two_step_telescope lam k ell
-        have hfun : (fun r => alpha (k + r + 1))
-            = (fun r => lam (k + r) - lam (k + r + 2)) := by
-          funext r
-          dsimp [alpha]
-        rw [hfun, hbase, hi]
-      have hkK1 : k ≤ K + 1 := by omega
-      have hk1K1 : k + 1 ≤ K + 1 := by omega
-      have hiK1 : i ≤ K + 1 := by omega
-      have hi1K1 : i + 1 ≤ K + 1 := by omega
-      have hupper : Le
-          (lam k + lam (k + 1) - lam i - lam (i + 1)) (2 * D) := by
-        dsimp [D]
-        exact lemma33_four_term_le_two_gap
-          (hlam_upper k hkK1) (hlam_upper (k + 1) hk1K1)
-          (hlam_lower i hiK1) (hlam_lower (i + 1) hi1K1)
-      rw [htel] at htwo_lower
-      exact (hupper htwo_lower).elim
-
-  /- Step 7(c): on small intervals the two-step increment is already < eps. -/
-  have hp_small (j : Nat) (hjN : j < N)
-      (hSmallEnd : cls (s (j + 1)) = true) :
-      P.p_prime_lt (bpt (s j)) (bpt (s (j + 1))) eps := by
-    have hprev := hs_prev_of_small j hjN hSmallEnd
-    have hki := hs_strict j hjN
-    have hiK := hs_endpoint_le_K j
-    apply hpprime_of_gap (s j) (s (j + 1)) hki hiK eps
-    have halphaSmall := hcls_small (s (j + 1)) hSmallEnd
-    dsimp [alpha] at halphaSmall
-    rw [hprev] at halphaSmall
-    rw [Nat.add_sub_cancel] at halphaSmall
-    rw [hprev]
-    exact halphaSmall
-
-  /- The big-interval charge beta_j. -/
-  let beta : Nat → R := fun j => lam (s j) - lam (s (j + 1) + 1)
-  have hbeta_nn (j : Nat) (hjN : j < N) : Nonneg (beta j) := by
-    have hstrict := hs_strict j hjN
-    have hbnd := hs_le_K (j + 1)
-    have hle : Le (lam (s (j + 1) + 1)) (lam (s j)) :=
-      hlam_anti (s j) (s (j + 1) + 1) (by omega) (by omega)
-    dsimp [beta]
-    exact nonneg_sub_of_le hle
-  have hbeta_D (j : Nat) (hjN : j < N) : Le (beta j) D := by
-    have hbnd0 := hs_le_K j
-    have hbnd1 := hs_le_K (j + 1)
-    have hkU := hlam_upper (s j) (by omega)
-    have hiL := hlam_lower (s (j + 1) + 1) (by omega)
-    dsimp [beta, D]
-    exact lemma33_sub_le_sub hkU hiL
-
-  have hp_B_bound (j : Nat) (hjN : j < N) (upper : R)
-      (hup : COF.lt (beta j) upper) :
-      P.p_prime_lt (bpt (s j)) (bpt (s (j + 1))) upper := by
-    apply hpprime_of_gap (s j) (s (j + 1)) (hs_strict j hjN)
-      (hs_endpoint_le_K j) upper
-    simpa [beta, Nat.add_assoc] using hup
-
-  /- Step 8: big charges are disjoint along the monotone lambda chain. -/
-  let Bint : Nat → Prop := fun j =>
-    j < N ∧ cls (s (j + 1)) = false
-
-  have hafter_big_small (j : Nat) (hj1N : j + 1 < N)
-      (hBj : Bint j) : cls (s (j + 2)) = true := by
-    have hjN : j < N := Nat.lt_trans (Nat.lt_succ_self j) hj1N
-    have hiGood := hs_good_succ j hjN
-    have hiPos := hs_endpoint_pos j hjN
-    have hiLtK := hs_lt_K_of_lt_N (j + 1) hj1N
-    have hnextSmall : cls (s (j + 1) + 1) = true := by
-      rcases hiGood with h0 | hK | hSmallCase | hsucc
-      · exfalso; omega
-      · exfalso; omega
-      · rw [hBj.2] at hSmallCase
-        exact Bool.noConfusion hSmallCase.2.2
-      · exact hsucc.2
-    have hGoodNext : Good (s (j + 1) + 1) := by
-      dsimp [Good]
-      exact Or.inr (Or.inr
-        (Or.inl ⟨by omega, by omega, hnextSmall⟩))
-    have hs2 : s (j + 2) = s (j + 1) + 1 := by
-      rw [hs_succ]
-      have hspec := hnext_spec (s (j + 1)) hiLtK
-      have hle : next (s (j + 1)) ≤ s (j + 1) + 1 := by
-        by_contra hbad
-        have hlt : s (j + 1) + 1 < next (s (j + 1)) :=
-          Nat.lt_of_not_ge hbad
-        exact hnext_min (s (j + 1)) (s (j + 1) + 1) hiLtK
-          (Nat.lt_succ_self _) hlt hGoodNext
-      omega
-    rw [hs2]
-    exact hnextSmall
-
-  have hB_not_consecutive (j : Nat) (hj1N : j + 1 < N)
-      (hBj : Bint j) : ¬ Bint (j + 1) := by
-    intro hnextB
-    have hsmall := hafter_big_small j hj1N hBj
-    have h2 : cls (s (j + 2)) = false := hnextB.2
-    rw [hsmall] at h2
-    exact Bool.noConfusion h2
-
-  let charge : Nat → R := fun j => if Bint j then beta j else 0
-  have hcharge_of_B (j : Nat) (hBj : Bint j) : charge j = beta j := by
-    dsimp only [charge]
-    rw [if_pos hBj]
-  have hcharge_of_notB (j : Nat) (hBj : ¬ Bint j) : charge j = 0 := by
-    dsimp only [charge]
-    rw [if_neg hBj]
-  have hcharge_nn (j : Nat) (hjN : j < N) : Nonneg (charge j) := by
-    by_cases hBj : Bint j
-    · rw [hcharge_of_B j hBj]
-      exact hbeta_nn j hjN
-    · rw [hcharge_of_notB j hBj]
-      exact nonneg_zero
-
-  let cursor : Nat → Nat := fun r =>
-    if hr : r = 0 then 0
-    else if Bint (r - 1) then s r + 1 else s r
-
-  have hcursor_zero : cursor 0 = 0 := by
-    rfl
-  have hcursor_succ_B (j : Nat) (hBj : Bint j) :
-      cursor (j + 1) = s (j + 1) + 1 := by
-    change (if Bint j then s (j + 1) + 1 else s (j + 1)) =
-      s (j + 1) + 1
-    rw [if_pos hBj]
-  have hcursor_succ_notB (j : Nat) (hBj : ¬ Bint j) :
-      cursor (j + 1) = s (j + 1) := by
-    change (if Bint j then s (j + 1) + 1 else s (j + 1)) = s (j + 1)
-    rw [if_neg hBj]
-
-  have hcursor_before_B (j : Nat) (hjN : j < N) (hBj : Bint j) :
-      cursor j = s j := by
-    by_cases hj0 : j = 0
-    · subst j
-      rw [hcursor_zero, hs_zero]
-    · have hjPos : 0 < j := Nat.pos_of_ne_zero hj0
-      by_cases hprev : Bint (j - 1)
-      · have hnc := hB_not_consecutive (j - 1) (by omega) hprev
-        have hji : j - 1 + 1 = j := Nat.sub_add_cancel hjPos
-        exact (hnc (by rw [hji]; exact hBj)).elim
-      · dsimp only [cursor]
-        rw [dif_neg hj0, if_neg hprev]
-
-  have hcursor_after_small (j : Nat) (hjN : j < N)
-      (hBj : ¬ Bint j) :
-      Le (lamOne - lam (cursor j)) (lamOne - lam (s (j + 1))) := by
-    by_cases hj0 : j = 0
-    · subst j
-      rw [hcursor_zero]
-      have hle : Le (lam (s 1)) (lam 0) :=
-        hlam_anti 0 (s 1) (Nat.zero_le _)
-          (by have := hs_le_K 1; omega)
-      exact lemma33_sub_le_sub_left hle
-    · by_cases hprev : Bint (j - 1)
-      · have hjm1N : j - 1 + 1 < N := by omega
-        have hSmallEnd : cls (s ((j - 1) + 2)) = true :=
-          hafter_big_small (j - 1) hjm1N hprev
-        have hsimm : s (j + 1) = s j + 1 := by
-          apply hs_prev_of_small j hjN
-          have hidx : (j - 1) + 2 = j + 1 := by omega
-          rwa [hidx] at hSmallEnd
-        have hc : cursor j = s j + 1 := by
-          have hj1 : (j - 1) + 1 = j := by omega
-          have hcs := hcursor_succ_B (j - 1) hprev
-          rwa [hj1] at hcs
-        rw [hc, hsimm]
-        exact le_refl (lamOne - lam (s j + 1))
-      · have hc : cursor j = s j := by
-          dsimp only [cursor]
-          rw [dif_neg hj0, if_neg hprev]
-        rw [hc]
-        have hbnd := hs_le_K (j + 1)
-        have hle : Le (lam (s (j + 1))) (lam (s j)) :=
-          hlam_anti (s j) (s (j + 1))
-            (Nat.le_of_lt (hs_strict j hjN)) (by omega)
-        exact lemma33_sub_le_sub_left hle
-
-  have hcharge_prefix (r : Nat) (hrN : r ≤ N) :
-      Le (lemma33Prefix charge r) (lamOne - lam (cursor r)) := by
-    induction r with
-    | zero =>
-        rw [hcursor_zero, hlam_zero]
-        have h0 : lemma33Prefix charge 0 = (0 : R) := by
-          rfl
-        have he : lamOne - lamOne = (0 : R) := by ring
-        rw [h0, he]
-        exact le_refl 0
-    | succ j ih =>
-        have hjN : j < N := by omega
-        have hpre := ih (Nat.le_of_lt hjN)
-        by_cases hBj : Bint j
-        · have hcBefore := hcursor_before_B j hjN hBj
-          have hcAfter := hcursor_succ_B j hBj
-          have hch := hcharge_of_B j hBj
-          have hpsucc : lemma33Prefix charge (j + 1)
-              = lemma33Prefix charge j + charge j := rfl
-          rw [hpsucc, hch, hcAfter]
-          rw [hcBefore] at hpre
-          have hstep : Le (lemma33Prefix charge j + beta j)
-              ((lamOne - lam (s j)) + beta j) :=
-            lemma33_add_le_add hpre (le_refl (beta j))
-          have he : (lamOne - lam (s j)) + beta j
-              = lamOne - lam (s (j + 1) + 1) := by
-            dsimp [beta]; ring
-          rw [he] at hstep
-          exact hstep
-        · have hcAfter := hcursor_succ_notB j hBj
-          have hch := hcharge_of_notB j hBj
-          have hpsucc : lemma33Prefix charge (j + 1)
-              = lemma33Prefix charge j + charge j := rfl
-          rw [hpsucc, hch, add_zero, hcAfter]
-          exact le_trans hpre (hcursor_after_small j hjN hBj)
-
-  have hcursorN_le : cursor N ≤ K + 1 := by
-    by_cases hNz : N = 0
-    · subst N
-      have hcz : cursor 0 = 0 := hcursor_zero
-      omega
-    · by_cases hlastB : Bint (N - 1)
-      · have hc : cursor N = s N + 1 := by
-          have hNm : (N - 1) + 1 = N := by omega
-          have hcs := hcursor_succ_B (N - 1) hlastB
-          rwa [hNm] at hcs
-        rw [hc]
-        have := hs_N
-        omega
-      · have hc : cursor N = s N := by
-          dsimp only [cursor]
-          rw [dif_neg hNz, if_neg hlastB]
-        rw [hc]
-        have := hs_N
-        omega
-
-  have hcharge_total : Le (lemma33Prefix charge N) D := by
-    have hpref := hcharge_prefix N (Nat.le_refl N)
-    have hlowerCursor : Le lamZero (lam (cursor N)) :=
-      hlam_lower (cursor N) hcursorN_le
-    have htail : Le (lamOne - lam (cursor N)) (lamOne - lamZero) :=
-      lemma33_sub_le_sub_left hlowerCursor
-    dsimp [D]
-    exact le_trans hpref htail
-
-  /- Step 9 (iteration 2): a constructive approximate floor.  Its upper
-     unit is `eps`; its lower unit is `theta < eps`. -/
-  have hCondD : COF.lt D (((n + 1 : Nat) : R) * eps) := by
-    dsimp only [D, lamOne, lamZero]; exact h_cond
-
-  have hqtheta : q * theta = D := by
-    dsimp [theta]
-    calc
-      q * (COFO.inv q * D) = (q * COFO.inv q) * D := by ring
-      _ = 1 * D := by rw [COFO.mul_inv_cancel hq]
-      _ = D := by ring
-
-  have hnTheta : (((n + 1 : Nat) : R) * theta) = D := by
-    dsimp only [q] at hqtheta; exact hqtheta
-
-  have hfloor_upper (j : Nat) (hjN : j < N) :
-      COF.lt (beta j) ((((n + 1 : Nat) : R)) * eps) :=
-    lt_of_le_of_lt (hbeta_D j hjN) hCondD
-
-  let afloorData : (j : Nat) → j < N →
-      Lemma33H4ApproxFloor theta eps (beta j) n :=
-    fun j hjN => lemma33H4_approxFloor theta eps (beta j)
-      htheta_eps (hbeta_nn j hjN) n (hfloor_upper j hjN)
-
-  let afloor : Nat → Nat := fun j =>
-    if hj : j < N then (afloorData j hj).val else 0
-
-  have hafloor_le (j : Nat) (hjN : j < N) : afloor j ≤ n := by
-    dsimp [afloor]
-    rw [dif_pos hjN]
-    exact (afloorData j hjN).val_le
-
-  have hafloor_upper (j : Nat) (hjN : j < N) :
-      COF.lt (beta j) ((((afloor j + 1 : Nat) : R)) * eps) := by
-    dsimp [afloor]
-    rw [dif_pos hjN]
-    exact (afloorData j hjN).upper
-
-  have hafloor_lower (j : Nat) (hjN : j < N) :
-      Le (((afloor j : Nat) : R) * theta) (beta j) := by
-    dsimp [afloor]
-    rw [dif_pos hjN]
-    exact (afloorData j hjN).lower
-
-  have hafloor_lower_strict (j : Nat) (hjN : j < N)
-      (hpos : 0 < afloor j) :
-      COF.lt (((afloor j : Nat) : R) * theta) (beta j) := by
-    dsimp [afloor] at hpos ⊢
-    rw [dif_pos hjN] at hpos ⊢
-    exact (afloorData j hjN).lower_strict hpos
-
-  let mraw : Nat → Nat := fun j =>
-    if hj : j < N then
-      if hSmallEnd : cls (s (j + 1)) = true then 0
-      else afloor j
-    else 0
-
-  have hmraw_small (j : Nat) (hjN : j < N)
-      (hSmallEnd : cls (s (j + 1)) = true) :
-      mraw j = 0 := by
-    dsimp only [mraw]
-    rw [dif_pos hjN, dif_pos hSmallEnd]
-
-  have hmraw_big (j : Nat) (hjN : j < N)
-      (hBigEnd : cls (s (j + 1)) = false) :
-      mraw j = afloor j := by
-    have hnotSmall : ¬ cls (s (j + 1)) = true := by
-      intro hsmall
-      rw [hBigEnd] at hsmall
-      exact Bool.noConfusion hsmall
-    dsimp only [mraw]
-    rw [dif_pos hjN, dif_neg hnotSmall]
-
-  have hmraw_upper (j : Nat) (hjN : j < N)
-      (hBigEnd : cls (s (j + 1)) = false) :
-      COF.lt (beta j) ((((mraw j) + 1 : Nat) : R) * eps) := by
-    rw [hmraw_big j hjN hBigEnd]
-    exact hafloor_upper j hjN
-
-  have hmraw_lower_big_theta (j : Nat) (hjN : j < N)
-      (hBigEnd : cls (s (j + 1)) = false) :
-      Le (((mraw j : Nat) : R) * theta) (beta j) := by
-    rw [hmraw_big j hjN hBigEnd]
-    exact hafloor_lower j hjN
-
-  have hmraw_lower_strict_big_theta (j : Nat) (hjN : j < N)
-      (hBigEnd : cls (s (j + 1)) = false) (hpos : 0 < mraw j) :
-      COF.lt (((mraw j : Nat) : R) * theta) (beta j) := by
-    rw [hmraw_big j hjN hBigEnd] at hpos ⊢
-    exact hafloor_lower_strict j hjN hpos
-
-  have hmraw_charge_theta (j : Nat) (hjN : j < N) :
-      Le (((mraw j : Nat) : R) * theta) (charge j) := by
-    cases hEnd : cls (s (j + 1)) with
-    | true =>
-        have hm := hmraw_small j hjN hEnd
-        have hnotB : ¬ Bint j := by
-          intro hBint
-          have h2 : cls (s (j + 1)) = false := hBint.2
-          rw [hEnd] at h2
-          exact Bool.noConfusion h2
-        rw [hm, hcharge_of_notB j hnotB]
-        simpa using (le_refl (0 : R))
-    | false =>
-        have hBint : Bint j := ⟨hjN, hEnd⟩
-        rw [hcharge_of_B j hBint]
-        exact hmraw_lower_big_theta j hjN hEnd
-
-  have hmraw_charge_strict_theta (j : Nat) (hjN : j < N)
-      (hpos : 0 < mraw j) :
-      COF.lt (((mraw j : Nat) : R) * theta) (charge j) := by
-    cases hEnd : cls (s (j + 1)) with
-    | true =>
-        have hm := hmraw_small j hjN hEnd
-        rw [hm] at hpos
-        exfalso; omega
-    | false =>
-        have hBint : Bint j := ⟨hjN, hEnd⟩
-        rw [hcharge_of_B j hBint]
-        exact hmraw_lower_strict_big_theta j hjN hEnd hpos
-
-  let mSum : Nat := lemma33Prefix mraw N
-
-  have hmSum_scale_theta : Le (((mSum : Nat) : R) * theta) D := by
-    have hpref : Le
-        (lemma33Prefix (fun j => ((mraw j : Nat) : R) * theta) N)
-        (lemma33Prefix charge N) :=
-      lemma33_prefix_le _ _ N hmraw_charge_theta
-    have hcast : ((mSum : Nat) : R) * theta =
-        lemma33Prefix (fun j => ((mraw j : Nat) : R) * theta) N := by
-      dsimp [mSum]
-      exact lemma33_prefix_natCast_mul mraw theta N
-    rw [hcast]
-    exact le_trans hpref hcharge_total
-
-  have hmSum_le : mSum ≤ n := by
-    by_contra hbad
-    have hn1 : n + 1 ≤ mSum := by omega
-    have hmSumPos : 0 < mSum := by omega
-    have hprefPos : 0 < lemma33Prefix mraw N := by
-      dsimp only [mSum] at hmSumPos; exact hmSumPos
-    rcases lemma33H4_exists_pos_of_prefix_pos mraw N hprefPos with
-      ⟨j0, hj0N, hj0pos⟩
-    have hprefStrict : COF.lt
-        (lemma33Prefix (fun j => ((mraw j : Nat) : R) * theta) N)
-        (lemma33Prefix charge N) :=
-      lemma33H4_prefix_lt_of_le_of_exists_lt
-        (fun j => ((mraw j : Nat) : R) * theta) charge N
-        hmraw_charge_theta
-        ⟨j0, hj0N, hmraw_charge_strict_theta j0 hj0N hj0pos⟩
-    have hcast : ((mSum : Nat) : R) * theta =
-        lemma33Prefix (fun j => ((mraw j : Nat) : R) * theta) N := by
-      dsimp [mSum]
-      exact lemma33_prefix_natCast_mul mraw theta N
-    rw [← hcast] at hprefStrict
-    have hmD : COF.lt (((mSum : Nat) : R) * theta) D :=
-      lt_of_lt_of_le hprefStrict hcharge_total
-    have hnat : Le (((n + 1 : Nat) : R)) (mSum : R) :=
-      lemma33_natCast_mono hn1
-    have hmul : Le
-        ((((n + 1 : Nat) : R)) * theta)
-        (((mSum : Nat) : R) * theta) :=
-      lemma33_mul_le_mul_right hnat htheta
-    rw [hnTheta] at hmul
-    exact (hmul hmD).elim
-
-  let rem : Nat := n - mSum
-  let M : Nat → Nat := fun t =>
-    if t = 1 then mraw 0 + rem else mraw (t - 1)
-
-  have hM_shift (j : Nat) :
-      M (j + 1) = if j = 0 then mraw j + rem else mraw j := by
-    by_cases hj0 : j = 0
-    · subst j
-      rfl
-    · have hj1 : j + 1 ≠ 1 := by omega
-      change (if j + 1 = 1 then mraw 0 + rem else mraw j) =
-        (if j = 0 then mraw j + rem else mraw j)
-      rw [if_neg hj1, if_neg hj0]
-
-  have hM_ge (j : Nat) : mraw j ≤ M (j + 1) := by
-    rw [hM_shift]
-    split
-    · omega
-    · exact Nat.le_refl _
-
-  have hsum_M :
-      (List.range N).foldl (fun acc j => acc + M (j + 1)) 0 = n := by
-    rw [lemma33_foldl_range_eq_prefix (fun j => M (j + 1)) N]
-    have hfun : (fun j => M (j + 1)) =
-        (fun j => if j = 0 then mraw j + rem else mraw j) := by
-      funext j
-      exact hM_shift j
-    rw [hfun, lemma33_prefix_update_zero mraw rem N hNpos]
-    dsimp [mSum, rem]
-    exact Nat.add_sub_of_le hmSum_le
-
-  have hp_raw (j : Nat) (hjN : j < N) :
-      P.p_prime_lt (bpt (s j)) (bpt (s (j + 1)))
-        ((((mraw j) + 1 : Nat) : R) * eps) := by
-    cases hEnd : cls (s (j + 1)) with
-    | true =>
-        have hp := hp_small j hjN hEnd
-        have hm := hmraw_small j hjN hEnd
-        rw [hm]
-        simpa using hp
-    | false =>
-        exact hp_B_bound j hjN _
-          (hmraw_upper j hjN hEnd)
-
-  have hp_final (j : Nat) (hjN : j < N) :
-      P.p_prime_lt (bpt (s j)) (bpt (s (j + 1)))
-        ((((M (j + 1)) + 1 : Nat) : R) * eps) := by
-    have hnat : mraw j + 1 ≤ M (j + 1) + 1 := Nat.add_le_add_right (hM_ge j) 1
-    have hcast : Le ((((mraw j) + 1 : Nat) : R))
-        (((M (j + 1) + 1 : Nat) : R)) := lemma33_natCast_mono hnat
-    have hbound : Le
-        ((((mraw j) + 1 : Nat) : R) * eps)
-        (((M (j + 1) + 1 : Nat) : R) * eps) :=
-      lemma33_mul_le_mul_right hcast (le_of_lt heps)
-    exact lemma33_p_prime_lt_mono P (hp_raw j hjN) hbound
-
-  let pts : Nat → R := fun j => bpt (s j)
-  refine ⟨{
-    N := N
-    pts := pts
-    pts_zero := ?_
-    pts_N := ?_
-    pts_mono := ?_
-    width_le := ?_
-    M := M
-    sum_M := hsum_M
-    p_prime_cond := ?_
-  }⟩
-  · dsimp [pts]; rw [hs_zero]; exact hbpt_zero
-  · dsimp [pts]; rw [hs_N]; exact hbpt_K
-  · intro j hjN
-    dsimp [pts]
-    exact hbpt_lt (s j) (s (j + 1)) (hs_strict j hjN)
-  · intro j hjN
-    dsimp [pts]
-    exact hwidth j hjN
-  · intro j hjN
-    dsimp [pts]
-    exact hp_final j hjN
 
 
 
@@ -3206,18 +2043,6 @@ theorem lemma34_widthScale_pos (a b : R) (k : Nat) :
   exact COFO.mul_pos (halfPow_pos k) hmax
 
 
-/-- Successive dyadic width bounds are weakly decreasing. -/
-theorem lemma34_widthScale_succ_le (a b : R) (k : Nat) :
-    Le (lemma34_widthScale a b (k + 1)) (lemma34_widthScale a b k) := by
-  have hhalf : Le (COF.halfPow (k + 1) : R) (COF.halfPow k) := by
-    have h := lemma34_self_le_add
-      (COF.halfPow (k + 1) : R) (COF.halfPow (k + 1))
-      (le_of_lt (halfPow_pos (k + 1)))
-    rwa [halfPow_succ_add] at h
-  have hmax : Nonneg (COF.max (1 : R) (b - a)) :=
-    le_of_lt (lt_of_lt_of_le COFO.one_pos
-      (lemma33_le_max_left (1 : R) (b - a)))
-  exact lemma33_mul_le_mul_right hhalf hmax
 
 
 /-- For every positive `beta`, some tower level has width bound below `beta`. -/
@@ -3506,12 +2331,6 @@ inductive Lemma34SegmentsRefine : List (R × R) → List (R × R) → Prop
       Lemma34SegmentsRefine (I :: Is) (J :: Js)
 
 
-/-- Positionwise refinement preserves list length. -/
-theorem lemma34_segmentsRefine_length {xs ys : List (R × R)}
-    (h : Lemma34SegmentsRefine xs ys) : xs.length = ys.length := by
-  induction h with
-  | nil => rfl
-  | cons _ _ ih => simp [ih]
 
 
 /-- Concatenation preserves positionwise refinement. -/
@@ -4502,37 +3321,6 @@ noncomputable def lemma34_zeroCellsAux
         lemma34_zeroCellsAux P eps heps k B is
 
 
-/-- Every retained discarded-cell record comes from an index in the input
-list. -/
-theorem lemma34_mem_zeroCellsAux
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (eps : R) (heps : COF.lt 0 eps) (k : Nat)
-    (B : Lemma34Block P eps k)
-    {xs : List Nat} {G : Lemma34ZeroCell P eps heps k}
-    (hG : G ∈ lemma34_zeroCellsAux P eps heps k B xs) :
-    ∃ i, i ∈ xs ∧
-      ∃ (hi : i < (lemma34_blockRefinementResult P eps heps k B).N)
-        (hz : (lemma34_blockRefinementResult P eps heps k B).M (i + 1) = 0),
-        G = lemma34_zeroCellOf P eps heps k B i hi hz := by
-  induction xs with
-  | nil => simp [lemma34_zeroCellsAux] at hG
-  | cons i xs ih =>
-      by_cases hi : i < (lemma34_blockRefinementResult P eps heps k B).N
-      · by_cases hz :
-          (lemma34_blockRefinementResult P eps heps k B).M (i + 1) = 0
-        · simp [lemma34_zeroCellsAux, hi, hz] at hG
-          rcases hG with hEq | hTail
-          · exact ⟨i, by simp, hi, hz, hEq⟩
-          · rcases ih hTail with ⟨j, hj, hjN, hjz, hEq⟩
-            exact ⟨j, by simp [hj], hjN, hjz, hEq⟩
-        · have hTail : G ∈ lemma34_zeroCellsAux P eps heps k B xs := by
-            simpa [lemma34_zeroCellsAux, hi, hz] using hG
-          rcases ih hTail with ⟨j, hj, hjN, hjz, hEq⟩
-          exact ⟨j, by simp [hj], hjN, hjz, hEq⟩
-      · have hTail : G ∈ lemma34_zeroCellsAux P eps heps k B xs := by
-          simpa [lemma34_zeroCellsAux, hi] using hG
-        rcases ih hTail with ⟨j, hj, hjN, hjz, hEq⟩
-        exact ⟨j, by simp [hj], hjN, hjz, hEq⟩
 
 
 /-- Conversely, every zero-charge index occurring in the input list is
@@ -4571,19 +3359,6 @@ noncomputable def lemma34_zeroCellsFor
     (List.range (lemma34_blockRefinementResult P eps heps k B).N)
 
 
-/-- A discarded-cell record obtained from `B` remembers `B` as its parent. -/
-theorem lemma34_zeroCellsFor_parent
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (eps : R) (heps : COF.lt 0 eps) (k : Nat)
-    (B : Lemma34Block P eps k)
-    {G : Lemma34ZeroCell P eps heps k}
-    (hG : G ∈ lemma34_zeroCellsFor P eps heps k B) :
-    G.parent = B := by
-  unfold lemma34_zeroCellsFor at hG
-  rcases lemma34_mem_zeroCellsAux P eps heps k B hG with
-    ⟨i, _, hi, hz, hEq⟩
-  rw [hEq]
-  rfl
 
 
 /-- The canonical record of any zero-charge source index occurs in the local
@@ -4610,20 +3385,6 @@ noncomputable def lemma34_zeroCells
   T.blocks.flatMap (fun B => lemma34_zeroCellsFor P eps heps k B)
 
 
-/-- Every global discarded-cell record has a parent in the previous tower. -/
-theorem lemma34_zeroCell_parent_mem
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (n : Nat) (eps : R) (heps : COF.lt 0 eps) (k : Nat)
-    (T : Lemma34Tower P n eps k)
-    {G : Lemma34ZeroCell P eps heps k}
-    (hG : G ∈ lemma34_zeroCells P n eps heps k T) :
-    G.parent ∈ T.blocks := by
-  unfold lemma34_zeroCells at hG
-  rw [List.mem_flatMap] at hG
-  rcases hG with ⟨B, hB, hGB⟩
-  have hparent := lemma34_zeroCellsFor_parent P eps heps k B hGB
-  rw [hparent]
-  exact hB
 
 
 /-- A canonical zero-charge record is present globally whenever its parent
@@ -5083,40 +3844,6 @@ theorem lemma34_out_positiveCell_mem_alpha
   exact hflat
 
 
-/-- Shrink the `p_lt` witness attached to a zero-charge source cell to the
-successor radius around a point lying weakly in that cell. -/
-noncomputable def lemma34_out_shrink_zeroCell
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (n : Nat) (eps : R) (heps : COF.lt 0 eps) (k : Nat)
-    (T : Lemma34Tower P n eps k) {A : Lemma34TowerStepAlpha T}
-    (Sg : Lemma34TowerStepSigma heps A)
-    (B : Lemma34Block P eps k) (hB : B ∈ T.blocks) (i : Nat)
-    (hi : i < (lemma34_blockRefinementResult P eps heps k B).N)
-    (hz : (lemma34_blockRefinementResult P eps heps k B).M (i + 1) = 0)
-    (x : R)
-    (hleft : Le ((lemma34_blockRefinementResult P eps heps k B).pts i) x)
-    (hright : Le x
-      ((lemma34_blockRefinementResult P eps heps k B).pts (i + 1))) :
-    P.p_lt
-      (COF.max a (x - Sg.sigma))
-      (COF.min b (x + Sg.sigma)) eps := by
-  let G := lemma34_zeroCellOf P eps heps k B i hi hz
-  have hG : G ∈ lemma34_zeroCells P n eps heps k T := by
-    dsimp [G]
-    exact lemma34_zeroCellOf_mem P n eps heps k T B hB i hi hz
-  have hsigma : Le Sg.sigma G.omega := Sg.sigma_le_zeroCell G hG
-  have hp : P.p_lt
-      (COF.max a
-        ((lemma34_blockRefinementResult P eps heps k B).pts i - G.omega))
-      (COF.min b
-        ((lemma34_blockRefinementResult P eps heps k B).pts (i + 1) + G.omega))
-      eps := by
-    simpa [G, lemma34_zeroCellOf] using G.omega_p_lt
-  apply lemma33_p_lt_subset P hp
-  · exact lemma34_out_max_mono_right
-      (lemma33_sub_le_sub hleft hsigma)
-  · exact lemma34_out_min_mono_right
-      (lemma33_add_le_add hright hsigma)
 
 
 /-- A positive displacement moves a point strictly to the left. -/
@@ -6005,30 +4732,6 @@ noncomputable def lemma34_limitData
       lemma34_towerSeq_segment_width P eps heps n hn h_cond k j
 
 
-/-- Existential form of the P3-a output, ready for the final `gamma` step. -/
-theorem lemma34_limit_points_exists
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (eps : R) (heps : COF.lt 0 eps) (n : Nat) (hn : 0 < n)
-    (h_cond : COF.lt
-      (P.lambda P.oneCode - P.lambda P.zeroCode)
-      (((n + 1 : Nat) : R) * eps)) :
-    ∃ t : Fin n -> R,
-      (∀ j, Le a (t j) ∧ Le (t j) b) ∧
-      ∀ (k : Nat) (j : Fin n),
-        Le ((lemma34_towerSeq P eps heps n hn h_cond k).segL j) (t j) ∧
-        Le (t j) ((lemma34_towerSeq P eps heps n hn h_cond k).segR j) ∧
-        Le
-          ((lemma34_towerSeq P eps heps n hn h_cond k).segR j -
-            (lemma34_towerSeq P eps heps n hn h_cond k).segL j)
-          (lemma34_widthScale a b k) := by
-  let D := lemma34_limitData P eps heps n hn h_cond
-  refine ⟨D.t, D.bounds, ?_⟩
-  intro k j
-  exact ⟨
-    by simpa [lemma34_leftSeq] using (D.in_segment k j).1,
-    by simpa [lemma34_rightSeq] using (D.in_segment k j).2,
-    by simpa [lemma34_leftSeq, lemma34_rightSeq] using D.width k j
-  ⟩
 
 
 
@@ -6294,14 +4997,6 @@ noncomputable def lemma35_count
   2 ^ lemma35_archExponent P * 2 ^ k
 
 
-/-- Every level has at least one exceptional point. -/
-theorem lemma35_count_pos
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (k : Nat) : 0 < lemma35_count P k := by
-  unfold lemma35_count
-  exact Nat.mul_pos
-    (lemma33_two_pow_pos (lemma35_archExponent P))
-    (lemma33_two_pow_pos k)
 
 
 /-- The main part of `(n(k)+1) * halfPow k` is exactly the fixed dyadic
@@ -6359,18 +5054,6 @@ structure Lemma35LevelData
             (COF.halfPow k))
 
 
-/-- (D) Lemma 3.4 produces the level data. -/
-theorem lemma35_levelData_exists
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (k : Nat) : Nonempty (Lemma35LevelData P k) := by
-  obtain ⟨points, hbounds, hlocal⟩ :=
-    lemma_3_4 P (COF.halfPow k) (halfPow_pos k)
-      (lemma35_count P k) (lemma35_budget P k)
-  exact ⟨{
-    points := points
-    bounds := hbounds
-    local_small := fun beta hbeta => hlocal beta hbeta
-  }⟩
 
 
 /-- Canonically chosen level data. -/
@@ -6600,48 +5283,6 @@ structure Lemma35LocalWitness
   gap_lt : COF.lt (P.lambda upper - P.lambda lower) (COF.halfPow k)
 
 
-/-- At every level and every point apart from the flattened exceptional
-sequence, Lemma 3.4 supplies a positive neighborhood and a profile bracket. -/
-theorem lemma35_localWitness_exists
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (t : R) (hat : Le a t) (htb : Le t b)
-    (hT : ∀ q : Nat,
-      COF.lt 0 (COF.abs (t - lemma35_exceptionSeq P q)))
-    (k : Nat) : Nonempty (Lemma35LocalWitness P t k) := by
-  let beta : R := lemma35_beta P t k
-  have hbeta : COF.lt 0 beta := lemma35_beta_pos P t hT k
-  have hfar : ∀ j : Fin (lemma35_count P k),
-      COF.lt beta
-        (COF.abs (t - (lemma35_levelData P k).points j)) :=
-    lemma35_beta_lt_point P t hT k
-
-  obtain ⟨gamma, hgamma, hlocal⟩ :=
-    (lemma35_levelData P k).local_small beta hbeta
-  have hp :
-      P.p_lt (COF.max a (t - gamma))
-        (COF.min b (t + gamma)) (COF.halfPow k) :=
-    hlocal t hat htb hfar
-  rcases hp with
-    ⟨lower, hlower, upper, hupper, hzero, hone, hgap⟩
-
-  refine ⟨{
-    beta := beta
-    beta_pos := hbeta
-    beta_far := hfar
-    gamma := gamma
-    gamma_pos := hgamma
-    lower := lower
-    lower_mem := hlower
-    upper := upper
-    upper_mem := hupper
-    lower_zero := ?_
-    upper_one := ?_
-    gap_lt := hgap
-  }⟩
-  · intro x hax hxb hxt
-    exact hzero x hax hxb (lemma34_le_min hxb hxt)
-  · intro x hax hxb htx
-    exact hone x hax hxb (cof_max_le hax htx)
 
 
 /-- Canonically chosen T-b witness.  The same data can be referenced
@@ -6706,10 +5347,6 @@ their limit by `COFOC.complete`, and proves that this common limit lies in every
 level bracket.  The final epsilon--delta squeeze is deliberately left to T-d.
 -/
 
-/-- One dyadic step decreases `halfPow` weakly. -/
-theorem lemma35_halfPow_succ_le (k : Nat) :
-    Le (COF.halfPow (R := R) (k + 1)) (COF.halfPow (R := R) k) :=
-  le_of_lt (halfPow_lt_succ k)
 
 
 /-- `halfPow` is weakly antitone in its natural-number exponent. -/
@@ -7011,47 +5648,10 @@ theorem lemma35_lambdaBar_le_upperLambda
   exact COF.lt_irrefl _ hloop
 
 
-/-- T-c output package, ready for the final epsilon--delta squeeze. -/
-structure Lemma35LambdaLimitData
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (t : R) (hat : Le a t) (htb : Le t b)
-    (hT : ∀ q : Nat,
-      COF.lt 0 (COF.abs (t - lemma35_exceptionSeq P q))) where
-  lambdaBar : R
-  tends : RSeq.TendstoHalf
-    (lemma35_lowerLambda P t hat htb hT) lambdaBar
-  lower_le : ∀ k : Nat,
-    Le (lemma35_lowerLambda P t hat htb hT k) lambdaBar
-  le_upper : ∀ k : Nat,
-    Le lambdaBar (lemma35_upperLambda P t hat htb hT k)
 
 
-/-- Canonical T-c limit package. -/
-noncomputable def lemma35_lambdaLimitData
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (t : R) (hat : Le a t) (htb : Le t b)
-    (hT : ∀ q : Nat,
-      COF.lt 0 (COF.abs (t - lemma35_exceptionSeq P q))) :
-    Lemma35LambdaLimitData P t hat htb hT := {
-  lambdaBar := lemma35_lambdaBar P t hat htb hT
-  tends := (lemma35_lowerLimit P t hat htb hT).tends
-  lower_le := lemma35_lowerLambda_le_lambdaBar P t hat htb hT
-  le_upper := lemma35_lambdaBar_le_upperLambda P t hat htb hT
-}
 
 
-/-- Existential form of the completed T-c bracket. -/
-theorem lemma35_lambdaBar_exists
-    {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
-    (t : R) (hat : Le a t) (htb : Le t b)
-    (hT : ∀ q : Nat,
-      COF.lt 0 (COF.abs (t - lemma35_exceptionSeq P q))) :
-    ∃ lambdaBar : R,
-      ∀ k : Nat,
-        Le (lemma35_lowerLambda P t hat htb hT k) lambdaBar ∧
-        Le lambdaBar (lemma35_upperLambda P t hat htb hT k) := by
-  let D := lemma35_lambdaLimitData P t hat htb hT
-  exact ⟨D.lambdaBar, fun k => ⟨D.lower_le k, D.le_upper k⟩⟩
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -7124,12 +5724,6 @@ theorem thm_3_5_smooth_at_seq {a b : R} {hab : COF.lt a b} (P : Profile a b hab)
       let d := thm_3_5_smooth_at_seq_spec P t hat htb hT eps heps
       ⟨d.1, d.2.1, d.2.2⟩⟩
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_3_5_smooth_ae {a b : R} {hab : COF.lt a b} (P : Profile a b hab) :
-    ∃ (T : Nat → R), ∀ t : R, Le a t → Le t b →
-      (∀ n, COF.lt 0 (COF.abs (t - T n))) → P.IsSmoothAt t :=
-  ⟨lemma35_exceptionSeq P,
-    fun t hat htb hT => thm_3_5_smooth_at_seq P t hat htb hT⟩
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -7140,10 +5734,6 @@ noncomputable def thm_3_6_ramp_comp {S : IntSpaceRC X R} (h : IntegrableRep S)
   (IntegrableRep.smul (COFO.inv (v - u)) (h.sub (h.cutConstVal u hu))).cutConstVal 1
     (fun h1 => COF.lt_irrefl (0 : R) (COFO.lt_trans COFO.one_pos h1))
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_3_6_lambda0 {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (u v : R) (hu : ¬ COF.lt u 0) (huv : COF.lt u v) : R :=
-  (thm_3_6_ramp_comp h u v hu huv).integral
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm_3_6_rampFn (u v : R) : R → R :=
@@ -7554,62 +6144,8 @@ noncomputable def thm36A2_codeRep {S : IntSpaceRC X R} (h : IntegrableRep S)
   thm_3_6_ramp_comp h (thm36A2_codeU E c) (thm36A2_codeV E c)
     (thm36A2_codeU_nonneg hab ha E c) (thm36A2_codeUV_lt E c)
 
-/-- Constructively, `z < |z|` forces `z < 0`. -/
-theorem thm36A2_lt_abs_self_imp_neg {z : R}
-    (hz : COF.lt z (COF.abs z)) : COF.lt z 0 := by
-  cases COF.lt_cotrans_data hz 0 with
-  | inl hz0 =>
-      exact hz0
-  | inr h0abs =>
-      rcases COFO.lt_or_lt_of_abs_pos h0abs with hzpos | hzneg
-      · have hznonneg : Nonneg z := le_of_lt hzpos
-        have hbad := hz
-        rw [COFO.abs_of_nonneg hznonneg] at hbad
-        exact False.elim (COF.lt_irrefl z hbad)
-      · exact hzneg
 
 
-/-- If `min x y < x`, then `y < x`, proved from the half-sum formula and
-apartness rather than a decidable comparison. -/
-theorem thm36A2_min_lt_left_imp_right_lt {x y : R}
-    (hmin : COF.lt (COF.min x y) x) : COF.lt y x := by
-  have hleft : COF.lt
-      (COF.min x y + COF.min x y)
-      (x + COF.min x y) := by
-    have h := COF.lt_add_left (COF.min x y) hmin
-    simpa [add_comm] using h
-  have hright : COF.lt
-      (x + COF.min x y) (x + x) :=
-    COF.lt_add_left x hmin
-  have hdouble : COF.lt
-      (COF.min x y + COF.min x y) (x + x) :=
-    COFO.lt_trans hleft hright
-  have hminsum :
-      COF.min x y + COF.min x y =
-        x + y - COF.abs (x - y) := by
-    rw [COF.min_halfsum]
-    calc
-      COF.half * (x + y - COF.abs (x - y)) +
-          COF.half * (x + y - COF.abs (x - y)) =
-          (COF.half + COF.half) *
-            (x + y - COF.abs (x - y)) := by ring
-      _ = 1 * (x + y - COF.abs (x - y)) := by
-        rw [COF.half_add_half]
-      _ = x + y - COF.abs (x - y) := by ring
-  rw [hminsum] at hdouble
-  have hshift1 := COF.lt_add_left (-(x + y)) hdouble
-  have hshift2 := COF.lt_add_left
-    (COF.abs (x - y) + y - x) hshift1
-  have hyx_abs : COF.lt (y - x) (COF.abs (x - y)) := by
-    convert hshift2 using 1 <;> ring
-  have hyx_self : COF.lt (y - x) (COF.abs (y - x)) := by
-    have heq : COF.abs (x - y) = COF.abs (y - x) := by
-      rw [show x - y = -(y - x) by ring, COFO.abs_neg]
-    rw [← heq]; exact hyx_abs
-  have hyx_neg : COF.lt (y - x) 0 :=
-    thm36A2_lt_abs_self_imp_neg hyx_self
-  have hadd := COF.lt_add_left x hyx_neg
-  convert hadd using 1 <;> ring
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -7666,22 +6202,6 @@ theorem thm36A2_ramp_le_global_of_right_le_left
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36A2_codeFn_eq_codeRepFn_on_interval {a b : R}
-    (E : Thm36A2Endpoints a b) (c : Thm36A2Code a b)
-    (x : R) (hax : Le a x) (hxb : Le x b) :
-    thm36A2_codeFn c x = thm36A2_codeRepFn E c x := by
-  cases c with
-  | one =>
-      change (1 : R) = thm_3_6_rampFn E.alpha E.beta x
-      exact (thm36A1_ramp_one E.alpha E.beta x E.alpha_lt_beta
-        (le_trans (le_of_lt E.beta_lt_a) hax)).symm
-  | zero =>
-      change (0 : R) = thm_3_6_rampFn E.gamma E.delta x
-      exact (thm36A1_ramp_zero E.gamma E.delta x E.gamma_lt_delta
-        (le_trans hxb (le_of_lt E.b_lt_gamma))).symm
-  | ramp u v _ _ _ =>
-      rfl
 
 /-- `[a,b]`-order of internal ramps extends globally without deciding the
 location of `y`. -/
@@ -8502,19 +7022,6 @@ noncomputable def thm36B1_apartPointData
   apart := thm36B1_limit_apart s hab
 }
 
-/-- T36-B proposition: the profile attached to `h` has a smooth point in the
-open interval `(a,b)`. -/
-theorem thm36B_smoothPoint_exists
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) :
-    ∃ t : R, COF.lt a t ∧ COF.lt t b ∧
-      (thm36A2_profile h a b hab ha).IsSmoothAt t := by
-  let P : Profile a b hab := thm36A2_profile h a b hab ha
-  rcases thm_3_5_smooth_ae P with ⟨T, hT⟩
-  rcases thm36B1_exists_apart_in_interval T hab with
-    ⟨t, hat, htb, hapart⟩
-  refine ⟨t, hat, htb, ?_⟩
-  exact hT t (le_of_lt hat) (le_of_lt htb) hapart
 
 /-- Data package used by T36-C and T36-D. -/
 structure Thm36BSmoothPointData
@@ -8536,22 +7043,6 @@ structure Thm36BSmoothPointData
           COF.lt (COF.abs ((thm36A2_profile h a b hab ha).lambda f - lambdaBar))
             eps)
 
-/-- Canonically select the T36-B smooth point. -/
-noncomputable def thm36B_smoothPointData
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) :
-    Thm36BSmoothPointData h a b hab ha :=
-  let P : Profile a b hab := thm36A2_profile h a b hab ha
-  let D := thm36B1_apart_data (lemma35_exceptionSeq P) hab
-  { t := D.1
-    a_lt := D.2.1
-    lt_b := D.2.2.1
-    smooth :=
-      thm_3_5_smooth_at_seq P D.1 (le_of_lt D.2.1) (le_of_lt D.2.2.1) D.2.2.2
-    lambdaBar :=
-      lemma35_lambdaBar P D.1 (le_of_lt D.2.1) (le_of_lt D.2.2.1) D.2.2.2
-    lambdaBar_spec :=
-      thm_3_5_smooth_at_seq_spec P D.1 (le_of_lt D.2.1) (le_of_lt D.2.2.1) D.2.2.2 }
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm36B_smoothPointData_of_apart {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -8569,15 +7060,6 @@ noncomputable def thm36B_smoothPointData_of_apart {S : IntSpaceRC X R} (h : Inte
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Constructive antisymmetry for `Le := ¬ lt`. -/
-theorem thm36C_eq_of_le_of_le {x y : R} (hxy : Le x y) (hyx : Le y x) :
-    x = y := by
-  apply COFO.eq_of_small
-  intro k hk
-  have hnonneg : Nonneg (x - y) := nonneg_sub_of_le hyx
-  have hnonpos : Le (x - y) 0 := lemma33_sub_nonpos_of_le hxy
-  rw [COFO.abs_of_nonneg hnonneg] at hk
-  exact hnonpos (COFO.lt_trans (halfPow_pos k) hk)
 
 /-- Strict subtraction is antitone in the subtracted argument. -/
 theorem thm36C_sub_lt_sub_left {x y z : R} (hxy : COF.lt x y) :
@@ -8610,12 +7092,6 @@ theorem thm36C_t_lt_b {S : IntSpaceRC X R} (h : IntegrableRep S)
     COF.lt (thm36C_t h a b hab ha spD) b := by
   simpa [thm36C_t] using (spD).lt_b
 
-/-- Smoothness certificate at the canonical T36-B point. -/
-theorem thm36C_t_smooth {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    (thm36A2_profile h a b hab ha).IsSmoothAt
-      (thm36C_t h a b hab ha spD) := by
-  simpa [thm36C_t] using (spD).smooth
 
 /-- Fixed positive radius used in the dyadic approach to `t`. -/
 noncomputable def thm36C_radius {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -8818,12 +7294,6 @@ noncomputable def thm36C_level_tends {S : IntSpaceRC X R}
     COFO.abs_of_nonneg (le_of_lt (thm36C_gap_pos h a b hab ha spD n))]
   exact hgap
 
-/-- The profile ramp corresponding to the `n`-th lower endpoint. -/
-noncomputable def thm36C_rampFn {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : R → R :=
-  thm_3_6_rampFn (thm36C_level h a b hab ha spD n)
-    (thm36C_t h a b hab ha spD)
 
 /-- The integrable composition corresponding to the `n`-th profile ramp. -/
 noncomputable def thm36C_ramp {S : IntSpaceRC X R}
@@ -8857,13 +7327,6 @@ theorem thm36C_rampCode_mem {S : IntSpaceRC X R}
     (thm36C_level_lt_t h a b hab ha spD n)
     (le_of_lt (thm36C_t_lt_b h a b hab ha spD))
 
-@[simp] theorem thm36C_rampCode_embed {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    (thm36A2_profile h a b hab ha).embed
-        (thm36C_rampCode h a b hab ha spD n) =
-      thm36C_rampFn h a b hab ha spD n := by
-  rfl
 
 /-- Technical lemma used in the public import closure. -/
 theorem thm36C_profileLambda_ramp_eq_integral_raw
@@ -9005,331 +7468,33 @@ noncomputable def thm36C_rampIntegral_tends {S : IntSpaceRC X R}
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_radiusB {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) : R :=
-  (b - thm36C_t h a b hab ha spD) * COF.half
 
-theorem thm36C_radiusB_pos {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    COF.lt 0 (thm36C_radiusB h a b hab ha spD) := by
-  unfold thm36C_radiusB
-  exact COFO.mul_pos (lemma33_sub_pos_of_lt (thm36C_t_lt_b h a b hab ha spD)) COFO.half_pos
 
-theorem thm36C_radiusB_add_self {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    thm36C_radiusB h a b hab ha spD + thm36C_radiusB h a b hab ha spD =
-      b - thm36C_t h a b hab ha spD := by
-  unfold thm36C_radiusB
-  calc
-    (b - thm36C_t h a b hab ha spD) * COF.half +
-        (b - thm36C_t h a b hab ha spD) * COF.half =
-        (b - thm36C_t h a b hab ha spD) * (COF.half + COF.half) := by ring
-    _ = (b - thm36C_t h a b hab ha spD) * 1 := by rw [COF.half_add_half]
-    _ = b - thm36C_t h a b hab ha spD := by ring
 
-theorem thm36C_radiusB_lt_span {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    COF.lt (thm36C_radiusB h a b hab ha spD)
-      (b - thm36C_t h a b hab ha spD) := by
-  have hr := thm36C_radiusB_pos h a b hab ha spD
-  have hlt := lemma33_lt_add_of_pos_right
-    (a := thm36C_radiusB h a b hab ha spD) hr
-  rw [thm36C_radiusB_add_self h a b hab ha spD] at hlt
-  exact hlt
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_gapB {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : R :=
-  COF.halfPow n * thm36C_radiusB h a b hab ha spD
 
-theorem thm36C_gapB_pos {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt 0 (thm36C_gapB h a b hab ha spD n) := by
-  unfold thm36C_gapB
-  exact COFO.mul_pos (halfPow_pos n) (thm36C_radiusB_pos h a b hab ha spD)
 
-theorem thm36C_gapB_le_radiusB {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    Le (thm36C_gapB h a b hab ha spD n) (thm36C_radiusB h a b hab ha spD) := by
-  have hpow : Le (COF.halfPow n) (1 : R) := by
-    have hh := lemma35_halfPow_antitone (R := R) (k := 0) (m := n) (Nat.zero_le n)
-    simpa using hh
-  have hr : Nonneg (thm36C_radiusB h a b hab ha spD) :=
-    le_of_lt (thm36C_radiusB_pos h a b hab ha spD)
-  have hm := lemma33_mul_le_mul_right hpow hr
-  simpa [thm36C_gapB] using hm
 
-theorem thm36C_gapB_lt_span {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt (thm36C_gapB h a b hab ha spD n)
-      (b - thm36C_t h a b hab ha spD) :=
-  BishopC.lt_of_le_of_lt (thm36C_gapB_le_radiusB h a b hab ha spD n)
-    (thm36C_radiusB_lt_span h a b hab ha spD)
 
-theorem thm36C_gapB_antitone {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    {m n : Nat} (hmn : m ≤ n) :
-    Le (thm36C_gapB h a b hab ha spD n) (thm36C_gapB h a b hab ha spD m) := by
-  have hp := lemma35_halfPow_antitone (R := R) hmn
-  have hr : Nonneg (thm36C_radiusB h a b hab ha spD) :=
-    le_of_lt (thm36C_radiusB_pos h a b hab ha spD)
-  simpa [thm36C_gapB] using lemma33_mul_le_mul_right hp hr
 
-theorem thm36C_gapB_succ_lt {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt (thm36C_gapB h a b hab ha spD (n + 1))
-      (thm36C_gapB h a b hab ha spD n) := by
-  unfold thm36C_gapB
-  exact lemma33_mul_lt_mul_right (thm36C_halfPow_succ_lt n)
-    (thm36C_radiusB_pos h a b hab ha spD)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_levelB {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : R :=
-  thm36C_t h a b hab ha spD + thm36C_gapB h a b hab ha spD n
 
-theorem thm36C_t_lt_levelB {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt (thm36C_t h a b hab ha spD) (thm36C_levelB h a b hab ha spD n) := by
-  have hp := thm36C_gapB_pos h a b hab ha spD n
-  have hlt := lemma33_lt_add_of_pos_right
-    (a := thm36C_t h a b hab ha spD) hp
-  unfold thm36C_levelB
-  exact hlt
 
-theorem thm36C_levelB_lt_b {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt (thm36C_levelB h a b hab ha spD n) b := by
-  have hgap := thm36C_gapB_lt_span h a b hab ha spD n
-  have hpos : COF.lt 0
-      ((b - thm36C_t h a b hab ha spD) - thm36C_gapB h a b hab ha spD n) :=
-    lemma33_sub_pos_of_lt hgap
-  have hadd := lemma33_lt_add_of_pos_right
-    (a := thm36C_levelB h a b hab ha spD n) hpos
-  unfold thm36C_levelB at hadd ⊢
-  convert hadd using 1 <;> ring
 
-theorem thm36C_levelB_nonneg {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    Nonneg (thm36C_levelB h a b hab ha spD n) :=
-  le_trans
-    (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-    (le_of_lt (thm36C_t_lt_levelB h a b hab ha spD n))
 
-theorem thm36C_levelB_succ_lt {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    COF.lt (thm36C_levelB h a b hab ha spD (n + 1))
-      (thm36C_levelB h a b hab ha spD n) := by
-  unfold thm36C_levelB
-  exact lemma33_add_lt_add_left (c := thm36C_t h a b hab ha spD)
-    (thm36C_gapB_succ_lt h a b hab ha spD n)
 
-noncomputable def thm36C_gapB_eventually_lt {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (eps : R) (heps : COF.lt 0 eps) :
-    {n : Nat // COF.lt (thm36C_gapB h a b hab ha spD n) eps} := by
-  let r : R := thm36C_radiusB h a b hab ha spD
-  have hr : COF.lt 0 r := thm36C_radiusB_pos h a b hab ha spD
-  let q : R := eps * COFO.inv r
-  have hq : COF.lt 0 q := COFO.mul_pos heps (COFO.inv_pos hr)
-  let n : Nat := (COFO.archimedean_pos q hq).1
-  have hn : COF.lt (COF.halfPow n) q := (COFO.archimedean_pos q hq).2
-  have hmul : COF.lt (COF.halfPow n * r) (q * r) :=
-    lemma33_mul_lt_mul_right hn hr
-  have hinv : COFO.inv r * r = (1 : R) := by
-    calc
-      COFO.inv r * r = r * COFO.inv r := by ring
-      _ = 1 := COFO.mul_inv_cancel hr
-  have hqr : q * r = eps := by
-    dsimp [q]
-    calc
-      (eps * COFO.inv r) * r = eps * (COFO.inv r * r) := by ring
-      _ = eps * 1 := by rw [hinv]
-      _ = eps := by ring
-  refine ⟨n, ?_⟩
-  change COF.lt (COF.halfPow n * r) eps
-  rwa [hqr] at hmul
 
-noncomputable def thm36C_levelBMod {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (k : Nat) : Nat :=
-  (thm36C_gapB_eventually_lt h a b hab ha spD
-    (COF.halfPow k) (halfPow_pos k)).1
 
-theorem thm36C_levelBMod_spec {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (k : Nat) :
-    COF.lt
-      (thm36C_gapB h a b hab ha spD (thm36C_levelBMod h a b hab ha spD k))
-      (COF.halfPow k) :=
-  (thm36C_gapB_eventually_lt h a b hab ha spD
-    (COF.halfPow k) (halfPow_pos k)).2
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_levelB_tends {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.TendstoHalf (thm36C_levelB h a b hab ha spD)
-      (thm36C_t h a b hab ha spD) := by
-  refine {
-    mod := thm36C_levelBMod h a b hab ha spD
-    close := ?_
-  }
-  intro k n hkn
-  have hle : Le (thm36C_gapB h a b hab ha spD n)
-      (thm36C_gapB h a b hab ha spD (thm36C_levelBMod h a b hab ha spD k)) :=
-    thm36C_gapB_antitone h a b hab ha spD hkn
-  have hgap : COF.lt (thm36C_gapB h a b hab ha spD n) (COF.halfPow k) :=
-    BishopC.lt_of_le_of_lt hle (thm36C_levelBMod_spec h a b hab ha spD k)
-  change COF.lt
-    (COF.abs (thm36C_levelB h a b hab ha spD n - thm36C_t h a b hab ha spD))
-    (COF.halfPow k)
-  rw [show thm36C_levelB h a b hab ha spD n - thm36C_t h a b hab ha spD =
-      thm36C_gapB h a b hab ha spD n by
-        simp only [thm36C_levelB]; ring,
-    COFO.abs_of_nonneg (le_of_lt (thm36C_gapB_pos h a b hab ha spD n))]
-  exact hgap
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_rampBFn {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : R → R :=
-  thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_rampB {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : IntegrableRep S :=
-  thm_3_6_ramp_comp h (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n)
-    (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-    (thm36C_t_lt_levelB h a b hab ha spD n)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_rampBCode {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) : Thm36A2Code a b :=
-  .ramp
-    (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n)
-    (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
-    (thm36C_t_lt_levelB h a b hab ha spD n)
-    (le_of_lt (thm36C_levelB_lt_b h a b hab ha spD n))
 
-theorem thm36C_rampBCode_mem {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    thm36C_rampBCode h a b hab ha spD n ∈
-      (thm36A2_profile h a b hab ha).F := by
-  change thm36C_rampBCode h a b hab ha spD n ∈
-    thm36A2_profileF (a := a) (b := b)
-  exact thm36A2_ramp_mem
-    (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
-    (thm36C_t_lt_levelB h a b hab ha spD n)
-    (le_of_lt (thm36C_levelB_lt_b h a b hab ha spD n))
 
-@[simp] theorem thm36C_rampBCode_embed {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    (thm36A2_profile h a b hab ha).embed
-        (thm36C_rampBCode h a b hab ha spD n) =
-      thm36C_rampBFn h a b hab ha spD n := by
-  rfl
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_rampBLambda_mod_exists {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (k : Nat) :
-    Σ' N : Nat, ∀ n : Nat, N ≤ n →
-      COF.lt
-        (COF.abs
-          ((thm36A2_profile h a b hab ha).lambda
-              (thm36C_rampBCode h a b hab ha spD n) -
-            thm36C_lambdaBar h a b hab ha spD))
-        (COF.halfPow k) := by
-  let s := thm36C_lambdaBar_spec h a b hab ha spD
-      (COF.halfPow k) (halfPow_pos k)
-  let delta : R := s.1
-  have hdelta : COF.lt 0 delta := s.2.1
-  have hsmooth := s.2.2
-  let W := thm36C_gapB_eventually_lt h a b hab ha spD delta hdelta
-  refine ⟨W.1, ?_⟩
-  intro n hWn
-  have hgapLe : Le (thm36C_gapB h a b hab ha spD n)
-      (thm36C_gapB h a b hab ha spD W.1) :=
-    thm36C_gapB_antitone h a b hab ha spD hWn
-  have hgap : COF.lt (thm36C_gapB h a b hab ha spD n) delta :=
-    BishopC.lt_of_le_of_lt hgapLe W.2
-  apply hsmooth (thm36C_rampBCode h a b hab ha spD n)
-    (thm36C_rampBCode_mem h a b hab ha spD n)
-  · intro x htx
-    change thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) x = 1
-    apply thm36A1_ramp_one
-      (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) x
-      (thm36C_t_lt_levelB h a b hab ha spD n)
-    -- levelB_n = t + gapB_n < t + delta ≤ x ⟹ levelB_n ≤ x
-    have hlevelB_lt : COF.lt (thm36C_levelB h a b hab ha spD n)
-        (thm36C_t h a b hab ha spD + delta) := by
-      have := lemma33_add_lt_add_left (c := thm36C_t h a b hab ha spD) hgap
-      simpa [thm36C_levelB] using this
-    exact le_trans (le_of_lt hlevelB_lt) htx
-  · intro x hxt
-    change thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) x = 0
-    apply thm36A1_ramp_zero
-      (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) x
-      (thm36C_t_lt_levelB h a b hab ha spD n)
-    -- x ≤ t - delta ≤ t
-    exact le_trans hxt
-      (lemma34_sub_le_self (thm36C_t h a b hab ha spD) delta (le_of_lt hdelta))
 
-noncomputable def thm36C_rampBLambda_tends {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.TendstoHalf
-      (fun n => (thm36A2_profile h a b hab ha).lambda
-        (thm36C_rampBCode h a b hab ha spD n))
-      (thm36C_lambdaBar h a b hab ha spD) := by
-  refine {
-    mod := fun k => (thm36C_rampBLambda_mod_exists h a b hab ha spD k).1
-    close := ?_
-  }
-  intro k n hkn
-  exact (thm36C_rampBLambda_mod_exists h a b hab ha spD k).2 n hkn
 
-theorem thm36C_levelBLambda_eq_rampIntegral {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (n : Nat) :
-    (thm36A2_profile h a b hab ha).lambda
-        (thm36C_rampBCode h a b hab ha spD n) =
-      (thm36C_rampB h a b hab ha spD n).integral := by
-  simpa [thm36C_rampBCode, thm36C_rampB] using
-    thm36C_profileLambda_ramp_eq_integral h a b hab ha
-      (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n)
-      (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
-      (thm36C_t_lt_levelB h a b hab ha spD n)
-      (le_of_lt (thm36C_levelB_lt_b h a b hab ha spD n))
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36C_rampBIntegral_tends {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.TendstoHalf
-      (fun n => (thm36C_rampB h a b hab ha spD n).integral)
-      (thm36C_lambdaBar h a b hab ha spD) := by
-  let H := thm36C_rampBLambda_tends h a b hab ha spD
-  refine {
-    mod := H.mod
-    close := ?_
-  }
-  intro k n hkn
-  have hc := H.close k n hkn
-  rw [thm36C_levelBLambda_eq_rampIntegral h a b hab ha spD n] at hc
-  exact hc
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -9506,17 +7671,6 @@ noncomputable def thm36Cb_decrement
     (thm36C_ramp h a b hab ha spD (n + 1))
 
 
-/-- Domain transport from the source representative to a ramp decrement. -/
-theorem thm36Cb_decrement_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) {x : X} (hdom : h.MemAt x) :
-    (thm36Cb_decrement h a b hab ha spD n).MemAt x := by
-  exact IntegrableRep.add_memAt
-    (thm36Cb_ramp_memAt h a b hab ha spD n hdom)
-    (IntegrableRep.neg_memAt
-      (thm36Cb_ramp_memAt h a b hab ha spD (n + 1) hdom))
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -9928,390 +8082,32 @@ theorem thm36Cb_f_integral
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36Cb_ratio_antitone_right
-    {t v w y : R} (hvw : Le v w)
-    (htv : COF.lt t v) (htw : COF.lt t w)
-    (hty : Le t y) (hyv : Le y v) :
-    Le (COFO.inv (w - t) * (y - t))
-      (COFO.inv (v - t) * (y - t)) := by
-  have hB : COF.lt 0 (v - t) := thm36A1_sub_pos_of_lt htv
-  have hD : COF.lt 0 (w - t) := thm36A1_sub_pos_of_lt htw
-  apply lemma33_mul_le_cancel_left hB
-  rw [show (v - t) * (COFO.inv (v - t) * (y - t)) = y - t by
-    calc
-      (v - t) * (COFO.inv (v - t) * (y - t)) =
-          ((v - t) * COFO.inv (v - t)) * (y - t) := by ring
-      _ = 1 * (y - t) := by rw [COFO.mul_inv_cancel hB]
-      _ = y - t := by ring]
-  apply lemma33_mul_le_cancel_left hD
-  have hsub : Le (v - t) (w - t) := thm36A1_sub_le_sub_right hvw
-  have hyt : Nonneg (y - t) := nonneg_sub_of_le hty
-  have hcross : Le ((v - t) * (y - t)) ((w - t) * (y - t)) :=
-    lemma33_mul_le_mul_right hsub hyt
-  have hLHS : (w - t) * ((v - t) * (COFO.inv (w - t) * (y - t)))
-      = (v - t) * (y - t) := by
-    calc
-      (w - t) * ((v - t) * (COFO.inv (w - t) * (y - t))) =
-          ((w - t) * COFO.inv (w - t)) * ((v - t) * (y - t)) := by ring
-      _ = 1 * ((v - t) * (y - t)) := by rw [COFO.mul_inv_cancel hD]
-      _ = (v - t) * (y - t) := by ring
-  rw [hLHS]
-  exact hcross
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36Cb_rampFn_antitone_right
-    {t v w : R} (hvw : Le v w)
-    (htv : COF.lt t v) (htw : COF.lt t w) :
-    ∀ y : R, Le (thm_3_6_rampFn t w y) (thm_3_6_rampFn t v y) := by
-  intro y h
-  -- Technical note.
-  have hpos : COF.lt 0 (thm_3_6_rampFn t w y) :=
-    lt_of_le_of_lt (thm36A1_ramp_bound t v y).1 h
-  have hty : COF.lt t y := thm36A1_ramp_pos_imp t w y htw hpos
-  have hv_lt_1 : COF.lt (thm_3_6_rampFn t v y) 1 :=
-    lt_of_lt_of_le h (thm36A1_ramp_bound t w y).2
-  have hyv : COF.lt y v := thm36A1_ramp_lt_one_imp t v y htv hv_lt_1
-  have hyw : COF.lt y w := lt_of_lt_of_le hyv hvw
-  rw [thm36Cb_rampFn_between htw (le_of_lt hty) (le_of_lt hyw),
-      thm36Cb_rampFn_between htv (le_of_lt hty) (le_of_lt hyv)] at h
-  exact thm36Cb_ratio_antitone_right hvw htv htw
-    (le_of_lt hty) (le_of_lt hyv) h
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36Cb_rampBFn_succ_ge
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (y : R) :
-    Le
-      (thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD n) y)
-      (thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD (n + 1)) y) := by
-  exact thm36Cb_rampFn_antitone_right
-    (le_of_lt (thm36C_levelB_succ_lt h a b hab ha spD n))
-    (thm36C_t_lt_levelB h a b hab ha spD (n + 1))
-    (thm36C_t_lt_levelB h a b hab ha spD n) y
 
-/-- Domain transport from the source representative to an upper profile ramp. -/
-theorem thm36Cb_rampB_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) {x : X} (hdom : h.MemAt x) :
-    (thm36C_rampB h a b hab ha spD n).MemAt x := by
-  simpa [thm36C_rampB] using
-    (thm36A1_ramp_comp_memAt h
-      (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n)
-      (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-      (thm36C_t_lt_levelB h a b hab ha spD n) hdom)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36Cb_rampB_value_witness
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X) (hdom : h.MemAt x)
-    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
-    {hr : RSeq.SeriesSum
-      (fun m => (thm36C_rampB h a b hab ha spD n).valueAt x
-        (thm36Cb_rampB_memAt h a b hab ha spD n hdom) m) //
-      hr.sum =
-        thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD n) hx.sum} := by
-  simpa [thm36C_rampB] using
-    (thm36A1_ramp_comp_value_witness h
-      (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n)
-      (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-      (thm36C_t_lt_levelB h a b hab ha spD n) x hdom hx)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36Cb_decrementB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) : IntegrableRep S :=
-  (thm36C_rampB h a b hab ha spD (n + 1)).sub
-    (thm36C_rampB h a b hab ha spD n)
 
-theorem thm36Cb_decrementB_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) {x : X} (hdom : h.MemAt x) :
-    (thm36Cb_decrementB h a b hab ha spD n).MemAt x :=
-  IntegrableRep.add_memAt
-    (thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom)
-    (IntegrableRep.neg_memAt
-      (thm36Cb_rampB_memAt h a b hab ha spD n hdom))
 
-theorem thm36Cb_decrementB_integral
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) :
-    (thm36Cb_decrementB h a b hab ha spD n).integral =
-      (thm36C_rampB h a b hab ha spD (n + 1)).integral -
-        (thm36C_rampB h a b hab ha spD n).integral := by
-  unfold thm36Cb_decrementB
-  exact IntegrableRep.integral_sub _ _
 
-theorem thm36Cb_rampB_nonneg_on_domain
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X) (hxdom : x ∈ h.domain)
-    (hrDom : (thm36C_rampB h a b hab ha spD n).MemAt x)
-    (hr : RSeq.SeriesSum
-      (fun m => (thm36C_rampB h a b hab ha spD n).valueAt x hrDom m)) :
-    Nonneg hr.sum := by
-  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
-  let hx := seriesSum_of_abs hxabs
-  have hval : hr.sum =
-      thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD n) hx.sum := by
-    simpa [thm36C_rampB] using
-      (thm36A1_ramp_comp_value h
-        (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD n)
-        (le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD)))
-        (thm36C_t_lt_levelB h a b hab ha spD n) x hdom hx hrDom hr)
-  rw [hval]
-  exact (thm36A1_ramp_bound
-    (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n) hx.sum).1
 
-theorem thm36Cb_decrementB_nonneg_on_domain
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X) (hxdom : x ∈ h.domain)
-    (hdDom : (thm36Cb_decrementB h a b hab ha spD n).MemAt x)
-    (hd : RSeq.SeriesSum
-      (fun m => (thm36Cb_decrementB h a b hab ha spD n).valueAt x hdDom m)) :
-    Nonneg hd.sum := by
-  obtain ⟨hdom, ⟨hxabs⟩⟩ := hxdom
-  let hx := seriesSum_of_abs hxabs
-  let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hdom hx
-  let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hdom hx
-  let WnDom := thm36Cb_rampB_memAt h a b hab ha spD n hdom
-  let WsDom := thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom
-  let hnegDom := IntegrableRep.neg_memAt WnDom
-  let hneg : RSeq.SeriesSum
-      (fun m => (thm36C_rampB h a b hab ha spD n).neg.valueAt x hnegDom m) :=
-    neg_seriesSum_value WnDom Wn.val
-  let hcanDom := IntegrableRep.add_memAt WsDom hnegDom
-  let hcan : RSeq.SeriesSum
-      (fun m => (thm36Cb_decrementB h a b hab ha spD n).valueAt x hcanDom m) := by
-    exact add_seriesSum_value WsDom hnegDom Ws.val hneg
-  have hsum : hd.sum = Ws.val.sum - Wn.val.sum := by
-    calc
-      hd.sum = hcan.sum := seriesSum_unique hd hcan
-      _ = Ws.val.sum + (-Wn.val.sum) := by rfl
-      _ = Ws.val.sum - Wn.val.sum := by ring
-  rw [hsum, Wn.property, Ws.property]
-  exact nonneg_sub_of_le
-    (thm36Cb_rampBFn_succ_ge h a b hab ha spD n hx.sum)
 
-theorem thm36Cb_rampB_normL1
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) :
-    (thm36C_rampB h a b hab ha spD n).normL1 =
-      (thm36C_rampB h a b hab ha spD n).integral :=
-  thm36Cb_normL1_eq_integral_on_full
-    (IntegrableRep.domain_isFull h)
-    (thm36Cb_rampB_nonneg_on_domain h a b hab ha spD n)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36Cb_signedTermB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    Nat → IntegrableRep S
-  | 0 => thm36C_rampB h a b hab ha spD 0
-  | n + 1 =>
-      (thm36C_rampB h a b hab ha spD (n + 1)).sub (thm36C_rampB h a b hab ha spD n)
 
-theorem thm36Cb_signedTermB_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) {x : X} (hdom : h.MemAt x) :
-    (thm36Cb_signedTermB h a b hab ha spD n).MemAt x := by
-  cases n with
-  | zero => exact thm36Cb_rampB_memAt h a b hab ha spD 0 hdom
-  | succ n =>
-      exact IntegrableRep.add_memAt
-        (thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom)
-        (IntegrableRep.neg_memAt
-          (thm36Cb_rampB_memAt h a b hab ha spD n hdom))
 
-noncomputable def thm36Cb_termB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (m : Nat) : IntegrableRep S :=
-  (thm36Cb_signedTermB h a b hab ha spD m).collapseFirst
-    ((thm36Cb_signedTermB h a b hab ha spD m).contNf m)
 
-theorem thm36Cb_termB_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) {x : X} (hdom : h.MemAt x) :
-    (thm36Cb_termB h a b hab ha spD n).MemAt x :=
-  (thm36Cb_signedTermB h a b hab ha spD n).collapseFirst_memAt
-    ((thm36Cb_signedTermB h a b hab ha spD n).contNf n)
-    (thm36Cb_signedTermB_memAt h a b hab ha spD n hdom)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36Cb_normL1ValueB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    Nat → R
-  | 0 => (thm36C_rampB h a b hab ha spD 0).integral
-  | n + 1 => (thm36Cb_decrementB h a b hab ha spD n).integral
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36Cb_signedTermB_normL1
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (m : Nat) :
-    (thm36Cb_signedTermB h a b hab ha spD m).normL1 =
-      thm36Cb_normL1ValueB h a b hab ha spD m := by
-  cases m with
-  | zero =>
-      show (thm36C_rampB h a b hab ha spD 0).normL1 = (thm36C_rampB h a b hab ha spD 0).integral
-      exact thm36Cb_rampB_normL1 h a b hab ha spD 0
-  | succ n =>
-      show ((thm36C_rampB h a b hab ha spD (n + 1)).sub (thm36C_rampB h a b hab ha spD n)).normL1
-          = (thm36Cb_decrementB h a b hab ha spD n).integral
-      exact thm36Cb_normL1_eq_integral_on_full
-        (IntegrableRep.domain_isFull h)
-        (thm36Cb_decrementB_nonneg_on_domain h a b hab ha spD n)
 
-theorem thm36Cb_termB_integral
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (m : Nat) :
-    (thm36Cb_termB h a b hab ha spD m).integral =
-      (thm36Cb_signedTermB h a b hab ha spD m).integral := by
-  unfold thm36Cb_termB
-  exact IntegrableRep.collapseFirst_integral _ _
 
-theorem thm36Cb_termB_absConv_lt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (m : Nat) :
-    COF.lt
-      ((thm36Cb_termB h a b hab ha spD m).absConv.sum)
-      (thm36Cb_normL1ValueB h a b hab ha spD m + COF.halfPow m) := by
-  have hd := (thm36Cb_signedTermB h a b hab ha spD m).collapseFirst_dense m
-  have hnorm := thm36Cb_signedTermB_normL1 h a b hab ha spD m
-  show COF.lt ((thm36Cb_signedTermB h a b hab ha spD m).collapseFirst
-      ((thm36Cb_signedTermB h a b hab ha spD m).contNf m)).absConv.sum _
-  rw [← hnorm]
-  exact hd
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36Cb_partialSum_normL1ValueB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    ∀ n : Nat,
-      RSeq.partialSum (thm36Cb_normL1ValueB h a b hab ha spD) n =
-        (thm36C_rampB h a b hab ha spD n).integral
-  | 0 => by
-      show thm36Cb_normL1ValueB h a b hab ha spD 0 = _
-      show (thm36C_rampB h a b hab ha spD 0).integral = _
-      rfl
-  | n + 1 => by
-      rw [RSeq.partialSum,
-        thm36Cb_partialSum_normL1ValueB h a b hab ha spD n]
-      show _ + thm36Cb_normL1ValueB h a b hab ha spD (n + 1) = _
-      rw [show thm36Cb_normL1ValueB h a b hab ha spD (n + 1)
-            = (thm36Cb_decrementB h a b hab ha spD n).integral from rfl,
-        thm36Cb_decrementB_integral h a b hab ha spD n]
-      ring
 
-noncomputable def thm36Cb_normSeriesB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.SeriesSum (thm36Cb_normL1ValueB h a b hab ha spD) := by
-  let H := thm36C_rampBIntegral_tends h a b hab ha spD
-  refine {
-    sum := thm36C_lambdaBar h a b hab ha spD
-    tends := { mod := H.mod, close := ?_ } }
-  intro k n hkn
-  rw [thm36Cb_partialSum_normL1ValueB h a b hab ha spD n]
-  exact H.close k n hkn
 
-noncomputable def thm36Cb_majorantSeriesB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.SeriesSum
-      (fun m => thm36Cb_normL1ValueB h a b hab ha spD m + COF.halfPow m) :=
-  seriesSum_add (thm36Cb_normSeriesB h a b hab ha spD) seriesSum_halfPow
 
-noncomputable def thm36Cb_termAbsSeriesB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.SeriesSum
-      (fun m => (thm36Cb_termB h a b hab ha spD m).absConv.sum) :=
-  seriesSum_comparison
-    (fun m => (thm36Cb_termB h a b hab ha spD m).absSum_nonneg)
-    (fun m => le_of_lt (thm36Cb_termB_absConv_lt h a b hab ha spD m))
-    (thm36Cb_majorantSeriesB h a b hab ha spD)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36Cb_fB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    IntegrableRep S :=
-  seriesIntegrable (thm36Cb_termB h a b hab ha spD)
-    (thm36Cb_termAbsSeriesB h a b hab ha spD)
 
-theorem thm36Cb_partialSum_termB_integral
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    ∀ n : Nat,
-      RSeq.partialSum
-        (fun m => (thm36Cb_termB h a b hab ha spD m).integral) n =
-      (thm36C_rampB h a b hab ha spD n).integral
-  | 0 => by
-      show (thm36Cb_termB h a b hab ha spD 0).integral = _
-      rw [thm36Cb_termB_integral h a b hab ha spD 0]
-      rfl
-  | n + 1 => by
-      rw [RSeq.partialSum,
-        thm36Cb_partialSum_termB_integral h a b hab ha spD n,
-        thm36Cb_termB_integral h a b hab ha spD (n + 1)]
-      show _ + ((thm36C_rampB h a b hab ha spD (n + 1)).sub
-            (thm36C_rampB h a b hab ha spD n)).integral = _
-      rw [IntegrableRep.integral_sub]
-      ring
 
-noncomputable def thm36Cb_termIntegralSeriesB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    RSeq.SeriesSum
-      (fun m => (thm36Cb_termB h a b hab ha spD m).integral) := by
-  let H := thm36C_rampBIntegral_tends h a b hab ha spD
-  refine { sum := thm36C_lambdaBar h a b hab ha spD
-           tends := { mod := H.mod, close := ?_ } }
-  intro k n hkn
-  rw [thm36Cb_partialSum_termB_integral h a b hab ha spD n]
-  exact H.close k n hkn
 
-theorem thm36Cb_fB_integral
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    (thm36Cb_fB h a b hab ha spD).integral =
-      thm36C_lambdaBar h a b hab ha spD := by
-  let W := seriesIntegrable_integral
-    (thm36Cb_termB h a b hab ha spD)
-    (thm36Cb_termAbsSeriesB h a b hab ha spD)
-  calc
-    (thm36Cb_fB h a b hab ha spD).integral = W.val.sum := by
-      simpa [thm36Cb_fB] using W.property
-    _ = (thm36Cb_termIntegralSeriesB h a b hab ha spD).sum :=
-      seriesSum_unique W.val (thm36Cb_termIntegralSeriesB h a b hab ha spD)
-    _ = thm36C_lambdaBar h a b hab ha spD := rfl
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -10491,14 +8287,8 @@ def thm36D_levelBSet {S : IntSpaceRC X R}
 }
 
 
-@[simp] theorem thm36D_levelBSet_S1 {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) :
-    (thm36D_levelBSet h t).S1 = thm36D_upperSet h t := rfl
 
 
-@[simp] theorem thm36D_levelBSet_S2 {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) :
-    (thm36D_levelBSet h t).S2 = thm36D_lowerSet h t := rfl
 
 
 /-- Technical lemma used in the public import closure. -/
@@ -10783,21 +8573,6 @@ noncomputable def thm36D_integrableSet_of_bridge
       (by simpa [f] using hfDom) (by simpa [f] using hf)
 
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36D_level_sets_integrable_of_bridge
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (B : Thm36DPointBridge h a b hab ha spD) :
-    { t : R // COF.lt a t ∧ COF.lt t b ∧
-      ∃ A : BSet X,
-        (A.S1 = thm36D_upperSet h t) ∧
-        (A.S2 = thm36D_lowerSet h t) ∧
-        Nonempty (IntegrableSet1 S A) } := by
-  refine ⟨thm36C_t h a b hab ha spD,
-    thm36C_a_lt_t h a b hab ha spD,
-    thm36C_t_lt_b h a b hab ha spD, ?_⟩
-  refine ⟨thm36D_levelBSet h (thm36C_t h a b hab ha spD), rfl, rfl, ?_⟩
-  exact ⟨thm36D_integrableSet_of_bridge h a b hab ha spD B⟩
 
 
 /-! Technical auxiliary material for the public import closure. -/
@@ -11288,419 +9063,35 @@ noncomputable def thm36D_pointBridge
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-def thm36D_upperSetStrict {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
-      (fun n => COF.abs (h.valueAt x hdom n)))
-      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
-      COF.lt t hx.sum}
 
-/-- Technical lemma used in the public import closure. -/
-def thm36D_lowerSetWeak {S : IntSpaceRC X R} (h : IntegrableRep S) (t : R) : Set X :=
-  {x | ∃ (hdom : h.MemAt x) (_habs : RSeq.SeriesSum
-      (fun n => COF.abs (h.valueAt x hdom n)))
-      (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
-      Le hx.sum t}
 
-theorem thm36D_levelSetsB_disjoint {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) :
-    ∀ x ∈ thm36D_upperSetStrict h t, ∀ y ∈ thm36D_lowerSetWeak h t, x ≠ y := by
-  intro x hx y hy hxy
-  subst y
-  rcases hx with ⟨_hdomx, _habsx, hxsum, hlt⟩
-  rcases hy with ⟨_hdomy, _habsy, hysum, hle⟩
-  have hsum : hxsum.sum = hysum.sum := seriesSum_unique hxsum hysum
-  rw [hsum] at hlt
-  exact hle hlt
 
-def thm36D_levelBSetStrict {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) : BSet X := {
-  S1 := thm36D_upperSetStrict h t
-  S2 := thm36D_lowerSetWeak h t
-  disj := thm36D_levelSetsB_disjoint h t
-}
 
-@[simp] theorem thm36D_levelBSetStrict_S1 {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) :
-    (thm36D_levelBSetStrict h t).S1 = thm36D_upperSetStrict h t := rfl
 
-@[simp] theorem thm36D_levelBSetStrict_S2 {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (t : R) :
-    (thm36D_levelBSetStrict h t).S2 = thm36D_lowerSetWeak h t := rfl
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36C_levelB_anti {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    {m n : Nat} (hmn : m ≤ n) :
-    Le (thm36C_levelB h a b hab ha spD n) (thm36C_levelB h a b hab ha spD m) := by
-  apply le_of_nonneg_sub
-  have hg : Le (thm36C_gapB h a b hab ha spD n) (thm36C_gapB h a b hab ha spD m) :=
-    thm36C_gapB_antitone h a b hab ha spD hmn
-  have hns : Nonneg (thm36C_gapB h a b hab ha spD m - thm36C_gapB h a b hab ha spD n) :=
-    nonneg_sub_of_le hg
-  have heq : thm36C_levelB h a b hab ha spD m - thm36C_levelB h a b hab ha spD n
-      = thm36C_gapB h a b hab ha spD m - thm36C_gapB h a b hab ha spD n := by
-    unfold thm36C_levelB; ring
-  rw [heq]; exact hns
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36D_rampB_always_zero {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (y : R)
-    (hyt : Le y (thm36C_t h a b hab ha spD)) (n : Nat) :
-    thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) y = 0 :=
-  thm36A1_ramp_zero
-    (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n) y
-    (thm36C_t_lt_levelB h a b hab ha spD n) hyt
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36D_rampB_eventually_one {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (y : R)
-    (hty : COF.lt (thm36C_t h a b hab ha spD) y) :
-    {N : Nat // ∀ n : Nat, N ≤ n →
-      thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD n) y = 1} := by
-  let W := thm36D_limit_lt_eventually
-    (thm36C_levelB_tends h a b hab ha spD) hty
-  refine ⟨W.val, ?_⟩
-  intro n hWn
-  have hlevn : Le (thm36C_levelB h a b hab ha spD n)
-      (thm36C_levelB h a b hab ha spD W.val) :=
-    thm36C_levelB_anti h a b hab ha spD hWn
-  have hvy : Le (thm36C_levelB h a b hab ha spD n) y :=
-    le_trans hlevn (le_of_lt W.property)
-  exact thm36A1_ramp_one
-    (thm36C_t h a b hab ha spD)
-    (thm36C_levelB h a b hab ha spD n) y
-    (thm36C_t_lt_levelB h a b hab ha spD n) hvy
 
-structure Thm36DPointDataB {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X) where
-  hDom : h.MemAt x
-  hAbs : RSeq.SeriesSum (fun n => COF.abs (h.valueAt x hDom n))
-  hSum : RSeq.SeriesSum (fun n => h.valueAt x hDom n)
-  fDom : (thm36Cb_fB h a b hab ha spD).MemAt x
-  fSum : RSeq.SeriesSum
-    (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x fDom n)
-  ramp_tends : RSeq.TendstoHalf
-    (fun n => thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-      (thm36C_levelB h a b hab ha spD n) hSum.sum)
-    fSum.sum
 
-structure Thm36DPointBridgeB {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) : Prop where
-  point : ∀ x : X,
-    ∀ fDom : (thm36Cb_fB h a b hab ha spD).MemAt x,
-    RSeq.SeriesSum
-      (fun n => COF.abs
-        ((thm36Cb_fB h a b hab ha spD).valueAt x fDom n)) →
-    Nonempty (Thm36DPointDataB h a b hab ha spD x)
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36D_point_classifyB {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
-    (D : Thm36DPointDataB h a b hab ha spD x) :
-    (COF.lt (thm36C_t h a b hab ha spD) D.hSum.sum ∧ D.fSum.sum = 1) ∨
-    (Le D.hSum.sum (thm36C_t h a b hab ha spD) ∧ D.fSum.sum = 0) := by
-  rcases COF.lt_cotrans COFO.one_pos D.fSum.sum with hpos | hltOne
-  · left
-    have hty : COF.lt (thm36C_t h a b hab ha spD) D.hSum.sum := by
-      let WN := thm36D_lt_limit_eventually D.ramp_tends hpos
-      exact thm36A1_ramp_pos_imp
-        (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD WN.val)
-        D.hSum.sum
-        (thm36C_t_lt_levelB h a b hab ha spD WN.val)
-        WN.property
-    have hz1 : D.fSum.sum = 1 := by
-      let W := thm36D_rampB_eventually_one h a b hab ha spD D.hSum.sum hty
-      exact thm36D_tendsto_eventually_const D.ramp_tends W.val W.property
-    exact ⟨hty, hz1⟩
-  · right
-    have hyt : Le D.hSum.sum (thm36C_t h a b hab ha spD) := by
-      intro h_t_lt
-      let W := thm36D_rampB_eventually_one h a b hab ha spD D.hSum.sum h_t_lt
-      have hz1 : D.fSum.sum = 1 :=
-        thm36D_tendsto_eventually_const D.ramp_tends W.val W.property
-      rw [hz1] at hltOne
-      exact COF.lt_irrefl _ hltOne
-    have hz0 : D.fSum.sum = 0 :=
-      thm36D_tendsto_eventually_const D.ramp_tends 0
-        (fun n _ => thm36D_rampB_always_zero
-          h a b hab ha spD D.hSum.sum hyt n)
-    exact ⟨hyt, hz0⟩
 
-theorem thm36D_pointB_mem_union {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
-    (D : Thm36DPointDataB h a b hab ha spD x) :
-    x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
-      thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD) := by
-  rcases thm36D_point_classifyB h a b hab ha spD x D with hup | hlo
-  · exact Or.inl ⟨D.hDom, D.hAbs, D.hSum, hup.1⟩
-  · exact Or.inr ⟨D.hDom, D.hAbs, D.hSum, hlo.1⟩
 
-theorem thm36D_upperB_value {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
-    (D : Thm36DPointDataB h a b hab ha spD x)
-    (hx : x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD))
-    (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
-    (hf : RSeq.SeriesSum
-      (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom n)) :
-    hf.sum = 1 := by
-  rcases hx with ⟨_hdom, _habs, hxsum, hlt⟩
-  have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
-  have hltD : COF.lt (thm36C_t h a b hab ha spD) D.hSum.sum := by
-    simpa [hsame] using hlt
-  have hz1 : D.fSum.sum = 1 := by
-    let W := thm36D_rampB_eventually_one h a b hab ha spD D.hSum.sum hltD
-    exact thm36D_tendsto_eventually_const D.ramp_tends W.val W.property
-  calc
-    hf.sum = D.fSum.sum := seriesSum_unique hf D.fSum
-    _ = 1 := hz1
 
-theorem thm36D_lowerB_value {S : IntSpaceRC X R}
-    (h : IntegrableRep S) (a b : R) (hab : COF.lt a b)
-    (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) (x : X)
-    (D : Thm36DPointDataB h a b hab ha spD x)
-    (hx : x ∈ thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD))
-    (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
-    (hf : RSeq.SeriesSum
-      (fun n => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom n)) :
-    hf.sum = 0 := by
-  rcases hx with ⟨_hdom, _habs, hxsum, hle⟩
-  have hsame : hxsum.sum = D.hSum.sum := seriesSum_unique hxsum D.hSum
-  have hleD : Le D.hSum.sum (thm36C_t h a b hab ha spD) := by
-    simpa [hsame] using hle
-  have hz0 : D.fSum.sum = 0 :=
-    thm36D_tendsto_eventually_const D.ramp_tends 0
-      (fun n _ => thm36D_rampB_always_zero
-        h a b hab ha spD D.hSum.sum hleD n)
-  calc
-    hf.sum = D.fSum.sum := seriesSum_unique hf D.fSum
-    _ = 0 := hz0
 
 /-! Technical auxiliary material for the public import closure. -/
 
-noncomputable def thm36Cb_pointTermB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (z : R) : Nat → R
-  | 0 =>
-      thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD 0) z
-  | n + 1 =>
-      thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD (n + 1)) z -
-        thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD n) z
-
-noncomputable def thm36Cb_signedTermB_value_witness
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X) (hdom : h.MemAt x)
-    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
-    {hv : RSeq.SeriesSum
-      (fun m => (thm36Cb_signedTermB h a b hab ha spD n).valueAt x
-        (thm36Cb_signedTermB_memAt h a b hab ha spD n hdom) m) //
-      hv.sum = thm36Cb_pointTermB h a b hab ha spD hx.sum n} := by
-  cases n with
-  | zero =>
-      let W := thm36Cb_rampB_value_witness h a b hab ha spD 0 x hdom hx
-      refine ⟨W.val, ?_⟩
-      simpa [thm36Cb_signedTermB, thm36Cb_pointTermB] using W.property
-  | succ n =>
-      let Wn := thm36Cb_rampB_value_witness h a b hab ha spD n x hdom hx
-      let Ws := thm36Cb_rampB_value_witness h a b hab ha spD (n + 1) x hdom hx
-      let WnDom := thm36Cb_rampB_memAt h a b hab ha spD n hdom
-      let WsDom := thm36Cb_rampB_memAt h a b hab ha spD (n + 1) hdom
-      let hnegDom := IntegrableRep.neg_memAt WnDom
-      let hneg : RSeq.SeriesSum
-          (fun m => (thm36C_rampB h a b hab ha spD n).neg.valueAt x hnegDom m) :=
-        neg_seriesSum_value WnDom Wn.val
-      let hsubDom := IntegrableRep.add_memAt WsDom hnegDom
-      let hsub : RSeq.SeriesSum
-          (fun m => (thm36Cb_signedTermB h a b hab ha spD (n + 1)).valueAt x
-            hsubDom m) := by
-        dsimp [thm36Cb_signedTermB, IntegrableRep.sub]
-        exact add_seriesSum_value WsDom hnegDom Ws.val hneg
-      refine ⟨hsub, ?_⟩
-      change Ws.val.sum + (-Wn.val.sum) = _
-      rw [Ws.property, Wn.property]
-      simp only [thm36Cb_pointTermB]
-      ring
-
-noncomputable def thm36Cb_termB_value_witness
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (n : Nat) (x : X) (hdom : h.MemAt x)
-    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)) :
-    {hv : RSeq.SeriesSum
-      (fun m => (thm36Cb_termB h a b hab ha spD n).valueAt x
-        (thm36Cb_termB_memAt h a b hab ha spD n hdom) m) //
-      hv.sum = thm36Cb_pointTermB h a b hab ha spD hx.sum n} := by
-  let hsigDom := thm36Cb_signedTermB_memAt h a b hab ha spD n hdom
-  let Wsig := thm36Cb_signedTermB_value_witness h a b hab ha spD n x hdom hx
-  let Wc := (thm36Cb_signedTermB h a b hab ha spD n).collapseFirst_toFun_seriesSum
-    ((thm36Cb_signedTermB h a b hab ha spD n).contNf n) x hsigDom Wsig.val
-  exact ⟨Wc.val, by rw [Wc.property]; exact Wsig.property⟩
-
-theorem thm36Cb_partialSum_pointTermB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (z : R) :
-    ∀ n : Nat,
-      RSeq.partialSum (thm36Cb_pointTermB h a b hab ha spD z) n =
-        thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD n) z
-  | 0 => by rfl
-  | n + 1 => by
-      rw [RSeq.partialSum,
-        thm36Cb_partialSum_pointTermB h a b hab ha spD z n]
-      simp only [thm36Cb_pointTermB]
-      ring
-
-theorem thm36Cb_partialSum_termB_values
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X) (hdom : h.MemAt x)
-    (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m))
-    (n : Nat) :
-    RSeq.partialSum
-        (fun j => (thm36Cb_termB_value_witness
-          h a b hab ha spD j x hdom hx).val.sum) n =
-      thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-        (thm36C_levelB h a b hab ha spD n) hx.sum := by
-  have hterms :
-      (fun j => (thm36Cb_termB_value_witness
-        h a b hab ha spD j x hdom hx).val.sum) =
-      thm36Cb_pointTermB h a b hab ha spD hx.sum := by
-    funext j
-    exact (thm36Cb_termB_value_witness h a b hab ha spD j x hdom hx).property
-  rw [hterms]
-  exact thm36Cb_partialSum_pointTermB h a b hab ha spD hx.sum n
-
-structure Thm36CIntegrableDataB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) where
-  f : IntegrableRep S
-  f_eq : f = thm36Cb_fB h a b hab ha spD
-  integral_eq : f.integral = thm36C_lambdaBar h a b hab ha spD
-  point_partial_sum :
-    ∀ x : X, ∀ (hdom : h.MemAt x)
-      (hx : RSeq.SeriesSum (fun m => h.valueAt x hdom m)), ∀ n : Nat,
-      RSeq.partialSum
-          (fun j => (thm36Cb_termB_value_witness
-            h a b hab ha spD j x hdom hx).val.sum) n =
-        thm_3_6_rampFn (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD n) hx.sum
-
-noncomputable def thm36C_integrableDataB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    Thm36CIntegrableDataB h a b hab ha spD := {
-  f := thm36Cb_fB h a b hab ha spD
-  f_eq := rfl
-  integral_eq := thm36Cb_fB_integral h a b hab ha spD
-  point_partial_sum := thm36Cb_partialSum_termB_values h a b hab ha spD
-}
-
-noncomputable def thm36D_integrableSetB_of_bridge
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (B : Thm36DPointBridgeB h a b hab ha spD) :
-    IntegrableSet1 S
-      (thm36D_levelBSetStrict h (thm36C_t h a b hab ha spD)) := by
-  let f : IntegrableRep S := thm36Cb_fB h a b hab ha spD
-  have hsub : f.domain ⊆
-      (thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
-       thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD)) := by
-    intro x hxdom
-    obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxdom
-    obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
-      (by simpa [f] using hfabs)
-    exact thm36D_pointB_mem_union h a b hab ha spD x D
-  refine {
-    full := thm36D_isFull_mono (IntegrableRep.domain_isFull f) hsub
-    rep := f
-    valid := ?_
-  }
-  intro x hfDom hfabs
-  obtain ⟨D⟩ := B.point x (by simpa [f] using hfDom)
-    (by simpa [f] using hfabs)
-  change
-    (x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) ∪
-      thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD)) ∧
-    (x ∈ thm36D_upperSetStrict h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 1) ∧
-    (x ∈ thm36D_lowerSetWeak h (thm36C_t h a b hab ha spD) →
-      ∀ hf : RSeq.SeriesSum (fun n => f.valueAt x hfDom n), hf.sum = 0)
-  refine ⟨thm36D_pointB_mem_union h a b hab ha spD x D, ?_, ?_⟩
-  · intro hx hf
-    exact thm36D_upperB_value h a b hab ha spD x D hx
-      (by simpa [f] using hfDom) (by simpa [f] using hf)
-  · intro hx hf
-    exact thm36D_lowerB_value h a b hab ha spD x D hx
-      (by simpa [f] using hfDom) (by simpa [f] using hf)
-
-noncomputable def thm36D_level_setsB_integrable_of_bridge
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (B : Thm36DPointBridgeB h a b hab ha spD) :
-    { t : R // COF.lt a t ∧ COF.lt t b ∧
-      ∃ A : BSet X,
-        (A.S1 = thm36D_upperSetStrict h t) ∧
-        (A.S2 = thm36D_lowerSetWeak h t) ∧
-        Nonempty (IntegrableSet1 S A) } := by
-  refine ⟨thm36C_t h a b hab ha spD,
-    thm36C_a_lt_t h a b hab ha spD,
-    thm36C_t_lt_b h a b hab ha spD, ?_⟩
-  refine ⟨thm36D_levelBSetStrict h (thm36C_t h a b hab ha spD), rfl, rfl, ?_⟩
-  exact ⟨thm36D_integrableSetB_of_bridge h a b hab ha spD B⟩
 
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_3_6_level_sets_integrable {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) :
-    { t : R // COF.lt a t ∧ COF.lt t b ∧
-      ∃ A : BSet X,
-        -- Technical note.
-        (A.S1 = {x | ∃ (hdom : h.MemAt x)
-                       (_habs : RSeq.SeriesSum
-                         (fun n => COF.abs (h.valueAt x hdom n)))
-                       (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
-                       Le t hx.sum}) ∧
-        -- A.S2 = {x ∈ D(h) : h(x) < t}。
-        (A.S2 = {x | ∃ (hdom : h.MemAt x)
-                       (_habs : RSeq.SeriesSum
-                         (fun n => COF.abs (h.valueAt x hdom n)))
-                       (hx : RSeq.SeriesSum (fun n => h.valueAt x hdom n)),
-                       COF.lt hx.sum t}) ∧
-        Nonempty (IntegrableSet1 S A) } :=
-  thm36D_level_sets_integrable_of_bridge h a b hab ha (thm36B_smoothPointData h a b hab ha)
-    (thm36D_pointBridge h a b hab ha (thm36B_smoothPointData h a b hab ha))
 
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_3_6_forall_apart {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (t : R) (hat : COF.lt a t) (htb : COF.lt t b)
-    (hT : ∀ n, COF.lt 0
-      (COF.abs (t - lemma35_exceptionSeq (thm36A2_profile h a b hab ha) n))) :
-    ∃ A : BSet X,
-      (A.S1 = thm36D_upperSet h t) ∧
-      (A.S2 = thm36D_lowerSet h t) ∧
-      Nonempty (IntegrableSet1 S A) :=
-  let spd := thm36B_smoothPointData_of_apart h a b hab ha t hat htb hT
-  (thm36D_level_sets_integrable_of_bridge h a b hab ha spd
-    (thm36D_pointBridge h a b hab ha spd)).2.2.2
+
+
+
+
+
+
+
+
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def thm_3_6_forall_apart_measure {S : IntSpaceRC X R} (h : IntegrableRep S)
@@ -11719,396 +9110,33 @@ noncomputable def thm_3_6_forall_apart_measure {S : IntSpaceRC X R} (h : Integra
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36D_hDomB_of_rampB0Dom
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    {x : X}
-    (hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x) :
-    h.MemAt x := by
-  let lo : R := thm36C_t h a b hab ha spD
-  let up : R := thm36C_levelB h a b hab ha spD 0
-  let hlo : Nonneg lo :=
-    le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
-  let c : R := COFO.inv (up - lo)
-  let r : IntegrableRep S := h.sub (h.cutConstVal lo hlo)
-  let q : IntegrableRep S := IntegrableRep.smul c r
-  let hOne : Nonneg (1 : R) := le_of_lt COFO.one_pos
-  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
-    simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, hlo, c, r, q]
-      using hrampDom
-  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
-  let hrDom : r.MemAt x := smul_dom hqDom
-  exact add_dom_left hrDom
 
-noncomputable def thm36D_hAbsB_of_rampB0Abs
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
-    (hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x)
-    (hramp : RSeq.SeriesSum
-      (fun n => COF.abs
-        ((thm36C_rampB h a b hab ha spD 0).valueAt x hrampDom n))) :
-    RSeq.SeriesSum (fun n => COF.abs
-      (h.valueAt x (thm36D_hDomB_of_rampB0Dom h a b hab ha spD hrampDom) n)) := by
-  let lo : R := thm36C_t h a b hab ha spD
-  let up : R := thm36C_levelB h a b hab ha spD 0
-  let hlo : Nonneg lo :=
-    le_trans (le_of_lt ha) (le_of_lt (thm36C_a_lt_t h a b hab ha spD))
-  let hloup : COF.lt lo up := thm36C_t_lt_levelB h a b hab ha spD 0
-  let c : R := COFO.inv (up - lo)
-  let r : IntegrableRep S := h.sub (h.cutConstVal lo hlo)
-  let q : IntegrableRep S := IntegrableRep.smul c r
-  let hOne : Nonneg (1 : R) :=
-    fun h10 => COF.lt_irrefl (0 : R) (COFO.lt_trans COFO.one_pos h10)
-  let hcutDom : (q.cutConstVal 1 hOne).MemAt x := by
-    simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, hlo, c, r, q]
-      using hrampDom
-  let hcut : RSeq.SeriesSum
-      (fun n => COF.abs ((q.cutConstVal 1 hOne).valueAt x hcutDom n)) := by
-    simpa [thm36C_rampB, thm_3_6_ramp_comp, lo, up, c, r, q]
-      using hramp
-  let hqDom : q.MemAt x := q.cutConstVal_base_memAt 1 hOne hcutDom
-  let hq : RSeq.SeriesSum
-      (fun n => COF.abs (q.valueAt x hqDom n)) :=
-    cutConstVal_absSeriesSum_mid 1 hOne hcutDom hcut
-  let hrDom : r.MemAt x := smul_dom hqDom
-  let hscaled : RSeq.SeriesSum
-      (fun n => COF.abs (c * r.valueAt x hrDom n)) :=
-    seriesSum_congr (fun n => by rfl) hq
-  have hloup' : COF.lt 0 (up - lo) := thm36A1_sub_pos_of_lt hloup
-  have hc : COF.lt 0 c := COFO.inv_pos hloup'
-  let hr : RSeq.SeriesSum
-      (fun n => COF.abs (r.valueAt x hrDom n)) :=
-    thm36D_absSeries_of_pos_smul c hc
-      (fun n => r.valueAt x hrDom n) hscaled
-  exact add_absSeriesSum_left hrDom hr
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm36D_rampB0Dom_of_termB0Dom
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    {x : X} (htermDom : (thm36Cb_termB h a b hab ha spD 0).MemAt x) :
-    (thm36C_rampB h a b hab ha spD 0).MemAt x := by
-  let s0 : IntegrableRep S := thm36Cb_signedTermB h a b hab ha spD 0
-  let N : Nat := s0.contNf 0
-  have hs0Dom : s0.MemAt x := by
-    apply thm36D_collapseFirst_dom N
-    simpa [thm36Cb_termB, s0, N] using htermDom
-  simpa [s0, thm36Cb_signedTermB] using hs0Dom
 
-noncomputable def thm36D_rampB0Abs_of_termB0Abs
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X)
-    (htermDom : (thm36Cb_termB h a b hab ha spD 0).MemAt x)
-    (hterm : RSeq.SeriesSum
-      (fun n => COF.abs
-        ((thm36Cb_termB h a b hab ha spD 0).valueAt x htermDom n))) :
-    RSeq.SeriesSum
-      (fun n => COF.abs ((thm36C_rampB h a b hab ha spD 0).valueAt x
-        (thm36D_rampB0Dom_of_termB0Dom h a b hab ha spD htermDom) n)) := by
-  let s0 : IntegrableRep S := thm36Cb_signedTermB h a b hab ha spD 0
-  let N : Nat := s0.contNf 0
-  let hs0Dom : s0.MemAt x := by
-    apply thm36D_collapseFirst_dom N
-    simpa [thm36Cb_termB, s0, N] using htermDom
-  let hrampDom : (thm36C_rampB h a b hab ha spD 0).MemAt x := by
-    simpa [s0, thm36Cb_signedTermB] using hs0Dom
-  let htail0 := seriesSum_tail hterm 0
-  let htailRamp : RSeq.SeriesSum
-      (fun k => COF.abs
-        ((thm36C_rampB h a b hab ha spD 0).valueAt x hrampDom (N + 1 + k))) :=
-    seriesSum_congr
-      (fun k => by
-        simp [IntegrableRep.valueAt, thm36Cb_termB, thm36Cb_signedTermB,
-          IntegrableRep.collapseFirst, s0, N, Nat.add_assoc])
-      htail0
-  exact seriesSum_of_tail N htailRamp
 
-theorem thm36D_fB_row_memAt
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (spD : Thm36BSmoothPointData h a b hab ha)
-    {x : X} (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
-    (i : Nat) : (thm36Cb_termB h a b hab ha spD i).MemAt x := by
-  simpa [thm36Cb_fB] using
-    (seriesIntegrable_row_memAt
-      (thm36Cb_termB h a b hab ha spD)
-      (thm36Cb_termAbsSeriesB h a b hab ha spD) hfDom i)
 
-noncomputable def thm36D_fAbsB_flat
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X) (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
-    (hfabs : RSeq.SeriesSum
-      (fun k => COF.abs
-        ((thm36Cb_fB h a b hab ha spD).valueAt x hfDom k))) :
-    RSeq.SeriesSum
-      (fun k => COF.abs
-        ((thm36Cb_termB h a b hab ha spD (cellAt k).1).valueAt x
-          (thm36D_fB_row_memAt h a b hab ha spD hfDom (cellAt k).1)
-          (cellAt k).2)) := by
-  simpa [thm36Cb_fB, seriesIntegrable, IntegrableRep.valueAt] using hfabs
 
-noncomputable def thm36D_fSignedB_flat
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha)
-    (x : X) (hfDom : (thm36Cb_fB h a b hab ha spD).MemAt x)
-    (hf : RSeq.SeriesSum
-      (fun k => (thm36Cb_fB h a b hab ha spD).valueAt x hfDom k)) :
-    RSeq.SeriesSum
-      (fun k => (thm36Cb_termB h a b hab ha spD (cellAt k).1).valueAt x
-        (thm36D_fB_row_memAt h a b hab ha spD hfDom (cellAt k).1)
-        (cellAt k).2) := by
-  simpa [thm36Cb_fB, seriesIntegrable, IntegrableRep.valueAt] using hf
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm36D_pointBridgeB
-    {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a) (spD : Thm36BSmoothPointData h a b hab ha) :
-    Thm36DPointBridgeB h a b hab ha spD := {
-  point := by
-    intro x hfDom hfabs
-    let hflatAbs := thm36D_fAbsB_flat h a b hab ha spD x hfDom hfabs
-    let F := thm36D_signedFubini
-      (fun i j => (thm36Cb_termB h a b hab ha spD i).valueAt x
-        (thm36D_fB_row_memAt h a b hab ha spD hfDom i) j)
-      hflatAbs
-    let hterm0Dom := thm36D_fB_row_memAt h a b hab ha spD hfDom 0
-    let hrampB0Abs := thm36D_rampB0Abs_of_termB0Abs
-      h a b hab ha spD x hterm0Dom (F.rowAbs 0)
-    let hrampB0Dom := thm36D_rampB0Dom_of_termB0Dom
-      h a b hab ha spD hterm0Dom
-    let hAbs := thm36D_hAbsB_of_rampB0Abs
-      h a b hab ha spD x hrampB0Dom hrampB0Abs
-    let hDom := thm36D_hDomB_of_rampB0Dom h a b hab ha spD hrampB0Dom
-    let hSum := seriesSum_of_abs hAbs
-    let fSum := seriesSum_of_abs hfabs
-    let fSumFlat := thm36D_fSignedB_flat h a b hab ha spD x hfDom fSum
-    let rowValue : ∀ n : Nat,
-        RSeq.SeriesSum
-          (fun j => (thm36Cb_termB h a b hab ha spD n).valueAt x
-            (thm36D_fB_row_memAt h a b hab ha spD hfDom n) j) :=
-      fun n => (thm36Cb_termB_value_witness
-        h a b hab ha spD n x hDom hSum).val
-    let rowTotals : RSeq.SeriesSum
-        (fun n => (rowValue n).sum) :=
-      seriesSum_congr
-        (fun n => seriesSum_unique (F.rowSigned n) (rowValue n))
-        F.rowsSigned
-    have hrowTotal : rowTotals.sum = fSum.sum := by
-      calc
-        rowTotals.sum = F.rowsSigned.sum := by rfl
-        _ = F.flatSigned.sum := F.rows_sum_eq
-        _ = fSumFlat.sum := seriesSum_unique F.flatSigned fSumFlat
-        _ = fSum.sum := by rfl
-    let rampTends : RSeq.TendstoHalf
-        (fun n => thm_3_6_rampFn
-          (thm36C_t h a b hab ha spD)
-          (thm36C_levelB h a b hab ha spD n) hSum.sum)
-        fSum.sum := {
-      mod := rowTotals.tends.mod
-      close := by
-        intro k n hn
-        have hc := rowTotals.tends.close k n hn
-        rw [(thm36C_integrableDataB h a b hab ha spD).point_partial_sum
-              x hDom hSum n,
-            hrowTotal] at hc
-        exact hc
-    }
-    exact ⟨{
-      hDom := hDom
-      hAbs := hAbs
-      hSum := hSum
-      fDom := hfDom
-      fSum := fSum
-      ramp_tends := rampTends
-    }⟩
-}
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_3_6_forall_apart_B {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (t : R) (hat : COF.lt a t) (htb : COF.lt t b)
-    (hT : ∀ n, COF.lt 0
-      (COF.abs (t - lemma35_exceptionSeq (thm36A2_profile h a b hab ha) n))) :
-    ∃ A : BSet X,
-      (A.S1 = thm36D_upperSetStrict h t) ∧
-      (A.S2 = thm36D_lowerSetWeak h t) ∧
-      Nonempty (IntegrableSet1 S A) :=
-  let spd := thm36B_smoothPointData_of_apart h a b hab ha t hat htb hT
-  (thm36D_level_setsB_integrable_of_bridge h a b hab ha spd
-    (thm36D_pointBridgeB h a b hab ha spd)).2.2.2
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_3_6_forall_apart_B_measure {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (t : R) (hat : COF.lt a t) (htb : COF.lt t b)
-    (hT : ∀ n, COF.lt 0
-      (COF.abs (t - lemma35_exceptionSeq (thm36A2_profile h a b hab ha) n))) :
-    Σ' (hB : IntegrableSet1 S (thm36D_levelBSetStrict h t)),
-      measure1 S hB = thm36C_lambdaBar h a b hab ha
-        (thm36B_smoothPointData_of_apart h a b hab ha t hat htb hT) :=
-  let spd := thm36B_smoothPointData_of_apart h a b hab ha t hat htb hT
-  let hB : IntegrableSet1 S (thm36D_levelBSetStrict h t) :=
-    thm36D_integrableSetB_of_bridge h a b hab ha spd (thm36D_pointBridgeB h a b hab ha spd)
-  ⟨hB, thm36Cb_fB_integral h a b hab ha spd⟩
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_3_6_AB_measure_eq {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (a b : R) (hab : COF.lt a b) (ha : COF.lt 0 a)
-    (t : R) (hat : COF.lt a t) (htb : COF.lt t b)
-    (hT : ∀ n, COF.lt 0
-      (COF.abs (t - lemma35_exceptionSeq (thm36A2_profile h a b hab ha) n))) :
-    measure1 S (thm_3_6_forall_apart_measure h a b hab ha t hat htb hT).1 =
-      measure1 S (thm_3_6_forall_apart_B_measure h a b hab ha t hat htb hT).1 := by
-  rw [(thm_3_6_forall_apart_measure h a b hab ha t hat htb hT).2,
-      (thm_3_6_forall_apart_B_measure h a b hab ha t hat htb hT).2]
 
 /-! Technical auxiliary material for the public import closure. -/
 
-/-- Technical lemma used in the public import closure. -/
-theorem cover_halfPow_mul_twoPow (m : Nat) :
-    COF.halfPow (R := R) m * ((2 ^ m : Nat) : R) = 1 := by
-  induction m with
-  | zero => simp [COF.halfPow]
-  | succ n ih =>
-    have h2 : ((2 ^ (n + 1) : Nat) : R) = 2 * ((2 ^ n : Nat) : R) := by
-      rw [pow_succ]; push_cast; ring
-    rw [h2]
-    show COF.half (R := R) * COF.halfPow n * (2 * ((2 ^ n : Nat) : R)) = 1
-    have hh2 : COF.half (R := R) * 2 = 1 := by
-      have e : COF.half (R := R) * 2 = COF.half + COF.half := by ring
-      rw [e, COF.half_add_half]
-    calc COF.half (R := R) * COF.halfPow n * (2 * ((2 ^ n : Nat) : R))
-        = (COF.half * 2) * (COF.halfPow n * ((2 ^ n : Nat) : R)) := by ring
-      _ = 1 * (COF.halfPow n * ((2 ^ n : Nat) : R)) := by rw [hh2]
-      _ = COF.halfPow n * ((2 ^ n : Nat) : R) := by ring
-      _ = 1 := ih
 
 
-/-- inv 1 = 1。 -/
-theorem cover_inv_one : COFO.inv (1 : R) = 1 := by
-  have h : (1 : R) * COFO.inv 1 = 1 := COFO.mul_inv_cancel COFO.one_pos
-  rwa [one_mul] at h
-
-/-- inv(inv t) = t(t>0)。 -/
-theorem cover_inv_inv {t : R} (ht : COF.lt 0 t) : COFO.inv (COFO.inv t) = t := by
-  have hit : COF.lt 0 (COFO.inv t) := COFO.inv_pos ht
-  have h1 : COFO.inv t * COFO.inv (COFO.inv t) = 1 := COFO.mul_inv_cancel hit
-  have h2 : t * COFO.inv t = 1 := COFO.mul_inv_cancel ht
-  calc COFO.inv (COFO.inv t)
-      = 1 * COFO.inv (COFO.inv t) := by ring
-    _ = (t * COFO.inv t) * COFO.inv (COFO.inv t) := by rw [h2]
-    _ = t * (COFO.inv t * COFO.inv (COFO.inv t)) := by ring
-    _ = t * 1 := by rw [h1]
-    _ = t := by ring
-
-/-- Technical lemma used in the public import closure. -/
-theorem cover_inv_antitone {a b : R} (ha : COF.lt 0 a) (hab : COF.lt a b) :
-    COF.lt (COFO.inv b) (COFO.inv a) := by
-  have hb : COF.lt 0 b := COFO.lt_trans ha hab
-  have hia : COF.lt 0 (COFO.inv a) := COFO.inv_pos ha
-  have hib : COF.lt 0 (COFO.inv b) := COFO.inv_pos hb
-  have hprod : COF.lt 0 (COFO.inv a * COFO.inv b) := COFO.mul_pos hia hib
-  have h := lemma33_mul_lt_mul_right hab hprod
-  have eL : a * (COFO.inv a * COFO.inv b) = COFO.inv b := by
-    calc a * (COFO.inv a * COFO.inv b)
-        = (a * COFO.inv a) * COFO.inv b := by ring
-      _ = 1 * COFO.inv b := by rw [COFO.mul_inv_cancel ha]
-      _ = COFO.inv b := by ring
-  have eR : b * (COFO.inv a * COFO.inv b) = COFO.inv a := by
-    calc b * (COFO.inv a * COFO.inv b)
-        = (b * COFO.inv b) * COFO.inv a := by ring
-      _ = 1 * COFO.inv a := by rw [COFO.mul_inv_cancel hb]
-      _ = COFO.inv a := by ring
-  rwa [eL, eR] at h
-
-/-- Technical lemma used in the public import closure. -/
-noncomputable def cover_nat_upper_arch (t : R) : { n : Nat // COF.lt t ((n : Nat) : R) } := by
-  obtain ⟨m, hm⟩ := COFO.mul_archimedean (R := R) t
-  refine ⟨2 ^ m + 1, ?_⟩
-  have hnn : Nonneg (((2 ^ m : Nat)) : R) := lemma33_natCast_nonneg (2 ^ m)
-  have hmul : Le (COF.abs t * COF.halfPow m * ((2 ^ m : Nat) : R)) (1 * ((2 ^ m : Nat) : R)) :=
-    lemma33_mul_le_mul_right hm hnn
-  have eL : COF.abs t * COF.halfPow m * ((2 ^ m : Nat) : R) = COF.abs t := by
-    rw [mul_assoc, cover_halfPow_mul_twoPow]; ring
-  have eR : (1 : R) * ((2 ^ m : Nat) : R) = ((2 ^ m : Nat) : R) := by ring
-  rw [eL, eR] at hmul
-  have ht_le : Le t (COF.abs t) := COFO.le_abs_self t
-  have hle : Le t (((2 ^ m : Nat)) : R) := le_trans ht_le hmul
-  have hlt : COF.lt (((2 ^ m : Nat)) : R) (((2 ^ m + 1 : Nat)) : R) := by
-    apply lemma33_natCast_lt; omega
-  exact lt_of_le_of_lt hle hlt
 
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def coverLo (n : Nat) : R := COFO.inv (((n + 2 : Nat) : R))
-noncomputable def coverHi (n : Nat) : R := ((n + 2 : Nat) : R)
-
-theorem coverHi_pos (n : Nat) : COF.lt 0 (coverHi (R := R) n) := by
-  show COF.lt 0 (((n + 2 : Nat)) : R)
-  exact lemma33_natCast_succ_pos (n + 1)
-
-theorem coverHi_gt_one (n : Nat) : COF.lt 1 (coverHi (R := R) n) := by
-  show COF.lt 1 (((n + 2 : Nat)) : R)
-  have h : (1 : Nat) < n + 2 := by omega
-  have hlt := lemma33_natCast_lt (R := R) h
-  have e1 : (((1 : Nat)) : R) = 1 := Nat.cast_one
-  rwa [e1] at hlt
-
-theorem coverLo_pos (n : Nat) : COF.lt 0 (coverLo (R := R) n) := by
-  show COF.lt 0 (COFO.inv (((n + 2 : Nat)) : R))
-  exact COFO.inv_pos (coverHi_pos n)
-
-theorem coverLo_lt_hi (n : Nat) : COF.lt (coverLo (R := R) n) (coverHi n) := by
-  have h1 : COF.lt 1 (coverHi (R := R) n) := coverHi_gt_one n
-  have hinv : COF.lt (COFO.inv (coverHi (R := R) n)) (COFO.inv 1) :=
-    cover_inv_antitone COFO.one_pos h1
-  rw [cover_inv_one] at hinv
-  show COF.lt (COFO.inv (coverHi (R := R) n)) (coverHi n)
-  exact COFO.lt_trans hinv h1
-
-/-- Technical lemma used in the public import closure. -/
-noncomputable def cover_exists (t : R) (ht : COF.lt 0 t) :
-    { n : Nat // COF.lt (coverLo (R := R) n) t ∧ COF.lt t (coverHi n) } := by
-  obtain ⟨N, hN⟩ := cover_nat_upper_arch t
-  have hit : COF.lt 0 (COFO.inv t) := COFO.inv_pos ht
-  obtain ⟨M, hM⟩ := cover_nat_upper_arch (COFO.inv t)
-  refine ⟨max N M, ?_, ?_⟩
-  · show COF.lt (COFO.inv (coverHi (R := R) (max N M))) t
-    have hMle : Le (((M : Nat)) : R) (coverHi (R := R) (max N M)) := by
-      show Le (((M : Nat)) : R) (((max N M + 2 : Nat)) : R)
-      apply lemma33_natCast_mono; omega
-    have hlt2 : COF.lt (COFO.inv t) (coverHi (R := R) (max N M)) := lt_of_lt_of_le hM hMle
-    have hanti : COF.lt (COFO.inv (coverHi (R := R) (max N M))) (COFO.inv (COFO.inv t)) :=
-      cover_inv_antitone hit hlt2
-    rwa [cover_inv_inv ht] at hanti
-  · have hNle : Le (((N : Nat)) : R) (coverHi (R := R) (max N M)) := by
-      show Le (((N : Nat)) : R) (((max N M + 2 : Nat)) : R)
-      apply lemma33_natCast_mono; omega
-    exact lt_of_lt_of_le hN hNle
 
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_3_6_all_pos {S : IntSpaceRC X R} (h : IntegrableRep S)
-    (t : R) (ht : COF.lt 0 t)
-    (hap : ∀ (n : Nat) (k : Nat),
-      COF.lt 0 (COF.abs (t - lemma35_exceptionSeq
-        (thm36A2_profile h (coverLo n) (coverHi n) (coverLo_lt_hi n) (coverLo_pos n)) k))) :
-    ∃ (hA : IntegrableSet1 S (thm36D_levelBSet h t))
-      (hB : IntegrableSet1 S (thm36D_levelBSetStrict h t)),
-      measure1 S hA = measure1 S hB := by
-  obtain ⟨n, hlo, hhi⟩ := cover_exists t ht
-  exact ⟨(thm_3_6_forall_apart_measure h (coverLo n) (coverHi n)
-            (coverLo_lt_hi n) (coverLo_pos n) t hlo hhi (hap n)).1,
-         (thm_3_6_forall_apart_B_measure h (coverLo n) (coverHi n)
-            (coverLo_lt_hi n) (coverLo_pos n) t hlo hhi (hap n)).1,
-         thm_3_6_AB_measure_eq h (coverLo n) (coverHi n)
-            (coverLo_lt_hi n) (coverLo_pos n) t hlo hhi (hap n)⟩
+
+
+
+
+
+
+
+
 
 
 

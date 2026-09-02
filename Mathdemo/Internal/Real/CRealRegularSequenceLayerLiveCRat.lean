@@ -65,6 +65,9 @@ def rel (x y : RegularSeq) : Prop :=
   relVal x.val y.val
 
 
+/-- Positivity on raw representatives. -/
+def PosRaw (x : RegularSeq) : Prop :=
+  ∃ n : Nat, COF.lt (eps n) (x.val n)
 
 
 /-- Value-level positivity, useful before quotienting. -/

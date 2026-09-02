@@ -149,91 +149,14 @@ namespace BishopRegularSeqTheorem118
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
-/-- Closed scalar pointwise kernel for G121's remaining strict-backward
-transport. -/
-structure Property4ScalarMinStrictBackwardKernel : Type 1 where
-  scalar_left_strict_backward :
-    forall a b c : Scalar, forall k : Nat,
-      COF.lt (eps k)
-        (((COF.half : Scalar) * (a + c - COF.abs (a - c))) -
-          ((COF.half : Scalar) * (b + c - COF.abs (b - c)))) ->
-        COF.lt (eps k) (a - b)
-  scalar_pospart_backward_closed : Prop
-  scalar_min_difference_le_pospart_closed : Prop
-  no_quotient_representative_extraction : Prop
-  no_pos_eventually_witness_extraction : Prop
 
-def property4ScalarMinStrictBackwardKernel :
-    Property4ScalarMinStrictBackwardKernel where
-  scalar_left_strict_backward := by
-    intro a b c k h
-    exact scalar_min_halfsum_left_strict_backward a b c h
-  scalar_pospart_backward_closed := True
-  scalar_min_difference_le_pospart_closed := True
-  no_quotient_representative_extraction := True
-  no_pos_eventually_witness_extraction := True
 
-/-- G122 audit: scalar strict-backward is closed; the frontier is now only the
-RegularSeq transport through `minSeqWith`'s bounded multiplication indices. -/
-structure Property4ScalarMinStrictBackwardAudit : Type where
-  scalar_strict_backward_inputs : Nat
-  scalar_strict_backward_closed : Nat
-  regularseq_sampling_transport_inputs : Nat
-  quotient_representative_extraction_inputs : Nat
-  prop_to_data_selector_inputs : Nat
-  classical_choice_inputs : Nat
-  remaining_frontier_is_sampling_transport_to_regularseq : Prop
 
-def property4ScalarMinStrictBackwardAudit :
-    Property4ScalarMinStrictBackwardAudit where
-  scalar_strict_backward_inputs := 0
-  scalar_strict_backward_closed := 1
-  regularseq_sampling_transport_inputs := 1
-  quotient_representative_extraction_inputs := 0
-  prop_to_data_selector_inputs := 0
-  classical_choice_inputs := 0
-  remaining_frontier_is_sampling_transport_to_regularseq := True
 
 end BishopRegularSeqTheorem118
 
-/-- G122 package: the scalar strict-backward kernel is closed. -/
-structure BishopRegularSeqTheorem118G122Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) : Type 8 where
-  g121 : BishopRegularSeqTheorem118G121Package S
-  scalar_strict_backward_kernel :
-    BishopRegularSeqTheorem118.Property4ScalarMinStrictBackwardKernel
-  selector_audit :
-    BishopRegularSeqTheorem118.Property4ScalarMinStrictBackwardAudit
-  line735_scalar_strict_backward_closed : Prop
-  line735_remaining_transport_is_regularseq_sampling : Prop
-  no_quotient_extraction_in_g122_mainline : Prop
 
-def bishopRegularSeqTheorem118G122Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) :
-    BishopRegularSeqTheorem118G122Package S where
-  g121 := bishopRegularSeqTheorem118G121Package S
-  scalar_strict_backward_kernel :=
-    BishopRegularSeqTheorem118.property4ScalarMinStrictBackwardKernel
-  selector_audit :=
-    BishopRegularSeqTheorem118.property4ScalarMinStrictBackwardAudit
-  line735_scalar_strict_backward_closed := True
-  line735_remaining_transport_is_regularseq_sampling := True
-  no_quotient_extraction_in_g122_mainline := True
 
-/-- Progress after G122: still 99%, but line-735 now has its scalar
-strict-backward kernel closed. -/
-def bishopRegularSeqCh1To4ProgressAfterG122 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 99
-  ch1_on_bishop_real_percent := 100
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 99
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G122: closed the scalar strict-backward kernel for the half-sum minimum; \
-    remaining line-735 work is RegularSeq sampling transport."
 
 
 end BishopCReal

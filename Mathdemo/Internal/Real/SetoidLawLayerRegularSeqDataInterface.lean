@@ -84,9 +84,78 @@ theorem minSeqWith_respects_eventually
     (relEventually_refl halfSeq) hbody
 
 
+/-- Data-indexed reciprocal respects eventual equality when positive data is
+given on both representatives. -/
+theorem positiveTailInvSeqWithBound_respects_eventually_data
+    (A : ScalarMulArchimedeanData)
+    {x y : RegularSeq}
+    (hx : PosEventuallyData x) (hy : PosEventuallyData y)
+    (hxy : relEventually x y) :
+    relEventually
+      (positiveTailInvSeqWithBound A x hx)
+      (positiveTailInvSeqWithBound A y hy) :=
+  positiveTailInvSeqWithBound_respects_eventually A x y hx hy hxy
+
+/-- Setoid and operation-respect layer for the RegularSeq data-interface. -/
+structure CRealRegularSeqSetoidLawLayer
+    (A : ScalarMulArchimedeanData) : Type 1 where
+  rawEq : RegularSeq → RegularSeq → Prop
+  rawEq_refl : ∀ x : RegularSeq, rawEq x x
+  rawEq_symm : ∀ x y : RegularSeq, rawEq x y → rawEq y x
+  eventualEq : RegularSeq → RegularSeq → Prop
+  raw_to_eventual : ∀ x y : RegularSeq, rawEq x y → eventualEq x y
+  eventual_refl : ∀ x : RegularSeq, eventualEq x x
+  eventual_symm : ∀ x y : RegularSeq, eventualEq x y → eventualEq y x
+  eventual_trans :
+    ∀ x y z : RegularSeq,
+      eventualEq x y → eventualEq y z → eventualEq x z
+  neg_respects :
+    ∀ x y : RegularSeq,
+      eventualEq x y → eventualEq (negSeq x) (negSeq y)
+  add_respects :
+    ∀ x x' y y' : RegularSeq,
+      eventualEq x x' → eventualEq y y' →
+        eventualEq (addSeq x y) (addSeq x' y')
+  sub_respects :
+    ∀ x x' y y' : RegularSeq,
+      eventualEq x x' → eventualEq y y' →
+        eventualEq (subSeq x y) (subSeq x' y')
+  abs_respects :
+    ∀ x y : RegularSeq,
+      eventualEq x y → eventualEq (absSeq x) (absSeq y)
+  mul_respects :
+    ∀ x x' y y' : RegularSeq,
+      eventualEq x x' → eventualEq y y' →
+        eventualEq (mulSeqConcreteWith A x y) (mulSeqConcreteWith A x' y')
+  max_respects :
+    ∀ x x' y y' : RegularSeq,
+      eventualEq x x' → eventualEq y y' →
+        eventualEq (maxSeqWith A x y) (maxSeqWith A x' y')
+  min_respects :
+    ∀ x x' y y' : RegularSeq,
+      eventualEq x x' → eventualEq y y' →
+        eventualEq (minSeqWith A x y) (minSeqWith A x' y')
+  positiveData_transport_prop :
+    ∀ {x y : RegularSeq},
+      eventualEq x y → PosEventuallyData x → PosEventually y
+  invData_respects :
+    ∀ {x y : RegularSeq},
+      ∀ hx : PosEventuallyData x, ∀ hy : PosEventuallyData y,
+        eventualEq x y →
+          eventualEq
+            (positiveTailInvSeqWithBound A x hx)
+            (positiveTailInvSeqWithBound A y hy)
 
 
-
+/-- Extended data-interface package after adding the setoid law layer. -/
+structure CRealRegularSeqDataCOFOCSetoidPackage
+    (A : ScalarMulArchimedeanData) : Type 1 where
+  dataInterface : CRealRegularSeqDataCOFOCInterface A
+  setoidLaws : CRealRegularSeqSetoidLawLayer A
+  raw_source_equality_exposed : Prop
+  transitive_implementation_equality_available : Prop
+  operations_respect_implementation_equality : Prop
+  inverse_respects_positive_data_and_eventual_equality : Prop
 
 
 

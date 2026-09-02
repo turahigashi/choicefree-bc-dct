@@ -107,17 +107,6 @@ theorem scalar_min_halfsum_two_arg_stable_add
         COF.min b d + (ea + ec) from by ring] at hright_add
   exact BishopC.le_trans hleft hright_budget
 
-/-- Raw sample transport, written from the common maximum back to the left
-input. -/
-theorem regularSeq_sample_close_from_commonMax_left_budget
-    (x : RegularSeq) (Fx Fy : Nat -> Nat) (n : Nat) :
-    Le
-      (COF.abs
-        (x.val (commonMaxSample Fx Fy n + 1) -
-          x.val (Fx n + 1)))
-      (eps (Fx n)) :=
-  scalar_abs_sub_comm_le
-    (regularSeq_sample_close_to_commonMax_left_budget x Fx Fy n)
 
 /-- Raw sample transport, written from the common maximum back to the right
 input. -/
@@ -189,97 +178,12 @@ namespace BishopRegularSeqTheorem118
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
-/-- G129 audit: raw component transport has been lifted through the half-sum
-minimum with explicit dyadic budgets. -/
-structure Property4RegularSeqCommonMaxHalfsumStabilityAudit : Type where
-  scalar_kernel_installed : Nat
-  scalar_left_stability_closed : Nat
-  scalar_right_stability_closed : Nat
-  scalar_two_arg_stability_closed : Nat
-  reverse_abs_sample_transport_closed : Nat
-  left_halfsum_commonmax_transport_closed : Nat
-  right_halfsum_commonmax_transport_closed : Nat
-  quotient_representative_extraction_inputs : Nat
-  prop_to_data_selector_inputs : Nat
-  classical_choice_inputs : Nat
-  remaining_frontier_is_strict_gap_budget_absorption : Prop
 
-def property4RegularSeqCommonMaxHalfsumStabilityAudit :
-    Property4RegularSeqCommonMaxHalfsumStabilityAudit where
-  scalar_kernel_installed := 1
-  scalar_left_stability_closed := 1
-  scalar_right_stability_closed := 1
-  scalar_two_arg_stability_closed := 1
-  reverse_abs_sample_transport_closed := 2
-  left_halfsum_commonmax_transport_closed := 1
-  right_halfsum_commonmax_transport_closed := 1
-  quotient_representative_extraction_inputs := 0
-  prop_to_data_selector_inputs := 0
-  classical_choice_inputs := 0
-  remaining_frontier_is_strict_gap_budget_absorption := True
 
 end BishopRegularSeqTheorem118
 
-/-- G129 package: half-sum sample stability under common-max transport. -/
-structure BishopRegularSeqTheorem118G129Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) : Type 8 where
-  g128 : BishopRegularSeqTheorem118G128Package S
-  scalar_two_arg_stability :
-    forall a b c d ea ec : Scalar,
-      Le (COF.abs (a - b)) ea ->
-      Le (COF.abs (c - d)) ec ->
-        Le (COF.min a c) (COF.min b d + (ea + ec))
-  left_halfsum_transport :
-    forall x c : RegularSeq, forall Fx Fy : Nat -> Nat, forall n : Nat,
-      Le
-        (minHalfsumSample x c (Fx n))
-        (minHalfsumSample x c (commonMaxSample Fx Fy n) +
-          (eps (Fx n) + eps (Fx n)))
-  right_halfsum_transport :
-    forall y c : RegularSeq, forall Fx Fy : Nat -> Nat, forall n : Nat,
-      Le
-        (minHalfsumSample y c (commonMaxSample Fx Fy n))
-        (minHalfsumSample y c (Fy n) +
-          (eps (Fy n) + eps (Fy n)))
-  selector_audit :
-    BishopRegularSeqTheorem118.Property4RegularSeqCommonMaxHalfsumStabilityAudit
-  line735_halfsum_sample_transport_to_common_max : Prop
-  line735_remaining_frontier_strict_gap_budget_absorption : Prop
-  no_quotient_extraction_in_g129_mainline : Prop
 
-def bishopRegularSeqTheorem118G129Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) :
-    BishopRegularSeqTheorem118G129Package S where
-  g128 := bishopRegularSeqTheorem118G128Package S
-  scalar_two_arg_stability := by
-    intro a b c d ea ec ha hc
-    exact scalar_min_halfsum_two_arg_stable_add a b c d ea ec ha hc
-  left_halfsum_transport := by
-    intro x c Fx Fy n
-    exact minHalfsumSample_left_to_commonMax_add_budget x c Fx Fy n
-  right_halfsum_transport := by
-    intro y c Fx Fy n
-    exact minHalfsumSample_commonMax_to_right_add_budget y c Fx Fy n
-  selector_audit :=
-    BishopRegularSeqTheorem118.property4RegularSeqCommonMaxHalfsumStabilityAudit
-  line735_halfsum_sample_transport_to_common_max := True
-  line735_remaining_frontier_strict_gap_budget_absorption := True
-  no_quotient_extraction_in_g129_mainline := True
 
-/-- Progress after G129: the half-sum samples now transport to the common max;
-only the strict-gap budget absorption remains for line 735. -/
-def bishopRegularSeqCh1To4ProgressAfterG129 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 99
-  ch1_on_bishop_real_percent := 100
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 99
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G129: lifted commonMaxSample transport through the named half-sum samples; \
-    remaining line-735 work is strict-gap dyadic budget absorption."
 
 
 end BishopCReal

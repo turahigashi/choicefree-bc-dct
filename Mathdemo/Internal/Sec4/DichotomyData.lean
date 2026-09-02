@@ -152,19 +152,6 @@ noncomputable def sec4_coverDichotomyData
 
 /-! ## 3. Final bridge assuming only the internal `χ_A·f` case tools -/
 
-/--
-The final-tools package from the internal `χ_A·f` case tools alone.
-
-The cover/difference dichotomy package is now constructed unconditionally by
-`sec4_coverDichotomyData`.
--/
-noncomputable def sec4_prop42FinalTools_of_chiFCaseTools
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseToolsData (S := S) f hnn) :
-    Sec4Prop42FinalTools (S := S) B hB f hnn :=
-  sec4_prop42FinalTools_of_dataCases B hB f hnn T
-    (sec4_coverDichotomyData B hB f)
 
 
 /-- Full value bridge from the internal `χ_A·f` case tools alone. -/

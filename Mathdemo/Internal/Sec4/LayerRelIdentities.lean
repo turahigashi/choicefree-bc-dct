@@ -227,59 +227,16 @@ theorem sec4Full_diff_eq_increment_of_layerRelIdentities
     _ = sec4FullCoverIncrement f hnn k := by rfl
 
 
-/-- Build the C2bα algebra package from the layer identities. -/
-noncomputable def sec4IBIncrementAlgebra_of_layerRelIdentities
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelIdentities (S := S) B hB f hnn) :
-    Sec4IBIncrementAlgebra (S := S) B hB f hnn := {
-  diff_eq_cover :=
-    sec4IB_diff_eq_cover_of_layerRelIdentities B hB f hnn G
-  full_diff_eq_increment :=
-    sec4Full_diff_eq_increment_of_layerRelIdentities B hB f hnn G
-  diff_subset_full := G.diff_subset_full
-}
 
 
 /-! ## 4. Direct construction from layer identities -/
 
-/-- Tail data obtained from the value-level layer identities. -/
-noncomputable def sec4IBTailData_of_layerRelIdentities
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelIdentities (S := S) B hB f hnn) :
-    Sec4IBTailData (S := S) B hB f hnn :=
-  sec4IBTailData_of_incrementAlgebra B hB f hnn
-    (sec4IBIncrementAlgebra_of_layerRelIdentities B hB f hnn G)
 
 
-/-- Direct `χ_B·f` candidate from value-level layer identities. -/
-noncomputable def genIB_rep_from_layerRelIdentities
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelIdentities (S := S) B hB f hnn) :
-    IntegrableRep S :=
-  genIB_rep_from_incrementAlgebra B hB f hnn
-    (sec4IBIncrementAlgebra_of_layerRelIdentities B hB f hnn G)
 
 
-/-- General relative integral from value-level layer identities. -/
-noncomputable def genRelIntegral_from_layerRelIdentities
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelIdentities (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_layerRelIdentities B hB f hnn G).integral
 
 
-/-- Non-negativity of the direct candidate from value-level layer identities. -/
-noncomputable def genIB_rep_from_layerRelIdentities_repNonneg
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerRelIdentities (S := S) B hB f hnn) :
-    RepNonneg (genIB_rep_from_layerRelIdentities B hB f hnn G) := by
-  unfold genIB_rep_from_layerRelIdentities
-  exact genIB_rep_from_incrementAlgebra_repNonneg B hB f hnn
-    (sec4IBIncrementAlgebra_of_layerRelIdentities B hB f hnn G)
 
 
 end BishopC

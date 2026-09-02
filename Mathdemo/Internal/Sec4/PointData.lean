@@ -345,12 +345,6 @@ noncomputable def genIB_rep_from_layerPointData
     (sec4IBLayerRelData_of_pointData B hB f hnn G)
 
 
-/-- General relative integral from pointwise layer data. -/
-noncomputable def genRelIntegral_from_layerPointData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerPointData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_layerPointData B hB f hnn G).integral
 
 
 /-- Non-negativity from pointwise layer data. -/

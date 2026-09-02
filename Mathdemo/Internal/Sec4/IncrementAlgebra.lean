@@ -156,23 +156,8 @@ noncomputable def genIB_rep_from_incrementAlgebra
     (sec4IBTailData_of_incrementAlgebra B hB f hnn G)
 
 
-/-- General relative integral candidate from the finite-set algebra package. -/
-noncomputable def genRelIntegral_from_incrementAlgebra
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBIncrementAlgebra (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_incrementAlgebra B hB f hnn G).integral
 
 
-/-- Non-negativity of the direct candidate from the finite-set algebra package. -/
-noncomputable def genIB_rep_from_incrementAlgebra_repNonneg
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBIncrementAlgebra (S := S) B hB f hnn) :
-    RepNonneg (genIB_rep_from_incrementAlgebra B hB f hnn G) := by
-  unfold genIB_rep_from_incrementAlgebra
-  exact genIB_rep_from_tailData_repNonneg B hB f hnn
-    (sec4IBTailData_of_incrementAlgebra B hB f hnn G)
 
 
 end BishopC

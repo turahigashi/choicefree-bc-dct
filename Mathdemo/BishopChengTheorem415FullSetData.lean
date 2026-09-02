@@ -37,10 +37,6 @@ structure DominatedOnFullDataC
     (g : IntegrableRepC3 S) : Type u where
   atIndex : forall n : Nat, RepAbsLeOnFullDataC (fn n) g
 
-def RepLeOnFullDataC.toProp
-    {X : Type u} {S : IntSpaceC X} {u v : IntegrableRepC3 S}
-    (h : RepLeOnFullDataC u v) : RepLeOnFullC u v :=
-  ⟨h.carrier, h.full, h.bound⟩
 
 /-- Package a global pointwise bound as explicit full-set data.  The domain of
 the right-hand representative supplies a canonical full carrier. -/
@@ -57,10 +53,6 @@ def RepLeOnFullDataC.ofGlobal
     bound := fun x _ hudom hvdom hu hv => h x hudom hvdom hu hv
   }
 
-def RepAbsLeOnFullDataC.toProp
-    {X : Type u} {S : IntSpaceC X} {u v : IntegrableRepC3 S}
-    (h : RepAbsLeOnFullDataC u v) : RepAbsLeOnFullC u v :=
-  ⟨h.carrier, h.full, h.bound⟩
 
 /-- Package global absolute domination as explicit full-set data. -/
 def RepAbsLeOnFullDataC.ofGlobal
@@ -77,11 +69,6 @@ def RepAbsLeOnFullDataC.ofGlobal
     bound := fun x _ hudom hvdom hu hv => h x hudom hvdom hu hv
   }
 
-def DominatedOnFullDataC.toProp
-    {X : Type u} {S : IntSpaceC X}
-    {fn : Nat -> IntegrableRepC3 S} {g : IntegrableRepC3 S}
-    (h : DominatedOnFullDataC fn g) : DominatedOnFullC fn g :=
-  fun n => (h.atIndex n).toProp
 
 /-- Every global pointwise domination family yields an explicit full-set
 selector.  The converse is intentionally not asserted. -/

@@ -45,12 +45,6 @@ structure Sec4BSetValueMap (A A' : BSet X) : Prop where
   s2 : ∀ x : X, x ∈ A.S2 → x ∈ A'.S2
 
 
-/-- Reflexive value map. -/
-theorem sec4BSetValueMap_refl (A : BSet X) :
-    Sec4BSetValueMap A A := {
-  s1 := fun x hx => hx
-  s2 := fun x hx => hx
-}
 
 
 /--
@@ -301,12 +295,6 @@ noncomputable def genIB_rep_from_setMapData
     (sec4IBLayerChiData_of_setMapData B hB f hnn G)
 
 
-/-- General relative integral from raw S1/S2 maps. -/
-noncomputable def genRelIntegral_from_setMapData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerSetMapData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_setMapData B hB f hnn G).integral
 
 
 /-- Non-negativity from raw S1/S2 maps. -/

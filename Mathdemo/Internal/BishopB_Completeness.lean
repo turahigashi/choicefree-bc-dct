@@ -91,13 +91,6 @@ def seriesSumRep_L1 (F : Nat → IntegrableRep S) (hsum : RSeq.SeriesSum (fun m 
 /-! Technical auxiliary material for the public import closure. -/
 namespace RSeq
 
-/-- Technical lemma used in the public import closure. -/
-theorem partialSum_congr {R : Type*} [COFOC R] {u v : Nat → R} (h : ∀ i, u i = v i) :
-    ∀ N, partialSum u N = partialSum v N
-  | 0 => h 0
-  | N + 1 => by
-      show partialSum u N + u (N + 1) = partialSum v N + v (N + 1)
-      rw [partialSum_congr h N, h (N + 1)]
 
 /-- Technical lemma used in the public import closure. -/
 def seriesSum_congr {R : Type*} [COFOC R] {u v : Nat → R} (h : ∀ n, u n = v n)

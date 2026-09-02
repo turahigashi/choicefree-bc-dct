@@ -116,108 +116,14 @@ namespace BishopRegularSeqTheorem118
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
-/-- Closed direct expansion of `minSeqWith` strictness to two sampled scalar
-half-sum expressions. -/
-structure Property4RegularSeqMinTwoSampleExpansion
-    (A : ScalarMulArchimedeanData) : Type 1 where
-  two_sample_expansion :
-    forall x y c : RegularSeq,
-      regularSeqLtProp (minSeqWith A y c) (minSeqWith A x c) ->
-        ∃ Fx Fy : Nat -> Nat,
-          (forall n : Nat, n <= Fx n) ∧
-          (forall n : Nat, n <= Fy n) ∧
-            TwoSampleMinHalfsumLeftStrict x y c Fx Fy
-  source_line735_minSeqWith_value_expansion_closed : Prop
-  remaining_frontier_align_two_samples_to_same_sample : Prop
-  no_quotient_representative_extraction : Prop
-  no_pos_eventually_witness_selector : Prop
 
-def property4RegularSeqMinTwoSampleExpansion
-    (A : ScalarMulArchimedeanData) :
-    Property4RegularSeqMinTwoSampleExpansion A where
-  two_sample_expansion := by
-    intro x y c hmin
-    exact minSeqWith_strict_to_two_sample_halfsum A x y c hmin
-  source_line735_minSeqWith_value_expansion_closed := True
-  remaining_frontier_align_two_samples_to_same_sample := True
-  no_quotient_representative_extraction := True
-  no_pos_eventually_witness_selector := True
 
-/-- G124 audit: direct value expansion is closed; only two-sample alignment
-remains before G123's same-sample bridge can be used. -/
-structure Property4RegularSeqTwoSampleExpansionAudit : Type where
-  minSeqWith_value_expansion_inputs : Nat
-  minSeqWith_value_expansion_closed : Nat
-  two_sample_to_same_sample_alignment_inputs : Nat
-  scalar_strict_backward_inputs : Nat
-  quotient_representative_extraction_inputs : Nat
-  prop_to_data_selector_inputs : Nat
-  classical_choice_inputs : Nat
-  remaining_frontier_is_two_sample_alignment : Prop
 
-def property4RegularSeqTwoSampleExpansionAudit :
-    Property4RegularSeqTwoSampleExpansionAudit where
-  minSeqWith_value_expansion_inputs := 0
-  minSeqWith_value_expansion_closed := 1
-  two_sample_to_same_sample_alignment_inputs := 1
-  scalar_strict_backward_inputs := 0
-  quotient_representative_extraction_inputs := 0
-  prop_to_data_selector_inputs := 0
-  classical_choice_inputs := 0
-  remaining_frontier_is_two_sample_alignment := True
 
 end BishopRegularSeqTheorem118
 
-/-- G124 package: exact `minSeqWith` value expansion is closed. -/
-structure BishopRegularSeqTheorem118G124Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) : Type 8 where
-  g123 : BishopRegularSeqTheorem118G123Package S
-  minSeqWith_value_expansion :
-    forall x c : RegularSeq, forall n : Nat,
-      (minSeqWith Arch x c).val n =
-        ((COF.half : Scalar) *
-          (x.val (minSeqWithSampleIndex Arch x c n + 1 + 1) +
-            c.val (minSeqWithSampleIndex Arch x c n + 1 + 1) -
-              COF.abs
-                (x.val (minSeqWithSampleIndex Arch x c n + 1 + 1) -
-                  c.val (minSeqWithSampleIndex Arch x c n + 1 + 1))))
-  two_sample_expansion :
-    BishopRegularSeqTheorem118.Property4RegularSeqMinTwoSampleExpansion Arch
-  selector_audit :
-    BishopRegularSeqTheorem118.Property4RegularSeqTwoSampleExpansionAudit
-  line735_minSeqWith_value_expansion_closed : Prop
-  line735_remaining_frontier_two_sample_alignment : Prop
-  no_quotient_extraction_in_g124_mainline : Prop
 
-def bishopRegularSeqTheorem118G124Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) :
-    BishopRegularSeqTheorem118G124Package S where
-  g123 := bishopRegularSeqTheorem118G123Package S
-  minSeqWith_value_expansion := by
-    intro x c n
-    exact minSeqWith_val_eq_halfsum_sample Arch x c n
-  two_sample_expansion :=
-    BishopRegularSeqTheorem118.property4RegularSeqMinTwoSampleExpansion Arch
-  selector_audit :=
-    BishopRegularSeqTheorem118.property4RegularSeqTwoSampleExpansionAudit
-  line735_minSeqWith_value_expansion_closed := True
-  line735_remaining_frontier_two_sample_alignment := True
-  no_quotient_extraction_in_g124_mainline := True
 
-/-- Progress after G124: still 99%, with direct `minSeqWith` value expansion
-closed and only two-sample alignment remaining for line 735. -/
-def bishopRegularSeqCh1To4ProgressAfterG124 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 99
-  ch1_on_bishop_real_percent := 100
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 99
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G124: closed exact minSeqWith value expansion to two sampled half-sum \
-    expressions; remaining line-735 work is two-sample alignment."
 
 
 end BishopCReal

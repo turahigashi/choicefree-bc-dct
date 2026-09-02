@@ -46,6 +46,34 @@ theorem sub_regular (x y : RegularSeq) : RegularVal (subVal x.val y.val) := by
     rwa [hbudget] at hsum
   exact BishopC.le_trans htri hsum'
 
+/-- Subtraction respects raw Bishop equality. -/
+theorem sub_respects (x x' y y' : RegularSeq) (hxx : rel x x') (hyy : rel y y') :
+    relVal (subVal x.val y.val) (subVal x'.val y'.val) := by
+  intro n
+  unfold subVal addIndex
+  have htri : Le
+      (COF.abs ((x.val (n + 1) - y.val (n + 1)) - (x'.val (n + 1) - y'.val (n + 1))))
+      (COF.abs (x.val (n + 1) - x'.val (n + 1))
+        + COF.abs (y.val (n + 1) - y'.val (n + 1))) := by
+    have h := scalar_abs_add_le
+      (x.val (n + 1) - x'.val (n + 1))
+      (-(y.val (n + 1) - y'.val (n + 1)))
+    rw [show (x.val (n + 1) - x'.val (n + 1))
+        + -(y.val (n + 1) - y'.val (n + 1))
+        = (x.val (n + 1) - y.val (n + 1)) - (x'.val (n + 1) - y'.val (n + 1))
+        from by ring] at h
+    rwa [show COF.abs (-(y.val (n + 1) - y'.val (n + 1)))
+        = COF.abs (y.val (n + 1) - y'.val (n + 1)) from by
+          exact scalarCOFOSeed.abs_neg (y.val (n + 1) - y'.val (n + 1))] at h
+  have hx := hxx (n + 1)
+  have hy := hyy (n + 1)
+  have hsum := BishopC.le_add hx hy
+  have hsum' : Le
+      (COF.abs (x.val (n + 1) - x'.val (n + 1))
+        + COF.abs (y.val (n + 1) - y'.val (n + 1)))
+      (tol n) := by
+    rwa [tol_succ_add_self n] at hsum
+  exact BishopC.le_trans htri hsum'
 
 
 

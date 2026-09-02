@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """Generate a Lean check file printing the axiom footprint of every public
-declaration in the three reading-layer modules.
+declaration in the reading-layer modules.
 
 The generated file is written outside the tracked Lean closure so that the
 512-file invariant of the artifact is preserved.
@@ -11,6 +11,7 @@ MODULES = [
     ("Mathdemo/MathematicalInterface.lean", "Mathdemo.MathematicalInterface"),
     ("Mathdemo/SourceIntegrationSpaceDef11.lean", "Mathdemo.SourceIntegrationSpaceDef11"),
     ("Mathdemo/DiracIntegrationSpace.lean", "Mathdemo.DiracIntegrationSpace"),
+    ("Mathdemo/FiniteWeightedIntegrationSpace.lean", "Mathdemo.FiniteWeightedIntegrationSpace"),
 ]
 DECL = re.compile(r"^(noncomputable )?(theorem|def|lemma|structure|abbrev|instance) "
                   r"([A-Za-z_][A-Za-z0-9_'.]*)")

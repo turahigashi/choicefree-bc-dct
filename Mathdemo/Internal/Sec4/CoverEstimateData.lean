@@ -51,18 +51,6 @@ def sec4_tendstoHalf_of_close_self
     exact hclose k n hn
 
 
-/--
-Transport explicit close estimates along a pointwise equality of sequences.
--/
-def sec4_tendstoHalf_of_close_self_congr
-    {u v : Nat → R} {l : R}
-    (hEq : ∀ n : Nat, v n = u n)
-    (hclose : ∀ k n : Nat, k ≤ n → COF.Close k (u n) l) :
-    RSeq.TendstoHalf v l :=
-  sec4_tendstoHalf_of_close_self
-    (fun k n hn => by
-      rw [hEq n]
-      exact hclose k n hn)
 
 
 /-! ## 2. Estimate data for the final cover values -/

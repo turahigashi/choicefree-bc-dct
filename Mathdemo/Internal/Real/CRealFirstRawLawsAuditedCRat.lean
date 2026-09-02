@@ -27,6 +27,14 @@ theorem neg_regular (x : RegularSeq) : RegularVal (negVal x.val) := by
     scalarCOFOSeed.abs_neg (x.val m - x.val n)]
   exact x.regular m n
 
+/-- Negation respects raw Bishop equality. -/
+theorem neg_respects (x y : RegularSeq) (hxy : rel x y) :
+    relVal (negVal x.val) (negVal y.val) := by
+  intro n
+  change Le (BishopCRat.CRat.absF (-x.val n - -y.val n)) (tol n)
+  rw [show -x.val n - -y.val n = -(x.val n - y.val n) from by ring,
+    scalarCOFOSeed.abs_neg (x.val n - y.val n)]
+  exact hxy n
 
 
 

@@ -69,20 +69,8 @@ def Sec4LambdaRowsPackAt
 
 namespace Sec4LambdaRowsPackAt
 
-def rows
-    {A : BSet X} {hA : IntegrableSet1 S A}
-    {f : IntegrableRep S} {x : X}
-    (P : Sec4LambdaRowsPackAt (S := S) A hA f x) :
-    Sec4LambdaRowsAbsAt (S := S) A hA f x :=
-  P.1
 
 
-def outer
-    {A : BSet X} {hA : IntegrableSet1 S A}
-    {f : IntegrableRep S} {x : X}
-    (P : Sec4LambdaRowsPackAt (S := S) A hA f x) :
-    Sec4LambdaRowsOuterSumAt (S := S) A hA f x P.rows :=
-  P.2
 
 
 end Sec4LambdaRowsPackAt
@@ -173,14 +161,6 @@ def Sec4ChiFCasePackTools
 
 namespace Sec4ChiFCasePackTools
 
-def mk
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (fabs_of_pack_s1 : Sec4FAbsOfLambdaRowsPackOnS1 (S := S) f hnn)
-    (pack_on_s1_of_fabs : Sec4LambdaRowsPackOnS1OfFAbs (S := S) f hnn)
-    (pack_on_s2 : Sec4LambdaRowsPackOnS2 (S := S) f hnn)
-    (flat_abs_of_pack : Sec4ChiFFlatAbsOfRowsPack (S := S) f hnn) :
-    Sec4ChiFCasePackTools (S := S) f hnn :=
-  ⟨fabs_of_pack_s1, pack_on_s1_of_fabs, pack_on_s2, flat_abs_of_pack⟩
 
 
 def fabs_of_pack_s1
@@ -259,14 +239,6 @@ noncomputable def sec4_chiFCaseToolsData_of_packTools
 
 /-! ## 4. Final bridges from packed row tools -/
 
-/-- Final tools from packed row tools. -/
-noncomputable def sec4_prop42FinalTools_of_packTools
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCasePackTools (S := S) f hnn) :
-    Sec4Prop42FinalTools (S := S) B hB f hnn :=
-  sec4_prop42FinalTools_of_chiFCaseTools B hB f hnn
-    (sec4_chiFCaseToolsData_of_packTools f hnn T)
 
 
 /-- Full value bridge from packed row tools. -/

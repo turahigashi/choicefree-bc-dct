@@ -5,32 +5,11 @@ namespace BishopC
 
 variable {X R : Type*} [COFOC R]
 
-/-- Technical lemma used in the public import closure. -/
-structure PFunR (X R : Type*) where
-  dom : Set X
-  toFun : ∀ x ∈ dom, R
 
-def IntegrableRep.toPFunR {S : IntSpaceRC X R} (r : IntegrableRep S) : PFunR X R :=
-  { dom := (r.fn 0).dom, toFun := fun x hx => (r.fn 0).toFun x hx }
 
 -- Technical note.
 -- Technical note.
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def IsMeasurable (S : IntSpaceRC X R) (h : PFunR X R) : Prop :=
-  ∀ (A : BSet X) (hA : IntegrableSet1 S A) (n : Nat),
-    -- Technical note.
-    -- Technical note.
-    -- Technical note.
-    ∃ (rep : IntegrableRep S),
-      -- Technical note.
-      ∀ x (hx_h : x ∈ h.dom) (hx_A : x ∈ A.S1 ∨ x ∈ A.S2),
-        let val := h.toFun x hx_h
-        let mid_val := COF.max (COF.min val (n : R)) (-(n : R))
-        -- Technical note.
-        ∃ hrepDom : rep.MemAt x,
-          Nonempty (RSeq.TendstoHalf
-            (fun k => rep.valueAt x hrepDom k) mid_val)
 
 /-- Technical lemma used in the public import closure. -/
 noncomputable def prop_4_2_min_f_n {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) : IntegrableRep S :=
@@ -75,17 +54,6 @@ theorem normL1_min2_le {S : IntSpaceRC X R} (u v : IntegrableRep S)
   rw [seriesSum_unique huvSum hmin, hminEq]
   exact abs_min_le_abs_of_nonneg_left huSum.sum hvSum.sum hpos_u
 
-theorem abs_add_self_nonneg (x : R) : Nonneg (x + COF.abs x) := by
-  intro (hlt : COF.lt (x + COF.abs x) 0)
-  have hlt2 := COF.lt_add_left (-x) hlt
-  have hlt3 : COF.lt (COF.abs x) (-x) := by
-    change COF.lt (-x + (x + COF.abs x)) (-x + 0) at hlt2
-    have e1 : -x + (x + COF.abs x) = COF.abs x := by ring
-    have e2 : -x + (0:R) = -x := by ring
-    rw [e1, e2] at hlt2
-    exact hlt2
-  have hn := COFO.neg_le_abs x
-  exact hn hlt3
 
 -- Technical note.
 -- Technical note.
@@ -157,92 +125,7 @@ theorem IntegrableSet1_repNonneg {S : IntSpaceRC X R} {A : BSet X} (hA : Integra
 
 
 
-/-- min a b <= min a c when b <= c -/
-theorem min_le_min_right (a b c : R) (h : Le b c) : Le (COF.min a b) (COF.min a c) := by
-  intro hlt
-  have e1 : COF.min a c - COF.min a b = COF.half * (c - b + COF.abs (a - b) - COF.abs (a - c)) := by
-    rw [COF.min_halfsum a c, COF.min_halfsum a b]
-    ring
-  have h1 : Le (COF.abs (a - c)) (COF.abs (a - b) + COF.abs (b - c)) := by
-    have h1a := COFO.abs_add_le (a - b) (b - c)
-    have e2 : a - b + (b - c) = a - c := by ring
-    rw [e2] at h1a
-    exact h1a
-  have h_nonneg : Nonneg (c - b) := by
-    intro hlt2
-    have h2 := COF.lt_add_left b hlt2
-    have e2a : b + (c - b) = c := by ring
-    have e2b : b + 0 = b := by ring
-    rw [e2a, e2b] at h2
-    exact h h2
-  have e3 : COF.abs (c - b) = c - b := COFO.abs_of_nonneg h_nonneg
-  have e4 : COF.abs (b - c) = COF.abs (c - b) := by
-    have e5 : b - c = -(c - b) := by ring
-    rw [e5, COFO.abs_neg]
-  have e6 : COF.abs (b - c) = c - b := by rw [e4, e3]
-  
-  have h3 := COF.lt_add_left (- COF.min a c) hlt
-  have e8 : - COF.min a c + COF.min a c = 0 := by ring
-  have e9 : - COF.min a c + COF.min a b = - (COF.min a c - COF.min a b) := by ring
-  rw [e8, e9, e1] at h3
-  
-  have e10 : - (COF.half * (c - b + COF.abs (a - b) - COF.abs (a - c))) = COF.half * (COF.abs (a - c) - (c - b + COF.abs (a - b))) := by ring
-  rw [e10] at h3
-  
-  have h_add := lt_add h3 h3
-  have e11 : (0:R) + 0 = 0 := by ring
-  have e12 : COF.half * (COF.abs (a - c) - (c - b + COF.abs (a - b))) + COF.half * (COF.abs (a - c) - (c - b + COF.abs (a - b))) = COF.abs (a - c) - (c - b + COF.abs (a - b)) := by
-    calc
-      _ = (COF.half + COF.half) * (COF.abs (a - c) - (c - b + COF.abs (a - b))) := by ring
-      _ = 1 * (COF.abs (a - c) - (c - b + COF.abs (a - b))) := by rw [COF.half_add_half]
-      _ = COF.abs (a - c) - (c - b + COF.abs (a - b)) := by ring
-  rw [e11, e12] at h_add
-  
-  have h4 := COF.lt_add_left (c - b + COF.abs (a - b)) h_add
-  have e13 : c - b + COF.abs (a - b) + 0 = c - b + COF.abs (a - b) := by ring
-  have e14 : c - b + COF.abs (a - b) + (COF.abs (a - c) - (c - b + COF.abs (a - b))) = COF.abs (a - c) := by ring
-  rw [e13, e14] at h4
-  
-  have e15 : c - b + COF.abs (a - b) = COF.abs (a - b) + COF.abs (b - c) := by
-    rw [← e6]
-    ring
-  rw [e15] at h4
-  exact h1 h4
 
-/-- |f + g|_1 <= |f|_1 + |g|_1 -/
-theorem normL1_add_le {S : IntSpaceRC X R} (f g : IntegrableRep S) :
-    Le (f.add g).normL1 (f.normL1 + g.normL1) := by
-  have heq : f.normL1 + g.normL1 = (f.absVal.add g.absVal).integral := by
-    rw [IntegrableRep.integral_add]
-    rfl
-  rw [heq]
-  have h_full : IsFull S (Set.inter f.domain g.domain) :=
-    isFull_inter f.domain_isFull g.domain_isFull
-  refine prop_1_11 h_full (f.add g).absVal (f.absVal.add g.absVal) ?_
-  intro x hx huDom hvDom hu hv
-  obtain ⟨hfDom, ⟨hf_abs⟩⟩ := hx.1
-  obtain ⟨hgDom, ⟨hg_abs⟩⟩ := hx.2
-  have hfx_sum := seriesSum_of_abs hf_abs
-  have hgx_sum := seriesSum_of_abs hg_abs
-  let hfgDom := IntegrableRep.add_memAt hfDom hgDom
-  let h_add := add_seriesSum_value hfDom hgDom hfx_sum hgx_sum
-  obtain ⟨hu_alt, hueq⟩ := (f.add g).absVal_signed_value x hfgDom h_add
-  have e_hu : hu.sum = COF.abs (hfx_sum.sum + hgx_sum.sum) := by
-    have e1 : hu.sum = hu_alt.sum := seriesSum_unique hu hu_alt
-    rw [e1, hueq]
-    rfl
-  obtain ⟨hsu_f, hsu_feq⟩ := f.absVal_signed_value x hfDom hfx_sum
-  obtain ⟨hsu_g, hsu_geq⟩ := g.absVal_signed_value x hgDom hgx_sum
-  let hfAbsDom := f.mem_absVal_dom hfDom
-  let hgAbsDom := g.mem_absVal_dom hgDom
-  let h_add_abs := add_seriesSum_value hfAbsDom hgAbsDom hsu_f hsu_g
-  have e_hv : hv.sum = COF.abs hfx_sum.sum + COF.abs hgx_sum.sum := by
-    have e2 : hv.sum = h_add_abs.sum := seriesSum_unique hv h_add_abs
-    rw [e2]
-    have e3 : h_add_abs.sum = hsu_f.sum + hsu_g.sum := rfl
-    rw [e3, hsu_feq, hsu_geq]
-  rw [e_hu, e_hv]
-  exact COFO.abs_add_le hfx_sum.sum hgx_sum.sum
 
 def lemma_4_3_cut_tendsto_zero {S : IntSpaceRC X R} (f : IntegrableRep S)
     (hf_nonneg : RepNonneg f)
@@ -342,158 +225,24 @@ noncomputable def prop_4_2_chi_f_rep {S : IntSpaceRC X R} (A : BSet X) (hA : Int
   let hsum := prop_4_2_lambda_sum A hA f hnn n_seq hnk_ge
   seriesSumRep_L1 lambda hsum
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def lemma_4_3_alpha {S : IntSpaceRC X R} (f : IntegrableRep S) : Nat → R :=
-  fun n => (thm_3_6_level_sets_integrable f (COF.halfPow (n + 1)) (COF.halfPow n) (halfPow_lt_succ n) (halfPow_pos (n + 1))).1
 
-theorem lemma_4_3_alpha_pos {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
-    COF.lt 0 (lemma_4_3_alpha f n) :=
-  COFO.lt_trans (halfPow_pos (n + 1)) (thm_3_6_level_sets_integrable f (COF.halfPow (n + 1)) (COF.halfPow n) (halfPow_lt_succ n) (halfPow_pos (n + 1))).2.1
 
-theorem lemma_4_3_alpha_nonneg {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
-    ¬ COF.lt (lemma_4_3_alpha f n) 0 :=
-  fun h => COF.lt_irrefl _ (COFO.lt_trans (lemma_4_3_alpha_pos f n) h)
 
-theorem lemma_4_3_alpha_lt_halfPow {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
-    COF.lt (lemma_4_3_alpha f n) (COF.halfPow n) :=
-  (thm_3_6_level_sets_integrable f (COF.halfPow (n + 1)) (COF.halfPow n) (halfPow_lt_succ n) (halfPow_pos (n + 1))).2.2.1
 
-theorem lemma_4_3_alpha_le {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
-    ¬ COF.lt (COF.halfPow n) (lemma_4_3_alpha f n) :=
-  fun h => COF.lt_irrefl _ (COFO.lt_trans (lemma_4_3_alpha_lt_halfPow f n) h)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def lemma_4_3_A_n {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) : BSet X :=
-  ((thm_3_6_level_sets_integrable f (COF.halfPow (n + 1)) (COF.halfPow n)
-    (halfPow_lt_succ n) (halfPow_pos (n + 1))).2.2.2).choose
 
-/-- Technical lemma used in the public import closure. -/
-theorem lemma_4_3_A_n_integrable {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) :
-    Nonempty (IntegrableSet1 S (lemma_4_3_A_n f n)) := by
-  have h := (thm_3_6_level_sets_integrable f (COF.halfPow (n + 1)) (COF.halfPow n) (halfPow_lt_succ n) (halfPow_pos (n + 1))).2.2.2
-  exact h.choose_spec.2.2
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def lemma_4_3_approx_f {S : IntSpaceRC X R} (f : IntegrableRep S) (n : Nat) : IntegrableRep S :=
-  f.sub (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n))
 
-/-- Technical lemma used in the public import closure. -/
-theorem lemma_4_3_tendsto_I_f {S : IntSpaceRC X R} (f : IntegrableRep S)
-    (hf_nonneg : RepNonneg f) :
-    Nonempty (RSeq.TendstoHalf (fun n => (lemma_4_3_approx_f f n).integral) f.integral) := by
-  have hz := lemma_4_3_cut_tendsto_zero f hf_nonneg (lemma_4_3_alpha f)
-    (lemma_4_3_alpha_nonneg f) (lemma_4_3_alpha_le f)
-  refine ⟨?_⟩
-  exact {
-    mod := hz.mod
-    close := by
-      intro k n hn
-      have h_close := hz.close k n hn
-      have heq : (lemma_4_3_approx_f f n).integral =
-          f.integral - (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral := by
-        exact IntegrableRep.integral_sub f (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n))
-      change COF.lt (COF.abs ((f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral - 0)) (COF.halfPow k) at h_close
-      change COF.lt (COF.abs ((lemma_4_3_approx_f f n).integral - f.integral)) (COF.halfPow k)
-      rw [heq]
-      have heq2 : COF.abs (f.integral - (f.cutConstVal (lemma_4_3_alpha f n)
-          (lemma_4_3_alpha_nonneg f n)).integral - f.integral) =
-          COF.abs ((f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral - 0) := by
-        have e1 : f.integral - (f.cutConstVal (lemma_4_3_alpha f n)
-            (lemma_4_3_alpha_nonneg f n)).integral - f.integral =
-            - (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral := by ring
-        have e2 : (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral - 0 =
-            (f.cutConstVal (lemma_4_3_alpha f n) (lemma_4_3_alpha_nonneg f n)).integral := by ring
-        rw [e1, e2, COFO.abs_neg]
-      rw [heq2]
-      exact h_close
-  }
 
-/-- Technical lemma used in the public import closure. -/
-theorem lemma_4_3_sup_integrals {S : IntSpaceRC X R} (f : IntegrableRep S)
-    (hf_nonneg : RepNonneg f) :
-    Nonempty (RSeq.TendstoHalf (fun n => (lemma_4_3_approx_f f n).integral) f.integral) := by
-  let alpha := lemma_4_3_alpha f
-  let A_n := lemma_4_3_A_n f
-  let hA := lemma_4_3_A_n_integrable f
-  let approx := lemma_4_3_approx_f f
-  let ht := lemma_4_3_tendsto_I_f f hf_nonneg
-  exact ht
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def prop_4_4_min_chi_f {S : IntSpaceRC X R} (h : PFunR X R)
-    (hm : IsMeasurable S h) (C : Nat → BSet X) (hC : ∀ n, IntegrableSet1 S (C n)) (n : Nat) : IntegrableRep S :=
-  ((hm (C n) (hC n) n)).choose
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def prop_4_4_lambda_n {S : IntSpaceRC X R} (h : PFunR X R)
-    (hm : IsMeasurable S h) (C : Nat → BSet X) (hC : ∀ n, IntegrableSet1 S (C n)) : Nat → IntegrableRep S
-| 0 => prop_4_4_min_chi_f h hm C hC 0
-| n + 1 => (prop_4_4_min_chi_f h hm C hC (n + 1)).sub (prop_4_4_min_chi_f h hm C hC n)
 
-theorem prop_4_4_lambda_integral_eq {S : IntSpaceRC X R} (h : PFunR X R)
-    (hm : IsMeasurable S h) (C : Nat → BSet X) (hC : ∀ n, IntegrableSet1 S (C n)) :
-    ∀ N, RSeq.partialSum (fun n => (prop_4_4_lambda_n h hm C hC n).integral) N
-       = (prop_4_4_min_chi_f h hm C hC N).integral
-  | 0 => rfl
-  | N + 1 => by
-      show RSeq.partialSum _ N + (prop_4_4_lambda_n h hm C hC (N + 1)).integral = _
-      rw [prop_4_4_lambda_integral_eq h hm C hC N]
-      change (prop_4_4_min_chi_f h hm C hC N).integral +
-             ((prop_4_4_min_chi_f h hm C hC (N + 1)).sub (prop_4_4_min_chi_f h hm C hC N)).integral =
-             (prop_4_4_min_chi_f h hm C hC (N + 1)).integral
-      rw [IntegrableRep.integral_sub]
-      ring
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def prop_4_4_lambda_sum {S : IntSpaceRC X R} (h : PFunR X R)
-    (hm : IsMeasurable S h) (h_nonneg : ∀ x hx, ¬ COF.lt (h.toFun x hx) 0)
-    (C : Nat → BSet X) (hC : ∀ n, IntegrableSet1 S (C n))
-    (h_lambda_nonneg : ∀ n, RepNonneg (prop_4_4_lambda_n h hm C hC n))
-    (c : R) (h_lim : RSeq.TendstoHalf (fun n => (prop_4_4_min_chi_f h hm C hC n).integral) c) :
-    RSeq.SeriesSum (fun n => (prop_4_4_lambda_n h hm C hC n).normL1) :=
-  { sum := c
-    tends := by
-      have h_eq : ∀ N, RSeq.partialSum (fun n => (prop_4_4_lambda_n h hm C hC n).normL1) N = (prop_4_4_min_chi_f h hm C hC N).integral := by
-        intro N
-        have h_norm : ∀ n, (prop_4_4_lambda_n h hm C hC n).normL1 = (prop_4_4_lambda_n h hm C hC n).integral := fun n =>
-          IntegrableRep.normL1_eq_integral_of_nonneg _ (h_lambda_nonneg n)
-        have h_sum : RSeq.partialSum (fun n => (prop_4_4_lambda_n h hm C hC n).normL1) N =
-                     RSeq.partialSum (fun n => (prop_4_4_lambda_n h hm C hC n).integral) N :=
-          RSeq.partialSum_congr h_norm N
-        rw [h_sum]
-        exact prop_4_4_lambda_integral_eq h hm C hC N
-      have heq2 : (RSeq.partialSum (fun n => (prop_4_4_lambda_n h hm C hC n).normL1))
-                = (fun N => (prop_4_4_min_chi_f h hm C hC N).integral) := funext h_eq
-      rw [heq2]
-      exact h_lim }
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def prop_4_4_measurable_rep {S : IntSpaceRC X R} (h : PFunR X R)
-    (hm : IsMeasurable S h) (h_nonneg : ∀ x hx, ¬ COF.lt (h.toFun x hx) 0)
-    (C : Nat → BSet X) (hC : ∀ n, IntegrableSet1 S (C n))
-    (h_lambda_nonneg : ∀ n, RepNonneg (prop_4_4_lambda_n h hm C hC n))
-    (c : R) (h_lim : RSeq.TendstoHalf (fun n => (prop_4_4_min_chi_f h hm C hC n).integral) c) :
-    IntegrableRep S :=
-  let lambda := prop_4_4_lambda_n h hm C hC
-  let hsum := prop_4_4_lambda_sum h hm h_nonneg C hC h_lambda_nonneg c h_lim
-  seriesSumRep_L1 lambda hsum
 
-/-- Technical lemma used in the public import closure. -/
-def Thm46State (X : Type*) := BSet X × Nat
 
-/-- Technical lemma used in the public import closure. -/
-def thm_4_6_s3 (s1 s2 : Thm46State X) : Thm46State X :=
-  (BSet.or s1.1 s2.1, s1.2 + s2.2)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_6_phi {S : IntSpaceRC X R} (f : PFunR X R)
-    (hm : IsMeasurable S f) (s : Thm46State X) (hA : IntegrableSet1 S s.1) : R :=
-  (prop_4_4_min_chi_f f hm (fun _ => s.1) (fun _ => hA) s.2).integral
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_6_psi {S : IntSpaceRC X R} (f : PFunR X R)
-    (hm : IsMeasurable S f) (s : Thm46State X) (hA : IntegrableSet1 S s.1) : R :=
-  (prop_4_4_min_chi_f f hm (fun _ => s.1) (fun _ => hA) s.2).integral
 
 /- Technical proof note. -/
 
@@ -506,96 +255,18 @@ noncomputable def isMeasurableSet_of_integrable {S : IntSpaceRC X R} {B : BSet X
     (hB : IntegrableSet1 S B) : IsMeasurableSet (S := S) B :=
   fun A hA => IntegrableSet1_and hA hB
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def isMeasurableSet_neg_of_integrable {S : IntSpaceRC X R} {C : BSet X}
-    (hC : IntegrableSet1 S C) : IsMeasurableSet (S := S) (BSet.neg C) :=
-  fun A hA => IntegrableSet1_sub hA hC
 
-/-- Technical lemma used in the public import closure. -/
-def ConvergeInMeasure (S : IntSpaceRC X R) (fn : Nat → PFunR X R) (f : PFunR X R) : Prop :=
-  ∀ (A : BSet X) (hA : IntegrableSet1 S A) (eps : R) (heps : COF.lt 0 eps),
-    ∃ N : Nat, ∀ n ≥ N,
-      ∃ (B : BSet X) (hB : IntegrableSet1 S B),
-        (B.S1 ⊆ A.S1 ∩ f.dom ∩ (fn n).dom) ∧
-        -- Technical note.
-        COF.lt (measure1 S (IntegrableSet1_sub hA hB)) eps ∧
-        -- Technical note.
-        ∀ x (hxB : x ∈ B.S1) (hxf : x ∈ f.dom) (hxfn : x ∈ (fn n).dom), COF.lt (COF.abs (f.toFun x hxf - (fn n).toFun x hxfn)) eps
 
 -- Technical note.
 -- Technical note.
 -- Technical note.
 -- Technical note.
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_13_lambda {S : IntSpaceRC X R} (fn : Nat → IntegrableRep S) (n : Nat) : IntegrableRep S :=
-  (fn (n + 1)).sub (fn n)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def tendstoHalf_succ {u : Nat → R} {l : R} (h : RSeq.TendstoHalf u l) : RSeq.TendstoHalf (fun n => u (n + 1)) l :=
-  { mod := fun k => h.mod k
-    close := fun k n hn => by
-      have h1 : n ≤ n + 1 := Nat.le_succ n
-      exact h.close k (n + 1) (Nat.le_trans hn h1) }
 
-noncomputable def thm_4_13_lambda_sum {S : IntSpaceRC X R} (fn : Nat → IntegrableRep S)
-    (h_mono : ∀ n, (thm_4_13_lambda fn n).normL1 = (fn (n + 1)).integral - (fn n).integral)
-    (c : R) (h_lim : RSeq.TendstoHalf (fun n => (fn n).integral) c) :
-    RSeq.SeriesSum (fun n => (thm_4_13_lambda fn n).normL1) :=
-  { sum := c - (fn 0).integral
-    tends := by
-      have h_eq : ∀ N, RSeq.partialSum (fun n => (thm_4_13_lambda fn n).normL1) N = (fn (N + 1)).integral - (fn 0).integral := by
-        intro N
-        induction N with
-        | zero => exact h_mono 0
-        | succ N ih =>
-          show RSeq.partialSum (fun n => (thm_4_13_lambda fn n).normL1) N + (thm_4_13_lambda fn (N + 1)).normL1 = (fn (N + 2)).integral - (fn 0).integral
-          rw [ih, h_mono (N + 1)]
-          have h1 : (fn (N + 1)).integral - (fn 0).integral = (fn (N + 1)).integral + (-(fn 0).integral) := sub_eq_add_neg _ _
-          have h2 : (fn (N + 2)).integral - (fn (N + 1)).integral = (fn (N + 2)).integral + (-(fn (N + 1)).integral) := sub_eq_add_neg _ _
-          have h3 : (fn (N + 2)).integral - (fn 0).integral = (fn (N + 2)).integral + (-(fn 0).integral) := sub_eq_add_neg _ _
-          rw [h1, h2, h3]
-          generalize (fn 0).integral = A
-          generalize (fn (N + 1)).integral = B
-          generalize (fn (N + 2)).integral = C
-          ring
-      have heq2 : RSeq.partialSum (fun n => (thm_4_13_lambda fn n).normL1)
-                = (fun N => (fn (N + 1)).integral - (fn 0).integral) := funext h_eq
-      rw [heq2]
-      have h_lim_succ : RSeq.TendstoHalf (fun n => (fn (n + 1)).integral) c := tendstoHalf_succ h_lim
-      have h_lim2 : RSeq.TendstoHalf (fun n => (fn (n + 1)).integral + (-(fn 0).integral)) (c + (-(fn 0).integral)) :=
-        tendstoHalf_add h_lim_succ (tendstoHalf_const (-(fn 0).integral))
-      have heq3 : (fun N => (fn (N + 1)).integral - (fn 0).integral) = (fun N => (fn (N + 1)).integral + (-(fn 0).integral)) := by
-        funext N; exact sub_eq_add_neg _ _
-      have heq4 : c - (fn 0).integral = c + (-(fn 0).integral) := sub_eq_add_neg _ _
-      rw [heq3, heq4]
-      exact h_lim2 }
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_13_monotone_convergence {S : IntSpaceRC X R} (fn : Nat → IntegrableRep S)
-    (h_mono : ∀ n, (thm_4_13_lambda fn n).normL1 = (fn (n + 1)).integral - (fn n).integral)
-    (c : R) (h_lim : RSeq.TendstoHalf (fun n => (fn n).integral) c) :
-    IntegrableRep S :=
-  let lambda := thm_4_13_lambda fn
-  let hsum := thm_4_13_lambda_sum fn h_mono c h_lim
-  let g := seriesSumRep_L1 lambda hsum
-  (fn 0).add g
 
-/-- Technical lemma used in the public import closure. -/
-theorem thm_4_13_h_mono_of_nonneg {S : IntSpaceRC X R} (fn : Nat → IntegrableRep S)
-    (h_nn : ∀ n, RepNonneg (thm_4_13_lambda fn n)) :
-    ∀ n, (thm_4_13_lambda fn n).normL1 = (fn (n + 1)).integral - (fn n).integral := by
-  intro n
-  rw [(thm_4_13_lambda fn n).normL1_eq_integral_of_nonneg (h_nn n)]
-  exact IntegrableRep.integral_sub (fn (n + 1)) (fn n)
 
-/-- Technical lemma used in the public import closure. -/
-noncomputable def thm_4_13_monotone_convergence_faithful {S : IntSpaceRC X R}
-    (fn : Nat → IntegrableRep S)
-    (h_nn : ∀ n, RepNonneg (thm_4_13_lambda fn n))
-    (c : R) (h_lim : RSeq.TendstoHalf (fun n => (fn n).integral) c) :
-    IntegrableRep S :=
-  thm_4_13_monotone_convergence fn (thm_4_13_h_mono_of_nonneg fn h_nn) c h_lim
 
 /-! Technical auxiliary material for the public import closure. -/
 
@@ -933,24 +604,6 @@ noncomputable def relIntegral {S : IntSpaceRC X R} (C : BSet X) (hC : Integrable
     (f : IntegrableRep S) (hnn : RepNonneg f) : R :=
   (prop_4_2_chi_f_rep C hC f hnn).integral
 
-/-- Technical lemma used in the public import closure. -/
-theorem prop_4_2_complement_value {S : IntSpaceRC X R} (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f) {x : X}
-    (hCDom : (prop_4_2_chi_f_rep C hC f hnn).MemAt x)
-    (hχDom : hC.rep.MemAt x) (hfDom : f.MemAt x)
-    (hCabs : RSeq.SeriesSum (fun n => COF.abs
-      ((prop_4_2_chi_f_rep C hC f hnn).valueAt x hCDom n)))
-    (hχabs : RSeq.SeriesSum (fun n => COF.abs (hC.rep.valueAt x hχDom n)))
-    (hfabs : RSeq.SeriesSum (fun n => COF.abs (f.valueAt x hfDom n))) :
-    (add_seriesSum_value hfDom (IntegrableRep.neg_memAt hCDom)
-      (seriesSum_of_abs hfabs)
-        (neg_seriesSum_value hCDom (seriesSum_of_abs hCabs))).sum
-      = (1 - (seriesSum_of_abs hχabs).sum) * (seriesSum_of_abs hfabs).sum := by
-  have hrep := prop_4_2_chi_f_rep_value C hC f hnn
-    hCDom hχDom hfDom hCabs hχabs hfabs
-  show (seriesSum_of_abs hfabs).sum + (-(seriesSum_of_abs hCabs).sum)
-      = (1 - (seriesSum_of_abs hχabs).sum) * (seriesSum_of_abs hfabs).sum
-  rw [hrep]; ring
 
 /-- Technical lemma used in the public import closure. -/
 theorem relIntegral_complement_additive {S : IntSpaceRC X R} (C : BSet X) (hC : IntegrableSet1 S C)
@@ -1161,19 +814,6 @@ theorem relIntegral_or_add_and {S : IntSpaceRC X R} {D D' : BSet X}
       hchi]
   ring
 
-/-- Technical lemma used in the public import closure. -/
-theorem chi_and_value {S : IntSpaceRC X R} {D D' : BSet X}
-    (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') {x : X}
-    (hDDom : hD.rep.MemAt x) (hD'Dom : hD'.rep.MemAt x)
-    (handDom : (IntegrableSet1_and hD hD').rep.MemAt x)
-    (hDc : RSeq.SeriesSum (fun n => hD.rep.valueAt x hDDom n))
-    (hD'c : RSeq.SeriesSum (fun n => hD'.rep.valueAt x hD'Dom n))
-    (handc : RSeq.SeriesSum (fun n =>
-      (IntegrableSet1_and hD hD').rep.valueAt x handDom n)) :
-    handc.sum = COF.min hDc.sum hD'c.sum := by
-  obtain ⟨hmin, hmineq⟩ := min2_value hD.rep hD'.rep x
-    hDDom hD'Dom hDc hD'c
-  rw [seriesSum_unique handc hmin]; exact hmineq
 
 /-- Technical lemma used in the public import closure. -/
 theorem chi_and_value_valid {S : IntSpaceRC X R} {A B : BSet X}
@@ -1268,79 +908,6 @@ theorem relIntegral_and_mono {S : IntSpaceRC X R} {B : BSet X} (hB : IsMeasurabl
           (seriesSum_of_abs hχ_D'B)
       rw [hD'B0, zero_mul]; exact le_refl _
 
-/-- Technical lemma used in the public import closure. -/
-theorem relIntegral_and_mono_or_step {S : IntSpaceRC X R} {B : BSet X} (hB : IsMeasurableSet (S := S) B)
-    {D A : BSet X} (hD : IntegrableSet1 S D) (hA : IntegrableSet1 S A)
-    (f : IntegrableRep S) (hnn : RepNonneg f) :
-    Le (relIntegral (BSet.and D B) (hB D hD) f hnn)
-       (relIntegral (BSet.and (BSet.or D A) B) (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn) := by
-  show Le (prop_4_2_chi_f_rep (BSet.and D B) (hB D hD) f hnn).integral
-          (prop_4_2_chi_f_rep (BSet.and (BSet.or D A) B)
-            (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn).integral
-  refine prop_1_11 (isFull_inter (isFull_inter (isFull_inter (isFull_inter (isFull_inter
-      (prop_4_2_chi_f_rep (BSet.and D B) (hB D hD) f hnn).domain_isFull
-      (prop_4_2_chi_f_rep (BSet.and (BSet.or D A) B)
-        (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn).domain_isFull)
-      f.domain_isFull)
-      (hB D hD).rep.domain_isFull)
-      (hB (BSet.or D A) (IntegrableSet1_or hD hA)).rep.domain_isFull)
-      hA.rep.domain_isFull)
-    (prop_4_2_chi_f_rep (BSet.and D B) (hB D hD) f hnn)
-    (prop_4_2_chi_f_rep (BSet.and (BSet.or D A) B)
-      (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn) ?_
-  intro x hx hrDom hr'Dom hr hr'
-  obtain ⟨⟨⟨⟨⟨hxDB, hxDAB⟩, hxf⟩, hxχDB⟩, hxχDAB⟩, hxχA⟩ := hx
-  obtain ⟨hflat_DBDom, ⟨hflat_DB⟩⟩ := hxDB
-  obtain ⟨hflat_DABDom, ⟨hflat_DAB⟩⟩ := hxDAB
-  obtain ⟨hfDom, ⟨hfabs⟩⟩ := hxf
-  obtain ⟨hχ_DBDom, ⟨hχ_DB⟩⟩ := hxχDB
-  obtain ⟨hχ_DABDom, ⟨hχ_DAB⟩⟩ := hxχDAB
-  obtain ⟨hχADom, ⟨hχAabs⟩⟩ := hxχA
-  have hval_DB := prop_4_2_chi_f_rep_value (BSet.and D B) (hB D hD) f hnn
-    hflat_DBDom hχ_DBDom hfDom hflat_DB hχ_DB hfabs
-  have hval_DAB := prop_4_2_chi_f_rep_value (BSet.and (BSet.or D A) B)
-    (hB (BSet.or D A) (IntegrableSet1_or hD hA)) f hnn
-      hflat_DABDom hχ_DABDom hfDom hflat_DAB hχ_DAB hfabs
-  rw [seriesSum_unique hr (seriesSum_of_abs hflat_DB),
-      seriesSum_unique hr' (seriesSum_of_abs hflat_DAB), hval_DB, hval_DAB]
-  have hfnn : Nonneg (seriesSum_of_abs hfabs).sum :=
-    hnn x hfDom hfabs (seriesSum_of_abs hfabs)
-  rcases ((hB D hD).valid x hχ_DBDom hχ_DB).1 with hS1 | hS2
-  · have hDB1 : (seriesSum_of_abs hχ_DB).sum = 1 :=
-      ((hB D hD).valid x hχ_DBDom hχ_DB).2.1 hS1 (seriesSum_of_abs hχ_DB)
-    obtain ⟨xD1, xB1⟩ := hS1
-    have hxDA1 : x ∈ (BSet.or D A).S1 := by
-      rcases (hA.valid x hχADom hχAabs).1 with hA1 | hA2
-      · exact Or.inl (Or.inl ⟨xD1, hA1⟩)
-      · exact Or.inl (Or.inr ⟨xD1, hA2⟩)
-    have hDAB1 : (seriesSum_of_abs hχ_DAB).sum = 1 :=
-      ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid x hχ_DABDom hχ_DAB).2.1
-        ⟨hxDA1, xB1⟩
-        (seriesSum_of_abs hχ_DAB)
-    rw [hDB1, hDAB1]; exact le_refl _
-  · have hDB0 : (seriesSum_of_abs hχ_DB).sum = 0 :=
-      ((hB D hD).valid x hχ_DBDom hχ_DB).2.2 hS2 (seriesSum_of_abs hχ_DB)
-    rw [hDB0, zero_mul]
-    rcases ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
-      x hχ_DABDom hχ_DAB).1 with hS1' | hS2'
-    · have hDAB1 : (seriesSum_of_abs hχ_DAB).sum = 1 :=
-        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
-          x hχ_DABDom hχ_DAB).2.1 hS1'
-          (seriesSum_of_abs hχ_DAB)
-      rw [hDAB1, one_mul]; exact le_of_nonneg_sub (by rw [sub_zero]; exact hfnn)
-    · have hDAB0 : (seriesSum_of_abs hχ_DAB).sum = 0 :=
-        ((hB (BSet.or D A) (IntegrableSet1_or hD hA)).valid
-          x hχ_DABDom hχ_DAB).2.2 hS2'
-          (seriesSum_of_abs hχ_DAB)
-      rw [hDAB0, zero_mul]; exact le_refl _
 
-/-- Technical lemma used in the public import closure. -/
-theorem relIntegral_bigOrFin_mono {S : IntSpaceRC X R} {B : BSet X} (hB : IsMeasurableSet (S := S) B)
-    (A : Nat → BSet X) (hA : ∀ k, IntegrableSet1 S (A k)) (f : IntegrableRep S) (hnn : RepNonneg f)
-    (k : Nat) :
-    Le (relIntegral (BSet.and (bigOrFin A k) B) (hB (bigOrFin A k) (bigOrFin_int A hA k)) f hnn)
-       (relIntegral (BSet.and (bigOrFin A (k + 1)) B)
-         (hB (bigOrFin A (k + 1)) (bigOrFin_int A hA (k + 1))) f hnn) :=
-  relIntegral_and_mono_or_step hB (bigOrFin_int A hA k) (hA (k + 1)) f hnn
 
 end BishopC

@@ -85,54 +85,6 @@ structure BishopRegularSeqRealSurface
   structural_equality_not_primary : Prop
   total_inverse_not_primary : Prop
 
-def bishopRegularSeqRealSurface
-    (A : ScalarMulArchimedeanData) :
-    BishopRegularSeqRealSurface A where
-  carrier := RegularSeq
-  carrier_is_regularSeq := rfl
-  sourceEq := rel
-  sourceEq_is_rel := rfl
-  workEq := relEventually
-  workEq_is_relEventually := rfl
-  source_to_work := rel_to_relEventually
-  work_refl := relEventually_refl
-  work_symm := relEventually_symm
-  work_trans := relEventually_trans
-  zero := zeroSeq
-  one := oneSeq
-  half := halfSeq
-  add := addSeq
-  neg := negSeq
-  sub := subSeq
-  mul := mulSeqConcreteWith A
-  abs := absSeq
-  max := maxSeqWith A
-  min := minSeqWith A
-  ltProp := regularSeqLtProp
-  ltData := regularSeqLtData
-  ltData_to_prop := regularSeqLtData_to_prop
-  positiveProp := PosEventually
-  positiveData := PosEventuallyData
-  positiveData_to_prop := fun hx => hx.toProp
-  positiveInv := fun {x} hx => positiveTailInvSeqWithBound A x hx
-  positiveInv_pos := fun hx =>
-    regularSeqPositiveInvData_posData A hx
-  positiveInv_mul_cancel := fun hx =>
-    regularSeqPositiveInvData_mul_cancel A hx
-  positiveInv_respects := fun hx hy hxy =>
-    regularSeqPositiveInvData_respects A hx hy hxy
-  archimedean_posData := fun hx =>
-    regularSeqArchimedeanPositiveData hx
-  mul_archimedean_data :=
-    regularSeqMulArchimedean_const_data A
-  setoidLaws := cRealRegularSeqSetoidLawLayer A
-  algebraLaws := cRealRegularSeqAlgebraLawLayer A
-  orderLaws := cRealRegularSeqDataOrderLawLayer
-  archDataPackage := cRealRegularSeqDataCOFOCArchDataPackage A
-  repSequenceComplete := cRealRepSequenceCompleteLayer
-  source_not_quotient_class := True
-  structural_equality_not_primary := True
-  total_inverse_not_primary := True
 
 /-- Bishop-style partial functions valued in regular-sequence reals. -/
 structure BishopRegularSeqPFun (X : Type) where
@@ -219,68 +171,11 @@ structure BishopRegularSeqIntegrationSpaceSkeleton
   integral_values_are_regularseq_reals : Prop
   scalar_equalities_are_bishop_equalities : Prop
 
-/-- Audit record tying the local source passages to the interface decision. -/
-structure BishopRealSourceFaithfulnessAudit : Type where
-  real_is_regular_sequence : Prop
-  real_is_not_primary_quotient_class : Prop
-  equality_is_bishop_relation : Prop
-  positive_real_carries_witness : Prop
-  measure_theory_values_are_real_valued_partial_functions : Prop
-  interface_must_not_require_lean_structural_equality_as_real_equality : Prop
-  old_cofoc_is_compatibility_layer_only : Prop
 
-def bishopRealSourceFaithfulnessAudit :
-    BishopRealSourceFaithfulnessAudit where
-  real_is_regular_sequence := True
-  real_is_not_primary_quotient_class := True
-  equality_is_bishop_relation := True
-  positive_real_carries_witness := True
-  measure_theory_values_are_real_valued_partial_functions := True
-  interface_must_not_require_lean_structural_equality_as_real_equality := True
-  old_cofoc_is_compatibility_layer_only := True
 
-/-- G28 progress meter after switching from typeclass weakening to
-Bishop-faithful RegularSeq-valued integration surfaces. -/
-structure CRealCOFOCG28BishopFaithfulProgressMeter : Type where
-  regularSeqRealSurfacePercent : Nat
-  bishopFaithfulInterfacePercent : Nat
-  measureTheoryRefactorPercent : Nat
-  oldQuotNoExtraInputPercent : Nat
-  oldQuotDecidableAdapterPercent : Nat
-  positiveWitnessBoundaryPercent : Nat
-  sourceFaithfulnessConfidencePercent : Nat
-  measureLayerSelectorCountTarget : Nat
-  next_step_is_migrate_section1_or_section5_skeleton : Prop
 
-def cRealCOFOCG28BishopFaithfulProgressMeter :
-    CRealCOFOCG28BishopFaithfulProgressMeter where
-  regularSeqRealSurfacePercent := 97
-  bishopFaithfulInterfacePercent := 48
-  measureTheoryRefactorPercent := 10
-  oldQuotNoExtraInputPercent := 69
-  oldQuotDecidableAdapterPercent := 76
-  positiveWitnessBoundaryPercent := 86
-  sourceFaithfulnessConfidencePercent := 94
-  measureLayerSelectorCountTarget := 0
-  next_step_is_migrate_section1_or_section5_skeleton := True
 
-/-- Roadmap checkpoint for the corrected G28 direction. -/
-structure CRealAfterBishopFaithfulInterfaceFrontier : Type where
-  regularseq_setoid_surface_available : Prop
-  pfun_values_use_regularseq_reals : Prop
-  integration_skeleton_uses_bishop_equality : Prop
-  no_total_inverse_in_primary_surface : Prop
-  old_cofoc_route_demoted_to_adapter : Prop
-  next_refactor_measure_files_against_this_surface : Prop
 
-def cRealAfterBishopFaithfulInterfaceFrontier :
-    CRealAfterBishopFaithfulInterfaceFrontier where
-  regularseq_setoid_surface_available := True
-  pfun_values_use_regularseq_reals := True
-  integration_skeleton_uses_bishop_equality := True
-  no_total_inverse_in_primary_surface := True
-  old_cofoc_route_demoted_to_adapter := True
-  next_refactor_measure_files_against_this_surface := True
 
 end BishopCReal
 

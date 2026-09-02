@@ -18,6 +18,12 @@ theorem sub_self_val (x : Nat → Scalar) (n : Nat) : subVal x x n = 0 := by
   unfold subVal addIndex
   ring
 
+/-- Raw strict order is irreflexive at the representative level. -/
+theorem lt_irrefl_raw (x : RegularSeq) : ¬ PosVal (subVal x.val x.val) := by
+  intro hpos
+  rcases hpos with ⟨n, hn⟩
+  rw [sub_self_val x.val n] at hn
+  exact eps_nonneg n hn
 
 
 

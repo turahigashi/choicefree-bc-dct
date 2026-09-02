@@ -27,10 +27,6 @@ def cutConst (Arch : ScalarMulArchimedeanData)
     BishopRegularSeqPFun X :=
   minConst Arch f a
 
-/-- The special truncation `min(f, 1)` from Definition 1.1(1). -/
-def cutOne (Arch : ScalarMulArchimedeanData)
-    (f : BishopRegularSeqPFun X) : BishopRegularSeqPFun X :=
-  cutConst Arch f oneSeq
 
 /-- The truncation `min(f, n)` from Definition 1.1(4). -/
 def cutNat (Arch : ScalarMulArchimedeanData)
@@ -120,119 +116,11 @@ structure BishopRegularSeqIntegrationSpaceDef11
   source_definition_1_1_regularseq : Prop
   old_cofoc_layer_is_compatibility_only : Prop
 
-/-- Definition 1.1(1), `min(f,1)` closure, derived from the general cut field. -/
-theorem def11_cutOne_mem
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X)
-    {f : BishopRegularSeqPFun X} (hf : f ∈ S.core.L) :
-    BishopRegularSeqPFun.cutOne Arch f ∈ S.core.L :=
-  S.cutConst_mem oneSeq hf
 
-/-- Definition 1.1(1), linear-combination closure in the RegularSeq surface. -/
-theorem def11_linComb_mem
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X)
-    (a b : RegularSeq)
-    {f g : BishopRegularSeqPFun X}
-    (hf : f ∈ S.core.L) (hg : g ∈ S.core.L) :
-    BishopRegularSeqPFun.linComb Arch a b f g ∈ S.core.L :=
-  S.core.add_mem
-    (S.core.smul_mem a hf)
-    (S.core.smul_mem b hg)
 
-/-- Definition 1.1(1), linearity of the integral, stated with Bishop equality. -/
-theorem def11_I_linComb
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X)
-    (a b : RegularSeq)
-    {f g : BishopRegularSeqPFun X}
-    (hf : f ∈ S.core.L) (hg : g ∈ S.core.L) :
-    relEventually
-      (S.core.I (BishopRegularSeqPFun.linComb Arch a b f g))
-      (addSeq
-        (mulSeqConcreteWith Arch a (S.core.I f))
-        (mulSeqConcreteWith Arch b (S.core.I g))) := by
-  let af := BishopRegularSeqPFun.smul Arch a f
-  let bg := BishopRegularSeqPFun.smul Arch b g
-  have haf : af ∈ S.core.L :=
-    S.core.smul_mem a hf
-  have hbg : bg ∈ S.core.L :=
-    S.core.smul_mem b hg
-  have hadd :
-      relEventually
-        (S.core.I (BishopRegularSeqPFun.add af bg))
-        (addSeq (S.core.I af) (S.core.I bg)) :=
-    S.core.I_add haf hbg
-  have hsmul_f :
-      relEventually
-        (S.core.I af)
-        (mulSeqConcreteWith Arch a (S.core.I f)) :=
-    S.core.I_smul a hf
-  have hsmul_g :
-      relEventually
-        (S.core.I bg)
-        (mulSeqConcreteWith Arch b (S.core.I g)) :=
-    S.core.I_smul b hg
-  have hmid :
-      relEventually
-        (addSeq (S.core.I af) (S.core.I bg))
-        (addSeq
-          (mulSeqConcreteWith Arch a (S.core.I f))
-          (mulSeqConcreteWith Arch b (S.core.I g))) :=
-    addSeq_respects_eventually
-      (S.core.I af)
-      (mulSeqConcreteWith Arch a (S.core.I f))
-      (S.core.I bg)
-      (mulSeqConcreteWith Arch b (S.core.I g))
-      hsmul_f
-      hsmul_g
-  exact
-    relEventually_trans
-      (S.core.I (BishopRegularSeqPFun.linComb Arch a b f g))
-      (addSeq (S.core.I af) (S.core.I bg))
-      (addSeq
-        (mulSeqConcreteWith Arch a (S.core.I f))
-        (mulSeqConcreteWith Arch b (S.core.I g)))
-      hadd
-      hmid
 
-/-- The reset roadmap: previous relative chapters are preserved but not counted as
-the final Bishop-real target. -/
-structure BishopRegularSeqCh1To4FinalRoadmap : Type where
-  bishop_real_regularseq_surface : Prop
-  ch1_def11_integration_space : Prop
-  ch1_lemmas_12_to_15 : Prop
-  ch2_measure_from_integrable_sets : Prop
-  ch3_measurable_functions_and_basic_integrals : Prop
-  ch4_convergence_theorems : Prop
-  old_cofoc_ch1_to_4_saved_as_compatibility_layer : Prop
-  primary_source_fidelity_for_chapters : Prop
 
-/-- Progress meter for the new final goal.  Percentages here measure the new
-Bishop-real target only; the previous COFOC-relative completion is tracked
-separately. -/
-structure BishopRegularSeqCh1To4ProgressMeter : Type where
-  bishop_real_formalization_percent : Nat
-  ch1_on_bishop_real_percent : Nat
-  ch2_on_bishop_real_percent : Nat
-  ch3_on_bishop_real_percent : Nat
-  ch4_on_bishop_real_percent : Nat
-  total_final_goal_percent : Nat
-  old_relative_ch1_to_4_compatibility_percent : Nat
-  current_increment : String
 
-/-- Current status after G33: Definition 1.1 has a RegularSeq target structure,
-and its linear/min-one closure consequences are already usable. -/
-def bishopRegularSeqCh1To4ProgressAfterG33 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 62
-  ch1_on_bishop_real_percent := 18
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 28
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G33: reset goal to Bishop RegularSeq reals; added Definition 1.1 target \
-    with continuity/truncation/normalization data and closed linearity/min-one \
-    consequences."
 
 
 end BishopCReal

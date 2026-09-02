@@ -186,23 +186,8 @@ noncomputable def genIB_rep_from_incrementBridge
     (sec4IBTailData_of_incrementBridge B hB f hnn G)
 
 
-/-- General relative integral candidate from the C2 bridge. -/
-noncomputable def genRelIntegral_from_incrementBridge
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBIncrementBridge (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_incrementBridge B hB f hnn G).integral
 
 
-/-- Non-negativity of the direct candidate from the C2 bridge. -/
-noncomputable def genIB_rep_from_incrementBridge_repNonneg
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBIncrementBridge (S := S) B hB f hnn) :
-    RepNonneg (genIB_rep_from_incrementBridge B hB f hnn G) := by
-  unfold genIB_rep_from_incrementBridge
-  exact genIB_rep_from_tailData_repNonneg B hB f hnn
-    (sec4IBTailData_of_incrementBridge B hB f hnn G)
 
 
 end BishopC

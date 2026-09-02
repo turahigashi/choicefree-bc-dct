@@ -60,13 +60,6 @@ theorem sec4_prop42_nk_strict_succ
       (prop_4_2_n_k f k + 1))
 
 
-/-- Every successor value of `prop_4_2_n_k` is positive. -/
-theorem sec4_prop42_nk_succ_pos
-    (f : IntegrableRep S) (k : Nat) :
-    0 < prop_4_2_n_k f (k + 1) :=
-  Nat.lt_of_le_of_lt
-    (Nat.zero_le (prop_4_2_n_k f k))
-    (sec4_prop42_nk_strict_succ (S := S) f k)
 
 
 /-- The successor row coefficient is positive. -/

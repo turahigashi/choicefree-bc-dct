@@ -52,22 +52,8 @@ theorem sec4_coverAnd_mem_s2_of_cover_s2_B_s1
   exact Or.inl (Or.inr ⟨hcover, hB1⟩)
 
 
-/-- S2 constructor for `coverSet f n ∧ B` from `coverSet.S1` and `B.S2`. -/
-theorem sec4_coverAnd_mem_s2_of_cover_s1_B_s2
-    (B : BSet X) (f : IntegrableRep S) (n : Nat) (x : X)
-    (hcover : x ∈ (coverSet f n).S1) (hB2 : x ∈ B.S2) :
-    x ∈ (sec4CoverAnd B f n).S2 := by
-  unfold sec4CoverAnd
-  exact Or.inl (Or.inl ⟨hcover, hB2⟩)
 
 
-/-- S2 constructor for `coverSet f n ∧ B` from `coverSet.S2` and `B.S2`. -/
-theorem sec4_coverAnd_mem_s2_of_cover_s2_B_s2
-    (B : BSet X) (f : IntegrableRep S) (n : Nat) (x : X)
-    (hcover : x ∈ (coverSet f n).S2) (hB2 : x ∈ B.S2) :
-    x ∈ (sec4CoverAnd B f n).S2 := by
-  unfold sec4CoverAnd
-  exact Or.inr ⟨hcover, hB2⟩
 
 
 /-! ## 2. Concrete telescope/estimate data -/

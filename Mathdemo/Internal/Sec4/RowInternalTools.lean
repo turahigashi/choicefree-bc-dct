@@ -98,14 +98,6 @@ def Sec4Prop42RowInternalTools
 
 namespace Sec4Prop42RowInternalTools
 
-def mk
-    {B : BSet X} {hB : IsMeasurableSet (S := S) B}
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (cover_chiF_abs_succ : Sec4CoverChiFAbsSucc (S := S) B hB f hnn)
-    (lambda0_chi_abs : Sec4Lambda0ChiAbsOfAbs (S := S) f hnn)
-    (lambda_row_zero_on_s2 : Sec4LambdaRowZeroOnS2 (S := S) f hnn) :
-    Sec4Prop42RowInternalTools (S := S) B hB f hnn :=
-  ⟨cover_chiF_abs_succ, lambda0_chi_abs, lambda_row_zero_on_s2⟩
 
 
 def cover_chiF_abs_succ

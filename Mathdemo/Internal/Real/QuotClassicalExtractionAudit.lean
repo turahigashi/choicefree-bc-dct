@@ -11,13 +11,5 @@ use any declaration from that audit node.
 
 namespace BishopCReal
 
-/-- Compatibility type for later historical bookkeeping nodes.
-
-The development version of this node contained a non-public extraction audit.
-The public artifact keeps only this inert type name because a later progress
-meter records that such an adapter was documented, without using its contents.
--/
-structure CRealQuotClassicalExtractionAudit : Type 1 where
-  omitted_from_public_artifact : Prop
 
 end BishopCReal

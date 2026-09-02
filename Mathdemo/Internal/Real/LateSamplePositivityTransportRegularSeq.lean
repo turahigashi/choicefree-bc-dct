@@ -77,94 +77,14 @@ namespace BishopRegularSeqTheorem118
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
-/-- G120 bridge for bounded-multiplication index drift in the remaining
-line-735 min transport. -/
-structure Property4RegularSeqLateSamplePosBridge : Type 1 where
-  pos_of_late_sample :
-    forall (x : RegularSeq) (F : Nat -> Nat),
-      (forall n : Nat, n <= F n) ->
-        (∃ k N : Nat, ∀ n : Nat, N <= n -> COF.lt (eps k) (x.val (F n))) ->
-          PosEventually x
-  sub_pos_of_late_sample :
-    forall (x y : RegularSeq) (F : Nat -> Nat),
-      (forall n : Nat, n <= F n) ->
-        (∃ k N : Nat,
-          ∀ n : Nat, N <= n -> COF.lt (eps k) ((subSeq y x).val (F n))) ->
-          PosEventually (subSeq y x)
-  no_pos_eventually_witness_extraction : Prop
-  no_quotient_representative_extraction : Prop
 
-def property4RegularSeqLateSamplePosBridge :
-    Property4RegularSeqLateSamplePosBridge where
-  pos_of_late_sample := posEventually_of_late_sample_pos
-  sub_pos_of_late_sample := posEventually_subSeq_of_late_sample_pos
-  no_pos_eventually_witness_extraction := True
-  no_quotient_representative_extraction := True
 
-/-- G120 audit: the multiplication-index drift bridge is closed, but the
-actual half-sum min strict-backward transport remains. -/
-structure Property4RegularSeqLine735AuditAfterLateSampleBridge : Type where
-  line735_minSeqWith_left_monotonicity_inputs : Nat
-  pointwise_to_regularseq_order_bridge_closed : Nat
-  late_sample_positivity_bridge_closed : Nat
-  quotient_representative_extraction_inputs : Nat
-  prop_to_data_selector_inputs : Nat
-  classical_choice_inputs : Nat
-  remaining_frontier_is_min_strict_backward_transport : Prop
 
-def property4RegularSeqLine735AuditAfterLateSampleBridge :
-    Property4RegularSeqLine735AuditAfterLateSampleBridge where
-  line735_minSeqWith_left_monotonicity_inputs := 1
-  pointwise_to_regularseq_order_bridge_closed := 1
-  late_sample_positivity_bridge_closed := 1
-  quotient_representative_extraction_inputs := 0
-  prop_to_data_selector_inputs := 0
-  classical_choice_inputs := 0
-  remaining_frontier_is_min_strict_backward_transport := True
 
 end BishopRegularSeqTheorem118
 
-/-- G120 package: cofinal late-sample positivity transport is closed for the
-RegularSeq/data route. -/
-structure BishopRegularSeqTheorem118G120Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) : Type 8 where
-  g119 : BishopRegularSeqTheorem118G119Package S
-  late_sample_pos_bridge :
-    BishopRegularSeqTheorem118.Property4RegularSeqLateSamplePosBridge
-  selector_audit :
-    BishopRegularSeqTheorem118.Property4RegularSeqLine735AuditAfterLateSampleBridge
-  line743_closed_by_g118 : Prop
-  line735_late_sample_index_drift_closed : Prop
-  line735_min_strict_backward_transport_still_frontier : Prop
-  no_quotient_extraction_in_g120_mainline : Prop
 
-def bishopRegularSeqTheorem118G120Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) :
-    BishopRegularSeqTheorem118G120Package S where
-  g119 := bishopRegularSeqTheorem118G119Package S
-  late_sample_pos_bridge :=
-    BishopRegularSeqTheorem118.property4RegularSeqLateSamplePosBridge
-  selector_audit :=
-    BishopRegularSeqTheorem118.property4RegularSeqLine735AuditAfterLateSampleBridge
-  line743_closed_by_g118 := True
-  line735_late_sample_index_drift_closed := True
-  line735_min_strict_backward_transport_still_frontier := True
-  no_quotient_extraction_in_g120_mainline := True
 
-/-- Progress after G120: still 99%, but the bounded-multiplication sampling
-drift needed for the final line-735 transport is closed. -/
-def bishopRegularSeqCh1To4ProgressAfterG120 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 99
-  ch1_on_bishop_real_percent := 100
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 99
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G120: closed late-sample positivity transport for RegularSeq; the \
-    remaining line-735 work is min strict-backward transport."
 
 
 end BishopCReal

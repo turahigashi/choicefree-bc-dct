@@ -158,48 +158,10 @@ noncomputable def sec4IBTailData_of_coverIncrement
 
 /-! ## 3. Direct candidate using the increment data -/
 
-/-- Direct `χ_B·f` candidate once C-comparison and C-telescope are supplied. -/
-noncomputable def genIB_rep_from_coverIncrement
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (hcmp : ∀ k : Nat,
-      Le (sec4IB_diffRelIntegral B hB f hnn k)
-        (sec4IB_coverIncrement B hB f hnn k))
-    (hsumInc : RSeq.SeriesSum
-      (fun k => sec4IB_coverIncrement B hB f hnn k)) :
-    IntegrableRep S :=
-  genIB_rep_from_tailData B hB f hnn
-    (sec4IBTailData_of_coverIncrement B hB f hnn hcmp hsumInc)
 
 
-/-- Relative integral defined by the direct candidate. -/
-noncomputable def genRelIntegral_from_coverIncrement
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (hcmp : ∀ k : Nat,
-      Le (sec4IB_diffRelIntegral B hB f hnn k)
-        (sec4IB_coverIncrement B hB f hnn k))
-    (hsumInc : RSeq.SeriesSum
-      (fun k => sec4IB_coverIncrement B hB f hnn k)) : R :=
-  (genIB_rep_from_coverIncrement B hB f hnn hcmp hsumInc).integral
 
 
-/--
-The direct candidate is non-negative.  This is the C-side usable form of B2's
-preservation chain.
--/
-noncomputable def genIB_rep_from_coverIncrement_repNonneg
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (hcmp : ∀ k : Nat,
-      Le (sec4IB_diffRelIntegral B hB f hnn k)
-        (sec4IB_coverIncrement B hB f hnn k))
-    (hsumInc : RSeq.SeriesSum
-      (fun k => sec4IB_coverIncrement B hB f hnn k)) :
-    RepNonneg (genIB_rep_from_coverIncrement B hB f hnn hcmp hsumInc) := by
-  unfold genIB_rep_from_coverIncrement
-  exact genIB_rep_from_tailData_repNonneg B hB f hnn
-    (sec4IBTailData_of_coverIncrement B hB f hnn hcmp hsumInc)
 
 
 end BishopC

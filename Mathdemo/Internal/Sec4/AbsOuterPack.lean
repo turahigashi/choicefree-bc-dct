@@ -173,14 +173,6 @@ def Sec4ChiFCaseAbsPackTools
 
 namespace Sec4ChiFCaseAbsPackTools
 
-def mk
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (rowToFlat : Sec4SeriesSumRepL1FlatAbsOfAbsRows (S := S))
-    (fabs_of_rows_s1 : Sec4FAbsOfLambdaAbsRowsOnS1 (S := S) f hnn)
-    (pack_on_s1_of_fabs : Sec4LambdaRowsAbsPackOnS1OfFAbs (S := S) f hnn)
-    (pack_on_s2 : Sec4LambdaRowsAbsPackOnS2 (S := S) f hnn) :
-    Sec4ChiFCaseAbsPackTools (S := S) f hnn :=
-  ⟨rowToFlat, fabs_of_rows_s1, pack_on_s1_of_fabs, pack_on_s2⟩
 
 
 def rowToFlat
@@ -269,14 +261,6 @@ noncomputable def sec4_chiFCaseToolsData_of_absPackTools
 
 /-! ## 5. Final bridges from the corrected tools -/
 
-/-- Final tools from corrected abs-outer tools. -/
-noncomputable def sec4_prop42FinalTools_of_absPackTools
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseAbsPackTools (S := S) f hnn) :
-    Sec4Prop42FinalTools (S := S) B hB f hnn :=
-  sec4_prop42FinalTools_of_chiFCaseTools B hB f hnn
-    (sec4_chiFCaseToolsData_of_absPackTools f hnn T)
 
 
 /-- Full value bridge from corrected abs-outer tools. -/

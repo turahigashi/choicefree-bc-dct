@@ -319,12 +319,6 @@ noncomputable def genIB_rep_from_layerChiData
     (sec4IBLayerPointData_of_chiData B hB f hnn G)
 
 
-/-- General relative integral from χ-data. -/
-noncomputable def genRelIntegral_from_layerChiData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (G : Sec4IBLayerChiData (S := S) B hB f hnn) : R :=
-  (genIB_rep_from_layerChiData B hB f hnn G).integral
 
 
 /-- Non-negativity from χ-data. -/

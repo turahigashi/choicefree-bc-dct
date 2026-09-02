@@ -139,90 +139,13 @@ namespace BishopRegularSeqTheorem118
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
-/-- Closed G126 common-max alignment data. -/
-def property4RegularSeqMinCommonMaxAlignmentClosed :
-    Property4RegularSeqMinCommonMaxAlignment Arch where
-  common_max_transport := by
-    intro x y c
-    exact commonMaxMinHalfsumTransport_closed x y c
-  source_line735_common_max_sample_alignment := True
-  common_max_sample_is_computable_data := True
-  g125_two_sample_alignment_surface_closed := True
-  no_quotient_representative_extraction := True
-  no_pos_eventually_witness_selector := True
-  no_classical_choice := True
 
-/-- G130 audit: line-735 common-max half-sum transport is closed. -/
-structure Property4RegularSeqCommonMaxTransportClosedAudit : Type where
-  scalar_neg_order_closed : Nat
-  scalar_gap_lower_closed : Nat
-  strict_budget_absorption_closed : Nat
-  commonmax_error_budget_closed : Nat
-  commonmax_transport_closed : Nat
-  commonmax_alignment_data_closed : Nat
-  quotient_representative_extraction_inputs : Nat
-  prop_to_data_selector_inputs : Nat
-  classical_choice_inputs : Nat
-  line735_common_max_transport_closed : Prop
 
-def property4RegularSeqCommonMaxTransportClosedAudit :
-    Property4RegularSeqCommonMaxTransportClosedAudit where
-  scalar_neg_order_closed := 1
-  scalar_gap_lower_closed := 1
-  strict_budget_absorption_closed := 1
-  commonmax_error_budget_closed := 1
-  commonmax_transport_closed := 1
-  commonmax_alignment_data_closed := 1
-  quotient_representative_extraction_inputs := 0
-  prop_to_data_selector_inputs := 0
-  classical_choice_inputs := 0
-  line735_common_max_transport_closed := True
 
 end BishopRegularSeqTheorem118
 
-/-- G130 package: `CommonMaxMinHalfsumTransport` is closed. -/
-structure BishopRegularSeqTheorem118G130Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) : Type 8 where
-  g129 : BishopRegularSeqTheorem118G129Package S
-  common_max_transport :
-    forall x y c : RegularSeq,
-      CommonMaxMinHalfsumTransport x y c
-  common_max_alignment :
-    BishopRegularSeqTheorem118.Property4RegularSeqMinCommonMaxAlignment Arch
-  selector_audit :
-    BishopRegularSeqTheorem118.Property4RegularSeqCommonMaxTransportClosedAudit
-  line735_common_max_transport_closed : Prop
-  line735_two_sample_alignment_closed : Prop
-  no_quotient_extraction_in_g130_mainline : Prop
 
-def bishopRegularSeqTheorem118G130Package
-    (S : BishopRegularSeqIntegrationSpaceDef11 Arch X) :
-    BishopRegularSeqTheorem118G130Package S where
-  g129 := bishopRegularSeqTheorem118G129Package S
-  common_max_transport := by
-    intro x y c
-    exact commonMaxMinHalfsumTransport_closed x y c
-  common_max_alignment :=
-    BishopRegularSeqTheorem118.property4RegularSeqMinCommonMaxAlignmentClosed
-  selector_audit :=
-    BishopRegularSeqTheorem118.property4RegularSeqCommonMaxTransportClosedAudit
-  line735_common_max_transport_closed := True
-  line735_two_sample_alignment_closed := True
-  no_quotient_extraction_in_g130_mainline := True
 
-/-- Progress after G130: the common-max line-735 transport theorem is closed. -/
-def bishopRegularSeqCh1To4ProgressAfterG130 :
-    BishopRegularSeqCh1To4ProgressMeter where
-  bishop_real_formalization_percent := 100
-  ch1_on_bishop_real_percent := 100
-  ch2_on_bishop_real_percent := 6
-  ch3_on_bishop_real_percent := 3
-  ch4_on_bishop_real_percent := 4
-  total_final_goal_percent := 99
-  old_relative_ch1_to_4_compatibility_percent := 100
-  current_increment :=
-    "G130: closed CommonMaxMinHalfsumTransport by strict dyadic budget \
-    absorption; line-735 common-max alignment is now constructive data."
 
 
 end BishopCReal

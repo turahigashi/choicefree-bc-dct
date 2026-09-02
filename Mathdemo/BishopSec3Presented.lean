@@ -2328,15 +2328,6 @@ theorem hs_NC (K : Nat) (cls : Nat → Bool) : sC K cls (N_C K cls) = K := by
   dsimp [N_C]
   exact Nat.find_spec (show ∃ j : Nat, sC K cls j = K from ⟨K, hs_KC K cls⟩)
 
-/-- The first hitting time is at most `K`. -/
-theorem hN_le_KC (K : Nat) (cls : Nat → Bool) : N_C K cls ≤ K := by
-  by_contra hbad
-  have hKN : K < N_C K cls := Nat.lt_of_not_ge hbad
-  have hnot : sC K cls K ≠ K := by
-    dsimp [N_C] at hKN
-    exact lemma33_not_of_lt_findC
-      (show ∃ j : Nat, sC K cls j = K from ⟨K, hs_KC K cls⟩) hKN
-  exact hnot (hs_KC K cls)
 
 /-- If `K` is positive, then the hitting time is positive. -/
 theorem hNposC (K : Nat) (cls : Nat → Bool) (hKpos : 0 < K) :
@@ -2377,11 +2368,6 @@ theorem hs_no_good_betweenC (K : Nat) (cls : Nat → Bool)
   exact hnext_minC K cls (sC K cls j) m
     (hs_lt_K_of_lt_NC K cls j hjN) hleft hright
 
-/-- Consecutive retained right endpoints are positive before the hitting time. -/
-theorem hs_endpoint_posC (K : Nat) (cls : Nat → Bool)
-    (j : Nat) (hjN : j < N_C K cls) : 0 < sC K cls (j + 1) := by
-  have h := hs_strictC K cls j hjN
-  omega
 
 /-- Retained right endpoints stay at or below `K`. -/
 theorem hs_endpoint_le_KC (K : Nat) (cls : Nat → Bool) (j : Nat) :
@@ -13661,25 +13647,6 @@ noncomputable def alphaRelC {a b u v d : CReal} {hab : regularSeqLtProp a b}
     (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (i - 1))
     (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (i + 1))
 
-theorem halphaRelC_nn {a b u v d : CReal} {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (hz1_one_from_u : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe u t → P.embed z1 t ≈ CReal.one)
-    (hz0_zero_to_v : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe t v → P.embed z0 t ≈ CReal.zero)
-    (hz0_le_z1 : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe (P.embed z0 t) (P.embed z1 t))
-    (i : Nat) (_hi0 : 0 < i) (hiK : i ≤ 2 ^ e) :
-    RegularSeqNonneg (alphaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F i) := by
-  have hidx : i - 1 ≤ i + 1 := Nat.le_trans (Nat.sub_le i 1) (Nat.le_succ i)
-  have hupper : i + 1 ≤ 2 ^ e + 1 := Nat.succ_le_succ hiK
-  have hle := hlamRelC_anti P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F
-    hz1_one_from_u hz0_zero_to_v hz0_le_z1 (i - 1) (i + 1) hidx hupper
-  simpa [alphaRelC, lamRelC] using hle
 
 
 noncomputable def hpprimeRel_of_gapC {a b u v d upper rho : CReal}
@@ -13970,26 +13937,6 @@ theorem hchargeRel_of_notB_C {a b u v d : CReal} {hab : regularSeqLtProp a b}
   dsimp [chargeRelC]
   rw [if_neg hBj]
 
-theorem hchargeRel_nnC {a b u v d : CReal} {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (hz1_one_from_u : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe u t → P.embed z1 t ≈ CReal.one)
-    (hz0_zero_to_v : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe t v → P.embed z0 t ≈ CReal.zero)
-    (hz0_le_z1 : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe (P.embed z0 t) (P.embed z1 t))
-    (cls : Nat → Bool) (j : Nat) (hjN : j < N_C (2 ^ e) cls) :
-    RegularSeqNonneg (chargeRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) := by
-  by_cases hBj : BintC (2 ^ e) cls j
-  · rw [hchargeRel_of_BC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j hBj]
-    exact hbetaRel_nnC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F
-      hz1_one_from_u hz0_zero_to_v hz0_le_z1 cls j hjN
-  · rw [hchargeRel_of_notB_C P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j hBj]
-    exact regularSeqNonneg_of_zero_le (regularSeqLe_refl CReal.zero)
 
 theorem hcursor_after_smallRelC {a b u v d : CReal} {hab : regularSeqLtProp a b}
     (P : ProfileC a b hab)
@@ -14428,21 +14375,6 @@ noncomputable def afloorRelC {a b u v d : CReal} {hab : regularSeqLtProp a b}
     Nat → Nat :=
   fun j => if hj : j < N_C (2 ^ e) cls then (afloorData j hj).val else 0
 
-theorem hafloorRel_leC {a b u v d : CReal} {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (cls : Nat → Bool) (theta eps : CReal) (m : Nat)
-    (afloorData : (j : Nat) → j < N_C (2 ^ e) cls →
-      Lemma33H4ApproxFloorC theta eps
-        (betaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) m)
-    (j : Nat) (hjN : j < N_C (2 ^ e) cls) :
-    afloorRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData j ≤ m := by
-  dsimp [afloorRelC]
-  rw [dif_pos hjN]
-  exact (afloorData j hjN).val_le
 
 theorem hafloorRel_upperC {a b u v d : CReal} {hab : regularSeqLtProp a b}
     (P : ProfileC a b hab)
@@ -14657,61 +14589,7 @@ noncomputable def rawThetaTermRelC {a b u v d : CReal} {hab : regularSeqLtProp a
           (afloorRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData) j)))
       theta
 
-theorem hmrawRel_charge_prefix_thetaC {a b u v d : CReal}
-    {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (cls : Nat → Bool) (theta eps : CReal) (m : Nat)
-    (afloorData : (j : Nat) → j < N_C (2 ^ e) cls →
-      Lemma33H4ApproxFloorC theta eps
-        (betaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) m) :
-    RegularSeqLe
-      (lemma33PrefixC
-        (rawThetaTermRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-        (N_C (2 ^ e) cls))
-      (lemma33PrefixC
-        (chargeRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls)
-        (N_C (2 ^ e) cls)) := by
-  refine lemma33PrefixC_mono
-    (rawThetaTermRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-    (chargeRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls)
-    (N_C (2 ^ e) cls) ?_
-  intro j hjN
-  dsimp [rawThetaTermRelC]
-  exact hmrawRel_charge_thetaC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m
-    afloorData j hjN
 
-theorem hmrawRel_charge_prefix_totalC {a b u v d : CReal}
-    {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (hz1_one_from_u : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe u t → P.embed z1 t ≈ CReal.one)
-    (hz0_zero_to_v : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe t v → P.embed z0 t ≈ CReal.zero)
-    (hz0_le_z1 : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe (P.embed z0 t) (P.embed z1 t))
-    (cls : Nat → Bool) (theta eps : CReal) (m : Nat)
-    (afloorData : (j : Nat) → j < N_C (2 ^ e) cls →
-      Lemma33H4ApproxFloorC theta eps
-        (betaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) m) :
-    RegularSeqLe
-      (lemma33PrefixC
-        (rawThetaTermRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-        (N_C (2 ^ e) cls))
-      (CReal.sub
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F 0)
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (2 ^ e + 1))) := by
-  exact regularSeqLe_trans
-    (hmrawRel_charge_prefix_thetaC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-    (hchargeRel_totalC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F
-      hz1_one_from_u hz0_zero_to_v hz0_le_z1 cls)
 
 noncomputable def rawThetaPrefixRelC {a b u v d : CReal} {hab : regularSeqLtProp a b}
     (P : ProfileC a b hab)
@@ -14779,64 +14657,7 @@ theorem mSumThetaBridgeRel_of_prefixC {a b u v d : CReal}
     theta
     (N_C (2 ^ e) cls)
 
-theorem hmSumRel_scale_thetaC {a b u v d : CReal}
-    {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (hz1_one_from_u : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe u t → P.embed z1 t ≈ CReal.one)
-    (hz0_zero_to_v : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe t v → P.embed z0 t ≈ CReal.zero)
-    (hz0_le_z1 : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe (P.embed z0 t) (P.embed z1 t))
-    (cls : Nat → Bool) (theta eps : CReal) (m : Nat)
-    (afloorData : (j : Nat) → j < N_C (2 ^ e) cls →
-      Lemma33H4ApproxFloorC theta eps
-        (betaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) m)
-    (bridge : MSumThetaBridgeRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData) :
-    RegularSeqLe
-      (mSumThetaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-      (CReal.sub
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F 0)
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (2 ^ e + 1))) := by
-  have htot : RegularSeqLe
-      (rawThetaPrefixRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-      (CReal.sub
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F 0)
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (2 ^ e + 1))) := by
-    dsimp [rawThetaPrefixRelC]
-    exact hmrawRel_charge_prefix_totalC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F
-      hz1_one_from_u hz0_zero_to_v hz0_le_z1 cls theta eps m afloorData
-  exact regularSeqLe_of_left_eventual (Setoid.symm bridge.equiv_prefix) htot
 
-theorem hmSumRel_scale_theta_constructedC {a b u v d : CReal}
-    {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab)
-    (hu : RegularSeqLe a u) (hv : RegularSeqLe v b)
-    (hd_nn : RegularSeqNonneg d) (hd_pos : regularSeqLtData zeroSeq d)
-    (e : Nat) (hdeq : d ≈ CReal.mul (CReal.sub v u) (halfPow e))
-    (z1 z0 : P.Code) (hz1F : z1 ∈ P.F) (hz0F : z0 ∈ P.F)
-    (hz1_one_from_u : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe u t → P.embed z1 t ≈ CReal.one)
-    (hz0_zero_to_v : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe t v → P.embed z0 t ≈ CReal.zero)
-    (hz0_le_z1 : ∀ t : CReal, RegularSeqLe a t → RegularSeqLe t b →
-      RegularSeqLe (P.embed z0 t) (P.embed z1 t))
-    (cls : Nat → Bool) (theta eps : CReal) (m : Nat)
-    (afloorData : (j : Nat) → j < N_C (2 ^ e) cls →
-      Lemma33H4ApproxFloorC theta eps
-        (betaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls j) m) :
-    RegularSeqLe
-      (mSumThetaRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
-      (CReal.sub
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F 0)
-        (lamRelC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F (2 ^ e + 1))) := by
-  exact hmSumRel_scale_thetaC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F
-    hz1_one_from_u hz0_zero_to_v hz0_le_z1 cls theta eps m afloorData
-    (mSumThetaBridgeRel_of_prefixC P hu hv hd_nn hd_pos e hdeq z1 z0 hz1F hz0F cls theta eps m afloorData)
 
 structure MSumLeContradictionDataRelC {a b u v d : CReal}
     {hab : regularSeqLtProp a b}
@@ -15861,11 +15682,6 @@ the finite exceptional families into one choice-free sequence, constructs
 `lambdaBar` by CReal representative completeness, and performs the final
 epsilon-delta squeeze. -/
 
-/-- CReal-native Theorem 3.5: endpoint gap is nonnegative. -/
-theorem lemma35Gap_nonnegC {a b : CReal} {hab : regularSeqLtProp a b}
-    (P : ProfileC a b hab) :
-    RegularSeqNonneg (lemma33DiameterC P) :=
-  lemma33ProfileDiameter_nonnegC P
 
 /-- A dyadic Archimedean exponent for the endpoint gap. -/
 noncomputable def lemma35ArchExponentC {a b : CReal} {hab : regularSeqLtProp a b}
@@ -17082,13 +16898,7 @@ def thm36D_levelBSetC {X : Type*} {S : IntSpaceC X}
   S2 := thm36D_lowerSetC h t
   disj := thm36D_levelSets_disjointC h t
 
-@[simp] theorem thm36D_levelBSetC_S1 {X : Type*} {S : IntSpaceC X}
-    (h : IntegrableRepC3 S) (t : CReal) :
-    (thm36D_levelBSetC h t).S1 = thm36D_upperSetC h t := rfl
 
-@[simp] theorem thm36D_levelBSetC_S2 {X : Type*} {S : IntSpaceC X}
-    (h : IntegrableRepC3 S) (t : CReal) :
-    (thm36D_levelBSetC h t).S2 = thm36D_lowerSetC h t := rfl
 
 /-- `h` has an absolutely convergent point value at `x`, with sum strictly above `t`. -/
 def thm36D_upperSetStrictC {X : Type*} {S : IntSpaceC X}
@@ -17126,13 +16936,7 @@ def thm36D_levelBSetStrictC {X : Type*} {S : IntSpaceC X}
   S2 := thm36D_lowerSetWeakC h t
   disj := thm36D_levelSetsB_disjointC h t
 
-@[simp] theorem thm36D_levelBSetStrictC_S1 {X : Type*} {S : IntSpaceC X}
-    (h : IntegrableRepC3 S) (t : CReal) :
-    (thm36D_levelBSetStrictC h t).S1 = thm36D_upperSetStrictC h t := rfl
 
-@[simp] theorem thm36D_levelBSetStrictC_S2 {X : Type*} {S : IntSpaceC X}
-    (h : IntegrableRepC3 S) (t : CReal) :
-    (thm36D_levelBSetStrictC h t).S2 = thm36D_lowerSetWeakC h t := rfl
 
 
 /-! ## Theorem 3.6-C: smooth-point ramp endpoint sequences (CReal-native) -/
@@ -17195,9 +16999,6 @@ theorem thm36C_gapL_posC (n : Nat) :
   exact CReal.mul_pos_E (regularSeqLtProp_zero_halfPow n)
     (thm36C_radiusL_posC h a b hab ha spD)
 
-theorem thm36C_gapL_nonnegC (n : Nat) :
-    RegularSeqLe CReal.zero (thm36C_gapLC h a b hab ha spD n) :=
-  regularSeqLe_of_ltPropC (thm36C_gapL_posC h a b hab ha spD n)
 
 theorem thm36C_halfPow_le_oneC (n : Nat) :
     RegularSeqLe (halfPow n) CReal.one := by
@@ -17365,9 +17166,6 @@ theorem thm36C_gapR_posC (n : Nat) :
   exact CReal.mul_pos_E (regularSeqLtProp_zero_halfPow n)
     (thm36C_radiusR_posC h a b hab ha spD)
 
-theorem thm36C_gapR_nonnegC (n : Nat) :
-    RegularSeqLe CReal.zero (thm36C_gapRC h a b hab ha spD n) :=
-  regularSeqLe_of_ltPropC (thm36C_gapR_posC h a b hab ha spD n)
 
 theorem thm36C_gapR_le_radiusC (n : Nat) :
     RegularSeqLe (thm36C_gapRC h a b hab ha spD n)
@@ -20822,9 +20620,6 @@ noncomputable def thm36CoverLoPosDataC (n : Nat) :
     PosEventuallyData (thm36CoverLoC n) :=
   CReal.invPos_posData (thm36CoverHiC n) (thm36CoverHiPosDataC n)
 
-theorem thm36CoverHiPosC (n : Nat) :
-    regularSeqLtProp CReal.zero (thm36CoverHiC n) :=
-  regularSeqLtProp_zero_of_posData (thm36CoverHiPosDataC n)
 
 theorem thm36CoverHiGtOneC (n : Nat) :
     regularSeqLtProp CReal.one (thm36CoverHiC n) := by

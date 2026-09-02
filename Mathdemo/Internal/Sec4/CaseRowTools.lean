@@ -99,145 +99,38 @@ def Sec4FAbsOfLambdaRowsOnS1
     Sec4RepAbsAt f x
 
 
-/--
-Flat abs construction for `χ_A·f` from an `f` abs witness on `A.S1`.
-
-This is kept as a primitive because it is the row/flat assembly direction of
-`seriesSumRep_L1`, not the already available flat-to-row direction.
--/
-def Sec4ChiFFlatAbsOfFAbsOnS1
-    (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
-  Sec4ChiFAbsOnS1Data (S := S) f hnn
 
 
-/--
-Flat abs construction for `χ_A·f` on `A.S2`.
-
-This is the zero-domain construction for the completed `seriesSumRep_L1`
-representative.
--/
-def Sec4ChiFFlatAbsOnS2
-    (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
-  Sec4ChiFAbsOnS2Data (S := S) f hnn
 
 
-/--
-Primitive internal data sufficient to build `Sec4ChiFCaseToolsData`.
-
-The first field is row-level; the other two are exactly the remaining flat
-construction directions.
--/
-def Sec4ChiFCaseRowTools
-    (f : IntegrableRep S) (hnn : RepNonneg f) : Type _ :=
-  PProd (Sec4FAbsOfLambdaRowsOnS1 (S := S) f hnn)
-    (PProd (Sec4ChiFFlatAbsOfFAbsOnS1 (S := S) f hnn)
-      (Sec4ChiFFlatAbsOnS2 (S := S) f hnn))
 
 
 namespace Sec4ChiFCaseRowTools
 
-def mk
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (fabs_of_rows_s1 : Sec4FAbsOfLambdaRowsOnS1 (S := S) f hnn)
-    (flat_abs_on_s1 : Sec4ChiFFlatAbsOfFAbsOnS1 (S := S) f hnn)
-    (flat_abs_on_s2 : Sec4ChiFFlatAbsOnS2 (S := S) f hnn) :
-    Sec4ChiFCaseRowTools (S := S) f hnn :=
-  ⟨fabs_of_rows_s1, flat_abs_on_s1, flat_abs_on_s2⟩
 
 
-def fabs_of_rows_s1
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4FAbsOfLambdaRowsOnS1 (S := S) f hnn :=
-  T.1
 
 
-def flat_abs_on_s1
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4ChiFFlatAbsOfFAbsOnS1 (S := S) f hnn :=
-  T.2.1
 
 
-def flat_abs_on_s2
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4ChiFFlatAbsOnS2 (S := S) f hnn :=
-  T.2.2
 
 
 end Sec4ChiFCaseRowTools
 
 /-! ## 3. Build `Sec4ChiFCaseToolsData` from row tools -/
 
-/--
-The positive-side `f`-abs extractor from row-level data.
--/
-noncomputable def sec4_fabsOfS1Data_of_rowTools
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4ChiFFAbsOfS1Data (S := S) f hnn := by
-  intro A hA x hxA hflatabs
-  exact Sec4ChiFCaseRowTools.fabs_of_rows_s1 T
-    A hA x hxA
-    (sec4_lambdaRowsAbs_of_chiFFlatAbs A hA f hnn x hflatabs)
 
 
-/--
-Assemble the full `Sec4ChiFCaseToolsData` package from row-level internal
-tools.
--/
-noncomputable def sec4_chiFCaseToolsData_of_rowTools
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4ChiFCaseToolsData (S := S) f hnn :=
-  Sec4ChiFCaseToolsData.mk
-    (fabs_of_s1 := sec4_fabsOfS1Data_of_rowTools f hnn T)
-    (abs_on_s1 := Sec4ChiFCaseRowTools.flat_abs_on_s1 T)
-    (abs_on_s2 := Sec4ChiFCaseRowTools.flat_abs_on_s2 T)
 
 
 /-! ## 4. Final bridges from row-level internal tools -/
 
-/-- Final tools from row-level internal tools. -/
-noncomputable def sec4_prop42FinalTools_of_rowCaseTools
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4Prop42FinalTools (S := S) B hB f hnn :=
-  sec4_prop42FinalTools_of_chiFCaseTools B hB f hnn
-    (sec4_chiFCaseToolsData_of_rowTools f hnn T)
 
 
-/-- Full value bridge from row-level internal tools. -/
-noncomputable def sec4_genIBValueBridge_of_rowCaseTools
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4GenIBValueBridge (S := S) B hB f hnn :=
-  sec4_genIBValueBridge_of_chiFCaseTools B hB f hnn
-    (sec4_chiFCaseToolsData_of_rowTools f hnn T)
 
 
-/-- Consistency theorem from row-level internal tools. -/
-theorem sec4_genRelIntegral_eq_relIntegral_of_rowCaseTools
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    genRelIntegral_from_measurable C (isMeasurableSet_of_integrable hC) f hnn =
-      relIntegral C hC f hnn :=
-  sec4_genRelIntegral_eq_relIntegral_of_chiFCaseTools C hC f hnn
-    (sec4_chiFCaseToolsData_of_rowTools f hnn T)
 
 
-/-- Packaged consistency bridge from row-level internal tools. -/
-noncomputable def sec4_genIBConsistencyBridge_of_rowCaseTools
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4ChiFCaseRowTools (S := S) f hnn) :
-    Sec4GenIBConsistencyBridge (S := S) C hC f hnn :=
-  sec4_genIBConsistencyBridge_of_chiFCaseTools C hC f hnn
-    (sec4_chiFCaseToolsData_of_rowTools f hnn T)
 
 
 end BishopC

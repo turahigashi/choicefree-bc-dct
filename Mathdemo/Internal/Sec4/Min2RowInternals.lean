@@ -217,21 +217,6 @@ theorem sec4_lambdaRowZeroOnS2
 
 /-! ## 3. Row-0 characteristic abs extraction, assuming row-0 coefficient positivity -/
 
-/--
-Extract the characteristic abs witness from row 0 of `prop_4_2_lambda_k`,
-assuming the row-0 scalar coefficient is positive.
--/
-noncomputable def sec4_lambda0ChiAbs_of_n0_pos
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (hn0pos : 0 < prop_4_2_n_k f 0) :
-    Sec4Lambda0ChiAbsOfAbs (S := S) f hnn := by
-  intro A hA x hrowDom hrowabs
-  dsimp [prop_4_2_lambda_k] at hrowDom hrowabs
-  let hleftDom := min2_dom_left hrowDom
-  let hleftAbs :=
-    min2_absSeriesSum_left hrowDom hrowabs
-  exact sec4_natSmuled_abs_cancel (S := S)
-    (prop_4_2_n_k f 0) hn0pos hA.rep x hleftDom hleftAbs
 
 
 /-! ## 4. Near-final tools: only cover abs and coefficient positivity remain -/
@@ -252,81 +237,20 @@ def Sec4Prop42AlmostFinalTools
 
 namespace Sec4Prop42AlmostFinalTools
 
-def mk
-    {B : BSet X} {hB : IsMeasurableSet (S := S) B}
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (cover_chiF_abs_succ : Sec4CoverChiFAbsSucc (S := S) B hB f hnn)
-    (n0_pos : 0 < prop_4_2_n_k f 0) :
-    Sec4Prop42AlmostFinalTools (S := S) B hB f hnn :=
-  ⟨cover_chiF_abs_succ, n0_pos⟩
 
 
-def cover_chiF_abs_succ
-    {B : BSet X} {hB : IsMeasurableSet (S := S) B}
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (T : Sec4Prop42AlmostFinalTools (S := S) B hB f hnn) :
-    Sec4CoverChiFAbsSucc (S := S) B hB f hnn :=
-  T.1
 
 
-def n0_pos
-    {B : BSet X} {hB : IsMeasurableSet (S := S) B}
-    {f : IntegrableRep S} {hnn : RepNonneg f}
-    (T : Sec4Prop42AlmostFinalTools (S := S) B hB f hnn) :
-    0 < prop_4_2_n_k f 0 :=
-  T.2
 
 
 end Sec4Prop42AlmostFinalTools
 
-/--
-Build the b2b7 row-internal tools from the remaining two primitive facts.
--/
-noncomputable def sec4_prop42RowInternalTools_of_almostFinal
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4Prop42AlmostFinalTools (S := S) B hB f hnn) :
-    Sec4Prop42RowInternalTools (S := S) B hB f hnn :=
-  Sec4Prop42RowInternalTools.mk
-    (cover_chiF_abs_succ := Sec4Prop42AlmostFinalTools.cover_chiF_abs_succ T)
-    (lambda0_chi_abs := sec4_lambda0ChiAbs_of_n0_pos f hnn
-      (Sec4Prop42AlmostFinalTools.n0_pos T))
-    (lambda_row_zero_on_s2 := sec4_lambdaRowZeroOnS2 f hnn)
 
 
-/-- Full value bridge from the near-final primitive data. -/
-noncomputable def sec4_genIBValueBridge_of_almostFinal
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4Prop42AlmostFinalTools (S := S) B hB f hnn) :
-    Sec4GenIBValueBridge (S := S) B hB f hnn :=
-  sec4_genIBValueBridge_of_rowTools B hB f hnn
-    (sec4_prop42RowInternalTools_of_almostFinal B hB f hnn T)
 
 
-/-- Consistency theorem from the near-final primitive data. -/
-theorem sec4_genRelIntegral_eq_relIntegral_of_almostFinal
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4Prop42AlmostFinalTools
-      (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
-    genRelIntegral_from_measurable C (isMeasurableSet_of_integrable hC) f hnn =
-      relIntegral C hC f hnn :=
-  sec4_genRelIntegral_eq_relIntegral_of_rowTools C hC f hnn
-    (sec4_prop42RowInternalTools_of_almostFinal
-      C (isMeasurableSet_of_integrable hC) f hnn T)
 
 
-/-- Packaged consistency bridge from the near-final primitive data. -/
-noncomputable def sec4_genIBConsistencyBridge_of_almostFinal
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4Prop42AlmostFinalTools
-      (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
-    Sec4GenIBConsistencyBridge (S := S) C hC f hnn :=
-  sec4_genIBConsistencyBridge_of_rowTools C hC f hnn
-    (sec4_prop42RowInternalTools_of_almostFinal
-      C (isMeasurableSet_of_integrable hC) f hnn T)
 
 
 end BishopC

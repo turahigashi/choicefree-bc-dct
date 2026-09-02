@@ -207,160 +207,18 @@ structure Sec4CanonicalCoverLayerTelescopeData
 
 /-! ## 3. The actual final telescope equations -/
 
-/-- The `B.S1` telescope equation from layer data. -/
-theorem sec4_cover_value_eq_chi_on_Bs1_of_layerTelescopeData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
-    ∀ x : X, x ∈ B.S1 →
-      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
-      ∀ hgenabs :
-        RSeq.SeriesSum
-          (fun m => COF.abs
-            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
-      ∀ hfDom : f.MemAt x,
-      ∀ hfabs :
-        RSeq.SeriesSum (fun m => COF.abs (f.valueAt x hfDom m)),
-      ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n =
-          (seriesSum_of_abs
-            (T.cover_chi_abs x hgenDom hgenabs n)).sum *
-            (seriesSum_of_abs hfabs).sum := by
-  intro x hxB hgenDom hgenabs hfDom hfabs n
-  let baseχ : R :=
-    (seriesSum_of_abs (T.base_chi_abs x hgenDom hgenabs)).sum
-  let termχ : Nat → R :=
-    fun k =>
-      (seriesSum_of_abs (T.term_chi_abs k x hgenDom hgenabs)).sum
-  let coverχ : R :=
-    (seriesSum_of_abs (T.cover_chi_abs x hgenDom hgenabs n)).sum
-  let fval : R := (seriesSum_of_abs hfabs).sum
-  have hrow :
-      RSeq.partialSum
-        (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n =
-        RSeq.partialSum (fun k => termχ k * fval) n :=
-    sec4_partialSum_congr
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs)
-      (fun k => termχ k * fval)
-      (fun k => T.row_value_s1
-        k x hxB hgenDom hgenabs hfDom hfabs)
-      n
-  have hmul :
-      RSeq.partialSum (fun k => termχ k * fval) n =
-        RSeq.partialSum termχ n * fval :=
-    sec4_partialSum_mul_right termχ fval n
-  have hχ :
-      baseχ + RSeq.partialSum termχ n = coverχ :=
-    T.chi_telescope_s1 x hxB hgenDom hgenabs n
-  calc
-    sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n
-        = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
-            RSeq.partialSum
-              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
-          rfl
-    _ = baseχ * fval +
-            RSeq.partialSum
-              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
-          rw [T.base_value_s1 x hxB hgenDom hgenabs hfDom hfabs]
-    _ = baseχ * fval + RSeq.partialSum (fun k => termχ k * fval) n := by
-          rw [hrow]
-    _ = baseχ * fval + RSeq.partialSum termχ n * fval := by
-          rw [hmul]
-    _ = (baseχ + RSeq.partialSum termχ n) * fval := by
-          ring
-    _ = coverχ * fval := by
-          rw [hχ]
 
 
-/-- The `B.S2` zero equation from layer data. -/
-theorem sec4_cover_value_on_Bs2_of_layerTelescopeData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
-    ∀ x : X, x ∈ B.S2 →
-      ∀ hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x,
-      ∀ hgenabs :
-        RSeq.SeriesSum
-          (fun m => COF.abs
-            ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom m)),
-      ∀ n : Nat,
-        sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n = 0 := by
-  intro x hxB hgenDom hgenabs n
-  have hrow :
-      RSeq.partialSum
-        (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n =
-        RSeq.partialSum (fun _ : Nat => (0 : R)) n :=
-    sec4_partialSum_congr
-      (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs)
-      (fun _ : Nat => (0 : R))
-      (fun k => T.row_value_s2 k x hxB hgenDom hgenabs)
-      n
-  calc
-    sec4_canonicalCoverValue B hB f hnn x hgenDom hgenabs n
-        = sec4_genIB_baseValue B hB f hnn x hgenDom hgenabs +
-            RSeq.partialSum
-              (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
-          rfl
-    _ = 0 + RSeq.partialSum
-            (sec4_genIB_tailRowSeq B hB f hnn x hgenDom hgenabs) n := by
-          rw [T.base_value_s2 x hxB hgenDom hgenabs]
-    _ = 0 + RSeq.partialSum (fun _ : Nat => (0 : R)) n := by
-          rw [hrow]
-    _ = 0 := by
-          rw [sec4_partialSum_zero n]
-          ring
 
 
 /-! ## 4. Final bridge from layer telescope data -/
 
-/-- The final `Sec4CanonicalCoverTelescopeData` from layer telescope data. -/
-noncomputable def sec4_telescopeData_of_layerTelescopeData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
-    Sec4CanonicalCoverTelescopeData (S := S) B hB f hnn := {
-  cover_chi_dom := T.cover_chi_dom
-  cover_chi_abs := T.cover_chi_abs
-  cover_value_eq_chi_on_Bs1 :=
-    sec4_cover_value_eq_chi_on_Bs1_of_layerTelescopeData B hB f hnn T
-  cover_value_on_B_s2 :=
-    sec4_cover_value_on_Bs2_of_layerTelescopeData B hB f hnn T
-}
 
 
-/-- Full value bridge from layer telescope data. -/
-noncomputable def sec4_genIBValueBridge_of_layerTelescopeData
-    (B : BSet X) (hB : IsMeasurableSet (S := S) B)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData (S := S) B hB f hnn) :
-    Sec4GenIBValueBridge (S := S) B hB f hnn :=
-  sec4_genIBValueBridge_of_telescopeData B hB f hnn
-    (sec4_telescopeData_of_layerTelescopeData B hB f hnn T)
 
 
-/-- Consistency theorem from layer telescope data. -/
-theorem sec4_genRelIntegral_eq_relIntegral_of_layerTelescopeData
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData
-      (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
-    genRelIntegral_from_measurable C (isMeasurableSet_of_integrable hC) f hnn =
-      relIntegral C hC f hnn :=
-  sec4_genRelIntegral_eq_relIntegral_of_telescopeData C hC f hnn
-    (sec4_telescopeData_of_layerTelescopeData
-      C (isMeasurableSet_of_integrable hC) f hnn T)
 
 
-/-- Packaged consistency bridge from layer telescope data. -/
-noncomputable def sec4_genIBConsistencyBridge_of_layerTelescopeData
-    (C : BSet X) (hC : IntegrableSet1 S C)
-    (f : IntegrableRep S) (hnn : RepNonneg f)
-    (T : Sec4CanonicalCoverLayerTelescopeData
-      (S := S) C (isMeasurableSet_of_integrable hC) f hnn) :
-    Sec4GenIBConsistencyBridge (S := S) C hC f hnn :=
-  sec4_genIBConsistencyBridge_of_telescopeData C hC f hnn
-    (sec4_telescopeData_of_layerTelescopeData
-      C (isMeasurableSet_of_integrable hC) f hnn T)
 
 
 end BishopC
