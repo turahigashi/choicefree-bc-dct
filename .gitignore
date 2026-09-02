@@ -18,3 +18,4 @@ paper/*.out
 __pycache__/
 *.pyc
 logs/vacuous_statements.rerun.txt
+logs/vacuous.err

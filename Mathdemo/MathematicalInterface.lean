@@ -333,7 +333,7 @@ noncomputable abbrev dyadicLevelSetData {X : Type u} {S : IntegrationSpace X}
     (h : IntegrableFunction S) : DyadicLevelSetData h :=
   (dyadicSmoothLevels h).levelSets
 
-/-! ## 6.  The uniform complement estimate  (paper, Proposition 5.4) -/
+/-! ## 6.  The uniform complement estimate  (paper, Proposition 5.5) -/
 
 /-- **Uniform complement estimate.**
 

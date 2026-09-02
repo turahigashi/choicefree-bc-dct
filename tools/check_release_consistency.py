@@ -21,6 +21,12 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
 CONCEPT_DOI = "10.5281/zenodo.21850965"
+# ★The version DOI is the identifier most able to send a reader to the wrong object,
+# and until this was added it was the one no check compared: changing a digit of it in
+# the paper left every shipped check passing.  It is read from the documents rather
+# than pinned here, so cutting the next release does not mean editing this file; what
+# is enforced is that the four documents name the same one, and exactly one.
+VERSION_DOI_RE = re.compile(r"10\.5281/zenodo\.(\d+)")
 
 def read(p):
     return p.read_text(encoding="utf-8", errors="replace")
@@ -60,6 +66,24 @@ def main(argv):
             print(f"FAIL: {name} does not carry the concept DOI {CONCEPT_DOI}", file=sys.stderr); ok = False
     if paper is not None and paper.exists() and CONCEPT_DOI not in read(paper):
         print(f"FAIL: the paper does not carry the concept DOI {CONCEPT_DOI}", file=sys.stderr); ok = False
+
+    # The version DOI: every document must name the same one, and it must not be the
+    # concept DOI, which resolves to whichever version is latest rather than to this one.
+    concept_id = CONCEPT_DOI.split(".")[-1]
+    version_dois = {}
+    for name, f in (("README", readme), ("manifest", manifest), ("CITATION.cff", cff),
+                    *(( ("paper", paper), ) if paper is not None and paper.exists() else ())):
+        found = {m.group(1) for m in VERSION_DOI_RE.finditer(read(f))} - {concept_id}
+        # Earlier versions are cited by DOI too; the one for this release is the one
+        # that appears in the same document as the version string.
+        version_dois[name] = found
+    common = set.intersection(*version_dois.values()) if version_dois else set()
+    if len(common) != 1:
+        print(f"FAIL: the documents do not name exactly one common version DOI; "
+              f"candidates by document: { {k: sorted(v) for k, v in version_dois.items()} }",
+              file=sys.stderr); ok = False
+    else:
+        print(f"release_version_doi: 10.5281/zenodo.{common.pop()}")
 
     # Release status.  A candidate says so; a release must have a version DOI.
     texts = {"README": read(readme), "manifest": read(manifest), "CITATION.cff": read(cff)}

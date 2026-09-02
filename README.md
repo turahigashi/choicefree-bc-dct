@@ -46,7 +46,7 @@ The Lean public declarations have a separate audit profile: the named public ali
 
 ## What is proved
 
-The public aliases summarize the formalized development. Throughout this list, the suffix `C` marks a declaration of the **Type-valued, data-carrying** route (Layers A and B of the three-layer interface below); it does not indicate a `Prop`-valued statement. Names containing `prop` are the `Prop`-facing facade of Layer C.  Layer C is proved on its own `Prop`-level route and does not apply the Layer A theorem; see [Layer C](#layer-c-prop-facing-theorem) below.
+The public aliases summarize the formalized development. Throughout this list, the suffix `C` marks the presented-real (CReal-native) development; it does not by itself say whether a declaration is `Prop`-valued or Type-valued. Most of the list below is the Type-valued, data-carrying route (Layers A and B of the three-layer interface), but two members are `Prop`-valued existence theorems belonging to neither: `profile_smooth_away_from_sequenceC` and `profile_level_sets_integrable_apart_globalC`. Names containing `prop` are the `Prop`-facing facade of Layer C.  Layer C is proved on its own `Prop`-level route and does not apply the Layer A theorem; see [Layer C](#layer-c-prop-facing-theorem) below.
 
 - `ChoiceFreeMeasureDCT.profile_smooth_away_from_sequenceC`
 - `ChoiceFreeMeasureDCT.profile_partition_dataC`
