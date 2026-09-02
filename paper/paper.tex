@@ -6,7 +6,7 @@
 \usepackage{hyperref}
 
 \usepackage{enumitem}
-\hypersetup{hidelinks,pdftitle={A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop-Cheng measure theory},pdfauthor={Toshihisa Urahigashi},pdfkeywords={constructive measure theory, dominated convergence, Lean 4, presented reals, choice principles}}
+\hypersetup{hidelinks,pdftitle={A choice-free Lean formalization of Bishop-Cheng dominated convergence over presented reals},pdfauthor={Toshihisa Urahigashi},pdfkeywords={constructive measure theory, dominated convergence, Lean 4, presented reals, choice principles}}
 \setlength{\emergencystretch}{3em}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -18,20 +18,49 @@
 \theoremstyle{remark}
 \newtheorem{remark}[theorem]{Remark}
 \newcommand{\doi}[1]{\href{https://doi.org/#1}{\texttt{#1}}}
-\title{A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory}
+\title{A choice-free Lean formalization of Bishop--Cheng dominated convergence over presented reals}
 \author{Toshihisa Urahigashi}
 \date{Draft of 2026-09-02\\Artifact version \CFBDCTVersion}
 \begin{document}
 \maketitle
 
 \begin{abstract}
-Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles, that is, through monotone functionals on families of continuous ramp functions.  All but countably many levels of such a profile are \emph{smooth} in the memoir's sense of that word, the constructive stand-in for a point of continuity of the distribution function.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed: Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.  This paper reports a Lean~4 formalization of the profile route to Bishop--Cheng dominated convergence: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract constructive real-number object.  The method is to enumerate the exceptional levels as an explicit sequence and to step around them by Bishop's nested-interval construction, whose case split is decided from rational approximation data and returned as data.  For the named public declarations, the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}; a static scan of the source closure and a set of checksums accompany it.  The artifact also packages a Rocq \texttt{Print Assumptions} audit of S\'em\'eria's CoRN declarations, independently reproduced from a pinned CoRN snapshot.  No priority is claimed over that formalization.  Relative to the development's encodings of the ambient notions, the result covers every integration space in Bishop and Cheng's sense: each field of the working interface is derived, hypothesis-free, from a clause-by-clause transcription of their Definition~1.1 at the memoir's own gauge.  In the other direction, a finitely supported model discharges every clause: it integrates by the unscaled sum over a list of points, so repeating a point gives it an integer multiplicity, and its closed instance on the two booleans is proved to give both singletons positive measure.  The axioms therefore admit a model whose measure is not concentrated at a single point.
+Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, all but countably many of whose levels are \emph{smooth} in the memoir's sense of that word.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed---Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.
+
+This paper reports a Lean~4 formalization of that route: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract constructive real-number object.  The exceptional levels are enumerated explicitly and stepped around by Bishop's nested-interval construction, whose case split is decided from rational approximations and returned as data.
+
+For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, closed on the two booleans, gives both singletons positive measure: the axioms admit a measure that is not concentrated at a single point.
 \end{abstract}
 
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
 
 \bigskip
-\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  Throughout the paper, ``the source'' refers to Bishop and Cheng's memoir \emph{Constructive Measure Theory}~\cite{bishop-cheng-1972}; Bishop's \emph{Foundations of Constructive Analysis}~\cite{bishop-1967} is always cited by name.  Part~II (Sections~\ref{sec:formalization}--\ref{sec:conclusion}) concerns the formalization: the shape of the public interface, the relation of the result to the known no-go theorems, the comparison with earlier formalizations, the audit, the size of the development and how much of it the claims reach, and the limitations and reproduction procedure.  Appendix~\ref{sec:appendix-map} tabulates the correspondence between the numbering of this paper and that of the source, and between the mathematical objects of Part~I and the Lean declarations of Part~II.  Appendix~\ref{sec:appendix-b} states, as ordinary mathematics and without Lean vocabulary, the constructions that the formalization had to supply beyond what the source provides, together with a classification of which parts are routine, which are known, and which were the actual difficulties.  Part~I suffices for the mathematical content; Appendix~\ref{sec:appendix-b} is addressed to a reader who wants to know what the formalization concretely consisted of.
+\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  
+
+Throughout the paper, ``the source'' refers to Bishop and Cheng's memoir \emph{Constructive Measure Theory}~\cite{bishop-cheng-1972}; Bishop's \emph{Foundations of Constructive Analysis}~\cite{bishop-1967} is always cited by name.  
+
+Part~II (Sections~\ref{sec:formalization}--\ref{sec:conclusion}) concerns the formalization.  It gives the shape of the public interface, the relation of the result to the known no-go theorems, and the comparison with earlier formalizations; it then reports the audit, the size of the development and how much of it the claims reach, and the limitations and reproduction procedure.  
+
+Appendix~\ref{sec:appendix-map} tabulates the correspondence between the numbering of this paper and that of the source, and between the mathematical objects of Part~I and the Lean declarations of Part~II.  Appendix~\ref{sec:appendix-b} states, as ordinary mathematics and without Lean vocabulary, the constructions that the formalization had to supply beyond what the source provides, together with a classification of which parts are routine, which are known, and which were the actual difficulties.  Part~I suffices for the mathematical content; Appendix~\ref{sec:appendix-b} is addressed to a reader who wants to know what the formalization concretely consisted of.
+
+\bigskip
+\noindent\textbf{The dependencies at a glance.}  Each row is read left to right; the
+first three carry the mathematics, the fourth fixes what the theorem is stated about,
+and the fifth is the evidence.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}l@{\;$\to$\;}l@{\;$\to$\;}l@{\quad}r@{}}
+presented reals & cotransitivity as data & countable avoidance & \S\ref{sec:profile-theory}\\[2pt]
+countable avoidance & an exception sequence & smooth levels & Thms~\ref{thm:3-5}, \ref{thm:3-6}\\[2pt]
+smooth levels & a uniform bound off a small set & convergence of integrals & Thm~\ref{thm:prop-dct}\\[2pt]
+Definition~1.1 & a hypothesis-free adapter & the working interface & Rem.~\ref{rem:fidelity}\\[2pt]
+public declarations & their proof terms & \texttt{[propext, Quot.sound]} & \S\ref{sec:audit}\\
+\end{tabular}
+\end{center}
+
+The third row is the theorem; the first two are the step at which a choice-free
+treatment is known to be obstructed, and the fourth is what makes the theorem apply to
+every integration space in the source's sense rather than to the interface alone.
 
 \part{The mathematics}
 
@@ -48,12 +77,11 @@ Here and below, \emph{choice-free} has a deliberately audit-oriented meaning.  I
 
 The contributions of the artifact are as follows.
 \begin{enumerate}[label=(\arabic*)]
-\item It gives an explicit Lean~4 theorem surface for a profile-based Bishop--Cheng dominated-convergence route over regular-sequence presented reals and an explicitly quantified integration-space structure.
-\item It gives a Lean implementation of the countable-avoidance step via Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are constructed inside the audited dependency closure.
-\item It supplies a model of the interface in which the measure is not concentrated at a single point.  The construction takes a list of points and integrates by the unscaled sum over them, so repetition gives a point an integer multiplicity; clause~(3), which asks only that some distinguished function have integral~$1$, is discharged once a normalizing constant is supplied---a $c$ whose $m$-fold sum is $1$---and does not rescale the integral; the two-point and \texttt{Bool} instances supply that constant unconditionally.  On a general carrier the two listed points need not be distinct, because this interface carries no apartness structure on $X$; the closed instance on \texttt{Bool} settles that, and both of its singletons are proved to carry positive measure.  For a single point the continuity clause is the identity; for several, the point at which the series stays below the function has to be found, and it is found from the positivity witness of the strict inequality without any appeal to choice.
+\item \textbf{The theorem, and how the obstructed step is discharged.}  Bishop and Cheng's Theorem~4.15 is formalized in Lean~4 by their own profile proof, over regular-sequence presented reals and against an explicitly quantified integration-space structure.  The countable-avoidance step is implemented by Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are all constructed inside the audited dependency closure, so the step that the no-go results identify is discharged rather than assumed.
 
-\item It separates a proof-relevant Type-valued route, automatic wrappers that synthesize smooth-level data, and a separately proved Prop-facing theorem.  The Type-valued route includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs.  This makes the computational content visible without requiring every caller to supply the low-level data explicitly.
-\item It provides reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, and explicit qualifications concerning predicativity, the integration-space interface, concrete models, and priority.  The paper separately reports the size of the development (Section~\ref{sec:cost}).
+\item \textbf{What the interface is, and what satisfies it.}  A proof-relevant Type-valued route, automatic wrappers that synthesize smooth-level data, and a separately proved Prop-facing theorem are kept apart; the Type-valued route includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs, so the computational content stays visible without every caller supplying the low-level data.  Concrete models show the interface is not vacuous: a finitely supported construction integrates by the unscaled sum over a list of points, so repetition gives a point an integer multiplicity, and clause~(3) is discharged once a normalizing constant is supplied.  On a general carrier the listed points need not be distinct---this interface carries no apartness structure on $X$---so non-degeneracy is settled at the closed instance on \texttt{Bool}, where both singletons are proved to carry positive measure.  For a single point the continuity clause is the identity; for several, the point at which the series stays below the function has to be found, and it is found from the positivity witness of the strict inequality without any appeal to choice.
+
+\item \textbf{The evidence, and its boundary.}  Reproducible Lean and Rocq audits, a pinned comparison with S\'em\'eria's earlier CoRN development, and explicit qualifications concerning predicativity, the integration-space interface, the concrete models, and priority.  The size of the development is reported separately (Section~\ref{sec:cost}).
 \end{enumerate}
 
 \medskip

@@ -8,7 +8,7 @@ DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.or
 
 This is a clean public import-closure Lean artifact for the paper:
 
-**A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory**
+**A choice-free Lean formalization of Bishop--Cheng dominated convergence over presented reals**
 
 The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 513 Lean files tracked here coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
 
