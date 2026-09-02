@@ -1,0 +1,27 @@
+tools/vacuous_statement_check.lean:72:15: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
+
+Note: The updated constant has a different type:
+  String → String.Slice
+instead of
+  String → String
+tools/vacuous_statement_check.lean:66:17: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
+
+Note: The updated constant has a different type:
+  String → String.Slice
+instead of
+  String → String
+modules of this development : 512
+declarations written in source : 5431
+declarations examined : 5431
+skipped (elaboration error while reducing) : 0
+vacuous statements (conclusion reduces to True) : 8
+  vacuous BishopC.thm36A2_ramp_mem
+  vacuous BishopSec3P.thm36C_rampCodeL_memC
+  vacuous BishopC.thm36A2_zero_mem
+  vacuous BishopC.thm36C_rampCode_mem
+  vacuous BishopC.thm36A2_one_mem
+  vacuous BishopSec3P.thm36C_rampCodeR_memC
+  vacuous BishopCheng.boolIndicator_mem
+  vacuous ChoiceFreeMeasureDCT.zeroRep_memAtC
+recorded vacuous statements : 8
+VACUOUS STATEMENT CHECK PASSED

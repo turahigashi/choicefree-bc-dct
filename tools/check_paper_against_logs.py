@@ -124,7 +124,10 @@ def main() -> int:
                 # ordinary words and keywords the prose prints in \texttt: not identifiers
                 'classical','ring','axiom','noncomputable','lemma','structure','instance',
                 # a banned-token spelling in the static audit, not an identifier
-                'Classical.'}
+                'Classical.',
+                # mathlib names the paper prints when it explains a proof, not
+                # declarations of this development
+                'Set.univ', 'Set.mem_univ'}
         named = set()
         for m in re.findall(r'\\(?:path|texttt)\{([^}]*)\}', read(paper)):
             t = m.replace('\\_', '_').strip()

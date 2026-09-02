@@ -56,8 +56,26 @@ def report : MetaM Unit := do
   IO.println s!"skipped (elaboration error while reducing) : {skipped.size}"
   for n in skipped do IO.println s!"  skipped {n}"
   IO.println s!"vacuous statements (conclusion reduces to True) : {vacuous.size}"
-  for n in vacuous do IO.println s!"  VACUOUS {n}"
-  if vacuous.size == 0 && skipped.size == 0 then
+  for n in vacuous do IO.println s!"  vacuous {n}"
+  -- Compare against the recorded list, in both directions: an unlisted vacuous
+  -- statement is a finding, and a listed name that is no longer vacuous means the
+  -- list has gone stale and is no longer describing the tree.
+  let known ← IO.FS.lines "tools/vacuous_statements_known.txt"
+  let knownSet : NameSet :=
+    known.foldl (fun acc l =>
+      let t := l.trim
+      if t.isEmpty || t.startsWith "#" then acc else acc.insert t.toName) {}
+  let vacSet : NameSet := vacuous.foldl (·.insert ·) {}
+  let unlisted := vacuous.filter (fun n => !knownSet.contains n)
+  let mut stale : Array Name := #[]
+  for n in known do
+    let t := n.trim
+    if !t.isEmpty && !t.startsWith "#" && !vacSet.contains t.toName then
+      stale := stale.push t.toName
+  IO.println s!"recorded vacuous statements : {knownSet.size}"
+  for n in unlisted do IO.println s!"  UNLISTED VACUOUS {n}"
+  for n in stale do IO.println s!"  STALE ENTRY (no longer vacuous) {n}"
+  if unlisted.size == 0 && stale.size == 0 && skipped.size == 0 then
     IO.println "VACUOUS STATEMENT CHECK PASSED"
   else
     IO.println "VACUOUS STATEMENT CHECK FAILED"

@@ -1,0 +1,19 @@
+# Declarations whose conclusion reduces to `True`, with the reason each is here.
+#
+# All eight are of one shape: a membership lemma whose ambient set is `Set.univ`,
+# so `x ∈ S` unfolds to `True` and the proof is `Set.mem_univ _`.  They are not
+# vestiges: each is used (one to four times) to supply the membership proof term
+# an interface demands, and the interface is the same one a model with a smaller
+# domain would have to satisfy non-trivially.  What is vacuous is the proof
+# obligation in these particular constructions, not the statement's role.
+#
+# The check fails on any vacuous statement not listed here, and on any listed name
+# that is no longer vacuous, so this file cannot go stale silently.
+BishopC.thm36A2_ramp_mem
+BishopC.thm36A2_zero_mem
+BishopC.thm36A2_one_mem
+BishopC.thm36C_rampCode_mem
+BishopSec3P.thm36C_rampCodeL_memC
+BishopSec3P.thm36C_rampCodeR_memC
+BishopCheng.boolIndicator_mem
+ChoiceFreeMeasureDCT.zeroRep_memAtC

@@ -43,6 +43,10 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   ./tools/check_frozen_names.sh
   echo "== nested CoRN checksums =="
   ( cd audits/corn && sha256sum -c SHA256SUMS )
+  echo "== vacuous statements (complete check) =="
+  lake env lean --run tools/vacuous_statement_check.lean 2>&1 | tee logs/vacuous_statements.rerun.txt
+  grep -q "VACUOUS STATEMENT CHECK PASSED" logs/vacuous_statements.rerun.txt
+
   echo "== release consistency =="
   if [ -f paper/paper.tex ]; then
     python3 tools/check_release_consistency.py paper/paper.tex
