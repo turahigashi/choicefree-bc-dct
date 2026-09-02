@@ -82,6 +82,7 @@ decl RepSeriesTendstoEpsPropC
 decl Thm36B1ApartPointDataC
 decl True
 decl Type
+decl IntegrableRepC3
 decl IntSpaceC.add_mem
 decl bishop_cheng_dominated_convergence_propC
 decl bishop_cheng_thm_4_15_propC

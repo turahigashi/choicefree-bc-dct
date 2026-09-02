@@ -41,6 +41,8 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "PUBLIC SURFACE INVARIANT PRESERVED"
   echo "== frozen-name check =="
   ./tools/check_frozen_names.sh
+  echo "== nested CoRN checksums =="
+  ( cd audits/corn && sha256sum -c SHA256SUMS )
   echo "== paper/log consistency =="
   python3 tools/check_paper_against_logs.py
   echo "== python3 tools/static_no_choice_audit.py =="

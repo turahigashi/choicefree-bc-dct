@@ -6,7 +6,7 @@
 \usepackage{hyperref}
 
 \usepackage{enumitem}
-\hypersetup{hidelinks,pdftitle={A choice-free Lean formalization of Bishop-Cheng dominated convergence over presented reals},pdfauthor={Toshihisa Urahigashi},pdfkeywords={constructive measure theory, dominated convergence, Lean 4, presented reals, choice principles}}
+\hypersetup{hidelinks,pdftitle={A choice-free Lean formalization of Bishop-Cheng dominated convergence over presented reals},pdfauthor={Toshihisa Urahigashi},pdfkeywords={constructive measure theory, dominated convergence, Lean 4, presented reals, choice principles, proof assistants}}
 \setlength{\emergencystretch}{3em}
 \newtheorem{theorem}{Theorem}[section]
 \newtheorem{lemma}[theorem]{Lemma}
@@ -25,11 +25,11 @@
 \maketitle
 
 \begin{abstract}
-Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, all but countably many of whose levels are \emph{smooth} in the memoir's sense of that word.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed---Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.
+Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, smooth---in the memoir's sense of that word---at all but countably many levels of the interval.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed---Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.
 
 This paper reports a Lean~4 formalization of that route: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract constructive real-number object.  The exceptional levels are enumerated explicitly and stepped around by Bishop's nested-interval construction, whose case split is decided from rational approximations and returned as data.
 
-For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, closed on the two booleans, gives both singletons positive measure: the axioms admit a measure that is not concentrated at a single point.
+For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, instantiated at the two booleans, gives both singletons positive measure: the axioms admit a measure that is not concentrated at a single point.
 \end{abstract}
 
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
@@ -52,7 +52,7 @@ and the fifth is the evidence.
 \begin{tabular}{@{}l@{\;$\to$\;}l@{\;$\to$\;}l@{\quad}r@{}}
 presented reals & cotransitivity as data & countable avoidance & Lem.~\ref{lem:avoid}\\[2pt]
 a profile & an explicit exception sequence & an apart admissible level & Thm~\ref{thm:3-5}, Lem.~\ref{lem:avoid}\\[2pt]
-admissible levels & a uniform bound off a small set & convergence of integrals & Thms~\ref{thm:3-6}, \ref{thm:prop-dct}\\[2pt]
+admissible levels & a uniform bound off a small set & convergence of integrals & Thm~\ref{thm:3-6}, Prop.~\ref{prop:uniform-complement}, Thm~\ref{thm:prop-dct}\\[2pt]
 Definition~1.1 & a hypothesis-free adapter & the working interface & Rem.~\ref{rem:fidelity}\\[2pt]
 public declarations & their proof terms & \texttt{[propext, Quot.sound]} & \S\ref{sec:audit}\\
 \end{tabular}
@@ -77,7 +77,7 @@ Here and below, \emph{choice-free} has a deliberately audit-oriented meaning.  I
 
 The contributions of the artifact are as follows.
 \begin{enumerate}[label=(\arabic*)]
-\item \textbf{The theorem, and how the obstructed step is discharged.}  Bishop and Cheng's Theorem~4.15 is formalized in Lean~4 by their own profile proof, over regular-sequence presented reals and against an explicitly quantified integration-space structure.  The countable-avoidance step is implemented by Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are all constructed inside the audited dependency closure, so the step that the no-go results identify is discharged rather than assumed.
+\item \textbf{The theorem, and how the obstructed step is discharged.}  Bishop and Cheng's Theorem~4.15 is formalized in Lean~4 by their own profile proof, over regular-sequence presented reals and against an explicitly quantified integration-space structure.  The countable-avoidance step is implemented by Bishop's nested-interval construction: convergence data for the endpoints, an apart limiting point, and the resulting smooth-level data are all constructed inside the audited dependency closure, so the step that the no-go results identify is discharged rather than assumed.  The engine beneath the branch decisions is a machine-checked round trip, without choice, between the propositional and data forms of the strong order on presented reals (Appendices~\ref{sec:b-order} and~\ref{sec:b-onepoint}).
 
 \item \textbf{What the interface is, and what satisfies it.}  A proof-relevant Type-valued route, automatic wrappers that synthesize smooth-level data, and a separately proved Prop-facing theorem are kept apart; the Type-valued route includes both global pointwise-majorant wrappers and a full-set variant in which the carrier and fullness proof for every index are explicit inputs, so the computational content stays visible without every caller supplying the low-level data.  Concrete models show the interface is not vacuous: a finitely supported construction integrates by the unscaled sum over a list of points, so repetition gives a point an integer multiplicity, and clause~(3) is discharged once a normalizing constant is supplied.  On a general carrier the listed points need not be distinct---this interface carries no apartness structure on $X$---so non-degeneracy is settled at the closed instance on \texttt{Bool}, where both singletons are proved to carry positive measure.  For a single point the continuity clause is the identity; for several, the point at which the series stays below the function has to be found, and it is found from the positivity witness of the strict inequality without any appeal to choice.
 
@@ -90,7 +90,7 @@ The contributions of the artifact are as follows.
 \begin{center}\small
 \begin{tabular}{p{0.31\textwidth}|p{0.28\textwidth}|p{0.31\textwidth}}
 \textbf{Claim} & \textbf{Direct evidence} & \textbf{Scope, and what is not claimed}\\\hline
-A profile-route Bishop--Cheng dominated convergence theorem over presented reals (Theorem~\ref{thm:prop-dct}) & the Prop-facing public declaration and the separately proved Type-valued route (Section~\ref{sec:formalization}) & relative to Definition~\ref{def:intspace} and to the presented reals of Section~\ref{sec:setting}\\\hline
+A profile-route Bishop--Cheng dominated convergence theorem over presented reals (Theorem~\ref{thm:prop-dct}) & \path{bishop_cheng_dominated_convergence_propC} and the separately proved Type-valued route (Section~\ref{sec:formalization}) & relative to Definition~\ref{def:intspace} and to the presented reals of Section~\ref{sec:setting}\\\hline
 The closest prior formalization is S\'em\'eria's CoRN development, which discharges the same obligation by a different route (Section~\ref{sec:related}) & the pinned Rocq \texttt{Print Assumptions} reproduction & no priority is claimed, in either direction\\\hline
 The working interface is derived hypothesis-free---all fourteen fields---from a clause-by-clause transcription of Definition~1.1 (Remark~\ref{rem:fidelity}) & \path{toIntSpaceC} and \path{cutSmall_tendsto_of_src}; \path{logs/reading_layer_axioms.txt} & the memoir's own partial functions and its integral on $L$; the apartness structure on $X$ is not represented\\\hline
 Full-set, index-dependent domination is the source's own \S1 convention with the quantifiers displayed (Definition~\ref{def:domination}) & the memoir's \S1 notational convention & not a weakening introduced by this paper\\\hline
@@ -279,12 +279,42 @@ Restricting to $[a,b]$ gives a profile in the sense of Definition~\ref{def:profi
 
 This is where a constructive proof must do work that the classical proof does not.
 
-\begin{lemma}[Countable avoidance by nested intervals; Bishop]
+\begin{lemma}[Countable avoidance by nested intervals; Bishop~\cite{bishop-1967}]
 \label{lem:avoid}
 Let $a<b$ be presented reals and let $(q_n)$ be a sequence of presented reals.  Then one can construct $t$ with $a<t<b$ and $t$ apart from $q_n$ for every $n$.
 \end{lemma}
 
-The construction is the familiar one: run a nested sequence of closed intervals shrinking inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.  A complete proof, including the reason why the classical midpoint bisection is not available and the margin that replaces it, is given in Appendix~\ref{sec:b-avoidance}.
+The construction is the familiar one: run a nested sequence of closed intervals shrinking inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.  The device that replaces the classical bisection is worth stating here, because it is what
+makes the step a construction rather than a case analysis.  The statement is Bishop's and the
+overall strategy is standard; what the formalization had to work out is the cut itself, and
+Appendix~\ref{sec:b-triage} lists it among the difficulties---which are difficulties of the
+\emph{formalization}, not claims of mathematical novelty.  Classically one takes the
+midpoint $m$ of the current interval $[l,r]$ and keeps the half on the far side of $q_n$;
+but for presented reals the position of $q_n$ relative to the \emph{single} point $m$ is
+not decidable, so that branch cannot be constructed.  The development therefore cuts at
+\emph{two} points held apart by a margin: with $w:=r-l$ and $\sigma(w):=\tfrac14w$, the
+cut points are $q_L:=l+\sigma(w)$ and $q_R:=r-\sigma(w)$, so that $q_R-q_L=\tfrac12w>0$ is
+held as data.  Cotransitivity applied to the separated pair $q_L<q_R$ decides, with a witness, whether
+$q_L<q_n$ or $q_n<q_R$.  In the first case retain $[l,q_L]$; in the second retain
+$[q_R,r]$.  These are the two outer quarters, separated by the discarded middle half, and
+the retained one avoids $q_n$ because $q_n$ lies strictly on the far side of the cut point.
+Each step therefore reduces the width to $\tfrac14$ of its previous value rather than the
+classical $\tfrac12$---a faster geometric rate, so the modulus is still explicit.  The complete proof, with
+the interval data carried at each stage, is Appendix~\ref{sec:b-avoidance}.
+
+\begin{remark}[The conclusion in data form]
+\label{rem:modulus}
+Theorem~\ref{thm:prop-dct} is stated above in the $\forall\varepsilon\,\exists N$ form, which
+is the form the source states and the form the Prop-facing declaration carries.  The
+development also proves a data-valued route with the same hypotheses supplied as data: from
+convergence-in-measure data, domination data on full sets, and the integrability
+representations, one \emph{constructs} a modulus $k\mapsto N(k)$ with
+\[
+|I(f_n)-I(f)|\;\le\;2^{-(k+1)}\qquad\text{for all }n\ge N(k).
+\]
+The rate is part of the output, not merely asserted to exist.  Section~\ref{sec:layers}
+describes the two routes and the hypotheses each of them takes.
+\end{remark}
 
 Applying Lemma~\ref{lem:avoid} to the exceptional sequence $T$ of Theorem~\ref{thm:3-5} constructs an admissible level, and hence, by Theorem~\ref{thm:3-6}, integrable level sets at that level.  The following consequence is the form in which the profile theory enters the convergence argument.
 
@@ -368,6 +398,35 @@ exported under the paper-facing alias
 \begin{quote}\small\centering
 \path{ChoiceFreeMeasureDCT.bishop_cheng_dominated_convergence_propC}.
 \end{quote}
+
+\noindent The statement is short enough to display, and displaying it is the most direct
+answer to the question a reader of a formalization paper asks first---what, exactly, was
+proved:
+
+\begin{quote}\small
+\begin{verbatim}
+theorem bishop_cheng_thm_4_15_propC
+    {X : Type u} (S : IntSpaceC X)
+    (fn : Nat -> IntegrableRepC3 S) (f : IntegrableRepC3 S)
+    (hconv : ConvergeInMeasureC S (fun n => (fn n).toDataPFunRC) f.toDataPFunRC)
+    (hdom : exists g : IntegrableRepC3 S, DominatedOnFullC fn g) :
+    RepSeriesTendstoEpsPropC (fun n => (fn n).integral) f.integral
+\end{verbatim}
+\end{quote}
+
+\noindent with the conclusion unfolding to the ordinary epsilon statement,
+
+\begin{quote}\small
+\begin{verbatim}
+def RepSeriesTendstoEpsPropC (u : Nat -> CReal) (l : CReal) : Prop :=
+  forall eps : CReal, regularSeqLtProp CReal.zero eps ->
+    exists N : Nat, forall n : Nat, N <= n ->
+      regularSeqLtProp (CReal.abs (CReal.sub (u n) l)) eps
+\end{verbatim}
+\end{quote}
+
+\noindent Both are reproduced verbatim from the artifact.  Note that $f$ is an
+\path{IntegrableRepC3}: the limit is assumed integrable, as Remark~\ref{rem:scope} records.
 Its hypothesis (i) is \path{ConvergeInMeasureC}, which unfolds exactly to Definition~\ref{def:convmeasure}; its hypothesis (ii) is \path{DominatedOnFullC}, which unfolds to Definition~\ref{def:domination}; and its conclusion is \path{RepSeriesTendstoEpsPropC}, the ordinary epsilon formulation displayed in Theorem~\ref{thm:prop-dct}.
 
 \subsection{Three-layer public interface}
@@ -479,7 +538,7 @@ That disclaimer is compatible with a more precise description of the relationshi
 The two contributions therefore divide the two known obstacles of the memoir between them: predicativity is addressed by Petrakis and Zeuner at the level of the theory---in their own words, the first steps towards a predicative reconstruction---while freedom from choice is established here, at the level of machine-checked proofs, for a Lean development over presented reals (for the machine-checked precedent in Coq, see the CoRN comparison below).  Determining, inside Lean, which fragments of the present development admit a predicative reading is left as future work, alongside their open problem (Section~\ref{sec:nogo}).
 
 \subsection*{Integration in proof assistants}
-Sacerdoti Coen and Tassi formalized a constructive proof of Lebesgue's dominated convergence theorem in Matita~\cite{sacerdoti-coen-tassi-2008}.  Boldo, Cl\'ement and Leclerc formalized the Bochner integral in Coq~\cite{boldo-clement-leclerc-2022}.
+Sacerdoti Coen and Tassi formalized a constructive proof of Lebesgue's dominated convergence theorem in Matita~\cite{sacerdoti-coen-tassi-2008}.  Boldo, Cl\'ement and Leclerc formalized the Bochner integral in Coq~\cite{boldo-clement-leclerc-2022}.  The repository whose measure-theoretic files are audited below is itself built on an earlier formalization of Bishop-style real analysis in Coq, reported by Cruz-Filipe, Geuvers and Wiedijk as C-CoRN~\cite{cruz-filipe-geuvers-wiedijk-2004}; we cite it as the provenance of the repository and have not consulted it for the comparison made here, which is against the pinned snapshot itself.
 
 One of the most substantial formalizations of Bishop-style analysis in a proof assistant is Bickford's: ``We have formalized in Nuprl all of Chapter~2 of Bishop and Bridges, `Constructive analysis'\,''~\cite[\S28.1]{bickford-2023}.  That report is a particularly relevant neighbouring formalization on the mathematical side, and it also marks that boundary.  Its concluding section states which part of the programme was carried out and which was not: the numerical-analysis methods ``can be adapted to yield provably correct, efficient algorithms for operations on Bishop's real numbers.  We have illustrated how this can be done for the functions defined in Chapter~2 of Bishop and Bridges, with the notable exception of general definite integrals''~\cite[\S28.14]{bickford-2023}.  Bickford's target is thus Bishop--Bridges analysis rather than the Bishop--Cheng memoir, and the general integral is explicitly outside what was achieved there; the route formalized in the present paper begins on the other side of that line.  One further observation of his bears on a choice made here: a first attempt that generalized Bishop's regular sequences to admit arbitrary moduli was withdrawn---``we found that this choice of representation was a mistake''~\cite[\S28.2]{bickford-2023}---in favour of the source's own fixed convention, which is the convention kept here (Section~\ref{sec:presented}).  He also separates constructive existence from executability, reporting a modulus obtainable in principle from Brouwer's principles that the extracted code could not compute in practice~\cite[\S28.13]{bickford-2023}; the audit of Section~\ref{sec:audit} concerns axiom dependence, not running time, and no performance claim is made here.  On the classical side, Lean's \texttt{mathlib} contains a dominated convergence theorem for the Bochner integral over a measure space~\cite{mathlib-2020,mathlib-dct}; that development is classical and is not comparable to the present one at the level of hypotheses.  The closest prior formalization of the Bishop--Cheng route itself is S\'em\'eria's, discussed below.
 
@@ -569,7 +628,7 @@ This remark is complementary to Section~\ref{sec:nogo}, and the final observatio
 \section{The size of the development}
 \label{sec:cost}
 
-The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $513$ development-source Lean files---to which two Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $502$ of the $513$, the remainder being the aggregation module, the reading interface, the Definition~1.1 transcription and its adapter, the concrete models, and the axiom-check modules.  The bundle is measured against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
+The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $513$ development-source Lean files---to which two Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations by the lexical count defined in Section~\ref{sec:cost-contents}.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $502$ of the $513$, the remaining eleven being the aggregation module \path{Mathdemo}, the supplement \path{SupplementChoiceFreeMeasureDCT}, the reading interface, the Definition~1.1 transcription with its adapter, the two concrete models, the two example modules, and the three axiom-check modules ($1+1+1+1+2+2+3=11$).  The bundle is to be read against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
 
 Two remarks on the counting.  A declaration is a source line matching
 \begin{center}
@@ -586,7 +645,7 @@ That closure is not by itself a tree that compiles, and the gap is not small.  T
 
 No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}958$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
-Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $114$ entries of \path{tools/frozen_names.txt}, of which the $96$ that name declarations are checked by asking Lean to elaborate them).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
+Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $115$ entries of \path{tools/frozen_names.txt}, of which the $97$ that name declarations are checked by asking Lean to elaborate them).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
 
 
 \subsection{What the bulk of the development consists of}
@@ -612,12 +671,12 @@ The result should be read with the following limitations in view.
 
 \item \textbf{Comparison and priority.}  S\'em\'eria's CoRN development already contains a Bishop--Cheng dominated-convergence theorem, and the two theorem surfaces live over different real-number and integration-space interfaces.  No claim of priority or strict formal generalization is made.
 
-\item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A declaration-level scan of the closure for declarations whose conclusion or body is \texttt{True} now returns none.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level scan of the previous item detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard, not a complete check: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, would escape it.  A complete check would have to enumerate the elaborated declarations of the environment and test each conclusion for reducibility to \texttt{True}; that is not implemented here.
+\item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A declaration-level scan of the closure for declarations whose conclusion or body is \texttt{True} now returns none.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level source-closure scan of Section~\ref{sec:audit}, item~(2), detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard, not a complete check: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, would escape it.  A complete check would have to enumerate the elaborated declarations of the environment and test each conclusion for reducibility to \texttt{True}; that is not implemented here.
 \end{enumerate}
 
 A complete \path{./build_audit.sh} run from the v0.6.0 tree finished on 2026-09-02 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.6.0} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  The four logs written by that run---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt} and \path{logs/reading_layer_axioms.txt}---record it; none of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
 
-The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers all $104$ declarations---including the hypothesis-free adapter \path{toIntSpaceC} and the gauge bridge---of which $102$ report \texttt{[propext, Quot.sound]} while \path{BishopCheng.ComplementedSet} and \path{BishopCheng.boolPts} report no axioms at all.  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
+The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
 The artifact is tagged \texttt{v\CFBDCTVersion}.  The requirement that the tagged release receive a complete \path{./build_audit.sh} run is met by the run from the release tree just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
@@ -648,7 +707,7 @@ sha256sum -c SHA256SUMS
 \end{quote}
 These checks do not rebuild Lean but verify the public source closure and the integrity of the shipped evidence.
 
-\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.  The script also performs the aggregate \texttt{lake build Mathdemo}, the second of the two audit routes described in Section~\ref{sec:limitations}, whose record is shipped as \path{logs/mathdemo_build.txt}; it then generates a temporary reading-layer check file outside the tracked closure, runs \texttt{lake env lean} on it to print the axiom footprint of all $104$ reading-layer declarations---the facade's $36$, the transcription's $27$ including the hypothesis-free adapter and the gauge bridge, the point-evaluation model's $10$ and the finitely supported model's $31$---and verifies that $102$ report \texttt{[propext, Quot.sound]} and two report no axioms, shipping the output as \path{logs/reading_layer_axioms.txt}.
+\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.  The script also performs the aggregate \texttt{lake build Mathdemo}, the second of the two audit routes described in Section~\ref{sec:limitations}, whose record is shipped as \path{logs/mathdemo_build.txt}; it then generates a temporary reading-layer check file outside the tracked closure, runs \texttt{lake env lean} on it to print the axiom footprint of all $104$ reading-layer declarations---the facade's $36$, the transcription's $27$ including the hypothesis-free adapter and the gauge bridge, the point-evaluation model's $10$ and the finitely supported model's $31$---and verifies that $102$ report \texttt{[propext, Quot.sound]} and that the two which report no axioms at all are \path{BishopCheng.ComplementedSet} and \path{BishopCheng.boolPts}, shipping the output as \path{logs/reading_layer_axioms.txt}.
 \end{enumerate}
 
 Local reruns are written to:
@@ -1428,6 +1487,10 @@ Vincent S\'em\'eria and the CoRN contributors.
 \newblock \href{https://github.com/rocq-community/corn/tree/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}{Audited CoRN repository snapshot}, commit \texttt{ada7c0b497ff15dd67cf7932c6f20e143a2aee2f}.
 \newblock \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTMeasurableFunctions.v}{Audited source file \texttt{CMTMeasurableFunctions.v}}.
 \newblock \href{https://github.com/rocq-community/corn/blob/ada7c0b497ff15dd67cf7932c6f20e143a2aee2f/reals/stdlib/CMTprofile.v}{Profile and countable-avoidance source \texttt{CMTprofile.v}}.
+
+\bibitem{cruz-filipe-geuvers-wiedijk-2004} Lu\'is Cruz-Filipe, Herman Geuvers, and Freek Wiedijk.
+\newblock C-CoRN, the constructive Coq repository at Nijmegen.
+\newblock In \emph{Mathematical Knowledge Management}, Lecture Notes in Computer Science 3119, pp.~88--103, 2004.
 
 \bibitem{artifact}
 Toshihisa Urahigashi.
