@@ -28,7 +28,10 @@ def grab(text: str, pattern: str, what: str) -> str:
 # ★The kernel prints two forms.  Counting only "depends on axioms" silently drops
 # the declarations that depend on no axiom at all -- the best ones in the tree --
 # and that is exactly how the figure in the paper went wrong once.
-AXIOM_LINE = re.compile(r"'([^']+)' (?:depends on axioms|does not depend on any axioms)")
+# ★Lean names may contain an apostrophe (BishopSec1P.IntSpaceC.I_mono'), so a
+# character class that excludes ' truncates the name and loses one declaration.
+# Match lazily up to the literal suffix instead.
+AXIOM_LINE = re.compile(r"'(.+?)' (?:depends on axioms|does not depend on any axioms)")
 
 
 def axiom_log_names() -> int:
@@ -43,10 +46,18 @@ def axiom_log_names() -> int:
 
 
 def main() -> int:
-    paper = ROOT / 'paper' / 'paper.tex'
-    if not paper.exists():
-        print("paper/paper.tex absent; nothing to check")
-        return 0
+    # ★Accept the paper's location: a review bundle may place paper/ beside the
+    # artifact rather than inside it.  Absence must FAIL -- a checker that
+    # succeeds because it found nothing to check is worse than no checker, and
+    # this one had exactly that behaviour (it returned 0 with "nothing to check").
+    argv = [a for a in sys.argv[1:] if not a.startswith('-')]
+    candidates = ([Path(argv[0])] if argv else
+                  [ROOT / 'paper' / 'paper.tex', ROOT.parent / 'paper' / 'paper.tex'])
+    paper = next((c for c in candidates if c.exists()), None)
+    if paper is None:
+        print("PAPER NOT FOUND: " + ", ".join(str(c) for c in candidates), file=sys.stderr)
+        print("PAPER/LOG CONSISTENCY CHECK FAILED")
+        return 1
     tex = read(paper).replace('{,}', ',')
     build = read(ROOT / 'logs' / 'build_audit.txt')
     rl    = read(ROOT / 'logs' / 'reading_layer_axioms.txt')

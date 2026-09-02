@@ -4,6 +4,13 @@ This directory contains a small reproducibility package for the Rocq assumptions
 Vincent Séméria's Bishop--Cheng dominated
 convergence development in CoRN, reproduced by the present author—independently of the original authors' report—from the pinned CoRN snapshot.
 
+> Provenance note. `commands.sh` records the full from-scratch path (`docker run` on the
+> pinned image, clone, checkout, dependency install, build, `coqc`).  The shipped
+> `corn-print-assumptions.log` was taken with `docker exec` against a container already
+> built by that path, so it carries the `Print Assumptions` output without the clone and
+> build transcript.  The three results and the nested checksums agree; the log is not a
+> byte-for-byte transcript of a single `commands.sh` invocation.
+
 ## Audited source
 
 - Repository: <https://github.com/rocq-community/corn>

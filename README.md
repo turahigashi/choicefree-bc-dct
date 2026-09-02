@@ -149,7 +149,7 @@ This development line separates the public L1 error-convergence endpoint from th
 
 The development further includes CReal-native support for the countable-avoidance construction used in the smooth-level interface. The formalized support constructs the data-valued nested interval step, the resulting interval sequence, left/right monotonicity, interval-width shrink, Cauchy data for the left endpoints, the limiting apart point, and the dyadic smooth-level data constructor.
 
-`Mathdemo.ChoiceFreeDCTExamples` contains abstract application examples that call both the explicit-smooth and automatic public DCT aliases from proof terms rather than merely checking their names. `Mathdemo.ChoiceFreeDCTConcreteExamples` contains a concrete `PUnit` zero-integral example. This example is intentionally degenerate; it demonstrates end-to-end use of the public API on a nonempty concrete carrier. A nontrivial finite integration model remains future work.
+`Mathdemo.ChoiceFreeDCTExamples` contains abstract application examples that call both the explicit-smooth and automatic public DCT aliases from proof terms rather than merely checking their names. `Mathdemo.ChoiceFreeDCTConcreteExamples` contains a concrete `PUnit` zero-integral example. This example is intentionally degenerate; it demonstrates end-to-end use of the public API on a nonempty concrete carrier. `Mathdemo.DiracIntegrationSpace` gives the normalized point-evaluation model, and `Mathdemo.FiniteWeightedIntegrationSpace` gives the finitely supported family: the integral is the unscaled sum over a list of points, so repetition gives a point an integer multiplicity. Its closed instance on `Bool` (`boolTwoPointDef11`) is proved to give both singletons positive measure (`boolIndicator_integral_pos`), so the axioms admit a model whose measure is not concentrated at a single point. A model over a continuum remains future work.
 
 ## Reading the file names
 
@@ -243,8 +243,9 @@ Reference logs shipped with the artifact are:
 
 - `logs/build_audit.txt`
 - `logs/static_audit.txt`
-- `logs/build_audit.reference.txt`
-- `logs/static_audit.reference.txt`
+- `logs/mathdemo_build.txt`
+- `logs/reading_layer_axioms.txt`
+- `logs/public_surface.txt`
 
 A local rerun writes to ignored local files:
 

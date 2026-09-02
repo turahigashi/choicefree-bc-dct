@@ -12,9 +12,11 @@ This file gives the finite generalization: a list of points `pts 0, …, pts N`
 
 Repetition realizes integer multiplicities: listing a point `k` times gives it
 multiplicity `k`.  Clause (3) asks only that *some* `p ∈ L` satisfy `I p = 1`;
-it does not rescale `I`.  That clause is discharged here by the constant
-function with value `m⁻¹`, where `m = N + 1` is the number of slots, since the
-`m` copies of `m⁻¹` sum to `1`.  The functional itself stays the unscaled sum,
+it does not rescale `I`.  That clause is discharged once a normalizing
+constant is supplied: `finPtsDef11` takes a `c` together with a proof that its
+`m`-fold sum is `1`, where `m = N + 1` is the number of slots.  The development
+does not construct such a `c` for every `m`; the closed instances below supply
+it for `m = 2`, with `c = 1/2`.  The functional itself stays the unscaled sum,
 so the integral of a characteristic function counts the listed points the set
 contains: an integer between `0` and `m`, and not a weight of the form `k/m`.
 The instance provided in the middle of the file (`twoPointDef11`) is the
