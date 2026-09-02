@@ -763,7 +763,7 @@ A complete \path{./build_audit.sh} run from the v0.6.0 tree finished on 2026-09-
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-This tree is the \texttt{v\CFBDCTVersion} release candidate.  The public tag and the version DOI are created when the deposit is cut, from the exact tree audited above and after the checksums are regenerated on it; until then neither exists, and the concept DOI below is the only identifier this paper can cite.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22257007}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
@@ -1588,7 +1588,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion (deposit pending at the time of writing; the version DOI is assigned when it is cut).  Software deposit, Zenodo.
+\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22257007}.
 \newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}
