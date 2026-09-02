@@ -288,9 +288,8 @@ The construction is the familiar one: run a nested sequence of closed intervals 
 $q_n$ relative to a \emph{single} point is not decidable, and the Brouwerian example that
 follows Theorem~1 of Chapter~2 of the \emph{Foundations} exhibits a real for which even
 $x\ge0$ or $x\le0$ is not provable.  Bishop's own proof of that theorem does not bisect.  It
-compares the intruding real against a \emph{separated pair}---``either $a_n>x_{n-1}$ or
-$a_n<y_{n-1}$'', by the corollary to Proposition~7 of the same chapter, which states that
-$y<z$ implies $x<z$ or $x>y$---and keeps a subinterval clear of it, maintaining the invariant
+compares the intruding real against a \emph{separated pair}---at stage $n$, either $a_n>x_{n-1}$ or $a_n<y_{n-1}$, the branch being furnished by the
+corollary to Proposition~7 of the same chapter, that $y<z$ implies $x<z$ or $x>y$---and keeps a subinterval clear of it, maintaining the invariant
 that $x_n>a_n$ or $y_n<a_n$ while the width falls below $n^{-1}$.  What the formalization
 supplies is a determinization of that step: the cut points are fixed \emph{in advance} at a
 margin $\sigma(w)=\tfrac14w$ of the current width, so that the comparison is made against a
