@@ -1,14 +1,17 @@
+# frozen_names.txt --- identifiers the paper cites by name.
 #
-# A refactor may rename anything EXCEPT these.  Each appears in paper.tex
-# inside \path{} or \texttt{}, so renaming one silently breaks the paper's
-# correspondence tables (Appendix A) and its prose.
+# A refactor may rename anything EXCEPT these.  Each appears in paper.tex inside
+# \path{} or \texttt{}, so renaming one silently breaks the paper's correspondence
+# tables (Appendix A) and its prose.
 #
-
-# generated 2026-09-01 from paper.tex; 114 names
+# ★Regenerate whenever the paper names a new identifier; a stale list passes while
+# the claim it checks has become false.
 #
-# Excluded on purpose: mathlib module fragments, name suffixes the paper
-# discusses (`_autoC`), tokens the audit forbids (`sorry`, `extern`, ...),
-# and the five vacuous declarations the paper records as removed in v0.4.2.
+# generated 2026-09-02 from paper.tex; 115 names
+#
+# Excluded on purpose: mathlib and CoRN identifiers, name suffixes the paper
+# discusses (`_autoC`), tokens the audit forbids, and the five vacuous declarations
+# the paper records as removed in v0.4.2.
 
 BFunC
 BishopC.COF.lt_cotrans_data
@@ -63,6 +66,7 @@ Mathdemo.CheckSec3PortAxioms
 Mathdemo.ChoiceFreeDCTConcreteExamples
 Mathdemo.ChoiceFreeDCTExamples
 Mathdemo.DiracIntegrationSpace
+Mathdemo.FiniteWeightedIntegrationSpace
 Mathdemo.MathematicalInterface
 Mathdemo.SourceIntegrationSpaceDef11
 Measure
@@ -104,7 +108,6 @@ lemma_4_3_A_n_apart_data
 lt_cotrans_data
 noncomputable
 pos_witness
-private
 profile_level_sets_integrable_apartC
 profile_level_sets_integrable_apart_globalC
 profile_partition_dataC
@@ -122,5 +125,6 @@ thm36B_smoothPointDataC_construct
 thm_3_5_smooth_aeC
 thm_3_6_all_posC
 toIntSpaceC
+twoPointDef11
 uniform_complement_from_profile_levelsC
 v4.30.0

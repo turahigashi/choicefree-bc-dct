@@ -3,7 +3,7 @@
 declaration in the reading-layer modules.
 
 The generated file is written outside the tracked Lean closure so that the
-512-file invariant of the artifact is preserved.
+audited closure of the artifact is preserved.
 """
 import argparse, re, sys
 

@@ -46,14 +46,49 @@ def main() -> int:
         ("Lean files in the tree",  f"{len(lean):,}"),
         ("lines in the tree",       f"{sum(len(read(p).splitlines()) for p in lean):,}"),
         ("declarations in the tree",f"{sum(len(decl.findall(read(p))) for p in lean):,}"),
+        ("frozen names",            str(len([l for l in read(ROOT/'tools'/'frozen_names.txt').splitlines()
+                                             if l.strip() and not l.startswith('#')]))),
     ]
+    # ★The frozen-name list is a window on the paper; a stale window passes while the
+    # claim it checks has become false.  Compare it with what the paper names now.
+    frozen_path = ROOT / 'tools' / 'frozen_names.txt'
+    stale = []
+    if frozen_path.exists():
+        frozen = {l.strip() for l in read(frozen_path).splitlines()
+                  if l.strip() and not l.startswith('#')}
+        EXCL = {'DominatedConvergence','MeasureTheory','_autoC','admit','extern','simp',
+                'thm_4_15_dominated_convergence','ContinuousOn','lemma33_lt_of_not_le',
+                'lemma34_out_exists_cell','fatou_type_stub_not_source_4_14','partialFuncLe',
+                'sorry','sorryAx','native_decide','unsafe','implemented_by','private',
+                'Classical.choice','Classical.choose','Quot.out','Quotient.out',
+                'ofReduceBool','ConstructiveReals','CR_cv','CRuncountable','CvMeasure',
+                'DominatedMeasureCvZero','mathlib','SHA256SUMS','debug.skipKernelTC'}
+        named = set()
+        for m in re.findall(r'\\(?:path|texttt)\{([^}]*)\}', read(paper)):
+            t = m.replace('\\_', '_').strip()
+            if '/' in t or ' ' in t or not t:
+                continue
+            if t.endswith(('.lean', '.txt', '.sh', '.py', '.md', '.cff', '.toml')):
+                continue
+            if re.fullmatch(r"[A-Za-z_][A-Za-z0-9_.']*", t) and len(t) > 3:
+                named.add(t)
+        src = '\n'.join(read(p) for p in lean)
+        for t in sorted(named - frozen - EXCL):
+            short = t.split('.')[-1]
+            if re.search(r'\b' + re.escape(short) + r'\b', src):
+                stale.append(t)
+
     bad = 0
     for label, value in checks:
         ok = value in tex
         print(f"{'ok  ' if ok else 'MISS'} {label}: {value}")
         if not ok:
             bad += 1
+    for t in stale:
+        print(f"MISS frozen_names.txt does not list an identifier the paper names: {t}")
+    bad += len(stale)
     print(f"figures_checked: {len(checks)}")
+    print(f"frozen_names_stale: {len(stale)}")
     print(f"missing_from_paper: {bad}")
     if bad:
         print("PAPER/LOG CONSISTENCY CHECK FAILED")

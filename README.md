@@ -1,6 +1,6 @@
 # choicefree-bc-dct
 
-Version: 0.5.1
+Version: 0.6.0
 
 DOI (this version): reserved at deposit time; not yet assigned in this tree  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
@@ -10,9 +10,9 @@ This is a clean public import-closure Lean artifact for the paper:
 
 **A choice-free Lean formalization of a profile-based dominated convergence theorem in presented Bishop--Cheng measure theory**
 
-The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 512 Lean files tracked here coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
+The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 513 Lean files tracked here coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no tracked Lean file outside what the audit traverses; the closure of the public theorem aliases alone is 502 of them.
 
-For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 73 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it, including the machine-checked passage from the source's gauge `n⁻¹` to the development's dyadic gauge `2⁻ⁿ` (v0.4.1), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
+For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 94 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it, including the machine-checked passage from the source's gauge `n⁻¹` to the development's dyadic gauge `2⁻ⁿ` (v0.4.1), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
 
 That facade is a *reading* layer: it states the results in the form a mathematician reads them, which for the dominated convergence theorem is the `Prop`-facing one. It is not the whole of what is formalized. The original route is the Type-valued, data-carrying one — Layer A of [Three-layer DCT interface](#three-layer-dct-interface) below.  The Type-valued route and the `Prop`-facing route share the profile and measure-theoretic infrastructure, but their endpoints are assembled separately.  The `Prop`-facing theorem is not obtained by applying the Layer A full-set theorem, because its `Prop`-valued convergence and domination hypotheses do not expose the indexed Type-valued selectors that Layer A requires.  Conversely, the `Prop`-valued conclusion does not by itself supply Layer A's data-valued convergence output.  A direct wrapper extracting those hidden witnesses would require an additional choice principle; the artifact does not claim a general logical non-derivability theorem between the two complete statements.
 
@@ -157,7 +157,7 @@ The file names record the order in which the development was built, not a topica
 organisation of the mathematics.  What follows is a key, so that a reader can find
 any part of it without reading the whole.
 
-The 512 Lean files fall into three places.
+The 513 Lean files fall into three places.
 
 | Location | Files | What is there |
 |---|---:|---|
@@ -255,7 +255,7 @@ This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from inva
 
 ### Current-worktree build status
 
-On 2026-09-01 a complete `./build_audit.sh` run from the v0.5.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2869 jobs), and the static source-closure audit passed with `closure_files: 512`, `tracked_lean_files: 512` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All four shipped logs record that run, taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 512.
+On 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs), and the static source-closure audit passed with `closure_files: 513`, `tracked_lean_files: 513` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All four shipped logs record that run, taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 512.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
@@ -322,7 +322,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.5.1 deposit DOI is assigned when the deposit is made.
+`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.6.0 deposit DOI is assigned when the deposit is made.
 
 ## Note on Lean warnings
 

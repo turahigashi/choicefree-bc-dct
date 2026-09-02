@@ -5,7 +5,7 @@ type: software
 authors:
   - family-names: Urahigashi
     given-names: Toshihisa
-version: "0.5.1"
+version: "0.6.0"
 date-released: "2026-08-31"
 doi: "10.5281/zenodo.21850965"
 license: MIT
