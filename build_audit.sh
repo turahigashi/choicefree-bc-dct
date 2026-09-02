@@ -30,7 +30,7 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== lake env lean ChoiceFreeMeasureDCTPublic.lean =="
   lake env lean ChoiceFreeMeasureDCTPublic.lean
   echo "== lake build Mathdemo =="
-  lake build Mathdemo 2>&1 | tee logs/mathdemo_build.txt
+  lake build Mathdemo 2>&1 | tee logs/mathdemo_build.rerun.txt
   echo "== reading-layer axiom report =="
   python3 tools/generate_reading_layer_axioms.py --output .lake/reading_layer_axioms_check.lean
   lake env lean .lake/reading_layer_axioms_check.lean > logs/reading_layer_axioms.rerun.txt

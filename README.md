@@ -251,8 +251,14 @@ A local rerun writes to ignored local files:
 
 - `logs/build_audit.rerun.txt`
 - `logs/static_audit.rerun.txt`
+- `logs/reading_layer_axioms.rerun.txt`
+- `logs/public_surface.rerun.txt`
+- `logs/mathdemo_build.rerun.txt`
 
-This prevents `./build_audit.sh` followed by `sha256sum -c SHA256SUMS` from invalidating the reference checksums.
+Every log the audit writes goes to one of these, so `./build_audit.sh` followed by
+`sha256sum -c SHA256SUMS` does not invalidate the reference checksums.  The reference logs
+are promoted from the rerun files once, when a release is cut, and the checksums are
+generated after that promotion.
 
 ### Current-worktree build status
 

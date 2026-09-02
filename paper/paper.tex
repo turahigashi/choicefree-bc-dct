@@ -710,10 +710,7 @@ These checks do not rebuild Lean but verify the public source closure and the in
 
 Local reruns are written to:
 \begin{quote}\small\raggedright
-\path{logs/build_audit.rerun.txt}\par
-\path{logs/static_audit.rerun.txt}.
-\end{quote}
-The shipped reference logs are kept stable so that checksum verification remains meaningful after rerunning the audit.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
+\path{logs/build_audit.rerun.txt}\par \path{logs/static_audit.rerun.txt}\par \path{logs/reading_layer_axioms.rerun.txt}\par \path{logs/public_surface.rerun.txt}\par \path{logs/mathdemo_build.rerun.txt}. \end{quote} Every log the audit writes goes to one of these five, so the shipped reference logs stay byte-identical and checksum verification remains meaningful after rerunning the audit; the reference logs are promoted from the rerun files once, when a release is cut, and the checksums are generated after that promotion.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
 
 \section{Conclusion}
 \label{sec:conclusion}
