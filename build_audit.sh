@@ -78,3 +78,11 @@ for bad in Classical. sorryAx native_decide Quot.out; do
   fi
 done
 echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
+
+# ★Runs after the success line, and outside the block that writes the run log.
+# It compares the stages this script announces against the reference log in `logs/`,
+# and the reference log is promoted from this run afterwards --- so if it ran inside
+# the block it would abort before `BUILD_AUDIT_EXIT=0` was ever written, and the
+# promoted log could never satisfy the very condition the check requires.  Its own
+# verdict is appended to the run log so a reader can see that it ran.
+python3 tools/check_log_generation.py 2>&1 | tee -a "$RUN_LOG"

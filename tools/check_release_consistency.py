@@ -77,13 +77,73 @@ def main(argv):
         # Earlier versions are cited by DOI too; the one for this release is the one
         # that appears in the same document as the version string.
         version_dois[name] = found
-    common = set.intersection(*version_dois.values()) if version_dois else set()
-    if len(common) != 1:
-        print(f"FAIL: the documents do not name exactly one common version DOI; "
-              f"candidates by document: { {k: sorted(v) for k, v in version_dois.items()} }",
-              file=sys.stderr); ok = False
+    # ★Comparing the documents only with each other is not enough: the README names the
+    # version DOI three times, and changing one of them left the intersection --- and so
+    # every check --- intact.  Compare against a ledger instead, so that any DOI the
+    # documents name and the ledger does not is a finding wherever it appears.
+    ledger_path = ROOT / "tools" / "release_dois.txt"
+    if not ledger_path.exists():
+        print(f"FAIL: missing DOI ledger {ledger_path}", file=sys.stderr); ok = False
     else:
-        print(f"release_version_doi: 10.5281/zenodo.{common.pop()}")
+        ledger = {}
+        for line in read(ledger_path).splitlines():
+            line = line.strip()
+            if not line or line.startswith("#"):
+                continue
+            role, d = line.split()
+            ledger[d.split(".")[-1]] = role
+        release = [k for k, v in ledger.items() if v == "version"]
+        if len(release) != 1:
+            print(f"FAIL: the ledger must name exactly one version DOI, it names {len(release)}",
+                  file=sys.stderr); ok = False
+        for name, f in (("README", readme), ("manifest", manifest), ("CITATION.cff", cff),
+                        *(( ("paper", paper), ) if paper is not None and paper.exists() else ())):
+            found = {m.group(1) for m in VERSION_DOI_RE.finditer(read(f))}
+            unknown = sorted(found - set(ledger))
+            if unknown:
+                print(f"FAIL: {name} names Zenodo DOIs absent from the ledger: "
+                      f"{['10.5281/zenodo.' + u for u in unknown]}", file=sys.stderr); ok = False
+            if release and release[0] not in found:
+                print(f"FAIL: {name} does not name the version DOI of this release",
+                      file=sys.stderr); ok = False
+        if release:
+            print(f"release_version_doi: 10.5281/zenodo.{release[0]} "
+                  f"(ledger: {len(ledger)} known DOIs)")
+
+    # The tag: the documents name it, so they must name the same one.  A review
+    # changed the manifest's tag to v0.6.1 and every check still passed.
+    # ★Intersecting the documents' tag sets let a single wrong tag survive, because the
+    # right one still appeared elsewhere in the same document.  Test each occurrence
+    # instead: a tag named in the position where a document states its own tag must be
+    # this release's tag.  Earlier tags may still be cited in prose about earlier
+    # versions, so only the self-describing positions are pinned.
+    release_tag = f"v{sorted(set(versions.values()))[0]}" if versions else None
+    SELF_TAG = [("manifest", manifest, r"(?m)^- Git tag: `(v[\d.]+)`"),
+                ("README",   readme,   r"(?m)^Git tag:\s*`?(v[\d.]+)`?")]
+    for name, f, pat in SELF_TAG:
+        m = re.search(pat, read(f))
+        if m and release_tag and m.group(1) != release_tag:
+            print(f"FAIL: {name} states its tag is {m.group(1)}, but the version is "
+                  f"{release_tag[1:]}", file=sys.stderr); ok = False
+    if release_tag:
+        print(f"release_tag: {release_tag}")
+
+    # The Zenodo record number written in a URL must be the version DOI's number; a
+    # review changed it in the manifest and nothing noticed.
+    if release:
+        for name, f in (("README", readme), ("manifest", manifest)):
+            for m in re.finditer(r"zenodo\.org/record/(\d+)", read(f)):
+                if m.group(1) not in ledger:
+                    print(f"FAIL: {name} links to Zenodo record {m.group(1)}, which the "
+                          f"ledger does not know", file=sys.stderr); ok = False
+
+    # The paper defines its version through a macro; a review deleted the definition
+    # and nothing noticed, which would leave the version blank in the typeset paper.
+    if paper is not None and paper.exists():
+        if not re.search(r'\\def\\CFBDCTVersion\{[\d.]+\}', read(paper)):
+            print("FAIL: the paper does not define \\CFBDCTVersion", file=sys.stderr); ok = False
+        else:
+            print("paper_version_macro: defined")
 
     # Release status.  A candidate says so; a release must have a version DOI.
     texts = {"README": read(readme), "manifest": read(manifest), "CITATION.cff": read(cff)}

@@ -6,12 +6,15 @@
 Numbers the paper states about the artifact are produced by runs recorded in `logs/`.
 Stating one by hand invites the two to drift, and a paper whose subject is auditing
 cannot afford that.  This script reads a fixed set of figures out of the logs and
-checks that each appears somewhere in the TeX, and that the frozen-name list has not
-gone stale.  It does not edit the paper; it fails.
+checks that each appears at the sentence that states it --- not merely somewhere in the
+file --- and that the frozen-name list has not gone stale.  It does not edit the paper;
+it fails.
 
 Its scope is deliberately narrow, and the reader should not take a pass for more than
-it is.  It checks that a value occurs, not that it occurs in the right sentence, and
-it covers only the figures enumerated in `checks()` below.  Numbers stated in the
+it is.  Each figure is anchored to its claim site, so a stale value in one sentence no longer
+passes because the same number is correct in another; but the check covers only the
+figures enumerated in `checks()` below, and an anchor fixes one sentence, not every
+sentence that states the value.  Numbers stated in the
 paper but outside that list --- the reachability split, the source-item count, the
 public-alias closure, the reading-layer breakdown, the file-placement table --- are
 not compared here, and a passing run is no evidence about them.  Extending the list
@@ -67,7 +70,25 @@ def main() -> int:
         print("PAPER NOT FOUND: " + ", ".join(str(c) for c in candidates), file=sys.stderr)
         print("PAPER/LOG CONSISTENCY CHECK FAILED")
         return 1
-    tex = read(paper).replace('{,}', ',')
+    # ★A TeX comment is not part of the paper, but it is part of the file, and a
+    # checker that searches the file can be satisfied by a claim that no reader sees:
+    # a review put the true figure in a comment, left the wrong one in the text, and
+    # the check passed.  Strip comments before matching --- an unescaped `%` to end of
+    # line --- so that what is checked is what is typeset.
+    def strip_tex_comments(t: str) -> str:
+        out = []
+        for line in t.split("\n"):
+            i, n = 0, len(line)
+            while i < n:
+                if line[i] == "\\":
+                    i += 2; continue
+                if line[i] == "%":
+                    line = line[:i]; break
+                i += 1
+            out.append(line)
+        return "\n".join(out)
+
+    tex = strip_tex_comments(read(paper)).replace('{,}', ',')
     build = read(ROOT / 'logs' / 'build_audit.txt')
     rl    = read(ROOT / 'logs' / 'reading_layer_axioms.txt')
     lean  = [p for p in ROOT.rglob('*.lean')

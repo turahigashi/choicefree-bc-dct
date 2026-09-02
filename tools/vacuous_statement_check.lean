@@ -23,7 +23,10 @@ def conclusionIsTrue (t : Expr) : MetaM Bool :=
     let c ← whnf concl
     return c.isConstOf ``True
 
-def report : MetaM Unit := do
+/-- Returns `true` when every check passed.  ★The exit status must carry that, not
+just the printed line: run standalone, the checker used to print FAILED and exit 0, so
+anything reading the status rather than the text would have seen a pass. -/
+def report : MetaM Bool := do
   let env ← getEnv
   let ourMods := env.header.moduleNames.filterMap (fun m =>
     let s := m.toString
@@ -40,6 +43,11 @@ def report : MetaM Unit := do
   IO.println s!"declarations written in source : {src.size}"
   let mut vacuous : Array Name := #[]
   let mut skipped : Array Name := #[]
+  -- ★Inductive types, constructors, recursors and quotient primitives are not
+  -- statements, so they are not examined.  Counting them as examined would report a
+  -- larger check than was performed; they are counted separately instead.
+  let mut examined := 0
+  let mut notStatements := 0
   for n in src do
     match env.find? n with
     | none => pure ()
@@ -47,12 +55,15 @@ def report : MetaM Unit := do
       -- Inductive types, constructors and recursors are not statements.
       match ci with
       | ConstantInfo.inductInfo _ | ConstantInfo.ctorInfo _
-      | ConstantInfo.recInfo _   | ConstantInfo.quotInfo _ => pure ()
+      | ConstantInfo.recInfo _   | ConstantInfo.quotInfo _ =>
+        notStatements := notStatements + 1
       | _ =>
         try
           if ← conclusionIsTrue ci.type then vacuous := vacuous.push n
+          examined := examined + 1
         catch _ => skipped := skipped.push n
-  IO.println s!"declarations examined : {src.size - skipped.size}"
+  IO.println s!"not statements (inductives, constructors, recursors, quotients) : {notStatements}"
+  IO.println s!"declarations examined : {examined}"
   IO.println s!"skipped (elaboration error while reducing) : {skipped.size}"
   for n in skipped do IO.println s!"  skipped {n}"
   IO.println s!"vacuous statements (conclusion reduces to True) : {vacuous.size}"
@@ -75,14 +86,24 @@ def report : MetaM Unit := do
   IO.println s!"recorded vacuous statements : {knownSet.size}"
   for n in unlisted do IO.println s!"  UNLISTED VACUOUS {n}"
   for n in stale do IO.println s!"  STALE ENTRY (no longer vacuous) {n}"
-  if unlisted.size == 0 && stale.size == 0 && skipped.size == 0 then
+  let passed := unlisted.size == 0 && stale.size == 0 && skipped.size == 0
+  if passed then
     IO.println "VACUOUS STATEMENT CHECK PASSED"
   else
     IO.println "VACUOUS STATEMENT CHECK FAILED"
+  return passed
 
 def main : IO Unit := do
+  -- ★A review asked why this reads two roots where the static audit has six.  The
+  -- difference is real and cannot be closed here: the static audit reads source text,
+  -- so it can scan `SupplementChoiceFreeMeasureDCT.lean`, whereas this check reads an
+  -- elaborated environment and that file is not a library target, has no `.olean`, and
+  -- cannot be imported.  Nothing is missed by it: the supplement declares nothing --- it
+  -- is a file of `#check` and `#print axioms` commands, run by `lake env lean` --- so
+  -- there is no statement in it for this check to examine.
   let env ← importModules #[{module := `ChoiceFreeMeasureDCTPublic}, {module := `Mathdemo}] {}
   let ctx : Core.Context :=
     { fileName := "vacuous_statement_check", fileMap := default, maxHeartbeats := 0 }
-  let _ ← (report.run' {} {}).toIO ctx { env := env }
-  pure ()
+  let (passed, _) ← (report.run' {} {}).toIO ctx { env := env }
+  if !passed then
+    throw (IO.userError "VACUOUS STATEMENT CHECK FAILED")

@@ -5,6 +5,8 @@ type: software
 authors:
   - family-names: Urahigashi
     given-names: Toshihisa
+    email: "123026.urahigashi.toshihisa@gmail.com"
+    affiliation: "Independent researcher"
 version: "0.6.0"
 # `doi` is the version DOI of this release.  The concept DOI
 # 10.5281/zenodo.21850965 resolves to whichever version is latest.

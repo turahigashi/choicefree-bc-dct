@@ -255,6 +255,7 @@ Reference logs shipped with the artifact are:
 - `logs/mathdemo_build.txt`
 - `logs/reading_layer_axioms.txt`
 - `logs/public_surface.txt`
+- `logs/vacuous_statements.txt`
 
 A local rerun writes to ignored local files:
 
@@ -263,6 +264,7 @@ A local rerun writes to ignored local files:
 - `logs/reading_layer_axioms.rerun.txt`
 - `logs/public_surface.rerun.txt`
 - `logs/mathdemo_build.rerun.txt`
+- `logs/vacuous_statements.rerun.txt`
 
 Every log the audit writes goes to one of these, so `./build_audit.sh` followed by
 `sha256sum -c SHA256SUMS` does not invalidate the reference checksums.  The reference logs
@@ -271,7 +273,7 @@ generated after that promotion.
 
 ### Current-worktree build status
 
-On 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs), and the static source-closure audit passed with `closure_files: 513`, `tracked_lean_files: 513` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All six shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 513.
+On 2026-09-02 a complete `./build_audit.sh` run from the v0.6.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs), and the static source-closure audit passed with `closure_files: 513`, `tracked_lean_files: 513` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 513.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 

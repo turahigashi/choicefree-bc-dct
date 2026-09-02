@@ -1,10 +1,10 @@
-tools/vacuous_statement_check.lean:72:15: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
+tools/vacuous_statement_check.lean:83:15: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-tools/vacuous_statement_check.lean:66:17: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
+tools/vacuous_statement_check.lean:77:17: warning: `String.trim` has been deprecated: Use `String.trimAscii` instead
 
 Note: The updated constant has a different type:
   String → String.Slice
@@ -12,7 +12,8 @@ instead of
   String → String
 modules of this development : 512
 declarations written in source : 5431
-declarations examined : 5431
+not statements (inductives, constructors, recursors, quotients) : 509
+declarations examined : 4922
 skipped (elaboration error while reducing) : 0
 vacuous statements (conclusion reduces to True) : 8
   vacuous BishopC.thm36A2_ramp_mem

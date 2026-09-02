@@ -1,0 +1,14 @@
+# Every Zenodo DOI the release documents are allowed to name, and what each one is.
+#
+# The release-consistency check reads this ledger and fails on any DOI in the paper,
+# the README, the manifest or the citation file that is not listed here.  Without it
+# the check compared the documents only with each other, and a review found that
+# changing one of the README's three occurrences of the version DOI left every check
+# passing: the other two kept the intersection alive.
+#
+# <role>  <doi>
+concept   10.5281/zenodo.21850965
+version   10.5281/zenodo.22257007
+previous  10.5281/zenodo.22137161
+previous  10.5281/zenodo.21854936
+previous  10.5281/zenodo.21850966
