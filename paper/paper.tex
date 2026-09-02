@@ -279,28 +279,27 @@ Restricting to $[a,b]$ gives a profile in the sense of Definition~\ref{def:profi
 
 This is where a constructive proof must do work that the classical proof does not.
 
-\begin{lemma}[Countable avoidance by nested intervals; Bishop~\cite{bishop-1967}]
+\begin{lemma}[Countable avoidance by nested intervals; Bishop~{\cite[Ch.~2, Theorem~1]{bishop-1967}}]
 \label{lem:avoid}
 Let $a<b$ be presented reals and let $(q_n)$ be a sequence of presented reals.  Then one can construct $t$ with $a<t<b$ and $t$ apart from $q_n$ for every $n$.
 \end{lemma}
 
-The construction is the familiar one: run a nested sequence of closed intervals shrinking inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.  The device that replaces the classical bisection is worth stating here, because it is what
-makes the step a construction rather than a case analysis.  The statement is Bishop's and the
-overall strategy is standard; what the formalization had to work out is the cut itself, and
-Appendix~\ref{sec:b-triage} lists it among the difficulties---which are difficulties of the
-\emph{formalization}, not claims of mathematical novelty.  Classically one takes the
-midpoint $m$ of the current interval $[l,r]$ and keeps the half on the far side of $q_n$;
-but for presented reals the position of $q_n$ relative to the \emph{single} point $m$ is
-not decidable, so that branch cannot be constructed.  The development therefore cuts at
-\emph{two} points held apart by a margin: with $w:=r-l$ and $\sigma(w):=\tfrac14w$, the
-cut points are $q_L:=l+\sigma(w)$ and $q_R:=r-\sigma(w)$, so that $q_R-q_L=\tfrac12w>0$ is
-held as data.  Cotransitivity applied to the separated pair $q_L<q_R$ decides, with a witness, whether
-$q_L<q_n$ or $q_n<q_R$.  In the first case retain $[l,q_L]$; in the second retain
-$[q_R,r]$.  These are the two outer quarters, separated by the discarded middle half, and
-the retained one avoids $q_n$ because $q_n$ lies strictly on the far side of the cut point.
-Each step therefore reduces the width to $\tfrac14$ of its previous value rather than the
-classical $\tfrac12$---a faster geometric rate, so the modulus is still explicit.  The complete proof, with
-the interval data carried at each stage, is Appendix~\ref{sec:b-avoidance}.
+The construction is the familiar one: run a nested sequence of closed intervals shrinking inside $(a,b)$, at stage $n$ choosing a subinterval that avoids $q_n$, and take the limit.  The step ``choose a subinterval avoiding $q_n$'' is a case distinction on the position of $q_n$ relative to two candidate subintervals, and it is exactly here that presented reals are used: the cotransitivity split is decided from rational approximations and returned as data, so the sequence of intervals is a construction and not a sequence of arbitrary choices.  The limit exists because the left endpoints form a Cauchy sequence with an explicit modulus.  The step that a classical proof would take by bisection cannot be taken here: the position of
+$q_n$ relative to a \emph{single} point is not decidable, and the Brouwerian example that
+follows Theorem~1 of Chapter~2 of the \emph{Foundations} exhibits a real for which even
+$x\ge0$ or $x\le0$ is not provable.  Bishop's own proof of that theorem does not bisect.  It
+compares the intruding real against a \emph{separated pair}---``either $a_n>x_{n-1}$ or
+$a_n<y_{n-1}$'', by the corollary to Proposition~7 of the same chapter, which states that
+$y<z$ implies $x<z$ or $x>y$---and keeps a subinterval clear of it, maintaining the invariant
+that $x_n>a_n$ or $y_n<a_n$ while the width falls below $n^{-1}$.  What the formalization
+supplies is a determinization of that step: the cut points are fixed \emph{in advance} at a
+margin $\sigma(w)=\tfrac14w$ of the current width, so that the comparison is made against a
+pair whose separation is known before $q_n$ is looked at, the outer quarter on the far side
+is retained and the middle half discarded, and the branch is returned as data rather than
+asserted.  Each step then reduces the width to $\tfrac14$ of its previous value, with an
+explicit modulus.  The construction, with the interval data carried at each stage, is
+Appendix~\ref{sec:b-avoidance}; Appendix~\ref{sec:b-triage} lists it among the difficulties
+of the \emph{formalization}, which are not claims of mathematical novelty.
 
 \begin{remark}[The conclusion in data form]
 \label{rem:modulus}
