@@ -43,6 +43,15 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   ./tools/check_frozen_names.sh
   echo "== nested CoRN checksums =="
   ( cd audits/corn && sha256sum -c SHA256SUMS )
+  echo "== release consistency =="
+  if [ -f paper/paper.tex ]; then
+    python3 tools/check_release_consistency.py paper/paper.tex
+  elif [ -f ../paper/paper.tex ]; then
+    python3 tools/check_release_consistency.py ../paper/paper.tex
+  else
+    python3 tools/check_release_consistency.py
+  fi
+
   echo "== paper/log consistency =="
   # The software deposit excludes the paper source (.gitattributes), and a review
   # bundle may place it beside the artifact.  Look in both places.  When the paper

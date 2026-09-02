@@ -1,6 +1,7 @@
 # choicefree-bc-dct
 
-Version: 0.6.0
+Version: 0.6.0 (release candidate — the public tag and the version DOI are created when the
+deposit is cut, from the exact tree the audit below was run on; neither exists yet)
 
 DOI (this version): reserved at deposit time; not yet assigned in this tree  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
@@ -232,6 +233,15 @@ lake env lean SupplementChoiceFreeMeasureDCT.lean
 lake env lean ChoiceFreeMeasureDCTPublic.lean
 python3 tools/static_no_choice_audit.py
 ```
+
+The audit works at three levels, and they detect different things. **Integrity** compares
+bytes against `SHA256SUMS` and catches a changed file, but says nothing about whether the
+code proves anything. **Re-execution** runs the kernel and the static scan and catches a
+broken proof, for the tree in front of it. **Release consistency**
+(`tools/check_release_consistency.py`, `tools/check_paper_against_logs.py`) compares the
+paper, this README, the manifest, `CITATION.cff` and the logs, and catches a figure or a
+version that has drifted while everything else still passes. Start at the level that can
+see the doubt you have.
 
 It also prints toolchain information and ends successful rerun logs with:
 

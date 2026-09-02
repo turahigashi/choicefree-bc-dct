@@ -25,11 +25,11 @@
 \maketitle
 
 \begin{abstract}
-Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, smooth---in the memoir's sense of that word---at all but countably many levels of the interval.  The step ``choose a level outside a countable exceptional set'' is exactly where a choice-free version of the theory is known to be obstructed---Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.
+Bishop and Cheng derive the dominated convergence theorem of their integral-first constructive measure theory through profiles: monotone functionals on families of continuous ramp functions, smooth, in the memoir's sense, at all but countably many levels.  Choosing a level outside a countable exceptional set is exactly where a choice-free version of the theory is known to be obstructed---Spitters observed that the profile theorem implies the uncountability of the reals, which fails in an intuitionistic sheaf model.
 
-This paper reports a Lean~4 formalization of that route: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract constructive real-number object.  The exceptional levels are enumerated explicitly and stepped around by Bishop's nested-interval construction, whose case split is decided from rational approximations and returned as data.
+This paper reports a Lean~4 formalization of that route: for an already integrable limit, convergence in measure together with domination on full sets that may depend on the index implies convergence of the integrals.  The theorem is proved over \emph{presented} reals---regular sequences of rationals with Bishop equality---and relative to an explicitly quantified integration-space interface, rather than for an abstract real-number object.  The exceptional levels are enumerated and stepped around by Bishop's nested-interval construction, whose case split is decided from rational approximations and returned as data.
 
-For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, instantiated at the two booleans, gives both singletons positive measure: the axioms admit a measure that is not concentrated at a single point.
+For the named public declarations the kernel reports an axiom footprint confined to \texttt{[propext, Quot.sound]}, with a static scan of the source closure, checksums, and a reproduced Rocq \texttt{Print Assumptions} audit of S\'em\'eria's earlier CoRN development, over which no priority is claimed.  Every integration space in Bishop and Cheng's sense satisfies the interface used here, and a finitely supported model, instantiated at the two booleans, gives both singletons positive measure: the axioms admit a measure not concentrated at a point.
 \end{abstract}
 
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
@@ -266,6 +266,15 @@ The proof of Theorem~\ref{thm:prop-dct} rests on three results.  The first two a
 Let $(F,\lambda)$ be a profile on $[a,b]$.  Then all but countably many points of $[a,b]$ are smooth in the sense of Definition~\ref{def:smooth}.
 \end{theorem}
 
+The statement is the source's, and ``all but countably many'' is read here in its
+constructive sense: what is produced is a sequence, and the points it does not name
+are the smooth ones.  That is the form the development proves and the form the rest
+of this paper uses, so it is worth having in front of the reader---it is
+Theorem~\ref{thm:b-exception}: one constructs an explicit sequence $T=(T_n)$ such
+that every $t$ \emph{apart from} every $T_n$ is a smooth level.  Apartness, not
+mere difference, is what the sequel consumes, and it is what
+Lemma~\ref{lem:avoid} delivers.
+
 The proof is what matters here.  Bishop and Cheng choose an increasing sequence $\{n(k)\}$ of positive integers with $(n(k)+1)k^{-1}>\lambda(1)-\lambda(0)$, collect the finitely many points $\{t^k_1,\dots,t^k_{n(k)}\}$ excluded at stage $k$, and set $T=\{t^k_j\}$.  Every $t$ \emph{apart} from every member of $T$---that is, satisfying $0<|t-T_n|$ for every enumerated term, which is what the formalized statement requires and is strictly stronger than $t\neq T_n$---is then shown to be smooth, with $\overline{\lambda}(t)$ constructed explicitly.  Thus the conclusion is not that a certain set ``is countable'' with an existentially hidden enumeration: the exceptional levels arrive as an \emph{explicit sequence}, constructed by the source's own proof.  The formalization's contribution at this point is packaging rather than strengthening: it flattens the proof-internal data into a first-class $\mathbb{N}$-indexed sequence that later constructions consume directly (Appendix~\ref{sec:b-exception}).
 
 \begin{theorem}[Integrability of level sets; the source's Theorem~3.6]
@@ -374,6 +383,17 @@ gives the conclusion of Theorem~\ref{thm:prop-dct}. \qed
 \end{enumerate}
 
 \part{The formalization and its audit}
+
+\noindent Three kinds of statement follow, and it is worth separating them before
+they are mixed.  A \emph{verified claim} is a named Lean declaration together with
+the axioms its proof term reports; the kernel decides it, and this paper only quotes
+the outcome.  \emph{Evidence} is what a script produced and what is shipped as a log
+or a checksum; it is reproducible, but it is evidence for exactly the property the
+script tests and for no more.  A \emph{limitation} is a claim nobody checked---the
+correspondence between a Lean statement and the mathematics it is meant to say, the
+manual review of the implementation, the transfer of a soundness theorem from Lean~3
+to Lean~4.  Section~\ref{sec:trust} states all three in that order, and the table at
+its head sets the second against the third row by row.
 
 \section{The Lean development}
 \label{sec:formalization}
@@ -594,7 +614,62 @@ The apparent asymmetry of the audit outputs---\texttt{[propext, Quot.sound]} on 
 
 Accordingly, we are not aware of another choice-free formalization of the Bishop--Cheng dominated convergence theorem in Lean~4; mathlib's dominated convergence theorem is classical.  This records what we looked for and did not find, and is not a claim of priority of any kind---not to the first proof-assistant formalization, the first constructive one, or the first choice-free one; the closest prior work we did find is set out above.  Nor is it based on a systematic literature search.  The two published surveys consulted above are consistent with it without establishing it: Miyamoto's list of Bishop-style formalizations records Nuprl, CoRN and Minlog and does not include Bishop--Cheng measure theory~\cite[\S27.3.4]{miyamoto-2023}, and Bickford, reporting one of the most substantial of those developments, states that the general definite integral was the one part of his programme not carried through~\cite[\S28.14]{bickford-2023}.  The contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
 
-\section{Choice-free audit}
+\section{Trust boundary and reproducibility}
+\label{sec:trust}
+
+The four parts of this section answer four separate questions, and they are kept
+apart because the answers are of different kinds: what is checked
+(\S\ref{sec:audit}), what the checks are checks \emph{of}
+(\S\ref{sec:cost}), what is not claimed (\S\ref{sec:limitations}), and how a
+reader reruns the evidence (\S\ref{sec:reproducibility}).
+
+The table below is the single place where the figures of this section are stated
+together with what produces them and, in the last column, what they leave open.  The
+last column is the point of the table: each row is evidence for something narrower
+than the sentence it supports, and the difference is where a reader should look for
+what is still taken on trust.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}p{3.05cm}p{2.5cm}p{3.1cm}p{5.0cm}@{}}
+\hline
+What is claimed & Evidence & Regenerated by & What it does \emph{not} establish\\
+\hline
+The named public declarations depend on \texttt{[propext, Quot.sound]} only
+ & \path{logs/build_audit.txt}
+ & \path{./build_audit.sh}
+ & Nothing about declarations it does not name, and nothing about the
+   \emph{statements} being the intended ones---that is the source comparison of
+   Appendix~\ref{sec:appendix-map}.\\[3pt]
+The $104$ reading-layer declarations split $102/2$
+ & \path{logs/reading_layer_axioms.txt}
+ & \path{./build_audit.sh}
+ & That the layer is complete: it is the layer this paper defines, not a
+   canonical one.\\[3pt]
+No forbidden token occurs in the source closure of the six audit roots ($513$ files)
+ & \path{logs/static_audit.txt}
+ & \path{tools/static_no_choice_audit.py}
+ & Anything about files outside that closure, and anything a token scan cannot
+   see---a proof term is not read by it.\\[3pt]
+$2{,}552$ of $5{,}431$ declarations are reachable from the claim-carrying modules
+ & \path{logs/reachable_core.txt}
+ & \path{tools/reachable_core.lean}
+ & That the remaining $2{,}879$ are individually necessary; see
+   \S\ref{sec:cost}.\\[3pt]
+The shipped bytes are the audited bytes
+ & \path{SHA256SUMS}
+ & \texttt{sha256sum -c}
+ & That the tree was built from them on the reader's machine; that is what
+   rerunning the audit shows.\\[3pt]
+CoRN reports \texttt{Closed under the global context}
+ & \path{audits/corn/}
+ & \path{audits/corn/commands.sh}
+ & A comparison of axiom strength between the two systems; see
+   \S\ref{sec:related}.\\
+\hline
+\end{tabular}
+\end{center}
+
+\subsection{Choice-free audit}
 \label{sec:audit}
 
 The development declares \texttt{mathlib}~\cite{mathlib-2020} as a dependency, and \texttt{mathlib} modules do occur in the transitive import closure of the public roots.  Importing is not the same as depending on a result: Lean's \texttt{\#print axioms} follows the dependencies actually used by a declaration rather than every axiom made available by its imports.  The real-number and measure-theoretic layers used above are constructed inside the artifact; in particular, the audited declarations do not consume \texttt{mathlib}'s \texttt{Real} or \texttt{MeasureTheory} hierarchy.  This source-level separation, together with the declaration-level audit, explains why the reported axiom output is compatible with the presence of \texttt{mathlib} in the import closure.
@@ -630,7 +705,7 @@ What is \emph{not} claimed: this reading does not establish that the theorems of
 This remark is complementary to Section~\ref{sec:nogo}, and the final observation is a heuristic picture rather than a theorem.  Section~\ref{sec:nogo} explains why the general and abstract forms of the statements are not provable in the choice-free setting (in Spitters' sheaf model, sequence avoidance fails); the present remark says inside which axiom system the theorems proved here do hold.  Carneiro's construction provides a classical two-valued interpretation of the audited Lean fragment, in which the reals are uncountable and the general forms are true, while the non-classical models on the no-go side explain why unrestricted formulations cannot be expected in weaker constructive settings. The contrast between the two model families makes the shape of the theorem---presented reals, coded profiles, explicit exception sequences---look mathematically motivated rather than stylistic.  We emphasize that no published result establishes that Spitters' model interprets Lean's full type theory (impredicative \texttt{Prop}, definitional proof irrelevance, quotients), which is why this paragraph is offered as a picture and not as a proof.
 \end{remark}
 
-\section{The size of the development}
+\subsection{The size of the development}
 \label{sec:cost}
 
 The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $513$ development-source Lean files---to which two Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations by the lexical count defined in Section~\ref{sec:cost-contents}.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $502$ of the $513$, the remaining eleven being the aggregation module \path{Mathdemo}, the supplement \path{SupplementChoiceFreeMeasureDCT}, the reading interface, the Definition~1.1 transcription with its adapter, the two concrete models, the two example modules, and the three axiom-check modules ($1+1+1+1+2+2+3=11$).  The bundle is to be read against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
@@ -661,7 +736,7 @@ Compared clause by clause with Chapter~2 of \emph{Foundations of Constructive An
 
 The comparison with S\'em\'eria closes the accounting.  His CoRN development quantifies over an abstract \texttt{ConstructiveReals} interface whose implementations and theory live in the Coq standard library---the subject of his JFLA paper~\cite{semeria-2020-reals}---so the counterpart of that layer sits \emph{outside} his artifact, while \texttt{Print Assumptions} still descends into it and reports no axioms.  Bishop and Cheng refer to \emph{Foundations}; S\'em\'eria refers to the standard library; the present development carries its own.  That layer is the cost of internalizing the reference.  (These three are all on the representation side of the divide; the fourth coordinate, reaching the same proposition/data tension from the extensional side, is Booij's locator theory---Appendix~\ref{sec:b-booij}.)
 
-\section{Limitations and validation boundary}
+\subsection{Limitations and validation boundary}
 \label{sec:limitations}
 
 The result should be read with the following limitations in view.
@@ -685,15 +760,21 @@ The scope of the build audit should be delimited.  The four reading-layer module
 
 This tree is the \texttt{v\CFBDCTVersion} release candidate.  The public tag and the version DOI are created when the deposit is cut, from the exact tree audited above and after the checksums are regenerated on it; until then neither exists, and the concept DOI below is the only identifier this paper can cite.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
-\section*{Use of AI-assisted tools}
-Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code, and in drafting and revising the prose of this paper.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, reviewed and approved the manuscript text, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
-
-\section{Artifact interface and reproducibility}
+\subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
 
 The paper cites the public aliases in \path{ChoiceFreeMeasureDCTPublic.lean}.  That file is the whole of the intended interface: $21$ declarations in the namespace \path{ChoiceFreeMeasureDCT}, each carrying a doc-string that states what it is.  The supplementary file \path{SupplementChoiceFreeMeasureDCT.lean} checks and prints axioms for both the aliases and their implementation declarations.  The artifact is~\cite{artifact}.
 
-A reader can inspect the result at three levels.
+A reader can inspect the result at three levels.  They differ in what they are
+capable of detecting, and it is worth naming that before the commands: \emph{integrity}
+compares bytes against the shipped checksums and detects a changed file, but nothing
+about whether the code proves anything; \emph{re-execution} runs the kernel and the
+static scan and detects a broken proof, but only for the tree in front of it; and
+\emph{release consistency} compares the paper, this artifact's three metadata files
+and the logs, and detects a figure or a version that has drifted while everything
+else still passes.  A reader chasing a specific doubt should start at the level that
+can see it.
+
 \begin{enumerate}[label=(\arabic*)]
 \item \textbf{Public surface.}  Begin with the following two files:
 \begin{quote}\small\raggedright
@@ -718,6 +799,9 @@ These checks do not rebuild Lean but verify the public source closure and the in
 Local reruns are written to:
 \begin{quote}\small\raggedright
 \path{logs/build_audit.rerun.txt}\par \path{logs/static_audit.rerun.txt}\par \path{logs/reading_layer_axioms.rerun.txt}\par \path{logs/public_surface.rerun.txt}\par \path{logs/mathdemo_build.rerun.txt}. \end{quote} Every log the audit writes goes to one of these five, so the shipped reference logs stay byte-identical and checksum verification remains meaningful after rerunning the audit; the reference logs are promoted from the rerun files once, when a release is cut, and the checksums are generated after that promotion.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
+
+\section*{Use of AI-assisted tools}
+Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code, and in drafting and revising the prose of this paper.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, reviewed and approved the manuscript text, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
 
 \section{Conclusion}
 \label{sec:conclusion}
