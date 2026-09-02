@@ -11,6 +11,12 @@ convergence development in CoRN, reproduced by the present author—independentl
 > build transcript.  The three results and the nested checksums agree; the log is not a
 > byte-for-byte transcript of a single `commands.sh` invocation.
 
+> Files of the pinned snapshot named by the paper.  `reals/stdlib/CMTMeasurableFunctions.v`
+> is the module whose declarations are audited below.  `reals/stdlib/CMTprofile.v` is *not*
+> part of the assumptions audit; it is named only as the location of `CRuncountable` in the
+> comparison, and is recorded here so that the file names the paper cites can be checked
+> from this directory alone, without the paper source.
+
 ## Audited source
 
 - Repository: <https://github.com/rocq-community/corn>

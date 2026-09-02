@@ -44,7 +44,17 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== nested CoRN checksums =="
   ( cd audits/corn && sha256sum -c SHA256SUMS )
   echo "== paper/log consistency =="
-  python3 tools/check_paper_against_logs.py
+  # The software deposit excludes the paper source (.gitattributes), and a review
+  # bundle may place it beside the artifact.  Look in both places.  When the paper
+  # is genuinely absent this is reported as an explicit SKIP, never as a pass:
+  # the checker itself stays fail-closed whenever it is given a path.
+  if [ -f paper/paper.tex ]; then
+    python3 tools/check_paper_against_logs.py paper/paper.tex
+  elif [ -f ../paper/paper.tex ]; then
+    python3 tools/check_paper_against_logs.py ../paper/paper.tex
+  else
+    echo "PAPER/LOG CONSISTENCY CHECK SKIPPED: no paper source in this deposit"
+  fi
   echo "== python3 tools/static_no_choice_audit.py =="
   python3 tools/static_no_choice_audit.py | tee "$STATIC_LOG"
 } 2>&1 | tee "$RUN_LOG"

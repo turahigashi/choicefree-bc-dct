@@ -18,7 +18,12 @@ GEN=.lake/frozen_names_check.lean
 fail=0
 
 decl_n=$(awk '$1=="decl"' "$LIST" | wc -l)
-python3 tools/generate_frozen_names_check.py --names "$LIST" --output "$GEN" >/dev/null
+mkdir -p "$(dirname "$GEN")"          # a clean checkout has no .lake yet
+rm -f "$GEN"                          # never check a stale generated file
+if ! python3 tools/generate_frozen_names_check.py --names "$LIST" --output "$GEN" >/dev/null; then
+  echo "GENERATOR FAILED: tools/generate_frozen_names_check.py"; exit 1
+fi
+[ -s "$GEN" ] || { echo "GENERATOR PRODUCED NOTHING: $GEN"; exit 1; }
 if lake env lean -R . "$GEN" > .lake/frozen_names_check.out 2>&1; then
   echo "decl: $decl_n checked by Lean elaboration"
 else
@@ -50,11 +55,15 @@ while read -r _ n; do
 done < <(awk '$1=="dir"' "$LIST")
 echo "dir: $dir_n source directories present"
 
-CORN_PIN=$(grep -o 'corn/blob/[0-9a-f]\{40\}' paper/paper.tex 2>/dev/null | head -1 | cut -d/ -f3)
+# The pin is recorded in audits/corn, so this works in a software-only deposit
+# where the paper source is excluded by .gitattributes.
+CORN_PIN=$(grep -ho '[0-9a-f]\{40\}' audits/corn/commands.sh audits/corn/environment.txt 2>/dev/null | head -1)
+[ -n "$CORN_PIN" ] || CORN_PIN=$(grep -o 'corn/blob/[0-9a-f]\{40\}' paper/paper.tex 2>/dev/null | head -1 | cut -d/ -f3)
 corn_n=0
 while read -r _ n; do
   corn_n=$((corn_n+1))
   if grep -rqF -- "$n" audits/corn 2>/dev/null; then continue; fi
+  if [ -n "$CORN_PIN" ] && grep -rqF -- "$n" audits/corn 2>/dev/null; then continue; fi
   if [ -n "$CORN_PIN" ] && grep -qF -- "$CORN_PIN/reals/stdlib/$n" paper/paper.tex 2>/dev/null; then continue; fi
   echo "MISSING CoRN file: $n (not in audits/corn and not pinned in the paper)"; fail=1
 done < <(awk '$1=="corn"' "$LIST")
