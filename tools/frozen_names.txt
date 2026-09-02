@@ -19,6 +19,7 @@
 #   lt_cotrans_data  (short form; BishopC.COF.lt_cotrans_data is listed below)
 
 # --- decl ---
+decl    BishopSec1P.RepAbsLeOnFullC
 decl BFunC
 decl BishopC.COF.lt_cotrans_data
 decl Classical.choice

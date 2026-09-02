@@ -56,6 +56,15 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
     python3 tools/check_release_consistency.py
   fi
 
+  echo "== displayed definitions =="
+  if [ -f paper/paper.tex ]; then
+    python3 tools/check_displayed_definitions.py paper/paper.tex
+  elif [ -f ../paper/paper.tex ]; then
+    python3 tools/check_displayed_definitions.py ../paper/paper.tex
+  else
+    echo "DISPLAYED DEFINITION CHECK SKIPPED: no paper source in this deposit"
+  fi
+
   echo "== paper/log consistency =="
   # The software deposit excludes the paper source (.gitattributes), and a review
   # bundle may place it beside the artifact.  Look in both places.  When the paper

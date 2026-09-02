@@ -9,6 +9,22 @@
 \usepackage{hyperref}
 
 \usepackage{enumitem}
+% Lean's notation is Unicode.  The definitions in Section~\ref{sec:definitions-lean}
+% are reproduced from the artifact verbatim, so the characters have to survive; these
+% declarations let pdflatex set them rather than forcing a paraphrase of the source.
+\usepackage{newunicodechar}
+\newunicodechar{∀}{\ensuremath{\forall}}
+\newunicodechar{∃}{\ensuremath{\exists}}
+\newunicodechar{→}{\ensuremath{\rightarrow}}
+\newunicodechar{↦}{\ensuremath{\mapsto}}
+\newunicodechar{∈}{\ensuremath{\in}}
+\newunicodechar{⊆}{\ensuremath{\subseteq}}
+\newunicodechar{∩}{\ensuremath{\cap}}
+\newunicodechar{∧}{\ensuremath{\wedge}}
+\newunicodechar{≈}{\ensuremath{\approx}}
+\newunicodechar{≥}{\ensuremath{\geq}}
+\newunicodechar{≤}{\ensuremath{\leq}}
+\newunicodechar{ℕ}{\ensuremath{\mathbb{N}}}
 \hypersetup{hidelinks,pdftitle={A choice-free Lean formalization of Bishop-Cheng dominated convergence over presented reals},pdfauthor={Toshihisa Urahigashi},pdfkeywords={constructive measure theory, dominated convergence, Lean 4, presented reals, choice principles, proof assistants}}
 \setlength{\emergencystretch}{3em}
 \newtheorem{theorem}{Theorem}[section]
@@ -79,6 +95,22 @@ in the source's sense rather than to the interface alone.
 
 \section{Introduction}
 \label{sec:intro}
+
+This paper reports that the Bishop--Cheng dominated convergence theorem can be
+carried out in Lean~4 without any appeal to Lean's \texttt{Classical.choice}, over
+reals that carry their own approximation data, and that the resulting development
+can be audited to that effect by a reader who runs a script.  The theorem is Bishop
+and Cheng's and the proof is theirs; what is new is that the route survives being
+made choice-free at a place where a choice-free treatment was known to be obstructed,
+and that the surviving development says so in a form a machine checks.  Four things
+distinguish it from the closest prior formalization: domination is assumed only on a
+full set that may vary with the index; the countable-avoidance step is discharged in
+the order theory of the reals, before any measure apparatus exists; propositions and
+data are kept apart by design, so that every crossing between them is a place one can
+inspect; and the real numbers are internal to the artifact rather than an interface
+satisfied elsewhere, which is what the size of the development pays for.
+Section~\ref{sec:differential} states the four precisely and says what is
+\emph{not} different, which is the mathematics.
 
 Dominated convergence is the basic passage from convergence of functions to convergence of their integrals.  In the integral-first constructive measure theory of Bishop and Cheng, the proof is not simply a translation of the classical almost-everywhere argument.  It proceeds through profiles of integrable functions, integrability of level sets away from an explicit exceptional sequence, and a uniform estimate on the complement of a suitable integrable set.
 
@@ -460,6 +492,119 @@ def RepSeriesTendstoEpsPropC (u : Nat -> CReal) (l : CReal) : Prop :=
 \path{IntegrableRepC3}: the limit is assumed integrable, as Remark~\ref{rem:scope} records.
 Its hypothesis (i) is \path{ConvergeInMeasureC}, which unfolds exactly to Definition~\ref{def:convmeasure}; its hypothesis (ii) is \path{DominatedOnFullC}, which unfolds to Definition~\ref{def:domination}; and its conclusion is \path{RepSeriesTendstoEpsPropC}, the ordinary epsilon formulation displayed in Theorem~\ref{thm:prop-dct}.
 
+\subsection{The definitions the theorem is stated over}
+\label{sec:definitions-lean}
+
+The theorem above is only as meaningful as the definitions it quantifies over, and
+the kernel does not check that those definitions say what this paper says they say.
+That correspondence is a limitation, recorded as such ∈ Section~\ref{sec:trust}; a
+reader who wants to audit it has to read the definitions. They are short, and they
+are given here so that the reading can be done without leaving the paper.
+
+The integration-space interface has fourteen fields. Definition~\ref{def:intspace}
+states them as mathematics; here is the structure itself.
+
+\begin{quote}\small
+\begin{verbatim}
+structure IntSpaceC (X : Type*) where
+  L : Set (BFunC X)
+  I : ∀ f : BFunC X, f ∈ L → CReal
+  L_resp : ∀ {f g : BFunC X}, f ∈ L → BFunC.BEquiv f g → g ∈ L
+  I_resp : ∀ {f g : BFunC X} (hf : f ∈ L) (hfg : BFunC.BEquiv f g),
+    I f hf ≈ I g (L_resp hf hfg)
+  add_mem : ∀ {f g : BFunC X}, f ∈ L → g ∈ L → BFunC.add f g ∈ L
+  smul_mem : ∀ (a : CReal) {f : BFunC X}, f ∈ L → BFunC.smul a f ∈ L
+  abs_mem : ∀ {f : BFunC X}, f ∈ L → BFunC.absf f ∈ L
+  cutPos_mem : ∀ (a : CReal), PosEventuallyData a →
+    ∀ {f : BFunC X}, f ∈ L → BFunC.minC f a ∈ L
+  I_add : ∀ {f g : BFunC X} (hf : f ∈ L) (hg : g ∈ L),
+    I (BFunC.add f g) (add_mem hf hg) ≈ CReal.add (I f hf) (I g hg)
+  I_smul : ∀ (a : CReal) {f : BFunC X} (hf : f ∈ L),
+    I (BFunC.smul a f) (smul_mem a hf) ≈ CReal.mul a (I f hf)
+  cutNat_tendsto_raw : ∀ {f : BFunC X} (hf : f ∈ L)
+    (hcut : ∀ n, BFunC.cutNat n f ∈ L),
+    RepSeriesTendsto (fun n => I (BFunC.cutNat n f) (hcut n)) (I f hf)
+  cutSmall_tendsto_raw : ∀ {f : BFunC X} (hf : f ∈ L)
+    (hcut : ∀ n, BFunC.cutSmall n f ∈ L),
+    RepSeriesTendsto (fun n => I (BFunC.cutSmall n f) (hcut n)) CReal.zero
+  I_nonneg : ∀ {f : BFunC X} (hf : f ∈ L), BFunC.PointwiseNonneg f →
+    RegularSeqLe zeroSeq (I f hf)
+  continuity :
+    ∀ {f : BFunC X} {fs : Nat → BFunC X},
+      ∀ (hf : f ∈ L) (hfs : ∀ n, fs n ∈ L),
+      (∀ n, BFunC.PointwiseNonneg (fs n)) →
+      (hI : RepSeriesSum (fun n => I (fs n) (hfs n))) →
+      CReal.ltE hI.sum (I f hf) →
+      PointwiseSeriesBelowC fs f
+\end{verbatim}
+\end{quote}
+
+\noindent Three things ∈ it are worth pointing at. The integral \texttt{I} takes
+the membership proof as an argument, so it is defined \emph{on} \texttt{L} and not
+on all of \texttt{BFunC X}; there is no junk value at a function outside the class.
+The truncation field \texttt{cutPos\_mem} asks for $\min\{f,a\}$ only when $a$ carries
+positivity data, which is what the source's clause~(1) together with its own remark
+supplies, and no more (Remark~\ref{rem:fidelity}). And \texttt{continuity} is the
+source's clause~(4) ∈ the contrapositive form the development uses: from a strict
+inequality between $\sum I(f_n)$ and $I(f)$ it \emph{produces} a point at which the
+series stays below $f$, rather than asserting that no such point fails to exist.
+
+The three notions the main theorem quantifies over are equally short. A full set is
+one that contains the common domain of a sequence of integrable functions:
+
+\begin{quote}\small
+\begin{verbatim}
+def IsFullC {X : Type*} (S : IntSpaceC X) (A : Set X) : Prop :=
+  ∃ F : Nat → IntegrableRepC3 S, { x | ∀ n, x ∈ (F n).domain } ⊆ A
+\end{verbatim}
+\end{quote}
+
+\noindent Domination is per-index, and this is where the hypothesis of this paper
+differs from the global one: the full set on which $|f_n|\le g$ holds is produced
+inside \path{RepAbsLeOnFullC} for each $n$ separately, so it may depend on the index.
+
+\begin{quote}\small
+\begin{verbatim}
+def RepAbsLeOnFullC
+    {X : Type u} {S : IntSpaceC X}
+    (u v : IntegrableRepC3 S) : Prop :=
+  exists F : Set X, IsFullC S F /\
+    forall x : X, x ∈ F ->
+      forall (hudom : u.MemAt x) (hvdom : v.MemAt x)
+        (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
+        (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
+        RegularSeqLe (CReal.abs hu.sum) hv.sum
+\end{verbatim}
+\end{quote}
+
+\noindent Convergence ∈ measure is stated against an arbitrary integrable set and
+an arbitrary positive $\varepsilon$, and returns for each large index a good subset
+whose complement ∈ $A$ has small measure and on which the functions are close:
+
+\begin{quote}\small
+\begin{verbatim}
+def ConvergeInMeasureC {X : Type*} (S : IntSpaceC X)
+    (fn : Nat → DataPFunRC X) (f : DataPFunRC X) : Prop :=
+  ∀ (A : BishopC.BSet X) (hA : IntegrableSet1C S A)
+    (eps : CReal) (_heps : regularSeqLtProp CReal.zero eps),
+    ∃ N : Nat, ∀ n ≥ N,
+      ∃ (B : BishopC.BSet X) (hB : IntegrableSet1C S B),
+        (B.S1 ⊆ A.S1 ∩ f.domain ∩ (fn n).domain) ∧
+        regularSeqLtProp ((IntegrableSet1_subC hA hB).rep.integral) eps ∧
+        ∀ x (_hxB : x ∈ B.S1) (exf : f.domData x) (exfn : (fn n).domData x),
+          regularSeqLtProp
+            (CReal.abs (CReal.sub (f.toFun x exf) ((fn n).toFun x exfn))) eps
+\end{verbatim}
+\end{quote}
+
+\noindent All four are reproduced verbatim from the artifact, with doc-strings
+removed. Each unfolds to the corresponding definition of Part~I:
+\path{IsFullC} to Definition~\ref{def:full}, \path{DominatedOnFullC} to
+Definition~\ref{def:domination}, \path{ConvergeInMeasureC} to
+Definition~\ref{def:convmeasure}, and \path{IntSpaceC} to the interface of
+Definition~\ref{def:intspace}. Whether each unfolding is faithful is a judgement a
+reader makes by comparing the two, and it is the judgement the kernel cannot make.
+
 \subsection{Three-layer public interface}
 \label{sec:layers}
 The public API has three layers:
@@ -620,6 +765,65 @@ The apparent asymmetry of the audit outputs---\texttt{[propext, Quot.sound]} on 
 
 Accordingly, we are not aware of another choice-free formalization of the Bishop--Cheng dominated convergence theorem in Lean~4; mathlib's dominated convergence theorem is classical.  This records what we looked for and did not find, and is not a claim of priority of any kind---not to the first proof-assistant formalization, the first constructive one, or the first choice-free one; the closest prior work we did find is set out above.  Nor is it based on a systematic literature search.  The two published surveys consulted above are consistent with it without establishing it: Miyamoto's list of Bishop-style formalizations records Nuprl, CoRN and Minlog and does not include Bishop--Cheng measure theory~\cite[\S27.3.4]{miyamoto-2023}, and Bickford, reporting one of the most substantial of those developments, states that the general definite integral was the one part of his programme not carried through~\cite[\S28.14]{bickford-2023}.  The contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
 
+\subsection{What is different here, and what is not}
+\label{sec:differential}
+
+The comparisons above are scattered through the section, and a reader is entitled to
+ask what they add up to.  They add up to four differences and one non-difference,
+and it is worth being explicit about which is which, because the theorem being
+proved is the same theorem.
+
+\emph{The hypothesis is weaker on domination.}  CoRN's public
+\texttt{DominatedConvergence} assumes \texttt{forall n, partialFuncLe (Xabs (fn n)) g}:
+one bound holding wherever the partial functions are defined.  The hypothesis here is
+that for each $n$ the bound holds on \emph{some} full set, and that the set may depend
+on $n$ (Definition~\ref{def:domination}, and \path{RepAbsLeOnFullC} in
+Section~\ref{sec:definitions-lean}).  A sequence dominated only off a different null
+set at each index satisfies the second and not the first.  This is a weakening of the
+hypothesis, hence a strengthening of the theorem, in that one direction; the two
+theorem surfaces as wholes are not ordered, for the reasons the rest of this section
+gives.
+
+\emph{The avoidance is discharged before measure theory, not inside it.}  Both
+developments make the countable-avoidance step explicit and data-valued, and neither
+appeals to choice for it.  But CoRN's \texttt{CRuncountable} covers the supplied
+sequence by intervals of controlled total measure in a concrete real-line integration
+space and extracts a point from the remainder, so the step runs at a stage where the
+measure apparatus is already built.  The construction here (Lemma~\ref{lem:avoid},
+Appendix~\ref{sec:b-avoidance}) uses only the order structure of the presentations and
+their rational approximations, and closes before any measure theory is in place.  The
+consequence is not that one is better: it is that the obligation which the no-go
+results attach to this route is discharged here at the level of the reals themselves,
+where the presentations are, rather than at the level of a measure space built on top
+of them.  That is why the presented-real hypothesis does the work it does.
+
+\emph{Propositions and data are separated by design rather than by convention.}  CoRN
+states \texttt{CvMeasure} Type-valued.  The development here proves two routes with the
+same mathematical content and keeps them apart: a Type-valued route in which the
+carriers, the fullness proofs and the bounds are an explicit selector, and a
+Prop-facing theorem whose hypotheses are propositions and whose conclusion is the
+ordinary $\forall\varepsilon\,\exists N$ statement.  Section~\ref{sec:layers} sets out
+the three layers this produces.  The point of the separation is that every crossing
+from a proposition to data becomes a place one can look at, and Appendix~\ref{sec:b-onepoint}
+writes out the principal one; a development that does not separate them has the same
+crossings but no place to look.
+
+\emph{The reference is internalized.}  CoRN quantifies over an abstract
+\texttt{ConstructiveReals} interface whose implementations live in the Coq standard
+library, so \texttt{Print Assumptions} descends into a layer outside the artifact.
+Here the reals are a concrete type inside the development, which is why the size
+reported in Section~\ref{sec:cost} is what it is: that layer is the cost of having no
+reference outside the audited closure.
+
+\emph{The theorem is not new, and neither realization generalizes the other.}  The
+mathematics is Bishop and Cheng's, and their proof is the proof followed here.  The
+two theorem surfaces live over different real-number objects and different
+integration-space interfaces -- CoRN's carries a distinguished integrable unit of
+integral one, Definition~\ref{def:intspace} carries no normalization field -- and
+neither is a formal generalization of the other.  No priority is claimed, in either
+direction.  What is claimed is the four differences above, each of which is a
+difference in what the formalization commits to rather than in what the theorem says.
+
 \section{Trust boundary and reproducibility}
 \label{sec:trust}
 
@@ -727,6 +931,49 @@ Two remarks on the counting.  A declaration is a source line matching
 \end{center}
 so declarations carrying other modifiers, or not starting at the beginning of a line, are missed; and the pattern is purely lexical, so it also matches the occasional line inside a block comment.  The figures are the raw counts.
 
+Where the lines are matters more than how many there are, and a hundred thousand of
+them for one theorem invites the question of what they are doing.  The answer is
+visible once they are split by layer.
+
+\begin{center}\footnotesize
+\begin{tabular}{@{}lrrrr@{}}
+\hline
+Layer & Files & Lines & \% & Declarations\\
+\hline
+repository root (public aliases, aggregation, supplement) & $3$ & $567$ & $0.6$ & $21$\\
+\path{Mathdemo/} named modules (the proof and the interfaces) & $16$ & $42{,}948$ & $42.9$ & $1{,}910$\\
+\path{Mathdemo/Internal/Rat} (the rationals) & $8$ & $1{,}158$ & $1.2$ & $130$\\
+\path{Mathdemo/Internal/Real} (the presented reals) & $373$ & $25{,}374$ & $25.4$ & $578$\\
+\path{Mathdemo/Internal/Measure} & $44$ & $3{,}380$ & $3.4$ & $1$\\
+\path{Mathdemo/Internal/Sec4} (the convergence machinery) & $62$ & $11{,}274$ & $11.3$ & $443$\\
+\path{Mathdemo/Internal} (not yet grouped) & $7$ & $15{,}369$ & $15.4$ & $875$\\
+\hline
+& $513$ & $100{,}070$ & $100$ & $3{,}958$\\
+\hline
+\end{tabular}
+\end{center}
+
+\noindent Two figures in that table are the whole explanation.  The presented reals
+occupy $373$ files -- more than seven in ten -- for $578$ declarations, an average
+under two declarations per file: this is the arithmetic and order theory of regular
+sequences, developed inside the artifact because the reals here are a concrete type
+rather than an interface satisfied elsewhere (Section~\ref{sec:differential}).  A
+development quantifying over an abstract real-number structure does not carry that
+layer; it refers to it.  Against it, the mathematics of the paper -- Sections~1--4 of
+the source, the profile theory, the avoidance, the convergence argument -- is the
+$42{,}948$ lines of the named modules together with the $11{,}274$ of \path{Sec4}.
+
+The \path{Measure} directory shows the same effect from the other side: $44$ files
+and one declaration by the lexical count, because what is in them is almost entirely
+proof script rather than new statements.  And the $15{,}369$ lines not yet grouped
+are the residue of the regrouping described above, which is a statement about the
+tidiness of the artifact and not about the mathematics.
+
+None of this makes the development small.  It makes the size attributable: the layer
+that dominates is the one the choice of presented reals commits to, and
+Section~\ref{sec:cost-contents} explains why the closure that contains it is wider
+than the code the theorems strictly reach.
+
 \subsection{What fixes the contents}
 \label{sec:cost-contents}
 
@@ -736,7 +983,7 @@ That closure is not by itself a tree that compiles, and the gap is not small.  T
 
 No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}958$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
-Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $117$ entries of \path{tools/frozen_names.txt}, of which the $97$ that name declarations are checked by asking Lean to elaborate them, and the two that name hypothesis binders---\texttt{hconv} and \texttt{hdom} above---by locating them in the signature they belong to).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
+Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $118$ entries of \path{tools/frozen_names.txt}, of which the $98$ that name declarations are checked by asking Lean to elaborate them, and the two that name hypothesis binders---\texttt{hconv} and \texttt{hdom} above---by locating them in the signature they belong to).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
 
 
 \subsection{What the bulk of the development consists of}
