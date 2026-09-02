@@ -541,7 +541,7 @@ This remark is complementary to Section~\ref{sec:nogo}, and the final observatio
 \section{The size of the development}
 \label{sec:cost}
 
-The artifact shipped with this paper is the code the theorems of this paper depend on: $513$ development-source Lean files---the audited closure, to which two Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations, against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
+The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $513$ development-source Lean files---to which two Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $502$ of the $513$, the remainder being the aggregation module, the reading interface, the Definition~1.1 transcription and its adapter, the concrete models, and the axiom-check modules.  The bundle is measured against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
 
 Two remarks on the counting.  A declaration is a source line matching
 \begin{center}
