@@ -57,30 +57,30 @@ def main : IO Unit := do
   let r := reach env seeds
   let used   := src.filter (fun n => r.contains n)
   let unused := src.filter (fun n => !r.contains n)
-  IO.println s!"当方のモジュール数     : {ourMods.size}"
-  IO.println s!"★ソースに書かれた宣言 : {src.size}"
-  IO.println s!"  うち主定理群から到達 : {used.size}  ({(used.size*100)/src.size}%)"
-  IO.println s!"  到達しない           : {unused.size}  ({(unused.size*100)/src.size}%)"
+  IO.println s!"modules of this development : {ourMods.size}"
+  IO.println s!"declarations written in source : {src.size}"
+  IO.println s!"  reachable from the claim-carrying modules : {used.size}  ({(used.size*100)/src.size}%)"
+  IO.println s!"  not reachable : {unused.size}  ({(unused.size*100)/src.size}%)"
   for k in [`BishopSec3P.bishop_cheng_thm_4_15_propC, `BishopSec3P.thm_3_6_all_posC,
             `BishopSec1P.IntSpaceC, `BishopSec3P.lemma_3_4DataC,
             `BishopSec3P.thm_3_5_smooth_aeC] do
-    IO.println s!"  [検査] {k} 到達= {r.contains k}"
-  IO.println "\n── 到達しない宣言が住むモジュール 上位25 ──"
+    IO.println s!"  [probe] {k} reachable= {r.contains k}"
+  IO.println "\n-- modules holding unreachable declarations, top 25 --"
   let mut m : Std.HashMap String Nat := {}
   for n in unused do
     let p := match env.getModuleFor? n with | some mo => mo.toString | none => "?"
     m := m.insert p ((m.getD p 0) + 1)
   for (k,v) in (m.toList.toArray.qsort (fun a b => a.2 > b.2)).toList.take 25 do
     IO.println s!"  {v}\t{k}"
-  IO.println "\n── 到達する宣言が住むモジュール 上位12 ──"
+  IO.println "\n-- modules holding reachable declarations, top 12 --"
   let mut m2 : Std.HashMap String Nat := {}
   for n in used do
     let p := match env.getModuleFor? n with | some mo => mo.toString | none => "?"
     m2 := m2.insert p ((m2.getD p 0) + 1)
   for (k,v) in (m2.toList.toArray.qsort (fun a b => a.2 > b.2)).toList.take 12 do
     IO.println s!"  {v}\t{k}"
-  IO.println s!"\n到達する宣言が触れるモジュール数 : {m2.size} / 511"
-  IO.println s!"到達しない宣言が住むモジュール数 : {m.size} / 511"
+  IO.println s!"\nmodules touched by reachable declarations : {m2.size} / 511"
+  IO.println s!"modules holding unreachable declarations : {m.size} / 511"
   -- ★試行錯誤の痕跡（iter 系）を分離する
   -- モジュール名の最後の成分で判定する
   let isIter (mo : Name) : Bool :=
@@ -95,15 +95,15 @@ def main : IO Unit := do
   let iterUsed := iterAll.filter (fun n => r.contains n)
   let restAll := src.filter (fun n => !inIter n)
   let restUsed := restAll.filter (fun n => r.contains n)
-  IO.println "\n════ 試行錯誤の痕跡（iter 系モジュール）と本体の分離 ════"
+  IO.println "\n==== iteration-named modules separated from the rest ===="
   -- ★ファイル単位：到達宣言を1つも含まないモジュール＝削除候補
   let mut liveMods : NameSet := {}
   for n in used do
     match env.getModuleFor? n with | some mo => liveMods := liveMods.insert mo | none => pure ()
   let dead := ourMods.filter (fun mo => !liveMods.contains mo)
-  IO.println s!"\n★ファイル単位"
-  IO.println s!"  到達宣言を含むモジュール : {liveMods.size} / {ourMods.size}"
-  IO.println s!"  削除候補（1つも含まない）: {dead.size} / {ourMods.size}"
-  IO.println s!"iter 系モジュール数 : {iterMods.size} / 511"
-  IO.println s!"  iter 系の宣言     : {iterAll.size}   到達 {iterUsed.size}  ({(iterUsed.size*100)/(max iterAll.size 1)}%)"
-  IO.println s!"  本体側の宣言      : {restAll.size}   到達 {restUsed.size}  ({(restUsed.size*100)/(max restAll.size 1)}%)"
+  IO.println s!"\nby file"
+  IO.println s!"  modules containing a reachable declaration : {liveMods.size} / {ourMods.size}"
+  IO.println s!"  candidates for removal (containing none) : {dead.size} / {ourMods.size}"
+  IO.println s!"iteration-named modules : {iterMods.size} / 511"
+  IO.println s!"  their declarations : {iterAll.size}   reachable {iterUsed.size}  ({(iterUsed.size*100)/(max iterAll.size 1)}%)"
+  IO.println s!"  the rest : {restAll.size}   reachable {restUsed.size}  ({(restUsed.size*100)/(max restAll.size 1)}%)"
