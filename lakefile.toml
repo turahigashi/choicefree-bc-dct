@@ -1,6 +1,8 @@
 name = "mathdemo"
 version = "0.6.0"
-keywords = ["math"]
+description = "A choice-free Lean 4 formalization of the profile route to the Bishop-Cheng dominated convergence theorem, over presented reals."
+keywords = ["mathematics", "constructive-mathematics", "measure-theory", "dominated-convergence", "bishop", "choice-free"]
+license = "Apache-2.0"
 defaultTargets = ["Mathdemo"]
 
 [leanOptions]

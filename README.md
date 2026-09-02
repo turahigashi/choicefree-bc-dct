@@ -187,6 +187,35 @@ prints a table of contents for the implementation.
 
 `Mathdemo/Internal` contains implementation details in the audited transitive import closure.  These modules are not the intended public API; the public surface is `ChoiceFreeMeasureDCTPublic.lean`.  The paper reports the size of this closure as a description, not as a design.
 
+## Using this as a dependency
+
+Add to your `lakefile.toml`:
+
+```toml
+[[require]]
+name = "mathdemo"
+git = "<url of this repository>"
+rev = "v0.6.0"
+```
+
+and import the public surface:
+
+```lean
+import ChoiceFreeMeasureDCTPublic
+```
+
+That file is the whole of the intended API: 21 declarations, each with a doc-string,
+in the namespace `ChoiceFreeMeasureDCT`.  `#check` on any of them prints the type the
+paper cites, and `#print axioms` prints `[propext, Quot.sound]`.
+
+Everything under `Mathdemo/Internal` is implementation and carries no stability
+promise; `Mathdemo/MathematicalInterface.lean` restates the public surface in the
+vocabulary a mathematician reads, and is the recommended entry point for reading
+rather than for depending on.
+
+The toolchain is pinned in `lean-toolchain` and the mathlib revision in
+`lakefile.toml`; `lake-manifest.json` pins the resolved dependency set.
+
 ## Build and audit
 
 Run from the artifact root:

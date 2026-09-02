@@ -15,6 +15,9 @@ namespace ChoiceFreeMeasureDCT
 
 universe u
 
+/-- The source's Lemma 3.4, in the form the development consumes: from a profile and
+a positive `eps`, the partition data whose cells have profile measure below `eps`.
+Returned as data, not asserted, because the smoothness theorem consumes the cells. -/
 noncomputable def profile_partition_dataC
     {a b eps : BishopCReal.CReal}
     {hab : BishopCReal.regularSeqLtProp a b}
@@ -42,6 +45,11 @@ theorem profile_smooth_away_from_sequenceC
         P.IsSmoothAtC t) :=
   BishopSec3P.thm_3_5_smooth_aeC P
 
+/-- The source's Theorem 3.6, on one interval: at a level apart from every term of the
+exception sequence returned by Theorem 3.5, the upper and lower level sets are
+integrable and carry the expected profile measure.  `apart` is load-bearing: the
+threshold must be apart from the exception sequence, and Lemma 5.3 supplies such
+thresholds. -/
 noncomputable def profile_level_sets_integrable_apartC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (h : BishopSec1P.IntegrableRepC3 S)
@@ -70,6 +78,10 @@ theorem profile_level_sets_integrable_apart_globalC
         BishopSec3P.Thm36GlobalLevelSetsConclusionC h t :=
   BishopSec3P.thm_3_6_all_posC h
 
+/-- The uniform estimate on the complement of an integrable set (the source's Lemma 4.14
+combined with the construction inside its Theorem 4.13).  Returns the integrable set,
+the index bound and the measure threshold as data, since the convergence argument
+consumes all three. -/
 noncomputable def uniform_complement_from_profile_levelsC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -87,6 +99,9 @@ noncomputable def uniform_complement_from_profile_levelsC
   BishopSec3P.lemma43UniformComplementData_of_majorantC
     fn hnn g hgnn D hdom eps heps
 
+/-- Convergence of the integrals of the absolute errors to zero, from an error majorant
+and convergence in measure.  The Type-valued route: moduli and carriers are supplied
+by the caller and returned in the conclusion. -/
 noncomputable def l1_error_convergence_from_majorant_measure_convergenceC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -108,6 +123,8 @@ noncomputable def l1_error_convergence_from_majorant_measure_convergenceC
   BishopSec3P.lemma414_l1_error_tendsto_zero_from_majorant_smooth_measure_convergeC
     fn f herr_nn g hgnn Dsmooth hdom hconv
 
+/-- Convergence of the integrals themselves, from an error majorant and convergence in
+measure.  Obtained from the previous declaration through `|I(f_n)-I(f)| <= I(|f_n-f|)`. -/
 noncomputable def integral_convergence_from_majorant_measure_convergenceC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -129,6 +146,8 @@ noncomputable def integral_convergence_from_majorant_measure_convergenceC
   BishopSec3P.thm_4_15_integral_convergence_from_majorant_smooth_measure_convergeC
     fn f herr_nn g hgnn Dsmooth hdom hconv
 
+/-- Dominated convergence in the form the proof of Theorem 4.15 establishes: from a
+verified error majorant together with its profile data. -/
 noncomputable def dominated_convergence_from_error_majorant_profileC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -147,6 +166,9 @@ noncomputable def dominated_convergence_from_error_majorant_profileC
   BishopSec3P.goalB_dominated_convergence_dataC
     fn f g hgnn Dsmooth hdom hconv
 
+/-- Dominated convergence from a *global* pointwise majorant, the shape a reader expects
+from the classical statement.  The full-set variants below relax the global
+hypothesis to a carrier that may depend on the index. -/
 noncomputable def dominated_convergence_from_pointwise_majorant_profileC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -162,6 +184,8 @@ noncomputable def dominated_convergence_from_pointwise_majorant_profileC
   BishopSec3P.goalB_classical_dominated_convergence_dataC
     fn f g hgnn Dsmooth hfn_bound hconv
 
+/-- Dominated convergence from a global pointwise majorant, with convergence in measure
+supplied in its good-set form. -/
 noncomputable def dominated_convergence_from_pointwise_majorant_good_set_profileC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -177,6 +201,9 @@ noncomputable def dominated_convergence_from_pointwise_majorant_good_set_profile
   BishopSec3P.goalB_pointwise_majorant_goodSet_convergence_dataC
     fn f g hgnn Dsmooth hfn_bound hconv
 
+/-- As above, with the dyadic smooth-level data synthesized rather than supplied: the
+wrapper builds it from the profile by iterating the level construction at the dyadic
+gauge, so that a caller with no smooth-level data of its own can still apply the theorem. -/
 noncomputable def l1_error_convergence_from_majorant_measure_convergence_autoC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -198,6 +225,7 @@ noncomputable def l1_error_convergence_from_majorant_measure_convergence_autoC
     fn f herr_nn g hgnn (BishopSec3P.lemma43DyadicSmoothDataC_construct g)
     hdom hconv
 
+/-- As above, with the dyadic smooth-level data synthesized by the wrapper. -/
 noncomputable def integral_convergence_from_majorant_measure_convergence_autoC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -219,6 +247,7 @@ noncomputable def integral_convergence_from_majorant_measure_convergence_autoC
     fn f herr_nn g hgnn (BishopSec3P.lemma43DyadicSmoothDataC_construct g)
     hdom hconv
 
+/-- As above, with the dyadic smooth-level data synthesized by the wrapper. -/
 noncomputable def dominated_convergence_from_error_majorant_profile_autoC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -236,6 +265,7 @@ noncomputable def dominated_convergence_from_error_majorant_profile_autoC
   dominated_convergence_from_error_majorant_profileC
     fn f g hgnn (BishopSec3P.lemma43DyadicSmoothDataC_construct g) hdom hconv
 
+/-- As above, with the dyadic smooth-level data synthesized by the wrapper. -/
 noncomputable def dominated_convergence_from_pointwise_majorant_profile_autoC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -252,6 +282,7 @@ noncomputable def dominated_convergence_from_pointwise_majorant_profile_autoC
     (BishopSec3P.lemma43DyadicSmoothDataC_construct (g.add f.absVal))
     hfn_bound hconv
 
+/-- As above, with the dyadic smooth-level data synthesized by the wrapper. -/
 noncomputable def dominated_convergence_from_pointwise_majorant_good_set_profile_autoC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
@@ -337,6 +368,10 @@ noncomputable def dominated_convergence_from_pointwise_majorant_on_full_good_set
   BishopSec3P.dominatedConvergence_from_pointwiseMajorantOnFullGoodSetData_autoC
     fn f g hdom hconv
 
+/-- **The theorem of the paper** (the source's Theorem 4.15), in its Prop-facing form:
+if `fn` converges in measure to `f`, and some single integrable `g` dominates every
+`fn` on a full set that may depend on the index, then the integrals converge.
+Proved separately from the Type-valued route above, not derived from it. -/
 noncomputable def bishop_cheng_dominated_convergence_propC
     {X : Type u} {S : BishopSec1P.IntSpaceC X}
     (fn : Nat -> BishopSec1P.IntegrableRepC3 S)
