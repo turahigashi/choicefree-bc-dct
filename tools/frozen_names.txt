@@ -141,3 +141,9 @@ corn IntegrationSpace
 dir Mathdemo/Internal/Measure
 dir Mathdemo/Internal/Real
 dir Mathdemo/Internal/Sec4
+# Hypothesis binders the paper names when it explains the shape of the main
+# theorem.  They are not declarations, so the decl check cannot see them; the
+# frozen-name script checks instead that each still occurs in the signature of
+# the declaration recorded beside it.
+binder	hconv	Mathdemo/BishopChengTheorem415Prop.lean	bishop_cheng_thm_4_15_propC
+binder	hdom	Mathdemo/BishopChengTheorem415Prop.lean	bishop_cheng_thm_4_15_propC

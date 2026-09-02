@@ -35,7 +35,7 @@ For the named public declarations the kernel reports an axiom footprint confined
 \noindent\textbf{Keywords:} constructive measure theory; dominated convergence; Lean~4; proof assistants; presented reals; choice principles.
 
 \bigskip
-\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  
+\noindent\textbf{How to read this paper.}  Part~I (Sections~\ref{sec:intro}--\ref{sec:proof}) is mathematical.  It fixes the setting, states the definitions, states the theorem, and gives the proof, and it can be read without any knowledge of Lean.  One construction is an exception: the countable-avoidance step of Section~\ref{sec:profile-theory} is described there down to the mechanism---where the cut points are placed and why the width contracts---but the recursion, the width estimate and the Cauchy data are carried out in Appendix~\ref{sec:b-avoidance}, and a reader who wants that step at the level of a proof rather than a description should go there or of proof assistants: no formal identifier occurs in a definition or in the statement of a theorem.  
 
 Throughout the paper, ``the source'' refers to Bishop and Cheng's memoir \emph{Constructive Measure Theory}~\cite{bishop-cheng-1972}; Bishop's \emph{Foundations of Constructive Analysis}~\cite{bishop-1967} is always cited by name.  
 
@@ -45,22 +45,29 @@ Appendix~\ref{sec:appendix-map} tabulates the correspondence between the numberi
 
 \bigskip
 \noindent\textbf{The dependencies at a glance.}  Each row is read left to right; the
-first three carry the mathematics, the fourth fixes what the theorem is stated about,
-and the fifth is the evidence.
+first four carry the mathematics, the fifth fixes what the theorem is stated about,
+and the sixth is the evidence.  The rows are not a single chain: rows~1--3 and row~4
+are two branches that meet, and the meeting is where the theorem is proved.
 
 \begin{center}\footnotesize
 \begin{tabular}{@{}l@{\;$\to$\;}l@{\;$\to$\;}l@{\quad}r@{}}
 presented reals & cotransitivity as data & countable avoidance & Lem.~\ref{lem:avoid}\\[2pt]
 a profile & an explicit exception sequence & an apart admissible level & Thm~\ref{thm:3-5}, Lem.~\ref{lem:avoid}\\[2pt]
-admissible levels & a uniform bound off a small set & convergence of integrals & Thm~\ref{thm:3-6}, Prop.~\ref{prop:uniform-complement}, Thm~\ref{thm:prop-dct}\\[2pt]
+an apart level & level sets, with domination & a uniform bound off a small set & Thm~\ref{thm:3-6}, Prop.~\ref{prop:uniform-complement}\\[2pt]
+convergence in measure & an $L^1$ estimate & convergence of integrals & Thm~\ref{thm:prop-dct}\\[2pt]
 Definition~1.1 & a hypothesis-free adapter & the working interface & Rem.~\ref{rem:fidelity}\\[2pt]
 public declarations & their proof terms & \texttt{[propext, Quot.sound]} & \S\ref{sec:audit}\\
 \end{tabular}
 \end{center}
 
-The third row is the theorem; the first two are the step at which a choice-free
-treatment is known to be obstructed, and the fourth is what makes the theorem apply to
-every integration space in the source's sense rather than to the interface alone.
+Rows~3 and~4 are the theorem, and they are separate because the hypotheses are:
+domination bounds the sequence, convergence in measure says it converges, and neither
+implies the other---the Lean statement takes them as two arguments, \texttt{hdom} and
+\texttt{hconv}.  The $L^1$ estimate of row~4 is where they meet: it is obtained from
+convergence in measure together with the bound row~3 supplies.  Rows~1 and~2 are the step at which a choice-free treatment is known to
+be obstructed, and row~2 consumes row~1: the level the profile is evaluated at is the
+one row~1 constructs.  Row~5 is what makes the theorem apply to every integration space
+in the source's sense rather than to the interface alone.
 
 \part{The mathematics}
 
@@ -643,7 +650,7 @@ That closure is not by itself a tree that compiles, and the gap is not small.  T
 
 No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}958$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
-Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $115$ entries of \path{tools/frozen_names.txt}, of which the $97$ that name declarations are checked by asking Lean to elaborate them).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
+Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $117$ entries of \path{tools/frozen_names.txt}, of which the $97$ that name declarations are checked by asking Lean to elaborate them, and the two that name hypothesis binders---\texttt{hconv} and \texttt{hdom} above---by locating them in the signature they belong to).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
 
 
 \subsection{What the bulk of the development consists of}
@@ -676,7 +683,7 @@ A complete \path{./build_audit.sh} run from the v0.6.0 tree finished on 2026-09-
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-The artifact is tagged \texttt{v\CFBDCTVersion}.  The requirement that the tagged release receive a complete \path{./build_audit.sh} run is met by the run from the release tree just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is the \texttt{v\CFBDCTVersion} release candidate.  The public tag and the version DOI are created when the deposit is cut, from the exact tree audited above and after the checksums are regenerated on it; until then neither exists, and the concept DOI below is the only identifier this paper can cite.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \section*{Use of AI-assisted tools}
 Generative AI and AI-assisted coding tools were used extensively in the development, refactoring, documentation, and review of the Lean source code, and in drafting and revising the prose of this paper.  The author determined the mathematical scope and formalization goals, reviewed the public theorem statements and proof architecture, reviewed and approved the manuscript text, and executed the reported build, static, checksum, and axiom audits.  The author assumes full responsibility for the contents of the paper and artifact.  Detailed manual review of the low-level implementation is ongoing.  AI systems are not listed as authors.
@@ -1490,7 +1497,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.  Software deposit, Zenodo.
+\newblock Version \CFBDCTVersion (deposit pending at the time of writing; the version DOI is assigned when it is cut).  Software deposit, Zenodo.
 \newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}

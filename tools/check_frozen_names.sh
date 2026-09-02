@@ -76,6 +76,24 @@ while read -r _ n; do
 done < <(awk '$1=="version"' "$LIST")
 echo "version: $ver_n matched against lean-toolchain"
 
-echo "frozen_names: $((decl_n+mod_n+ns_n+dir_n+corn_n+ver_n))"
+# ★Hypothesis binders the paper names when it explains the shape of the theorem.
+# They are not declarations, so the #check route cannot see them.  Verify instead
+# that each still occurs in the signature of the declaration recorded beside it,
+# i.e. between that declaration's opening line and its `:=`.
+bnd_n=0
+while read -r _ n f d; do
+  bnd_n=$((bnd_n+1))
+  if [ ! -f "$f" ]; then echo "MISSING binder file: $f (for $n)"; fail=1; continue; fi
+  if ! awk -v d="$d" -v b="$n" '
+        $0 ~ ("^(noncomputable )?(theorem|lemma|def) " d "([^A-Za-z0-9_]|$)") { ins=1 }
+        ins && index($0, "(" b " :") { found=1 }
+        ins && index($0, ":=")       { ins=0 }
+        END { exit !found }' "$f"; then
+    echo "MISSING binder: $n in the signature of $d ($f)"; fail=1
+  fi
+done < <(awk '$1=="binder"' "$LIST")
+echo "binder: $bnd_n hypothesis binders located in their signatures"
+
+echo "frozen_names: $((decl_n+mod_n+ns_n+dir_n+corn_n+ver_n+bnd_n))"
 if [ "$fail" -ne 0 ]; then echo "FROZEN NAME CHECK FAILED"; exit 1; fi
 echo "FROZEN NAME CHECK PASSED"

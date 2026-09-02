@@ -74,26 +74,45 @@ def main() -> int:
              if '.lake' not in p.parts and 'tools' not in p.parts]
     decl  = re.compile(r'(?m)^(private )?(noncomputable )?(theorem|def|lemma|structure|abbrev|instance) ')
 
+    # ★Each figure is anchored to the sentence that states it.  Without an anchor the
+    # test is only that the value occurs somewhere in the TeX, and a stale figure in one
+    # sentence passes because the same number is correct in another: changing "traverses
+    # 513 Lean files" to 999 left the run green, because 513 still appeared elsewhere.
+    # `{v}` in an anchor is replaced by the value, written the way TeX writes it.
     checks = [
-        ("artifact version",        grab(build, r'artifact_version=([\d.]+)', 'artifact_version')),
-        ("static-audit closure",    grab(build, r'closure_files: (\d+)', 'closure_files')),
-        ("tracked Lean files",      grab(build, r'tracked_lean_files: (\d+)', 'tracked_lean_files')),
-        ("reading-layer count",     grab(build, r'reading_layer_declarations=(\d+)', 'reading_layer_declarations')),
-        ("reading layer [propext, Quot.sound]", str(rl.count('propext, Quot.sound'))),
-        ("reading layer no axioms", str(rl.count('does not depend on any axioms'))),
-        ("Lean files in the tree",  f"{len(lean):,}"),
-        ("lines in the tree",       f"{sum(len(read(p).splitlines()) for p in lean):,}"),
-        ("declarations in the tree",f"{sum(len(decl.findall(read(p))) for p in lean):,}"),
+        ("artifact version",        grab(build, r'artifact_version=([\d.]+)', 'artifact_version'),
+                                    r'artifact\\_version={v}'),
+        ("static-audit closure",    grab(build, r'closure_files: (\d+)', 'closure_files'),
+                                    r'closure\\_files: {v}'),
+        ("tracked Lean files",      grab(build, r'tracked_lean_files: (\d+)', 'tracked_lean_files'),
+                                    r'tracked\\_lean\\_files: {v}'),
+        ("reading-layer count",     grab(build, r'reading_layer_declarations=(\d+)', 'reading_layer_declarations'),
+                                    r'all \${v}\$ reading-layer declarations'),
+        ("reading layer [propext, Quot.sound]", str(rl.count('propext, Quot.sound')),
+                                    r'verifies that \${v}\$ report'),
+        ("reading layer no axioms", str(rl.count('does not depend on any axioms')),
+                                    r'the (?:{w}|\${v}\$) which report no axioms'),
+        ("Lean files in the tree",  f"{len(lean):,}",
+                                    r'traverses \${v}\$ Lean files'),
+        ("lines in the tree",       f"{sum(len(read(p).splitlines()) for p in lean):,}",
+                                    r'\${v}\$ lines'),
+        ("declarations in the tree",f"{sum(len(decl.findall(read(p))) for p in lean):,}",
+                                    r'\${v}\$ declarations by the lexical count'),
         ("frozen names",            str(len([l for l in read(ROOT/'tools'/'frozen_names.txt').splitlines()
-                                             if l.strip() and not l.startswith('#')]))),
-        ("distinct names in the axiom logs", f"{axiom_log_names():,}"),
+                                             if l.strip() and not l.startswith('#')])),
+                                    r'\${v}\$ entries of'),
+        ("distinct names in the axiom logs", f"{axiom_log_names():,}",
+                                    r'for \${v}\$ distinct names'),
     ]
     # ★The frozen-name list is a window on the paper; a stale window passes while the
     # claim it checks has become false.  Compare it with what the paper names now.
     frozen_path = ROOT / 'tools' / 'frozen_names.txt'
     stale = []
     if frozen_path.exists():
-        frozen = {l.strip().split(None, 1)[1].strip() for l in read(frozen_path).splitlines()
+        # A frozen line is `<type>\t<name>[\t...]`; take the name, which for a binder
+        # is followed by the file and declaration it lives in.
+        frozen = {l.split('\t')[1].strip() if '\t' in l else l.strip().split(None, 1)[1].strip()
+                  for l in read(frozen_path).splitlines()
                   if l.strip() and not l.startswith('#')}
         EXCL = {'DominatedConvergence','MeasureTheory','_autoC','admit','extern','simp',
                 'thm_4_15_dominated_convergence','ContinuousOn','lemma33_lt_of_not_le',
@@ -130,12 +149,29 @@ def main() -> int:
     # ★A bare substring test lets a short figure match inside a longer number
     # (``114`` inside ``1,148``), so a stale figure can pass.  Require that the
     # value not be flanked by a digit, a comma between digits, or a decimal point.
+    WORDS = {'0':'no','1':'one','2':'two','3':'three','4':'four','5':'five','6':'six',
+             '7':'seven','8':'eight','9':'nine','10':'ten','11':'eleven','12':'twelve'}
+
+    def at_claim_site(v: str, anchor: str) -> bool:
+        """Is the value written where the paper makes the claim about it?
+
+        The TeX has already had ``{,}`` folded to ``,`` when it was read, so an anchor
+        spells a thousands separator as a plain comma.  ``{w}`` expands to the English
+        numeral for small counts, because the paper says "the two which report no
+        axioms" rather than printing a digit."""
+        pat = anchor.replace('{v}', re.escape(v))
+        pat = pat.replace('{w}', re.escape(WORDS.get(v, v)))
+        return re.search(pat, tex) is not None
+
     def present(v: str) -> bool:
         return re.search(r'(?<![\d.,])' + re.escape(v) + r'(?![\d.,]*\d)', tex) is not None
 
-    for label, value in checks:
-        ok = present(value)
-        print(f"{'ok  ' if ok else 'MISS'} {label}: {value}")
+    for label, value, anchor in checks:
+        ok = at_claim_site(value, anchor)
+        note = ''
+        if not ok and present(value):
+            note = '  (the value occurs elsewhere in the paper, but not at its claim site)'
+        print(f"{'ok  ' if ok else 'MISS'} {label}: {value}{note}")
         if not ok:
             bad += 1
     for t in stale:

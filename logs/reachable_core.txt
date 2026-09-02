@@ -49,14 +49,14 @@ declarations written in source : 5431
   24	Mathdemo.Internal.Real.CRealRegularSequenceLayerLiveCRat
   24	Mathdemo.Internal.Rat.Quotient
 
-modules touched by reachable declarations : 138 / 511
-modules holding unreachable declarations : 71 / 511
+modules touched by reachable declarations : 138 / 512
+modules holding unreachable declarations : 71 / 512
 
 ==== iteration-named modules separated from the rest ====
 
 by file
   modules containing a reachable declaration : 138 / 512
   candidates for removal (containing none) : 374 / 512
-iteration-named modules : 1 / 511
+iteration-named modules : 1 / 512
   their declarations : 10   reachable 0  (0%)
   the rest : 5421   reachable 2552  (47%)

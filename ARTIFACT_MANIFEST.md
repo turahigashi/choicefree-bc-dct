@@ -1,14 +1,14 @@
 # Artifact manifest
 
 - Artifact name: `choicefree-bc-dct`
-- Version: `0.6.0`
-- Date: 2026-08-31
+- Version: `0.6.0` (release candidate; the tag and the version DOI do not exist yet)
+- Date: 2026-09-02
 - DOI (software deposit, this version): reserved at deposit time; not yet assigned in this tree
 - DOI (previous version v0.4.1): `10.5281/zenodo.22137161`
 - DOI (previous version v0.4.0): `10.5281/zenodo.21854936`
 - DOI (all versions): `10.5281/zenodo.21850965`
 - Published: v0.4.1 on 2026-08-28 (Zenodo, https://zenodo.org/record/22137161); v0.4.2 not yet deposited
-- Git tag: `v0.6.0`
+- Git tag: not yet created. `v0.6.0` is the name it will be given, on the exact commit audited below, at the time the deposit is cut. The public repository currently carries no such tag.
 - Lean version: `leanprover/lean4:v4.30.0`
 - mathlib revision: `v4.30.0`
 

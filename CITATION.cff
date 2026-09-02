@@ -6,7 +6,10 @@ authors:
   - family-names: Urahigashi
     given-names: Toshihisa
 version: "0.6.0"
-date-released: "2026-08-31"
+# Release candidate: date-released is the date of this candidate tree, and doi is the
+# concept DOI, which resolves to the latest published version.  The version DOI for
+# 0.6.0 is assigned when the deposit is cut and replaces the value below at that point.
+date-released: "2026-09-02"
 doi: "10.5281/zenodo.21850965"
 license: MIT
 repository-code: "https://github.com/turahigashi/choicefree-bc-dct"
