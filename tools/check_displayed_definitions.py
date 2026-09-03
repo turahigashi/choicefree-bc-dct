@@ -49,6 +49,13 @@ def main(argv):
                      if '.lake' not in p.parts and 'tools' not in p.parts)
     lean_n = norm(lean)
 
+    # ★A review deleted four of the five displayed definitions and this check still
+    # passed: it asked whether each block shown is in the source, never whether the
+    # blocks that should be shown are.  Pin the set, so that a definition dropped
+    # from the section fails here rather than going unnoticed.
+    EXPECTED = {"IntSpaceC", "IsFullC", "RepAbsLeOnFullC", "DominatedOnFullC",
+                "ConvergeInMeasureC"}
+    seen = []
     shown, bad = 0, []
     for m in re.finditer(r'\\begin\{verbatim\}(.*?)\\end\{verbatim\}', body, re.S):
         for part in m.group(1).strip().split('\n\n'):
@@ -56,9 +63,22 @@ def main(argv):
             if not name:
                 continue
             shown += 1
+            seen.append(name.group(1))
             if norm(part) not in lean_n:
                 bad.append(name.group(1))
     print(f"displayed_definitions={shown} matching_source={shown - len(bad)}")
+    got = set(seen)
+    missing, extra = sorted(EXPECTED - got), sorted(got - EXPECTED)
+    dup = sorted({n for n in seen if seen.count(n) > 1})
+    if missing:
+        print(f"FAIL: the section no longer displays {missing}", file=sys.stderr)
+    if extra:
+        print(f"FAIL: the section displays {extra}, which is not in the expected set; "
+              f"add it here deliberately if it belongs", file=sys.stderr)
+    if dup:
+        print(f"FAIL: displayed more than once: {dup}", file=sys.stderr)
+    if missing or extra or dup:
+        bad = bad or ["set mismatch"]
     for n in bad:
         print(f"FAIL: the displayed {n} is not in the source verbatim (doc-strings aside)",
               file=sys.stderr)

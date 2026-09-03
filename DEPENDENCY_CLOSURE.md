@@ -1,6 +1,6 @@
 # Dependency closure
 
-Version 0.6.0
+Version 0.6.1
 
 The audited closure of the public roots contains the following 513 Lean files.
 **This list is generated from `logs/static_audit.txt`, not maintained by hand.**  The

@@ -1,7 +1,7 @@
 % arXiv reads the first few lines to choose an engine; this asks for pdflatex,
 % which is what the paper is compiled and checked with.
 \pdfoutput=1
-\def\CFBDCTVersion{0.6.0}
+\def\CFBDCTVersion{0.6.1}
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -42,7 +42,7 @@
 {\normalsize Independent researcher}\\[1pt]
 {\normalsize\texttt{123026.urahigashi.toshihisa@gmail.com}}\\[1pt]
 {\normalsize ORCID \href{https://orcid.org/0009-0004-0460-6242}{\texttt{0009-0004-0460-6242}}}}
-\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22257007}}
+\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22268374}}
 \begin{document}
 \maketitle
 
@@ -153,7 +153,7 @@ The axioms admit a model not concentrated at a single point (Section~\ref{sec:fo
 The scalar field is represented by presented real numbers: regular rational approximation sequences equipped with Bishop equality as the working equality relation~\cite{bishop-1967,bishop-bridges-1985}.  A presented real is thus a sequence $(x_n)$ of rationals together with the regularity condition $|x_m-x_n|\le m^{-1}+n^{-1}$, and two presented reals $x,y$ are \emph{equal} ($x\approx y$) when $|x_n-y_n|\le 2/n$ for every $n$: equality of the numbers represented, weaker than literal agreement of the two sequences.  A strict inequality $x<y$ is likewise always carried with a witness---an index and a gauge from which the difference stays positive---so that ``how far apart, and from when'' is part of the datum.  Equality and convergence remain distinct: a sequence of presented reals converges to $l$ when its terms approach $l$ at every gauge with a stated rate, not because its terms are Bishop-equal to $l$.
 
 \paragraph{Gauge and equality conventions.}
-Equality is taken in the implementation in the tail form $\forall k\,\exists N\,\forall n\ge N\colon|x_n-y_n|\le2^{-k}$---the form stated in Definition~\ref{def:b-real}, and the relation \path{relEventually} in the code.  For regular sequences this is equivalent to the displayed condition---one direction is immediate, and the other follows from regularity, since $|x_n-y_n|\le2\cdot2^{-n}+2\cdot2^{-m}+2^{-k}$ for every $m\ge N$---but the development adopts the tail form as its definition rather than deriving the equivalence internally.
+The reindexing between the two gauges is worth writing down, because both appear in this paper and comparisons made under one are not literal comparisons under the other.  Given a sequence $(x_n)$ regular for $1/n$, the sequence $x'_k:=x_{2^k}$ is regular for $2^{-k}$, since $|x'_j-x'_k|=|x_{2^j}-x_{2^k}|\le 2^{-j}+2^{-k}$; conversely a sequence regular for $2^{-k}$ yields one regular for $1/n$ by taking the term at the least $k$ with $2^{-k}\le n^{-1}$.  The two forms therefore present the same reals, but a statement about $x_n$ and one about $x'_k$ are statements about different terms, and the appendix means the dyadic ones throughout.  Equality is taken in the implementation in the tail form $\forall k\,\exists N\,\forall n\ge N\colon|x_n-y_n|\le2^{-k}$---the form stated in Definition~\ref{def:b-real}, and the relation \path{relEventually} in the code.  For regular sequences this is equivalent to the displayed condition---one direction is immediate, and the other follows from regularity, since $|x_n-y_n|\le2\cdot2^{-n}+2\cdot2^{-m}+2^{-k}$ for every $m\ge N$---but the development adopts the tail form as its definition rather than deriving the equivalence internally.
 
 The development does not identify Bishop-equal approximation sequences: the carrier is the type of regular sequences, not a quotient of it, and every statement is a relation between sequences rather than between equivalence classes.  This is a transcription of Bishop's own position in the \emph{Foundations} rather than an implementation convenience: the notes to that chapter state that a real number \emph{is} the regular sequence, and not an equivalence class of regular sequences, arguing that the equivalence-class reading would be inaccurate or meaningless.  Analytic statements are formulated so that they respect the Bishop equivalence relation.
 
@@ -497,7 +497,7 @@ Its hypothesis (i) is \path{ConvergeInMeasureC}, which unfolds exactly to Defini
 
 The theorem above is only as meaningful as the definitions it quantifies over, and
 the kernel does not check that those definitions say what this paper says they say.
-That correspondence is a limitation, recorded as such ∈ Section~\ref{sec:trust}; a
+That correspondence is a limitation, recorded as such in Section~\ref{sec:trust}; a
 reader who wants to audit it has to read the definitions. They are short, and they
 are given here so that the reading can be done without leaving the paper.
 
@@ -539,17 +539,19 @@ structure IntSpaceC (X : Type*) where
 \end{verbatim}
 \end{quote}
 
-\noindent Three things ∈ it are worth pointing at. The integral \texttt{I} takes
+\noindent Three things in it are worth pointing at. The integral \texttt{I} takes
 the membership proof as an argument, so it is defined \emph{on} \texttt{L} and not
 on all of \texttt{BFunC X}; there is no junk value at a function outside the class.
 The truncation field \texttt{cutPos\_mem} asks for $\min\{f,a\}$ only when $a$ carries
 positivity data, which is what the source's clause~(1) together with its own remark
 supplies, and no more (Remark~\ref{rem:fidelity}). And \texttt{continuity} is the
-source's clause~(4) ∈ the contrapositive form the development uses: from a strict
-inequality between $\sum I(f_n)$ and $I(f)$ it \emph{produces} a point at which the
-series stays below $f$, rather than asserting that no such point fails to exist.
+source's clause~(2) --- the constructive analogue of the continuity condition for a
+Daniell integral, which Definition~\ref{def:intspace} lists as (A6) --- in the positive,
+point-producing form the development uses: from a strict inequality between $\sum I(f_n)$
+and $I(f)$ it \emph{produces} a point at which the series stays below $f$.  It is not a
+contrapositive; nothing is inferred from the failure of an existence claim.
 
-The three notions the main theorem quantifies over are equally short. A full set is
+The four notions the main theorem is stated over are equally short. A full set is
 one that contains the common domain of a sequence of integrable functions:
 
 \begin{quote}\small
@@ -574,12 +576,18 @@ def RepAbsLeOnFullC
         (hu : RepSeriesSum (fun k => u.valueAt x hudom k))
         (hv : RepSeriesSum (fun k => v.valueAt x hvdom k)),
         RegularSeqLe (CReal.abs hu.sum) hv.sum
+
+def DominatedOnFullC
+    {X : Type u} {S : IntSpaceC X}
+    (fn : Nat -> IntegrableRepC3 S)
+    (g : IntegrableRepC3 S) : Prop :=
+  forall n : Nat, RepAbsLeOnFullC (fn n) g
 \end{verbatim}
 \end{quote}
 
-\noindent Convergence ∈ measure is stated against an arbitrary integrable set and
+\noindent Convergence in measure is stated against an arbitrary integrable set and
 an arbitrary positive $\varepsilon$, and returns for each large index a good subset
-whose complement ∈ $A$ has small measure and on which the functions are close:
+whose complement in $A$ has small measure and on which the functions are close:
 
 \begin{quote}\small
 \begin{verbatim}
@@ -597,12 +605,13 @@ def ConvergeInMeasureC {X : Type*} (S : IntSpaceC X)
 \end{verbatim}
 \end{quote}
 
-\noindent All four are reproduced verbatim from the artifact, with doc-strings
+\noindent All five definitions are reproduced verbatim from the artifact, with doc-strings
 removed. Each unfolds to the corresponding definition of Part~I:
-\path{IsFullC} to Definition~\ref{def:full}, \path{DominatedOnFullC} to
-Definition~\ref{def:domination}, \path{ConvergeInMeasureC} to
-Definition~\ref{def:convmeasure}, and \path{IntSpaceC} to the interface of
-Definition~\ref{def:intspace}. Whether each unfolding is faithful is a judgement a
+\path{IsFullC} to Definition~\ref{def:full}; \path{RepAbsLeOnFullC} and
+\path{DominatedOnFullC} together to Definition~\ref{def:domination}, the first
+giving the per-index bound and the second quantifying it over the sequence;
+\path{ConvergeInMeasureC} to Definition~\ref{def:convmeasure}; and
+\path{IntSpaceC} to the interface of Definition~\ref{def:intspace}. Whether each unfolding is faithful is a judgement a
 reader makes by comparing the two, and it is the judgement the kernel cannot make.
 
 \subsection{Three-layer public interface}
@@ -779,7 +788,7 @@ one bound holding wherever the partial functions are defined.  The hypothesis he
 that for each $n$ the bound holds on \emph{some} full set, and that the set may depend
 on $n$ (Definition~\ref{def:domination}, and \path{RepAbsLeOnFullC} in
 Section~\ref{sec:definitions-lean}).  A sequence dominated only off a different null
-set at each index satisfies the second and not the first.  This is a weakening of the
+set at each index can satisfy the second without satisfying the first.  This is a weakening of the
 hypothesis, hence a strengthening of the theorem, in that one direction; the two
 theorem surfaces as wholes are not ordered, for the reasons the rest of this section
 gives.
@@ -799,7 +808,7 @@ of them.  That is why the presented-real hypothesis does the work it does.
 
 \emph{Propositions and data are separated by design rather than by convention.}  CoRN
 states \texttt{CvMeasure} Type-valued.  The development here proves two routes with the
-same mathematical content and keeps them apart: a Type-valued route in which the
+same informal dominated-convergence assertion and keeps them apart: a Type-valued route in which the
 carriers, the fullness proofs and the bounds are an explicit selector, and a
 Prop-facing theorem whose hypotheses are propositions and whose conclusion is the
 ordinary $\forall\varepsilon\,\exists N$ statement.  Section~\ref{sec:layers} sets out
@@ -811,9 +820,11 @@ crossings but no place to look.
 \emph{The reference is internalized.}  CoRN quantifies over an abstract
 \texttt{ConstructiveReals} interface whose implementations live in the Coq standard
 library, so \texttt{Print Assumptions} descends into a layer outside the artifact.
-Here the reals are a concrete type inside the development, which is why the size
-reported in Section~\ref{sec:cost} is what it is: that layer is the cost of having no
-reference outside the audited closure.
+Here the presented reals are a concrete project-local type inside the development,
+which is why the size reported in Section~\ref{sec:cost} is what it is: that layer is
+inside the audited project closure rather than borrowed from a library.  It is not a
+claim of self-containment: Lean and \texttt{mathlib} remain external trusted
+dependencies, as Section~\ref{sec:audit} records.
 
 \emph{The theorem is not new, and neither realization generalizes the other.}  The
 mathematics is Bishop and Cheng's, and their proof is the proof followed here.  The
@@ -945,7 +956,7 @@ repository root (public aliases, aggregation, supplement) & $3$ & $567$ & $0.6$ 
 \path{Mathdemo/Internal/Rat} (the rationals) & $8$ & $1{,}158$ & $1.2$ & $130$\\
 \path{Mathdemo/Internal/Real} (the presented reals) & $373$ & $25{,}374$ & $25.4$ & $578$\\
 \path{Mathdemo/Internal/Measure} & $44$ & $3{,}380$ & $3.4$ & $1$\\
-\path{Mathdemo/Internal/Sec4} (the convergence machinery) & $62$ & $11{,}274$ & $11.3$ & $443$\\
+Sec4 convergence layer (\path{Mathdemo/Internal/Sec4/} plus \path{Sec4GenIB.lean}) & $62$ & $11{,}274$ & $11.3$ & $443$\\
 \path{Mathdemo/Internal} (not yet grouped) & $7$ & $15{,}369$ & $15.4$ & $875$\\
 \hline
 & $513$ & $100{,}070$ & $100$ & $3{,}958$\\
@@ -1012,11 +1023,11 @@ The result should be read with the following limitations in view.
 \item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A lexical scan of the closure finds no declaration whose conclusion is written, on one line, in the form \texttt{: True :=}.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level source-closure scan of Section~\ref{sec:audit}, item~(2), detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, escapes it.  The complete check is therefore carried out separately, by \path{tools/vacuous_statement_check.lean}: it enumerates the $5{,}431$ declarations the development writes in source, sets aside the $509$ that are not statements---inductive types, constructors, recursors and quotient primitives---and for each of the remaining $4{,}922$ strips the leading binders from the type, reduces the conclusion to weak head normal form, and reports it if that conclusion is \texttt{True}.  It finds eight, and they are of one shape: a membership lemma whose ambient set is \path{Set.univ}, so that $x\in S$ unfolds to \texttt{True} and the proof is \path{Set.mem_univ}.  None is a vestige---each is used, one to four times, to supply the membership proof term an interface demands, and the interface is the one a model with a smaller domain would have to satisfy non-trivially.  What is vacuous is the proof obligation in these particular constructions, not the role the statement plays.  The eight are recorded in \path{tools/vacuous_statements_known.txt} with that reason, and the check compares its findings against that list in both directions, so a new vacuous statement fails the audit and a name that stops being vacuous cannot leave the list stale.  The output is shipped as \path{logs/vacuous_statements.txt}.  Its range is the two library roots rather than the six roots of the source scan, because it reads an elaborated environment and \path{SupplementChoiceFreeMeasureDCT.lean} is not a library target: it is a file of \texttt{\#check} and \texttt{\#print axioms} commands, run by \texttt{lake env lean}, and it declares nothing for this check to examine.
 \end{enumerate}
 
-A complete \path{./build_audit.sh} run from the v0.6.0 tree finished on 2026-09-02 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.6.0} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
+A complete \path{./build_audit.sh} run from the v0.6.1 tree finished on 2026-09-03 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.6.1} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22257007}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22268374}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
@@ -1058,7 +1069,7 @@ Local reruns are written to:
 \begin{quote}\small\raggedright
 \path{logs/build_audit.rerun.txt}\par \path{logs/static_audit.rerun.txt}\par \path{logs/reading_layer_axioms.rerun.txt}\par \path{logs/public_surface.rerun.txt}\par \path{logs/mathdemo_build.rerun.txt}\par \path{logs/vacuous_statements.rerun.txt}. \end{quote} Every log the audit writes goes to one of these six, so the shipped reference logs stay byte-identical and checksum verification remains meaningful after rerunning the audit; the reference logs are promoted from the rerun files once, when a release is cut, and the checksums are generated after that promotion.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
 
-\section*{Declarations}
+\section*{Statements and Declarations}
 
 \paragraph{Funding.}  No funding was received for conducting this study.
 
@@ -1070,8 +1081,8 @@ for all of it.
 
 \paragraph{Data and code availability.}  There is no dataset.  The Lean~4 artifact,
 the audit apparatus and the shipped audit logs are archived and citable at
-\doi{10.5281/zenodo.22257007}, and are also at
-\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.6.0},
+\doi{10.5281/zenodo.22268374}, and are also at
+\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.6.1},
 which is the commit the deposit was cut from.  Every figure this paper states about
 the artifact is produced by a run recorded in the deposit, and the deposit contains
 the scripts that regenerate them: \path{./build_audit.sh} rebuilds the development
@@ -1868,7 +1879,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22257007}.
+\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22268374}.
 \newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}

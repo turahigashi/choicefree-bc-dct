@@ -37,9 +37,24 @@ def get(url, want_json=False):
         return None, str(e)
 
 def main(argv):
+    # ★Without a commit to compare against, this checked only that a tag of the right
+    # name exists -- and a review found the paper saying the tag and the deposit were
+    # made from "the exact tree audited above" while the tree had moved four commits
+    # past the tag.  The name was right and the object was not.  So default to the
+    # commit this working tree is on, and let --commit override it deliberately.
     want_commit = None
     if "--commit" in argv:
         want_commit = argv[argv.index("--commit") + 1]
+    else:
+        try:
+            want_commit = subprocess.run(["git", "-C", str(ROOT), "rev-parse", "HEAD"],
+                                         capture_output=True, text=True, check=True
+                                         ).stdout.strip()
+            print(f"comparing against this working tree: {want_commit[:12]}")
+        except Exception:
+            print("FAIL: no commit given and this is not a git checkout; pass --commit",
+                  file=sys.stderr)
+            return 1
     ok = True
 
     manifest = read(ROOT / "ARTIFACT_MANIFEST.md")

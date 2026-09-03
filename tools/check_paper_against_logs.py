@@ -150,8 +150,11 @@ def main() -> int:
                 # declarations of this development
                 'Set.univ', 'Set.mem_univ',
                 # the release tag, which check_release_consistency.py pins by position
-                # rather than as a declaration name
-                'v0.6.0'}
+                # rather than as a declaration name.  Derived from the paper's own
+                # version macro rather than written here: a hard-coded tag goes stale
+                # at the next release and reports the version bump as a defect.
+                'v' + (re.search(r'\\def\\CFBDCTVersion\{([^}]*)\}', read(paper))
+                       or ['', ''])[1]}
         named = set()
         for m in re.findall(r'\\(?:path|texttt)\{([^}]*)\}', read(paper)):
             t = m.replace('\\_', '_').strip()
