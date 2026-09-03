@@ -112,19 +112,46 @@ def main(argv):
         # ★The record can carry a file of the right name and the wrong bytes.  When the
         # archive built from the tagged tree is beside us, compare its digest with what
         # Zenodo holds, so "the deposit is this tree" is checked rather than assumed.
-        local = ROOT.parent / f"choicefree-bc-dct-{version}.zip"
-        if local.exists():
-            import hashlib
-            mine = hashlib.md5(local.read_bytes()).hexdigest()
-            theirs = {f.get("key"): (f.get("checksum") or "").split(":")[-1]
-                      for f in body.get("files", [])}
+        # ★This is the check that makes "the deposit is this tree" a fact rather than
+        # a claim, so it must not be skippable.  It used to look for one hard-coded
+        # file name beside the checkout and print a skip line when that name was
+        # absent -- and the release archive is conventionally named with a leading
+        # "v", so the skip fired on the very release it was written to check, while
+        # the run still reported PASS.  Now: try the known names, and if none is
+        # there, build the archive from the tag itself.
+        import hashlib, tempfile
+        theirs = {f.get("key"): (f.get("checksum") or "").split(":")[-1]
+                  for f in body.get("files", [])}
+        candidates = [ROOT.parent / f"choicefree-bc-dct-{version}.zip",
+                      ROOT.parent / f"choicefree-bc-dct-v{version}.zip",
+                      ROOT / f"choicefree-bc-dct-{version}.zip",
+                      ROOT / f"choicefree-bc-dct-v{version}.zip"]
+        local = next((c for c in candidates if c.exists()), None)
+        source = f"local file {local.name}" if local else None
+        blob = local.read_bytes() if local else None
+        if blob is None:
+            # No archive beside us: reproduce it from the tag.  git archive is
+            # deterministic for a fixed tree and prefix, so this reproduces the
+            # bytes the deposit was cut from.
+            try:
+                with tempfile.NamedTemporaryFile(suffix=".zip") as tmp:
+                    subprocess.run(["git", "-C", str(ROOT), "archive", "--format=zip",
+                                    f"--prefix=choicefree-bc-dct-v{version}/",
+                                    "-o", tmp.name, tag],
+                                   check=True, capture_output=True)
+                    blob = open(tmp.name, "rb").read()
+                source = f"archive rebuilt from {tag}"
+            except Exception as exc:
+                print(f"FAIL: no local archive and could not rebuild one from {tag}: "
+                      f"{exc}", file=sys.stderr)
+                ok = False
+        if blob is not None:
+            mine = hashlib.md5(blob).hexdigest()
             match = [k for k, v in theirs.items() if v == mine]
-            print(f"archive_md5: local={mine[:12]} matches={match}")
+            print(f"archive_md5: {source} = {mine[:12]} matches={match}")
             if not match:
-                print(f"FAIL: no published file matches the local archive; "
-                      f"published digests {theirs}", file=sys.stderr); ok = False
-        else:
-            print(f"archive_md5: no local archive at {local.name} to compare")
+                print(f"FAIL: no published file matches the archive of the tagged "
+                      f"tree; published digests {theirs}", file=sys.stderr); ok = False
 
         # The DOI must also resolve through doi.org, not only through Zenodo's API.
         st3, _ = get(f"https://doi.org/10.5281/zenodo.{doi}")
