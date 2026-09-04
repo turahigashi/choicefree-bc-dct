@@ -17,7 +17,7 @@ the deposit is cut, and record what it printed.
 Exit status is 0 only if every check reached the network and passed.  A check that
 could not reach the network fails: "we could not tell" is not "it is fine".
 """
-import json, re, subprocess, sys, urllib.request, urllib.error
+import hashlib, json, os, re, subprocess, sys, tempfile, urllib.request, urllib.error
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -109,22 +109,32 @@ def main(argv):
         if not files:
             print("FAIL: the published record carries no files", file=sys.stderr); ok = False
 
-        # ★The record can carry a file of the right name and the wrong bytes.  When the
-        # archive built from the tagged tree is beside us, compare its digest with what
-        # Zenodo holds, so "the deposit is this tree" is checked rather than assumed.
-        local = ROOT.parent / f"choicefree-bc-dct-{version}.zip"
-        if local.exists():
-            import hashlib
-            mine = hashlib.md5(local.read_bytes()).hexdigest()
-            theirs = {f.get("key"): (f.get("checksum") or "").split(":")[-1]
-                      for f in body.get("files", [])}
-            match = [k for k, v in theirs.items() if v == mine]
-            print(f"archive_md5: local={mine[:12]} matches={match}")
-            if not match:
-                print(f"FAIL: no published file matches the local archive; "
-                      f"published digests {theirs}", file=sys.stderr); ok = False
-        else:
-            print(f"archive_md5: no local archive at {local.name} to compare")
+        # ★The record can carry a file of the right name and the wrong bytes, so the
+        # deposit's digest is compared against an archive built here *from the tag*.
+        # It used to look for a pre-built zip beside the repository under a name that
+        # nothing produces (`choicefree-bc-dct-<version>.zip`, while the archives on
+        # disk are `-v<version>.zip`), so the comparison was skipped every time and the
+        # check reported success while asserting nothing about the deposit's contents.
+        # `git archive` is deterministic for a fixed tag --- it stamps the commit date,
+        # which the tag pins --- so rebuilding is exact, not approximate.
+        theirs = {f.get("key"): (f.get("checksum") or "").split(":")[-1]
+                  for f in body.get("files", [])}
+        with tempfile.TemporaryDirectory() as td:
+            zp = os.path.join(td, "archive.zip")
+            rc = subprocess.run(["git", "archive", "--format=zip",
+                                 f"--prefix=choicefree-bc-dct-{tag}/", tag, "-o", zp],
+                                cwd=str(ROOT), capture_output=True, text=True)
+            if rc.returncode != 0:
+                print(f"FAIL: could not build an archive from {tag}: "
+                      f"{rc.stderr.strip()[:200]}", file=sys.stderr); ok = False
+            else:
+                mine = hashlib.md5(open(zp, "rb").read()).hexdigest()
+                match = [k for k, v in theirs.items() if v == mine]
+                print(f"archive_md5: rebuilt_from_tag={mine[:12]} matches={match}")
+                if not match:
+                    print(f"FAIL: the deposit does not hold the archive of {tag}; "
+                          f"rebuilt {mine[:12]}, published {theirs}", file=sys.stderr)
+                    ok = False
 
         # The DOI must also resolve through doi.org, not only through Zenodo's API.
         st3, _ = get(f"https://doi.org/10.5281/zenodo.{doi}")

@@ -8,7 +8,11 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== toolchain =="
   lean --version
   lake --version
-  echo "artifact_version=0.7.4"
+  # ★Derived from the DOI ledger, not written here.  A hard-coded literal is one
+  # more place a release bump has to reach, and it was the one place the v0.7.5
+  # bump missed: every document said 0.7.5 while this line still said 0.7.4, and
+  # the paper/log check caught it only because it compares the two.
+  echo "artifact_version=$(awk '$1=="version"{print substr($2,2)}' tools/release_dois.txt)"
   echo "== lake build Mathdemo.CheckSec3PortAxioms =="
   lake build Mathdemo.CheckSec3PortAxioms
   echo "== lake build public DCT implementation support modules =="

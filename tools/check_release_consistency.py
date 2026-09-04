@@ -147,6 +147,41 @@ def main(argv):
                       file=sys.stderr); ok = False
             print(f"version_doi_pairs: {len(ledger_ver)} version-to-DOI pairs checked")
 
+            # ★Pairing is not completeness.  Cutting v0.7.5 straight after v0.7.4 with a
+            # blanket "0.7.4 -> 0.7.5" replace rewrote the sentences that named the
+            # *previous* release, so the documents jumped from v0.7.5 to v0.7.3 and
+            # v0.7.4 vanished from the history --- and every pair that remained was
+            # internally consistent, so the pairing check passed.  Pin the predecessor:
+            # whatever a document calls "the previous version" must be the newest
+            # `previous` row in the ledger, and it must not be the current DOI.
+            def _key(v):
+                return tuple(int(x) for x in v.lstrip("v").split("."))
+            prev_rows = sorted(((v, d) for v, d in ledger_ver.items()
+                                if ledger.get(d) == "previous"),
+                               key=lambda t: _key(t[0]), reverse=True)
+            if prev_rows:
+                pv, pd = prev_rows[0]
+                if pd == release[0]:
+                    print("FAIL: the ledger gives the previous version the current DOI",
+                          file=sys.stderr); ok = False
+                print(f"previous_release: {pv} 10.5281/zenodo.{pd}")
+                PREV = [("README", readme,
+                         r"previous version (v[\d.]+):\s*\[?10\.5281/zenodo\.(\d+)"),
+                        ("manifest", manifest,
+                         r"DOI \(previous version (v[\d.]+)\):\s*`10\.5281/zenodo\.(\d+)`"),
+                        ("paper", paper,
+                         r"previous deposit is (v[\d.]+) .?doi\{10\.5281/zenodo\.(\d+)\}")]
+                for name, f, pat in PREV:
+                    m = re.search(pat, read(f))
+                    if not m:
+                        print(f"FAIL: {name} states no previous version; the ledger has "
+                              f"{pv}", file=sys.stderr); ok = False
+                    elif (m.group(1), m.group(2)) != (pv, pd):
+                        print(f"FAIL: {name} calls {m.group(1)} "
+                              f"(10.5281/zenodo.{m.group(2)}) the previous version; the "
+                              f"ledger's newest previous row is {pv} "
+                              f"(10.5281/zenodo.{pd})", file=sys.stderr); ok = False
+
         if release:
             print(f"release_version_doi: 10.5281/zenodo.{release[0]} "
                   f"(ledger: {len(ledger)} known DOIs)")
