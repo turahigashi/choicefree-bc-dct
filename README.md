@@ -1,8 +1,8 @@
 # choicefree-bc-dct
 
-Version: 0.7.2  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
+Version: 0.7.3  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
 
-DOI (this version): [10.5281/zenodo.22309608](https://doi.org/10.5281/zenodo.22309608)  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
+DOI (this version): [10.5281/zenodo.22310089](https://doi.org/10.5281/zenodo.22310089)  ·  previous version v0.7.2: [10.5281/zenodo.22310089](https://doi.org/10.5281/zenodo.22310089)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -195,7 +195,7 @@ Add to your `lakefile.toml`:
 [[require]]
 name = "mathdemo"
 git = "<url of this repository>"
-rev = "v0.7.2"
+rev = "v0.7.3"
 ```
 
 and import the public surface:
@@ -273,7 +273,7 @@ generated after that promotion.
 
 ### Current-worktree build status
 
-On 2026-09-05 a complete `./build_audit.sh` run from the v0.7.2 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2534, 2535, 2536, 3 and 2548 jobs), and the static source-closure audit passed with `closure_files: 191`, `tracked_lean_files: 191` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 180 of the 191.
+On 2026-09-05 a complete `./build_audit.sh` run from the v0.7.3 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2534, 2535, 2536, 3 and 2548 jobs), and the static source-closure audit passed with `closure_files: 191`, `tracked_lean_files: 191` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 180 of the 191.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
@@ -340,7 +340,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.2 deposit carries the version DOI `10.5281/zenodo.22309608`.
+`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.3 deposit carries the version DOI `10.5281/zenodo.22310089`.
 
 ## Note on Lean warnings
 
