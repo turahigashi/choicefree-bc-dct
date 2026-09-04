@@ -36,6 +36,38 @@ def get(url, want_json=False):
     except Exception as e:
         return None, str(e)
 
+
+def _archives_agree(root, tag, commit):
+    """True/False if the two revisions deposit the same content; None if unknown.
+
+    ★Compares content, not archive bytes.  `git archive` stamps each entry with
+    the commit date, so two commits with identical trees still produce different
+    zip bytes -- an earlier version of this helper compared the bytes and reported
+    a manuscript-only revision as a changed deposit.  What matters here is whether
+    the files that would be deposited are the same files, so the digest below is
+    over (path, sha256 of contents), taken from the tar stream and sorted.  Paths
+    excluded by .gitattributes are absent from both streams by construction.
+    """
+    import hashlib, io as _io, subprocess as sp, tarfile
+    digests = []
+    for rev in (tag, commit):
+        try:
+            out = sp.run(["git", "-C", str(root), "archive", "--format=tar", rev],
+                         check=True, capture_output=True).stdout
+            entries = []
+            with tarfile.open(fileobj=_io.BytesIO(out)) as tf:
+                for member in tf:
+                    if not member.isfile():
+                        continue
+                    fh = tf.extractfile(member)
+                    body = fh.read() if fh else b""
+                    entries.append(f"{member.name}\0{hashlib.sha256(body).hexdigest()}")
+            digests.append(hashlib.sha256("\n".join(sorted(entries)).encode()).hexdigest())
+        except Exception:
+            return None
+    return digests[0] == digests[1]
+
+
 def main(argv):
     # ★Without a commit to compare against, this checked only that a tag of the right
     # name exists -- and a review found the paper saying the tag and the deposit were
@@ -91,9 +123,30 @@ def main(argv):
                 st2, b2 = get(f"https://api.github.com/repos/{slug}/git/tags/{sha}", want_json=True)
                 sha = b2.get("object", {}).get("sha", sha) if st2 == 200 and isinstance(b2, dict) else sha
             print(f"public_tag: {tag} -> {sha[:12]}")
+            # ★What has to hold is that the *deposit* is the tree this paper
+            # describes.  The commit SHA is only a proxy for that, and it is a
+            # proxy with false alarms in both directions: paper/ is excluded from
+            # the archive by .gitattributes, so a manuscript revision moves HEAD
+            # past the tag while the deposited bytes are unchanged.  A check that
+            # fails when nothing is wrong is a check people learn to ignore --
+            # which is how the drift this file exists to catch went unnoticed in
+            # the first place.  So the archive comparison below is the verdict,
+            # and a differing commit is reported, not failed, whenever the two
+            # archives agree.
             if want_commit and not sha.startswith(want_commit[:12]):
-                print(f"FAIL: {tag} points at {sha[:12]}, not the expected {want_commit[:12]}",
-                      file=sys.stderr); ok = False
+                same = _archives_agree(ROOT, tag, want_commit)
+                if same is True:
+                    print(f"commit_note: {tag} points at {sha[:12]} and this tree is "
+                          f"{want_commit[:12]}; the archives of the two are identical, "
+                          f"so only files excluded from the deposit differ")
+                elif same is False:
+                    print(f"FAIL: {tag} points at {sha[:12]}, not {want_commit[:12]}, "
+                          f"and the two trees produce different archives",
+                          file=sys.stderr); ok = False
+                else:
+                    print(f"FAIL: {tag} points at {sha[:12]}, not the expected "
+                          f"{want_commit[:12]}, and the archives could not be compared",
+                          file=sys.stderr); ok = False
 
     # 2. The version DOI resolves, and to a record of this version.
     st, body = get(f"https://zenodo.org/api/records/{doi}", want_json=True)
