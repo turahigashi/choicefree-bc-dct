@@ -42,7 +42,7 @@
 {\normalsize Independent researcher}\\[1pt]
 {\normalsize\texttt{123026.urahigashi.toshihisa@gmail.com}}\\[1pt]
 {\normalsize ORCID \href{https://orcid.org/0009-0004-0460-6242}{\texttt{0009-0004-0460-6242}}}}
-\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22307518}}
+\date{Submitted manuscript\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22307518}}
 \begin{document}
 \maketitle
 
@@ -102,7 +102,12 @@ reals that carry their own approximation data, and that the resulting developmen
 can be audited to that effect by a reader who runs a script.  The theorem is Bishop
 and Cheng's and the proof is theirs; what is new is that the route survives being
 made choice-free at a place where a choice-free treatment was known to be obstructed,
-and that the surviving development says so in a form a machine checks.  Three things
+and that the surviving development says so in a form a machine checks.  A
+constructive machine-checked proof of the same theorem already exists in
+S\'em\'eria's CoRN development (Section~\ref{sec:related}); what this paper adds
+is a Lean~4 realization over a concrete presented-real type in which the obstructed
+step is discharged in the order theory of the reals, before any measure apparatus
+exists, together with an audit whose limits are stated as carefully as its results.  Three things
 distinguish it from the closest prior formalization: domination is assumed only on a
 full set that may vary with the index; the countable-avoidance step is discharged in
 the order theory of the reals, before any measure apparatus exists; and the real
@@ -1100,6 +1105,13 @@ Local reruns are written to:
 \begin{quote}\small\raggedright
 \path{logs/build_audit.rerun.txt}\par \path{logs/static_audit.rerun.txt}\par \path{logs/reading_layer_axioms.rerun.txt}\par \path{logs/public_surface.rerun.txt}\par \path{logs/mathdemo_build.rerun.txt}\par \path{logs/vacuous_statements.rerun.txt}. \end{quote} Every log the audit writes goes to one of these six, so the shipped reference logs stay byte-identical and checksum verification remains meaningful after rerunning the audit; the reference logs are promoted from the rerun files once, when a release is cut, and the checksums are generated after that promotion.  The independently packaged CoRN reproduction is documented in \path{audits/corn/CORN_ASSUMPTIONS_AUDIT.md}; it can be checked without trusting the Lean build or the comparison prose in this paper.
 
+\section{Conclusion}
+\label{sec:conclusion}
+
+The artifact realizes a complete profile-based route from convergence in measure and full-set domination to convergence of integrals over presented reals, relative to the explicit integration-space interface of Definition~\ref{def:intspace}.  Its central constructive step is not the suppression of the exceptional levels returned by profile theory, but their explicit enumeration followed by a presented-real countable-avoidance construction.  That distinction explains both how the formal proof proceeds and why it does not contradict the known obstruction for unrestricted constructive real-number objects.
+
+The result is exposed through proof-relevant global and full-set interfaces, automatically synthesized wrappers, and a Prop-facing interface, and the final public declarations are accompanied by kernel dependency output, a transitive source audit, checksums, and a pinned reproduction of the closest CoRN prior work.  The limitations are equally explicit: the limit is assumed integrable; the shipped concrete models reach finitely supported measures with integer multiplicities, and no model over a continuum is constructed; the integration-space interface is a clause-level strict weakening of the encoded Bishop--Cheng Definition~1.1, the omissions being inhabitedness and normalization (Remark~\ref{rem:fidelity}); and the development is not predicative.  These boundaries leave clear next tasks while keeping the present theorem and its audit precisely scoped.
+
 \section*{Statements and Declarations}
 
 \paragraph{Funding.}  No funding was received for conducting this study.
@@ -1137,13 +1149,6 @@ Generative AI and AI-assisted coding tools were used extensively in the developm
 That disclosure bears on the claims of this paper unevenly, and the difference is worth stating rather than leaving to the reader.  Every theorem reported here is checked by the Lean kernel; the axiom footprints of Section~\ref{sec:audit} are the kernel's own output, and the audits that produce them are scripted and reproducible from the deposit.  Whether a proof term was written with AI assistance has no bearing on whether it type-checks.  In this respect the reported results do not rest on the reliability of the tools used to produce them, and a reader who distrusts those tools entirely can still run \path{./build_audit.sh} and obtain the same output.
 
 What a kernel cannot check is whether the statements are the right statements, and that is where AI assistance could mislead.  Four judgements in this paper are of that kind: whether Definition~\ref{def:intspace} renders Bishop and Cheng's Definition~1.1 faithfully (Remark~\ref{rem:fidelity}), whether the displayed Lean definitions unfold to the definitions of Part~I (Section~\ref{sec:definitions-lean}), whether the novelty claims of Section~\ref{sec:related} are correct, and whether the prior work is characterized accurately.  The paper marks each of these as a judgement at the point where it is made, rather than presenting it alongside the machine-checked material.  Line-by-line human review of the whole implementation, as distinct from the review of the public statements and the proof architecture described above, has not been completed; the separation just drawn is the reason the reported results do not depend on its completion.
-
-\section{Conclusion}
-\label{sec:conclusion}
-
-The artifact realizes a complete profile-based route from convergence in measure and full-set domination to convergence of integrals over presented reals, relative to the explicit integration-space interface of Definition~\ref{def:intspace}.  Its central constructive step is not the suppression of the exceptional levels returned by profile theory, but their explicit enumeration followed by a presented-real countable-avoidance construction.  That distinction explains both how the formal proof proceeds and why it does not contradict the known obstruction for unrestricted constructive real-number objects.
-
-The result is exposed through proof-relevant global and full-set interfaces, automatically synthesized wrappers, and a Prop-facing interface, and the final public declarations are accompanied by kernel dependency output, a transitive source audit, checksums, and a pinned reproduction of the closest CoRN prior work.  The limitations are equally explicit: the limit is assumed integrable; the shipped concrete models reach finitely supported measures with integer multiplicities, and no model over a continuum is constructed; the integration-space interface is a clause-level strict weakening of the encoded Bishop--Cheng Definition~1.1, the omissions being inhabitedness and normalization (Remark~\ref{rem:fidelity}); and the development is not predicative.  These boundaries leave clear next tasks while keeping the present theorem and its audit precisely scoped.
 
 \appendix
 
