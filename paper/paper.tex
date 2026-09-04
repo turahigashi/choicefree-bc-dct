@@ -1,7 +1,7 @@
 % arXiv reads the first few lines to choose an engine; this asks for pdflatex,
 % which is what the paper is compiled and checked with.
 \pdfoutput=1
-\def\CFBDCTVersion{0.7.0}
+\def\CFBDCTVersion{0.7.1}
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -42,7 +42,7 @@
 {\normalsize Independent researcher}\\[1pt]
 {\normalsize\texttt{123026.urahigashi.toshihisa@gmail.com}}\\[1pt]
 {\normalsize ORCID \href{https://orcid.org/0009-0004-0460-6242}{\texttt{0009-0004-0460-6242}}}}
-\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22305303}}
+\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22307518}}
 \begin{document}
 \maketitle
 
@@ -102,14 +102,15 @@ reals that carry their own approximation data, and that the resulting developmen
 can be audited to that effect by a reader who runs a script.  The theorem is Bishop
 and Cheng's and the proof is theirs; what is new is that the route survives being
 made choice-free at a place where a choice-free treatment was known to be obstructed,
-and that the surviving development says so in a form a machine checks.  Four things
+and that the surviving development says so in a form a machine checks.  Three things
 distinguish it from the closest prior formalization: domination is assumed only on a
 full set that may vary with the index; the countable-avoidance step is discharged in
-the order theory of the reals, before any measure apparatus exists; propositions and
-data are kept apart by design, so that every crossing between them is a place one can
-inspect; and the real numbers are internal to the artifact rather than an interface
-satisfied elsewhere, which is what the size of the development pays for.
-Section~\ref{sec:differential} states the four precisely and says what is
+the order theory of the reals, before any measure apparatus exists; and the real
+numbers are internal to the artifact rather than an interface satisfied elsewhere,
+which is what the size of the development pays for.  A fourth candidate---that
+propositions and data are kept apart by design---is \emph{not} a difference, and
+Section~\ref{sec:differential} says why: the interface the prior work quantifies
+over already separates them.  That section states the three precisely and says what is
 \emph{not} different, which is the mathematics.
 
 Dominated convergence is the basic passage from convergence of functions to convergence of their integrals.  In the integral-first constructive measure theory of Bishop and Cheng, the proof is not simply a translation of the classical almost-everywhere argument.  It proceeds through profiles of integrable functions, integrability of level sets away from an explicit exceptional sequence, and a uniform estimate on the complement of a suitable integrable set.
@@ -778,7 +779,7 @@ Accordingly, we are not aware of another choice-free formalization of the Bishop
 \label{sec:differential}
 
 The comparisons above are scattered through the section, and a reader is entitled to
-ask what they add up to.  They add up to four differences and one non-difference,
+ask what they add up to.  They add up to three differences and two non-differences,
 and it is worth being explicit about which is which, because the theorem being
 proved is the same theorem.
 
@@ -787,11 +788,16 @@ proved is the same theorem.
 one bound holding wherever the partial functions are defined.  The hypothesis here is
 that for each $n$ the bound holds on \emph{some} full set, and that the set may depend
 on $n$ (Definition~\ref{def:domination}, and \path{RepAbsLeOnFullC} in
-Section~\ref{sec:definitions-lean}).  A sequence dominated only off a different null
-set at each index can satisfy the second without satisfying the first.  This is a weakening of the
-hypothesis, hence a strengthening of the theorem, in that one direction; the two
-theorem surfaces as wholes are not ordered, for the reasons the rest of this section
-gives.
+Section~\ref{sec:definitions-lean}).  The difference is narrower than it looks, and it is worth
+narrowing it here rather than leaving a referee to do it.  CoRN's integrable
+functions are dependent pairs carrying a \texttt{PartialRestriction}, so each
+\texttt{fn n} already comes with its own domain, and \texttt{partialFuncLe}
+quantifies over the points where both functions are defined; the domain that varies
+with the index is therefore present on the CoRN side too.  What differs is the form
+in which it enters: there it is the domain the representation supplies, here it is a
+full set produced existentially by the hypothesis and consumed as data.  We do not
+claim that this orders the two theorem surfaces by strength, and the rest of this
+section gives the reasons they are not ordered.
 
 \emph{The avoidance is discharged before measure theory, not inside it.}  Both
 developments make the countable-avoidance step explicit and data-valued, and neither
@@ -823,11 +829,16 @@ ordinary $\forall\varepsilon\,\exists N$ statement.  Section~\ref{sec:layers} se
 the three layers this produces.  The point of the separation is that every crossing
 from a proposition to data becomes a place one can look at, and Appendix~\ref{sec:b-onepoint}
 writes out the principal one; a development that does not separate them has the same
-crossings but no place to look.
+crossings but no place to look---which, as the paragraph opened by saying, is not the
+situation of the development compared with here.
 
 \emph{The reference is internalized.}  CoRN quantifies over an abstract
 \texttt{ConstructiveReals} interface whose implementations live in the Coq standard
-library, so \texttt{Print Assumptions} descends into a layer outside the artifact.
+library.  A theorem stated over that interface does not depend on any particular
+implementation---that generality is what the abstraction buys, and it is a generality
+the development here does not have---but the abstract real-number theory it is proved
+against does sit outside the artifact, and \texttt{Print Assumptions} descends into
+it.
 Here the presented reals are a concrete project-local type inside the development,
 which is why the size reported in Section~\ref{sec:cost} is what it is: that layer is
 inside the audited project closure rather than borrowed from a library.  It is not a
@@ -840,7 +851,7 @@ two theorem surfaces live over different real-number objects and different
 integration-space interfaces -- CoRN's carries a distinguished integrable unit of
 integral one, Definition~\ref{def:intspace} carries no normalization field -- and
 neither is a formal generalization of the other.  No priority is claimed, in either
-direction.  What is claimed is the four differences above, each of which is a
+direction.  What is claimed is the three differences above, each of which is a
 difference in what the formalization commits to rather than in what the theorem says.
 
 \section{Trust boundary and reproducibility}
@@ -931,7 +942,7 @@ The checks answer different questions.  A source scan cannot replace kernel depe
 \label{rem:footprint}
 The audit output---the axioms \texttt{propext} and \texttt{Quot.sound}---can be read against Carneiro's axiomatization of Lean's type theory~\cite{carneiro-2019}.  Each named declaration whose axiom footprint is reported in this paper is a theorem of a dependent type theory with inductive types, a hierarchy of universes, and a definitionally proof-irrelevant impredicative universe of propositions, extended by exactly two axioms: propositional extensionality (propositions that imply each other are equal) and the soundness axiom of quotient types.  Function extensionality is derivable from these two, so in a mathematician's vocabulary the axioms used amount to: extensionality of propositions, existence of quotients, and, as a consequence, extensionality of functions.  In Lean the law of excluded middle is a \emph{theorem} derived from \texttt{Classical.choice}, not an independent axiom; not using choice therefore entails that excluded middle is not used as an axiom either.
 
-Carneiro's theorem is stated for Lean~3.  For Lean~4 the corresponding metatheory is under active development in the same author's Lean4Lean project~\cite{carneiro-2024}, which has produced a verified typechecker for Lean~4 and formalized parts of the type theory abstractly; a soundness proof for the Lean~4 kernel has not been completed.  The reading that follows therefore transfers a Lean~3 result to a Lean~4 development, on the assumption that the two kernels agree on the fragment used here: inductive types, a hierarchy of universes, a definitionally proof-irrelevant impredicative \texttt{Prop}, quotients, and the two axioms reported above.  That assumption is plausible and is, to our knowledge, the one the community works under, but this paper does not establish it.  Set-theoretically, then, in the model underlying Carneiro's soundness theorem---universes interpreted as $V_{\kappa_n}$ for inaccessible cardinals $\kappa_n$, propositions as the two-valued proof-irrelevant universe $\{\varnothing,\{\bullet\}\}$---the only interpretation clause that references the fixed choice function on the interpreting set is the clause for \texttt{Classical.choice}.  The interpretation of the theorems audited here therefore does not depend on the selection of a choice function, and their consistency is relative to ZFC together with finitely many inaccessible cardinals.  Carneiro's published result is stated for each finite $n$: the fragment with $n$ universes is interpreted relative to ZFC plus $n$ inaccessibles.  A fixed finite development such as this artifact uses only finitely many universe levels, so a concrete finite bound on its universe usage is to be expected; we have not computed one here.
+Carneiro's theorem is stated for Lean~3.  For Lean~4 the corresponding metatheory is under active development in the same author's Lean4Lean project~\cite{carneiro-2024}, which has produced an independent typechecker for Lean~4 written in Lean, formalized parts of the type theory abstractly, and proved parts of that checker correct; a soundness proof for the Lean~4 kernel has not been completed.  The reading that follows therefore transfers a Lean~3 result to a Lean~4 development, on the assumption that the two kernels agree on the fragment used here: inductive types, a hierarchy of universes, a definitionally proof-irrelevant impredicative \texttt{Prop}, quotients, and the two axioms reported above.  That assumption is plausible and is, to our knowledge, the one the community works under, but this paper does not establish it.  Set-theoretically, then, in the model underlying Carneiro's soundness theorem---universes interpreted as $V_{\kappa_n}$ for inaccessible cardinals $\kappa_n$, propositions as the two-valued proof-irrelevant universe $\{\varnothing,\{\bullet\}\}$---the only interpretation clause that references the fixed choice function on the interpreting set is the clause for \texttt{Classical.choice}.  The interpretation of the theorems audited here therefore does not depend on the selection of a choice function, and their consistency is relative to ZFC together with finitely many inaccessible cardinals.  Carneiro's published result is stated for each finite $n$: the fragment with $n$ universes is interpreted relative to ZFC plus $n$ inaccessibles.  A fixed finite development such as this artifact uses only finitely many universe levels, so a concrete finite bound on its universe usage is to be expected; we have not computed one here.
 
   In particular, unconditional extraction of data from a \texttt{Prop}-valued existential is exactly what \texttt{Classical.choice} licenses; an axiom output without it therefore certifies that the audited dependency terms do not use Lean's generic choice-based eliminator for extracting unrestricted data from an arbitrary \texttt{Prop}-valued existence proof.  That is the precise sense of the reported footprint; it does not assert that data can never be constructed from a proposition carrying additional constructive structure---the development itself does exactly that, from the strict order.  That is a smaller set than the closure: the shipped logs carry axiom output for $1{,}655$ distinct names, while the closure declares $5{,}431$ in that same unit.  (Both forms of the kernel report are counted: the $1{,}655$ include the declarations that depend on no axiom at all, which a scan for the phrase ``depends on axioms'' alone would silently drop.)  What covers the remaining declarations is the token-level source-closure scan of item~(2) above, which is a different and weaker instrument.
 What is \emph{not} claimed: this reading does not establish that the theorems of the development hold in ZF.  Carneiro's soundness proof is itself carried out in classical set theory with choice (ZFC with inaccessibles); what is established is the object-level absence of choice and the independence of the interpretation from the choice function.  The ambient type theory also has an impredicative \texttt{Prop} and definitional proof irrelevance with uniqueness of identity proofs built in, so it differs both from Bishop's informal practice and from homotopy type theory with univalence, with which UIP is incompatible.  The constructive content of the development---moduli, explicit exception sequences, witnesses as data---is carried by the design of the development over presented reals, not by the axiom system.
@@ -962,7 +973,7 @@ Two remarks on the counting.  A declaration is a source line matching
 \end{center}
 so declarations carrying other modifiers, or not starting at the beginning of a line, are missed; and the pattern is purely lexical, so it also matches the occasional line inside a block comment.  The figures are the raw counts.
 
-Where the lines are matters more than how many there are, and a hundred thousand of
+Where the lines are matters more than how many there are, and eighty thousand of
 them for one theorem invites the question of what they are doing.  The answer is
 visible once they are split by layer.
 
@@ -991,12 +1002,12 @@ type rather than an interface satisfied elsewhere (Section~\ref{sec:differential
 development quantifying over an abstract real-number structure does not carry that
 layer; it refers to it.  Against it, the mathematics of the paper -- Sections~1--4 of
 the source, the profile theory, the avoidance, the convergence argument -- is the
-$42{,}948$ lines of the named modules together with the $11{,}274$ of \path{Sec4}.
+$42{,}947$ lines of the named modules together with the $9{,}810$ of \path{Sec4}.
 
 The \path{Measure} directory holds a single file and a single declaration; the
 measure-theoretic content of the argument is in the named modules and in the Sec4
 layer rather than under that path, and the directory name records where an earlier
-grouping put it rather than where the work is.  And the $15{,}369$ lines not yet grouped
+grouping put it rather than where the work is.  And the $15{,}340$ lines not yet grouped
 are the residue of the regrouping described above, which is a statement about the
 tidiness of the artifact and not about the mathematics.
 
@@ -1010,7 +1021,7 @@ than the code the theorems strictly reach.
 
 The contents were fixed by an explicit criterion rather than by a judgment of mathematical importance.  The starting point is reachability: seed with every declaration of the modules that carry a claim of this paper---the public aliases of Section~\ref{sec:formalization}, the reading interface, the transcription of Definition~1.1 with its adapter, the three concrete models, and the axiom-check modules---and take the transitive closure of the constants occurring in the type and in the value of each declaration.
 
-That closure is not by itself a tree that compiles, and the gap is not small.  The tree the stripping started from held $20{,}817$ declarations.  Reachability selects a minority of them, and more have to be added before the type checker accepts the result: material reached through elaboration rather than through a proof term---instances, \texttt{simp} lemmas, notation---and declarations that the audit modules name in \texttt{\#check} and \texttt{\#print axioms} commands, which are not proof terms at all.  The additions were identified by iterating: remove the complement, compile, and restore what the failure identifies---by name where a constant is unknown, and by locating the elaboration-time dependency where the message names only a class to synthesize or nothing at all.  The contents are a fixed point of that iteration: a set containing the closure on which the build succeeds, obtained by restoring on failure and nothing else.  No minimality among compiling supersets is claimed.  In the tree as shipped the split is $2{,}552$ declarations reachable from the claim-carrying modules against $2{,}879$ not reachable, $5{,}431$ in all; these three figures are produced by \path{tools/reachable_core.lean}, whose output is shipped as \path{logs/reachable_core.txt}.  The reachable ones are connected to a claim of this paper by construction.  For the rest, the description above is of the procedure the author followed, not of a property the shipped evidence certifies: the iteration logs are not shipped, and what the machine evidence checks is the final build and the final reachability counts.
+That closure is not by itself a tree that compiles, and the gap is not small.  The tree the stripping started from held $20{,}817$ declarations.  Reachability selects a minority of them, and more have to be added before the type checker accepts the result: material reached through elaboration rather than through a proof term---instances, \texttt{simp} lemmas, notation---and declarations that the audit modules name in \texttt{\#check} and \texttt{\#print axioms} commands, which are not proof terms at all.  The additions were identified by iterating: remove the complement, compile, and restore what the failure identifies---by name where a constant is unknown, and by locating the elaboration-time dependency where the message names only a class to synthesize or nothing at all.  The contents are a fixed point of that iteration: a set containing the closure on which the build succeeds, obtained by restoring on failure and nothing else.  No minimality among compiling supersets is claimed.  The reachability tool reports $52$ of the $190$ modules as containing no reachable declaration, which invites the obvious test; we ran it.  Removing those $52$ and rebuilding fails.  They are the modules the iteration restored---reached through elaboration rather than through a proof term---so the count is what the fixed point looks like from the reachability side, not a set of modules that could be dropped.  In the tree as shipped the split is $2{,}552$ declarations reachable from the claim-carrying modules against $2{,}879$ not reachable, $5{,}431$ in all; these three figures are produced by \path{tools/reachable_core.lean}, whose output is shipped as \path{logs/reachable_core.txt}.  The reachable ones are connected to a claim of this paper by construction.  For the rest, the description above is of the procedure the author followed, not of a property the shipped evidence certifies: the iteration logs are not shipped, and what the machine evidence checks is the final build and the final reachability counts.
 
 No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}956$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
@@ -1043,11 +1054,11 @@ The result should be read with the following limitations in view.
 \item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A lexical scan of the closure finds no declaration whose conclusion is written, on one line, in the form \texttt{: True :=}.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level source-closure scan of Section~\ref{sec:audit}, item~(2), detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, escapes it.  The complete check is therefore carried out separately, by \path{tools/vacuous_statement_check.lean}: it enumerates the $5{,}431$ declarations the development writes in source, sets aside the $509$ that are not statements---inductive types, constructors, recursors and quotient primitives---and for each of the remaining $4{,}922$ strips the leading binders from the type, reduces the conclusion to weak head normal form, and reports it if that conclusion is \texttt{True}.  It finds eight, and they are of one shape: a membership lemma whose ambient set is \path{Set.univ}, so that $x\in S$ unfolds to \texttt{True} and the proof is \path{Set.mem_univ}.  None is a vestige---each is used, one to four times, to supply the membership proof term an interface demands, and the interface is the one a model with a smaller domain would have to satisfy non-trivially.  What is vacuous is the proof obligation in these particular constructions, not the role the statement plays.  The eight are recorded in \path{tools/vacuous_statements_known.txt} with that reason, and the check compares its findings against that list in both directions, so a new vacuous statement fails the audit and a name that stops being vacuous cannot leave the list stale.  The output is shipped as \path{logs/vacuous_statements.txt}.  Its range is the two library roots rather than the six roots of the source scan, because it reads an elaborated environment and \path{SupplementChoiceFreeMeasureDCT.lean} is not a library target: it is a file of \texttt{\#check} and \texttt{\#print axioms} commands, run by \texttt{lake env lean}, and it declares nothing for this check to examine.
 \end{enumerate}
 
-A complete \path{./build_audit.sh} run from the v0.7.0 tree finished on 2026-09-04 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.7.0} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
+A complete \path{./build_audit.sh} run from the v0.7.1 tree finished on 2026-09-05 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.7.1} and records the successful build stages ($2534$, $2535$, $2536$, $3$ and $2548$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22305303}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22307518}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
@@ -1101,14 +1112,18 @@ for all of it.
 
 \paragraph{Data and code availability.}  There is no dataset.  The Lean~4 artifact,
 the audit apparatus and the shipped audit logs are archived and citable at
-\doi{10.5281/zenodo.22305303}, and are also at
-\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.7.0},
+\doi{10.5281/zenodo.22307518}, and are also at
+\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.7.1},
 which is the commit the deposit was cut from.  Every figure this paper states about
 the artifact is produced by a run recorded in the deposit, and the deposit contains
 the scripts that regenerate them: \path{./build_audit.sh} rebuilds the development
-and re-runs every check reported in Section~\ref{sec:trust}, ending in
-\texttt{BUILD\_AUDIT\_EXIT=0}, and the checksums shipped with it verify that the
-bytes audited are the bytes distributed.  Reproducing the build requires
+and re-runs the checks of Section~\ref{sec:trust} that need only Lean and Python,
+ending in \texttt{BUILD\_AUDIT\_EXIT=0}.  Three of the reported figures are outside
+it and are reproduced separately: the reachability counts by
+\path{tools/reachable_core.lean}, the root checksum verification by
+\path{sha256sum -c SHA256SUMS}, and the CoRN audit by the commands packaged under
+\path{audits/corn/}, which need Rocq.  The checksums shipped with the deposit verify
+that the bytes audited are the bytes distributed.  Reproducing the build requires
 Lean~4.30.0 and mathlib~4.30.0; the remaining checks need only Python~3 and
 \texttt{coreutils}.  The reproduced Rocq audit of the CoRN development discussed in
 Section~\ref{sec:related} is packaged under \path{audits/corn/} with its own
@@ -1917,7 +1932,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22305303}.
+\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22307518}.
 \newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}

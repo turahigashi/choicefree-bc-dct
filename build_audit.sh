@@ -8,7 +8,7 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== toolchain =="
   lean --version
   lake --version
-  echo "artifact_version=0.7.0"
+  echo "artifact_version=0.7.1"
   echo "== lake build Mathdemo.CheckSec3PortAxioms =="
   lake build Mathdemo.CheckSec3PortAxioms
   echo "== lake build public DCT implementation support modules =="

@@ -1,8 +1,8 @@
 # choicefree-bc-dct
 
-Version: 0.7.0  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
+Version: 0.7.1  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
 
-DOI (this version): [10.5281/zenodo.22305303](https://doi.org/10.5281/zenodo.22305303)  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
+DOI (this version): [10.5281/zenodo.22307518](https://doi.org/10.5281/zenodo.22307518)  ·  previous version v0.4.1: [10.5281/zenodo.22137161](https://doi.org/10.5281/zenodo.22137161)  ·  v0.4.0: [10.5281/zenodo.21854936](https://doi.org/10.5281/zenodo.21854936)
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -10,7 +10,7 @@ This is a clean public import-closure Lean artifact for the paper:
 
 **A choice-free Lean formalization of Bishop--Cheng dominated convergence over presented reals**
 
-The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 513 development Lean files listed in `SHA256SUMS` coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no checksum-listed development Lean file outside what the audit traverses (the equality the checker tests is against the checksum list, not against a Git index: the distributed archive carries no `.git`); the closure of the public theorem aliases alone is 502 of them.
+The artifact exposes public theorem aliases in `ChoiceFreeMeasureDCTPublic.lean` and audits the implementation declarations used by the paper. It is intentionally an import-closure artifact rather than a minimal hand-extracted micro-library: some historically named internal files remain because stable declarations in the public theorem closure still depend on them. The 191 development Lean files listed in `SHA256SUMS` coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no checksum-listed development Lean file outside what the audit traverses (the equality the checker tests is against the checksum list, not against a Git index: the distributed archive carries no `.git`); the closure of the public theorem aliases alone is 502 of them.
 
 For a mathematician-facing entry point, start with `Mathdemo/MathematicalInterface.lean`: a thin facade (36 declarations, all auditing to `[propext, Quot.sound]`; kernel evidence for all 104 reading-layer declarations is shipped in `logs/reading_layer_axioms.txt`) whose names and statements are the ones transcribed in Part I of the paper. `Mathdemo/SourceIntegrationSpaceDef11.lean` contains a clause-by-clause transcription of the displayed Bishop--Cheng Definition 1.1 (ambient notions in the development's encoding) together with a hypothesis-free adapter deriving all fourteen fields of the development interface from it, including the machine-checked passage from the source's gauge `n⁻¹` to the development's dyadic gauge `2⁻ⁿ` (v0.4.1), and `Mathdemo/DiracIntegrationSpace.lean` provides an unconditional normalized point-evaluation model.
 
@@ -157,22 +157,22 @@ The file names record the order in which the development was built, not a topica
 organisation of the mathematics.  What follows is a key, so that a reader can find
 any part of it without reading the whole.
 
-The 513 Lean files fall into three places.
+The 191 Lean files fall into three places.
 
 | Location | Files | What is there |
 |---|---:|---|
 | repository root | 3 | `ChoiceFreeMeasureDCTPublic.lean` (the paper-facing aliases), `Mathdemo.lean` (aggregation module, the root of the audited closure), `SupplementChoiceFreeMeasureDCT.lean` (supplementary axiom checks) |
 | `Mathdemo/` | 16 | the named modules: the presented reals, the two Bishop sections that carry the proof, the Theorem 4.15 endpoints, the reading interface, the Definition 1.1 transcription, the point-evaluation model, the examples, and the axiom-check modules |
-| `Mathdemo/Internal/` | 494 | implementation |
+| `Mathdemo/Internal/` | 172 | implementation |
 
 Inside `Mathdemo/Internal`, the modules are grouped by the layer they build.
 
 | Directory | Files | Contents |
 |---|---:|---|
 | `Rat/` | 8 | the rational scalar layer: the setoid, its quotient, and the decidable order |
-| `Real/` | 373 | the presented reals -- regular sequences, Bishop equality, the two orders, the arithmetic and its laws -- and the integration layer built over them |
-| `Measure/` | 44 | integrable representations and the measure-theoretic frontier |
-| `Sec4/` | 61 | the decomposition of the uniform `I_B` step of the source's Section 4 |
+| `Real/` | 118 | the presented reals -- regular sequences, Bishop equality, the two orders, the arithmetic and its laws -- and the integration layer built over them |
+| `Measure/` | 1 | integrable representations and the measure-theoretic frontier |
+| `Sec4/` | 39 | the decomposition of the uniform `I_B` step of the source's Section 4 |
 | `BishopB`, `BishopB_Completeness`, `BishopSec2_L1`, `BishopSec3_Profile`, `BishopSec4_Convergence`, `BishopSec5_Measure`, `Sec4GenIB`, `Nodes` | 8 | the abstract ordered-field interface (`BishopB`) and the generic route through the sections of the source: `SecN` is the source's section N.  These are stated over an abstract constructive ordered field, not over the presented reals; the public theorems take the presented-real route |
 
 Each module is named for its content, and each begins with a doc-string stating it, so
@@ -195,7 +195,7 @@ Add to your `lakefile.toml`:
 [[require]]
 name = "mathdemo"
 git = "<url of this repository>"
-rev = "v0.7.0"
+rev = "v0.7.1"
 ```
 
 and import the public surface:
@@ -273,7 +273,7 @@ generated after that promotion.
 
 ### Current-worktree build status
 
-On 2026-09-04 a complete `./build_audit.sh` run from the v0.7.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs), and the static source-closure audit passed with `closure_files: 513`, `tracked_lean_files: 513` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 513.
+On 2026-09-04 a complete `./build_audit.sh` run from the v0.7.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2534, 2535, 2536, 3 and 2548 jobs), and the static source-closure audit passed with `closure_files: 191`, `tracked_lean_files: 191` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 502 of the 513.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
@@ -340,7 +340,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.0 deposit carries the version DOI `10.5281/zenodo.22305303`.
+`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.1 deposit carries the version DOI `10.5281/zenodo.22307518`.
 
 ## Note on Lean warnings
 
