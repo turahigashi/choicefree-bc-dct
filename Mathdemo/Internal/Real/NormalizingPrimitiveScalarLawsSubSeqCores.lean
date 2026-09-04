@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.ReducingDisplayedScalarLawsPrimitiveRegularSeq
-
+import Mathdemo.Internal.Real.ReducingSmallLine743BoundProposition
 /-!
 # G81: normalizing the primitive scalar laws to `subSeq` cores
 

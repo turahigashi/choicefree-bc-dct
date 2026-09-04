@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.PositiveDataInverseConsumerTotalInverse
-
+import Mathdemo.Internal.Real.RepresentativeDiagonalLimitCloseData
 /-!
 # Faithful data-carrying scalar package for the CReal quotient route
 

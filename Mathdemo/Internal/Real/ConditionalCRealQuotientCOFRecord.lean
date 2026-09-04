@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.CRealQuotientDataOrderPackage
-
+import Mathdemo.Internal.Real.CRealQuotientCotransitivityDataBridge
 /-!
 # Conditional CReal quotient COF record
 

@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.GeneratingLargeAddBoundMinLaws
-
+import Mathdemo.Internal.Real.NormalizingPrimitiveScalarLawsSubSeqCores
 set_option linter.style.longLine false
 
 /-!

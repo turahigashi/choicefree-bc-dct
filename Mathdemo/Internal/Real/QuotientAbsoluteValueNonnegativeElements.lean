@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.QuotientArchimedeanHalfPowerFields
-
+import Mathdemo.Internal.Real.QuotientMaxMinAbsoluteBounds
 /-!
 # Quotient absolute value of nonnegative elements
 

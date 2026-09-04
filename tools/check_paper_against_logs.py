@@ -141,9 +141,14 @@ def main() -> int:
                 'sorry','sorryAx','native_decide','unsafe','implemented_by','private',
                 'Classical.choice','Classical.choose','Quot.out','Quotient.out',
                 'ofReduceBool','ConstructiveReals','CR_cv','CRuncountable','CvMeasure',
+                  # Coq/Rocq standard-library names the comparison prints: not
+                  # declarations of this development
+                  'CRlt','CRltProp','CRltLinear','CRltEpsilon','CRltForget',
+                  'CRinv','CRapart','CReal','ConstructiveCauchyReals',
                 'DominatedMeasureCvZero','mathlib','SHA256SUMS','debug.skipKernelTC',
                 # ordinary words and keywords the prose prints in \texttt: not identifiers
                 'classical','ring','axiom','noncomputable','lemma','structure','instance',
+                  'namespace','import',
                 # a banned-token spelling in the static audit, not an identifier
                 'Classical.',
                 # mathlib names the paper prints when it explains a proof, not

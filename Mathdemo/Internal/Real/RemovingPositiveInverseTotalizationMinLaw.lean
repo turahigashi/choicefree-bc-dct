@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.GeneratingFullConditionalMinLawCore
-
+import Mathdemo.Internal.Real.TransportingMinSeqWithQuotientMinObligations
 set_option linter.style.longLine false
 
 /-!

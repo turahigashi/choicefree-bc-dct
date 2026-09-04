@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.SourceQuotientRepresentedPositiveOrderData
-
+import Mathdemo.Internal.Real.SampledClosenessReciprocalQuotientRespect
 /-!
 # Value estimate for source times reciprocal tail
 

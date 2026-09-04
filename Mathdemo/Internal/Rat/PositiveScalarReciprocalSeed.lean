@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.COFOAssemblyPositiveInverseData
-
+import Mathdemo.Internal.Real.QuotientEqualityDyadicSmallness
 /-!
 # Positive scalar reciprocal seed
 

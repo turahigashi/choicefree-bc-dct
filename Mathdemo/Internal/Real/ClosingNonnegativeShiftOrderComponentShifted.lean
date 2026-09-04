@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.DecomposingRegularSeqShiftedMinLaw
-
+import Mathdemo.Internal.Real.RemovingPositiveInverseTotalizationMinLaw
 set_option linter.style.longLine false
 
 /-!

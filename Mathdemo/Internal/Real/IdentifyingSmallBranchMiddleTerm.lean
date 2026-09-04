@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.ReducingSmallBranchNonStrictNorm
-
+import Mathdemo.Internal.Real.Line734ReductionIntegralDifference
 /-!
 # G65: identifying the small-branch middle term
 

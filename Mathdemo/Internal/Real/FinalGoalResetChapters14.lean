@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.Theorem581ClosureConsequences
-
+import Mathdemo.Internal.Real.BishopFaithfulMeasureSkeletonRegularSeqReals
 /-!
 # G33: final-goal reset for chapters 1--4 over Bishop RegularSeq reals
 

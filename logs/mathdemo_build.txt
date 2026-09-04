@@ -1,4 +1,4 @@
-⚠ [708/742] Replayed Mathdemo.Internal.Rat.SetoidCore
+⚠ [709/743] Replayed Mathdemo.Internal.Rat.SetoidCore
 warning: Mathdemo/Internal/Rat/SetoidCore.lean:57:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
@@ -11,40 +11,20 @@ warning: Mathdemo/Internal/Rat/SetoidCore.lean:78:2: The `show` tactic should on
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-⚠ [2361/2531] Replayed Mathdemo.Internal.BishopB
-warning: Mathdemo/Internal/BishopB.lean:124:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+⚠ [2360/2507] Replayed Mathdemo.Internal.BishopB
+warning: Mathdemo/Internal/BishopB.lean:150:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:168:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:194:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:176:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:202:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:179:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:187:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:190:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:198:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:201:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:210:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:205:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
@@ -52,103 +32,115 @@ warning: Mathdemo/Internal/BishopB.lean:213:4: The `show` tactic should only be 
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:383:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:216:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:442:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:224:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-info: Mathdemo/Internal/BishopB.lean:531:77: Try this:
+warning: Mathdemo/Internal/BishopB.lean:227:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:236:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:239:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:409:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:468:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+info: Mathdemo/Internal/BishopB.lean:557:77: Try this:
   [apply] ring_nf
   
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-info: Mathdemo/Internal/BishopB.lean:532:77: Try this:
+info: Mathdemo/Internal/BishopB.lean:558:77: Try this:
   [apply] ring_nf
   
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-info: Mathdemo/Internal/BishopB.lean:533:77: Try this:
+info: Mathdemo/Internal/BishopB.lean:559:77: Try this:
   [apply] ring_nf
   
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-warning: Mathdemo/Internal/BishopB.lean:531:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:557:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:538:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:564:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:543:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:569:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:617:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:643:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:640:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:666:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:642:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:668:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:628:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:654:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:679:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:705:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:706:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:732:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:690:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:716:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:722:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:748:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:734:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:760:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:732:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:758:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:772:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:798:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:781:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:807:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:813:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:839:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:811:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:837:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:846:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:858:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:867:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:872:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
@@ -156,519 +148,527 @@ warning: Mathdemo/Internal/BishopB.lean:884:8: The `show` tactic should only be 
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:906:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:893:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:923:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:910:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:951:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:932:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:954:14: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:949:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1072:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:977:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1117:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:980:14: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1139:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1098:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1148:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1143:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1153:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1165:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1157:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1174:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1180:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1179:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1185:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1183:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1191:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1206:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1212:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1211:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1217:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1217:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1221:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1238:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1230:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1243:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1233:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1247:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1263:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1256:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1293:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1259:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-info: Mathdemo/Internal/BishopB.lean:1327:75: Try this:
+warning: Mathdemo/Internal/BishopB.lean:1289:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:1319:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+info: Mathdemo/Internal/BishopB.lean:1353:75: Try this:
   [apply] ring_nf
   
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-info: Mathdemo/Internal/BishopB.lean:1329:73: Try this:
+info: Mathdemo/Internal/BishopB.lean:1355:73: Try this:
   [apply] ring_nf
   
   The `ring` tactic failed to close the goal. Use `ring_nf` to obtain a normal form.
     
   Note that `ring` works primarily in *commutative* rings. If you have a noncommutative ring, abelian group or module, consider using `noncomm_ring`, `abel` or `module` instead.
-warning: Mathdemo/Internal/BishopB.lean:1335:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1361:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1342:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1368:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1395:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1421:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1490:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1516:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1506:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1532:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1511:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1537:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1563:31: unused variable `n`
-
-Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: Mathdemo/Internal/BishopB.lean:1590:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1601:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1612:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1631:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1639:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1674:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1683:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1699:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1714:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1726:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1738:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1798:52: unused variable `x`
+warning: Mathdemo/Internal/BishopB.lean:1589:31: unused variable `n`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: Mathdemo/Internal/BishopB.lean:1817:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1616:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1820:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1627:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1831:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1638:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1869:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1657:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:1905:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1665:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2036:10: unused variable `i`
-
-Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: Mathdemo/Internal/BishopB.lean:2051:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1700:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2069:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1709:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2091:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1725:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2105:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1740:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2118:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1752:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2121:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1764:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2133:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:2132:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2143:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2145:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2225:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2247:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2270:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2272:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2281:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2288:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2292:53: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2314:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2379:60: unused variable `x`
+warning: Mathdemo/Internal/BishopB.lean:1824:52: unused variable `x`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-warning: Mathdemo/Internal/BishopB.lean:2435:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1843:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2471:21: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1846:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2471:67: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:1857:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2481:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:1895:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:1931:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2062:10: unused variable `i`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Mathdemo/Internal/BishopB.lean:2077:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2095:10: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2117:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2131:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2144:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2147:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2159:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:2481:21: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2158:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2481:75: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2169:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2533:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2171:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2592:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2251:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2625:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2273:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2701:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:2296:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2298:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2307:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2314:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2318:53: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2340:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2405:60: unused variable `x`
+
+Note: This linter can be disabled with `set_option linter.unusedVariables false`
+warning: Mathdemo/Internal/BishopB.lean:2461:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2497:21: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2497:67: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2507:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:2697:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2507:21: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2708:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2507:75: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2712:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2559:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2724:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2618:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2737:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2651:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2767:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2797:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2814:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2831:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2841:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2846:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2886:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2910:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2938:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2942:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2945:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2968:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2990:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:2996:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3053:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3113:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3126:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3152:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3171:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3197:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:2727:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:3189:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2723:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3193:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2734:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3302:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2738:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3311:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2750:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3316:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:2763:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3340:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:2793:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2823:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2840:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2857:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2867:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2872:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2912:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2936:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2964:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2968:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2971:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:2994:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3016:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3022:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3079:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3139:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3152:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3178:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3197:8: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3223:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:3357:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3215:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3404:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3219:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3414:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3328:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3434:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3337:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3456:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3342:12: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3463:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3540:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3550:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3572:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3585:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3587:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3623:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:3366:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:3643:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3383:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3645:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3430:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3722:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:3440:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3460:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3482:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3489:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3566:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3576:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3598:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3611:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3613:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:3649:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:3747:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3669:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3749:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3671:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3791:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
-However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
-
-Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:3821:100: This line exceeds the 100 character limit, please shorten it!
+warning: Mathdemo/Internal/BishopB.lean:3748:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/BishopB.lean:3931:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3773:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:4039:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3775:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:4050:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3817:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:4055:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:3847:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+warning: Mathdemo/Internal/BishopB.lean:3957:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:4086:8: This simp argument is unused:
+warning: Mathdemo/Internal/BishopB.lean:4065:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:4076:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:4081:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
+
+Note: This linter can be disabled with `set_option linter.style.show false`
+warning: Mathdemo/Internal/BishopB.lean:4112:8: This simp argument is unused:
   IntegrableRep.collapseFirst
 
 Hint: Omit it from the simp argument list.
@@ -676,30 +676,26 @@ Hint: Omit it from the simp argument list.
   ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵ ̵I̵n̵t̵e̵g̵r̵a̵b̵l̵e̵R̵e̵p̵.̵c̵o̵l̵l̵a̵p̵s̵e̵F̵i̵r̵s̵t̵]
 
 Note: This linter can be disabled with `set_option linter.unusedSimpArgs false`
-warning: Mathdemo/Internal/BishopB.lean:4076:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
+warning: Mathdemo/Internal/BishopB.lean:4102:4: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-warning: Mathdemo/Internal/BishopB.lean:4109:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
+warning: Mathdemo/Internal/BishopB.lean:4135:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
 set_option maxHeartbeats 1000000 in
 -- reason for change
 ...
 
 Note: This linter can be disabled with `set_option linter.style.maxHeartbeats false`
-⚠ [2388/2531] Replayed Mathdemo.Internal.Real.CRealMultiplicationCompletionFrontier
-warning: Mathdemo/Internal/Real/CRealMultiplicationCompletionFrontier.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2391/2531] Replayed Mathdemo.Internal.Real.CRealBoundedMultiplicationRegularity
+⚠ [2389/2507] Replayed Mathdemo.Internal.Real.CRealBoundedMultiplicationRegularity
 warning: Mathdemo/Internal/Real/CRealBoundedMultiplicationRegularity.lean:24:6: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-⚠ [2393/2531] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationPhase10Closure
+⚠ [2391/2507] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationPhase10Closure
 warning: Mathdemo/Internal/Real/CRealQuotientMultiplicationPhase10Closure.lean:7:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2396/2531] Replayed Mathdemo.Internal.BishopB_Completeness
+⚠ [2392/2507] Replayed Mathdemo.Internal.BishopB_Completeness
 warning: Mathdemo/Internal/BishopB_Completeness.lean:30:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
@@ -756,7 +752,7 @@ warning: Mathdemo/Internal/BishopB_Completeness.lean:248:2: The `show` tactic sh
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-⚠ [2397/2531] Replayed Mathdemo.Internal.BishopSec2_L1
+⚠ [2393/2507] Replayed Mathdemo.Internal.BishopSec2_L1
 warning: Mathdemo/Internal/BishopSec2_L1.lean:123:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
@@ -883,7 +879,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/BishopSec2_L1.lean:748:7: unused variable `h_existing_abs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2398/2531] Replayed Mathdemo.Internal.BishopSec3_Profile
+⚠ [2394/2507] Replayed Mathdemo.Internal.BishopSec3_Profile
 warning: Mathdemo/Internal/BishopSec3_Profile.lean:156:21: Used `tac1 <;> tac2` where `(tac1; tac2)` would suffice
 
 Note: This linter can be disabled with `set_option linter.unnecessarySeqFocus false`
@@ -1998,7 +1994,7 @@ Context:
   ⏎    }⏎⏎    exact ⟨{⏎
 
 Note: This linter can be disabled with `set_option linter.style.emptyLine false`
-⚠ [2399/2531] Replayed Mathdemo.Internal.BishopSec4_Convergence
+⚠ [2395/2507] Replayed Mathdemo.Internal.BishopSec4_Convergence
 warning: Mathdemo/Internal/BishopSec4_Convergence.lean:15:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
@@ -2124,55 +2120,7 @@ warning: Mathdemo/Internal/BishopSec4_Convergence.lean:865:2: The `show` tactic 
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-⚠ [2402/2686] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationDistributivity
-warning: Mathdemo/Internal/Real/CRealQuotientMultiplicationDistributivity.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2404/2686] Replayed Mathdemo.Internal.Real.CRealCommonBoundMultiplicationTransport
-warning: Mathdemo/Internal/Real/CRealCommonBoundMultiplicationTransport.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2405/2686] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationAssociativity
-warning: Mathdemo/Internal/Real/CRealQuotientMultiplicationAssociativity.lean:9:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2413/2686] Replayed Mathdemo.Internal.Real.ConditionalCRealQuotientCOFOCOFOCAssembly
-warning: Mathdemo/Internal/Real/ConditionalCRealQuotientCOFOCOFOCAssembly.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2414/2686] Replayed Mathdemo.Internal.Real.FirstConcreteCRealQuotientCOFOFields
-warning: Mathdemo/Internal/Real/FirstConcreteCRealQuotientCOFOFields.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2415/2686] Replayed Mathdemo.Internal.Real.CRealQuotientStrictOrderTransitivity
-warning: Mathdemo/Internal/Real/CRealQuotientStrictOrderTransitivity.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2425/2686] Replayed Mathdemo.Internal.Real.QuotientAbsoluteValueUpperBound
-warning: Mathdemo/Internal/Real/QuotientAbsoluteValueUpperBound.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2427/2686] Replayed Mathdemo.Internal.Real.QuotientMultiplicativeArchimedeanBound
-warning: Mathdemo/Internal/Real/QuotientMultiplicativeArchimedeanBound.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2432/2686] Replayed Mathdemo.Internal.Rat.PositiveScalarReciprocalDifference
-warning: Mathdemo/Internal/Rat/PositiveScalarReciprocalDifference.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2433/2686] Replayed Mathdemo.Internal.Real.BoundSensitiveReciprocalTailScaffold
-warning: Mathdemo/Internal/Real/BoundSensitiveReciprocalTailScaffold.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2434/2686] Replayed Mathdemo.Internal.Rat.UniformBoundPositiveTailReciprocals
-warning: Mathdemo/Internal/Rat/UniformBoundPositiveTailReciprocals.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2436/2686] Replayed Mathdemo.Internal.Real.MixedReciprocalEstimatesQuotientRespect
-warning: Mathdemo/Internal/Real/MixedReciprocalEstimatesQuotientRespect.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2440/2686] Replayed Mathdemo.Internal.Sec4GenIB
+⚠ [2396/2507] Replayed Mathdemo.Internal.Sec4GenIB
 warning: Mathdemo/Internal/Sec4GenIB.lean:60:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
@@ -2193,7 +2141,7 @@ Note: This linter can be disabled with `set_option linter.style.longLine false`
 warning: Mathdemo/Internal/Sec4GenIB.lean:146:100: This line exceeds the 100 character limit, please shorten it!
 
 Note: This linter can be disabled with `set_option linter.style.longLine false`
-ℹ [2441/2686] Replayed Mathdemo.Internal.Sec4.ChoiceFreeScaffoldingGeneralRelativeIntegral
+ℹ [2397/2507] Replayed Mathdemo.Internal.Sec4.ChoiceFreeScaffoldingGeneralRelativeIntegral
 info: Mathdemo/Internal/Sec4/ChoiceFreeScaffoldingGeneralRelativeIntegral.lean:32:0: BishopC.coverApart.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (f : IntegrableRep S)
   (k : ℕ) :
   Thm36B1ApartPointData (lemma35_exceptionSeq (thm36A2_profile f (COF.halfPow (k + 1)) (COF.halfPow k) ⋯ ⋯))
@@ -2247,7 +2195,7 @@ info: Mathdemo/Internal/Sec4/ChoiceFreeScaffoldingGeneralRelativeIntegral.lean:4
   (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') (f : IntegrableRep S) (hnn : RepNonneg f) :
   relIntegral (D.or D') (IntegrableSet1_or hD hD') f hnn + relIntegral (D.and D') (IntegrableSet1_and hD hD') f hnn =
     relIntegral D hD f hnn + relIntegral D' hD' f hnn
-ℹ [2442/2686] Replayed Mathdemo.Internal.Sec4.PointBridge
+ℹ [2398/2507] Replayed Mathdemo.Internal.Sec4.PointBridge
 info: Mathdemo/Internal/Sec4/PointBridge.lean:37:0: BishopC.seriesIntegrable_value_of_flat.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (H : ℕ → IntegrableRep S) (hs : RSeq.SeriesSum fun m ↦ (H m).absConv.sum) {x : X}
   (hflatDom : (seriesIntegrable H hs).MemAt x)
@@ -2277,7 +2225,7 @@ info: Mathdemo/Internal/Sec4/PointBridge.lean:43:0: BishopC.G_m.{u_1, u_2} {X : 
 info: Mathdemo/Internal/Sec4/PointBridge.lean:44:0: BishopC.tail_m.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (F : ℕ → IntegrableRep S)
   (m : ℕ) : IntegrableRep S
 info: Mathdemo/Internal/Sec4/PointBridge.lean:45:0: BishopC.Nm.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (F : ℕ → IntegrableRep S) (m : ℕ) : ℕ
-⚠ [2443/2686] Replayed Mathdemo.Internal.Sec4.Preservation
+⚠ [2399/2507] Replayed Mathdemo.Internal.Sec4.Preservation
 info: Mathdemo/Internal/Sec4/Preservation.lean:30:0: BishopC.prop_4_2_chi_f_rep.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
   (hA : IntegrableSet1 S A) (f : IntegrableRep S) (hnn : RepNonneg f) : IntegrableRep S
 info: Mathdemo/Internal/Sec4/Preservation.lean:31:0: BishopC.prop_4_2_lambda_k.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
@@ -2317,7 +2265,7 @@ Note: This linter can be disabled with `set_option linter.style.show false`
 warning: Mathdemo/Internal/Sec4/Preservation.lean:192:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-ℹ [2444/2686] Replayed Mathdemo.Internal.Sec4.TailData
+ℹ [2400/2507] Replayed Mathdemo.Internal.Sec4.TailData
 info: Mathdemo/Internal/Sec4/TailData.lean:23:0: BishopC.sec4IB_termRepNonneg.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) (k : ℕ) : RepNonneg (sec4IB_termRep B hB f hnn k)
 info: Mathdemo/Internal/Sec4/TailData.lean:24:0: BishopC.sec4IB_tailRepNonneg_closed.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -2357,7 +2305,75 @@ info: Mathdemo/Internal/Sec4/TailData.lean:33:0: BishopC.coverSet_tendsto.{u_1, 
 info: Mathdemo/Internal/Sec4/TailData.lean:34:0: BishopC.seriesSum_comparison.{u_1} {R : Type u_1} [COFOC R] {a b : ℕ → R} (ha : ∀ (n : ℕ), Nonneg (a n))
   (hab : ∀ (n : ℕ), Le (a n) (b n)) (hb : RSeq.SeriesSum b) : RSeq.SeriesSum a
 info: Mathdemo/Internal/Sec4/TailData.lean:35:0: BishopC.nonneg_sub_of_le.{u_1} {R : Type u_1} [COF R] {a b : R} (h : Le a b) : Nonneg (b - a)
-ℹ [2445/2686] Replayed Mathdemo.Internal.Sec4.FullIncrement
+⚠ [2405/2548] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationDistributivity
+warning: Mathdemo/Internal/Real/CRealQuotientMultiplicationDistributivity.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2407/2548] Replayed Mathdemo.Internal.Real.CRealCommonBoundMultiplicationTransport
+warning: Mathdemo/Internal/Real/CRealCommonBoundMultiplicationTransport.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2408/2548] Replayed Mathdemo.Internal.Real.CRealQuotientMultiplicationAssociativity
+warning: Mathdemo/Internal/Real/CRealQuotientMultiplicationAssociativity.lean:9:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2412/2548] Replayed Mathdemo.Internal.Real.FirstConcreteCRealQuotientCOFOFields
+warning: Mathdemo/Internal/Real/FirstConcreteCRealQuotientCOFOFields.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2413/2548] Replayed Mathdemo.Internal.Real.CRealQuotientStrictOrderTransitivity
+warning: Mathdemo/Internal/Real/CRealQuotientStrictOrderTransitivity.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2422/2548] Replayed Mathdemo.Internal.Real.QuotientAbsoluteValueUpperBound
+warning: Mathdemo/Internal/Real/QuotientAbsoluteValueUpperBound.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2424/2548] Replayed Mathdemo.Internal.Real.QuotientMultiplicativeArchimedeanBound
+warning: Mathdemo/Internal/Real/QuotientMultiplicativeArchimedeanBound.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2428/2548] Replayed Mathdemo.Internal.Rat.PositiveScalarReciprocalDifference
+warning: Mathdemo/Internal/Rat/PositiveScalarReciprocalDifference.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2429/2548] Replayed Mathdemo.Internal.Real.BoundSensitiveReciprocalTailScaffold
+warning: Mathdemo/Internal/Real/BoundSensitiveReciprocalTailScaffold.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2430/2548] Replayed Mathdemo.Internal.Rat.UniformBoundPositiveTailReciprocals
+warning: Mathdemo/Internal/Rat/UniformBoundPositiveTailReciprocals.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2432/2548] Replayed Mathdemo.Internal.Real.MixedReciprocalEstimatesQuotientRespect
+warning: Mathdemo/Internal/Real/MixedReciprocalEstimatesQuotientRespect.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2434/2548] Replayed Mathdemo.Internal.Real.ValueEstimateSourceTimesReciprocalTail
+warning: Mathdemo/Internal/Real/ValueEstimateSourceTimesReciprocalTail.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2435/2548] Replayed Mathdemo.Internal.Real.QuotientCancellationProofIndexedPositiveInverse
+warning: Mathdemo/Internal/Real/QuotientCancellationProofIndexedPositiveInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2436/2548] Replayed Mathdemo.Internal.Real.PositivityProofIndexedPositiveQuotientInverse
+warning: Mathdemo/Internal/Real/PositivityProofIndexedPositiveQuotientInverse.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2437/2548] Replayed Mathdemo.Internal.Real.CompletenessFrontierSplitConditionalQuotientBranch
+warning: Mathdemo/Internal/Real/CompletenessFrontierSplitConditionalQuotientBranch.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2438/2548] Replayed Mathdemo.Internal.Real.ClosingRepresentativeGapCloseStep
+warning: Mathdemo/Internal/Real/ClosingRepresentativeGapCloseStep.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2440/2548] Replayed Mathdemo.Internal.Real.RepresentativeClosenessCalculusDiagonalFrontier
+warning: Mathdemo/Internal/Real/RepresentativeClosenessCalculusDiagonalFrontier.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+ℹ [2442/2548] Replayed Mathdemo.Internal.Sec4.FullIncrement
 info: Mathdemo/Internal/Sec4/FullIncrement.lean:24:0: BishopC.coverSet_tendsto.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (f : IntegrableRep S)
   (hnn : RepNonneg f) : RSeq.TendstoHalf (fun k ↦ relIntegral (coverSet f k) (coverSet_int f k) f hnn) f.integral
 info: Mathdemo/Internal/Sec4/FullIncrement.lean:25:0: BishopC.relIntegral_le_integral.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (C : BSet X)
@@ -2384,88 +2400,7 @@ info: Mathdemo/Internal/Sec4/FullIncrement.lean:31:0: BishopC.tendstoHalf_add.{u
   (hv : RSeq.TendstoHalf v b) : RSeq.TendstoHalf (fun n ↦ u n + v n) (a + b)
 info: Mathdemo/Internal/Sec4/FullIncrement.lean:32:0: BishopC.tendstoHalf_const.{u_2} {R : Type u_2} [COFOC R] (c : R) : RSeq.TendstoHalf (fun x ↦ c) c
 info: Mathdemo/Internal/Sec4/FullIncrement.lean:33:0: BishopC.RSeq.partialSum.{u_1} {R : Type u_1} [COF R] (u : ℕ → R) : ℕ → R
-⚠ [2446/2787] Replayed Mathdemo.Internal.Real.TotalPositiveInverseSelectorDecidableQuotient
-warning: Mathdemo/Internal/Real/TotalPositiveInverseSelectorDecidableQuotient.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2448/2787] Replayed Mathdemo.Internal.Real.ValueEstimateSourceTimesReciprocalTail
-warning: Mathdemo/Internal/Real/ValueEstimateSourceTimesReciprocalTail.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2449/2787] Replayed Mathdemo.Internal.Real.QuotientCancellationProofIndexedPositiveInverse
-warning: Mathdemo/Internal/Real/QuotientCancellationProofIndexedPositiveInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2450/2787] Replayed Mathdemo.Internal.Real.CancellationConditionalTotalInverseSelector
-warning: Mathdemo/Internal/Real/CancellationConditionalTotalInverseSelector.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2451/2787] Replayed Mathdemo.Internal.Real.PositivityProofIndexedPositiveQuotientInverse
-warning: Mathdemo/Internal/Real/PositivityProofIndexedPositiveQuotientInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2452/2787] Replayed Mathdemo.Internal.Real.PositiveInverseFieldDataConditionalCOF
-warning: Mathdemo/Internal/Real/PositiveInverseFieldDataConditionalCOF.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2454/2787] Replayed Mathdemo.Internal.Real.CompletenessFrontierSplitConditionalQuotientBranch
-warning: Mathdemo/Internal/Real/CompletenessFrontierSplitConditionalQuotientBranch.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2455/2787] Replayed Mathdemo.Internal.Real.LocalQuotientCloseExtractionCompletenessFrontier
-warning: Mathdemo/Internal/Real/LocalQuotientCloseExtractionCompletenessFrontier.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2456/2787] Replayed Mathdemo.Internal.Real.UnfoldingLocalQuotientCloseBridgeConcrete
-warning: Mathdemo/Internal/Real/UnfoldingLocalQuotientCloseBridgeConcrete.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2457/2787] Replayed Mathdemo.Internal.Real.FromConcreteQuotientClosenessRepresentativeGap
-warning: Mathdemo/Internal/Real/FromConcreteQuotientClosenessRepresentativeGap.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2458/2787] Replayed Mathdemo.Internal.Real.ClosingRepresentativeGapCloseStep
-warning: Mathdemo/Internal/Real/ClosingRepresentativeGapCloseStep.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2460/2787] Replayed Mathdemo.Internal.Real.RepresentativeClosenessCalculusDiagonalFrontier
-warning: Mathdemo/Internal/Real/RepresentativeClosenessCalculusDiagonalFrontier.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2463/2787] Replayed Mathdemo.Internal.Real.RepresentativeDiagonalLimitCloseData
-warning: Mathdemo/Internal/Real/RepresentativeDiagonalLimitCloseData.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/RepresentativeDiagonalLimitCloseData.lean:113:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2464/2787] Replayed Mathdemo.Internal.Real.RepresentativeFreeDecidableOrderCOFOAssembly
-warning: Mathdemo/Internal/Real/RepresentativeFreeDecidableOrderCOFOAssembly.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2466/2787] Replayed Mathdemo.Internal.Real.COFOCAssemblyCauchySequenceRepresentativeData
-warning: Mathdemo/Internal/Real/COFOCAssemblyCauchySequenceRepresentativeData.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/COFOCAssemblyCauchySequenceRepresentativeData.lean:14:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2467/2787] Replayed Mathdemo.Internal.Real.CauchySequenceRepresentativesImplyGlobalRepresentatives
-warning: Mathdemo/Internal/Real/CauchySequenceRepresentativesImplyGlobalRepresentatives.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/CauchySequenceRepresentativesImplyGlobalRepresentatives.lean:13:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2468/2787] Replayed Mathdemo.Internal.Real.LocalizingOrderDataExtractionPositiveInverse
-warning: Mathdemo/Internal/Real/LocalizingOrderDataExtractionPositiveInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2469/2787] Replayed Mathdemo.Internal.Real.RepCarryingCompletenessAfterPositiveOrder
-warning: Mathdemo/Internal/Real/RepCarryingCompletenessAfterPositiveOrder.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-ℹ [2470/2787] Replayed Mathdemo.Internal.Sec4.IncrementAlgebra
+ℹ [2443/2548] Replayed Mathdemo.Internal.Sec4.IncrementAlgebra
 info: Mathdemo/Internal/Sec4/IncrementAlgebra.lean:26:0: BishopC.Sec4IBIncrementBridge.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Prop
 info: Mathdemo/Internal/Sec4/IncrementAlgebra.lean:27:0: BishopC.sec4IB_diffRelIntegral.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -2483,7 +2418,7 @@ info: Mathdemo/Internal/Sec4/IncrementAlgebra.lean:32:0: BishopC.coverSet_int.{u
   (k : ℕ) : IntegrableSet1 S (coverSet f k)
 info: Mathdemo/Internal/Sec4/IncrementAlgebra.lean:33:0: BishopC.BSet.sub.{u_1} {X : Type u_1} (A B : BSet X) : BSet X
 info: Mathdemo/Internal/Sec4/IncrementAlgebra.lean:34:0: BishopC.BSet.Subset.{u_1} {X : Type u_1} (A B : BSet X) : Prop
-ℹ [2471/2787] Replayed Mathdemo.Internal.Sec4.LayerRelIdentities
+ℹ [2444/2548] Replayed Mathdemo.Internal.Sec4.LayerRelIdentities
 info: Mathdemo/Internal/Sec4/LayerRelIdentities.lean:29:0: BishopC.relIntegral_or_add_and.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} {D D' : BSet X}
   (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') (f : IntegrableRep S) (hnn : RepNonneg f) :
   relIntegral (D.or D') (IntegrableSet1_or hD hD') f hnn + relIntegral (D.and D') (IntegrableSet1_and hD hD') f hnn =
@@ -2514,7 +2449,7 @@ info: Mathdemo/Internal/Sec4/LayerRelIdentities.lean:35:0: BishopC.sec4IBIncreme
 info: Mathdemo/Internal/Sec4/LayerRelIdentities.lean:36:0: BishopC.genIB_rep_from_incrementAlgebra.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (B : BSet X) (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f)
   (G : Sec4IBIncrementAlgebra B hB f hnn) : IntegrableRep S
-ℹ [2472/2787] Replayed Mathdemo.Internal.Sec4.LayerRelData
+ℹ [2445/2548] Replayed Mathdemo.Internal.Sec4.LayerRelData
 info: Mathdemo/Internal/Sec4/LayerRelData.lean:28:0: BishopC.Sec4IBIncrementBridge.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Prop
 info: Mathdemo/Internal/Sec4/LayerRelData.lean:29:0: BishopC.Sec4IBLayerRelIdentities.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -2542,7 +2477,7 @@ info: Mathdemo/Internal/Sec4/LayerRelData.lean:35:0: BishopC.relIntegral_or_add_
   (hD : IntegrableSet1 S D) (hD' : IntegrableSet1 S D') (f : IntegrableRep S) (hnn : RepNonneg f) :
   relIntegral (D.or D') (IntegrableSet1_or hD hD') f hnn + relIntegral (D.and D') (IntegrableSet1_and hD hD') f hnn =
     relIntegral D hD f hnn + relIntegral D' hD' f hnn
-⚠ [2473/2787] Replayed Mathdemo.Internal.Sec4.PointData
+⚠ [2446/2548] Replayed Mathdemo.Internal.Sec4.PointData
 info: Mathdemo/Internal/Sec4/PointData.lean:31:0: BishopC.cor_1_12.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} {A : Set X} (hA : IsFull S A)
   (r r' : IntegrableRep S)
   (heq :
@@ -2589,7 +2524,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/PointData.lean:184:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2474/2787] Replayed Mathdemo.Internal.Sec4.ChiValueInputsSec4IBLayerPointData
+⚠ [2447/2548] Replayed Mathdemo.Internal.Sec4.ChiValueInputsSec4IBLayerPointData
 info: Mathdemo/Internal/Sec4/ChiValueInputsSec4IBLayerPointData.lean:31:0: BishopC.Sec4IBLayerPointData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type u_1
 info: Mathdemo/Internal/Sec4/ChiValueInputsSec4IBLayerPointData.lean:32:0: BishopC.Sec4IBLayerPointData.mk.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} {B : BSet X}
@@ -2635,7 +2570,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/ChiValueInputsSec4IBLayerPointData.lean:129:8: unused variable `hfabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2475/2787] Replayed Mathdemo.Internal.Sec4.SetMap
+⚠ [2448/2548] Replayed Mathdemo.Internal.Sec4.SetMap
 info: Mathdemo/Internal/Sec4/SetMap.lean:24:0: BishopC.Sec4RelRepChiEqInput.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A A' : BSet X)
   (hA : IntegrableSet1 S A) (hA' : IntegrableSet1 S A') (f : IntegrableRep S) (hnn : RepNonneg f) : Type u_1
 info: Mathdemo/Internal/Sec4/SetMap.lean:25:0: BishopC.Sec4IBLayerChiData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -2668,7 +2603,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/SetMap.lean:163:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-ℹ [2476/2787] Replayed Mathdemo.Internal.Sec4.RawMaps
+ℹ [2449/2548] Replayed Mathdemo.Internal.Sec4.RawMaps
 info: Mathdemo/Internal/Sec4/RawMaps.lean:25:0: BishopC.Sec4IBLayerSetMapData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type
 info: Mathdemo/Internal/Sec4/RawMaps.lean:26:0: BishopC.Sec4IBLayerSetMapData.mk.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} {B : BSet X}
@@ -2697,7 +2632,7 @@ info: Mathdemo/Internal/Sec4/RawMaps.lean:36:0: BishopC.BSet.and.{u_1} {X : Type
 info: Mathdemo/Internal/Sec4/RawMaps.lean:37:0: BishopC.BSet.or.{u_1} {X : Type u_1} (A B : BSet X) : BSet X
 info: Mathdemo/Internal/Sec4/RawMaps.lean:38:0: BishopC.BSet.sub.{u_1} {X : Type u_1} (A B : BSet X) : BSet X
 info: Mathdemo/Internal/Sec4/RawMaps.lean:39:0: BishopC.BSet.neg.{u_1} {X : Type u_1} (A : BSet X) : BSet X
-⚠ [2477/2787] Replayed Mathdemo.Internal.Sec4.ResidualData
+⚠ [2450/2548] Replayed Mathdemo.Internal.Sec4.ResidualData
 info: Mathdemo/Internal/Sec4/ResidualData.lean:25:0: BishopC.Sec4IBLayerResidualData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type
 info: Mathdemo/Internal/Sec4/ResidualData.lean:26:0: BishopC.Sec4IBLayerResidualData.mk.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} {B : BSet X}
@@ -2739,7 +2674,7 @@ info: Mathdemo/Internal/Sec4/ResidualData.lean:34:0: BishopC.smul_seriesSum_valu
 warning: Mathdemo/Internal/Sec4/ResidualData.lean:156:18: unused variable `hB`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2478/2787] Replayed Mathdemo.Internal.Sec4.ValueConsistency
+⚠ [2451/2548] Replayed Mathdemo.Internal.Sec4.ValueConsistency
 info: Mathdemo/Internal/Sec4/ValueConsistency.lean:34:0: BishopC.genIB_rep_from_measurable.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : IntegrableRep S
 info: Mathdemo/Internal/Sec4/ValueConsistency.lean:35:0: BishopC.genRelIntegral_from_measurable.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2775,7 +2710,7 @@ warning: Mathdemo/Internal/Sec4/ValueConsistency.lean:212:2: 'change
     (prop_4_2_chi_f_rep C hC f hnn).integral' tactic does nothing
 
 Note: This linter can be disabled with `set_option linter.unusedTactic false`
-ℹ [2479/2787] Replayed Mathdemo.Internal.Sec4.PointDecomp
+ℹ [2452/2548] Replayed Mathdemo.Internal.Sec4.PointDecomp
 info: Mathdemo/Internal/Sec4/PointDecomp.lean:28:0: BishopC.genIB_rep_from_measurable.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : IntegrableRep S
 info: Mathdemo/Internal/Sec4/PointDecomp.lean:29:0: BishopC.sec4IBLayerResidualData_mk.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -2817,7 +2752,7 @@ info: Mathdemo/Internal/Sec4/PointDecomp.lean:40:0: BishopC.sec4_make_pointBridg
   { B // (seriesSum_of_abs hflatabs).sum = B.rows.sum }
 info: Mathdemo/Internal/Sec4/PointDecomp.lean:41:0: BishopC.Sec4SeriesSumRepL1PointBridge.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (F : ℕ → IntegrableRep S) (hsum : RSeq.SeriesSum fun m ↦ (F m).normL1) (x : X) : Type u_2
-ℹ [2480/2787] Replayed Mathdemo.Internal.Sec4.RowsLimitBridge
+ℹ [2453/2548] Replayed Mathdemo.Internal.Sec4.RowsLimitBridge
 info: Mathdemo/Internal/Sec4/RowsLimitBridge.lean:24:0: BishopC.Sec4GenIBValueBridge.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Prop
 info: Mathdemo/Internal/Sec4/RowsLimitBridge.lean:25:0: BishopC.Sec4GenIBConsistencyBridge.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (C : BSet X)
@@ -2842,7 +2777,7 @@ info: Mathdemo/Internal/Sec4/RowsLimitBridge.lean:29:0: BishopC.sec4_genIBConsis
   {S : IntSpaceRC X R} (C : BSet X) (hC : IntegrableSet1 S C) (f : IntegrableRep S) (hnn : RepNonneg f)
   (V : Sec4GenIBValueBridge C (isMeasurableSet_of_integrable hC) f hnn) : Sec4GenIBConsistencyBridge C hC f hnn
 info: Mathdemo/Internal/Sec4/RowsLimitBridge.lean:30:0: BishopC.seriesSum_unique.{u_1} {R : Type u_1} [COFO R] {u : ℕ → R} (a b : RSeq.SeriesSum u) : a.sum = b.sum
-ℹ [2481/2787] Replayed Mathdemo.Internal.Sec4.CoverLimitData
+ℹ [2454/2548] Replayed Mathdemo.Internal.Sec4.CoverLimitData
 info: Mathdemo/Internal/Sec4/CoverLimitData.lean:26:0: BishopC.Sec4GenIBRowsLimitData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/CoverLimitData.lean:27:0: BishopC.sec4_genIBValueBridge_of_rowsLimitData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2856,7 +2791,7 @@ info: Mathdemo/Internal/Sec4/CoverLimitData.lean:29:0: BishopC.sec4_tendstoHalf_
   (c : R) : RSeq.TendstoHalf (fun n ↦ u n - c) (l - c)
 info: Mathdemo/Internal/Sec4/CoverLimitData.lean:30:0: BishopC.RSeq.TendstoHalf.{u_1} {R : Type u_1} [COF R] (u : ℕ → R) (l : R) : Type
 info: Mathdemo/Internal/Sec4/CoverLimitData.lean:31:0: BishopC.RSeq.partialSum.{u_1} {R : Type u_1} [COF R] (u : ℕ → R) : ℕ → R
-ℹ [2482/2787] Replayed Mathdemo.Internal.Sec4.CoverEstimateData
+ℹ [2455/2548] Replayed Mathdemo.Internal.Sec4.CoverEstimateData
 info: Mathdemo/Internal/Sec4/CoverEstimateData.lean:30:0: BishopC.Sec4GenIBCoverLimitData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/CoverEstimateData.lean:31:0: BishopC.sec4_genIBValueBridge_of_coverLimitData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2871,7 +2806,7 @@ info: Mathdemo/Internal/Sec4/CoverEstimateData.lean:33:0: BishopC.sec4_genIBCons
   (T : Sec4GenIBCoverLimitData C (isMeasurableSet_of_integrable hC) f hnn) : Sec4GenIBConsistencyBridge C hC f hnn
 info: Mathdemo/Internal/Sec4/CoverEstimateData.lean:34:0: BishopC.COF.Close.{u_1} {R : Type u_1} [COF R] (k : ℕ) (a b : R) : Prop
 info: Mathdemo/Internal/Sec4/CoverEstimateData.lean:35:0: BishopC.RSeq.TendstoHalf.{u_1} {R : Type u_1} [COF R] (u : ℕ → R) (l : R) : Type
-ℹ [2483/2787] Replayed Mathdemo.Internal.Sec4.ACanonicalCoverValue
+ℹ [2456/2548] Replayed Mathdemo.Internal.Sec4.ACanonicalCoverValue
 info: Mathdemo/Internal/Sec4/ACanonicalCoverValue.lean:29:0: BishopC.Sec4GenIBCoverEstimateData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/ACanonicalCoverValue.lean:30:0: BishopC.sec4_genIBValueBridge_of_estimateData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2892,7 +2827,7 @@ info: Mathdemo/Internal/Sec4/ACanonicalCoverValue.lean:34:0: BishopC.sec4_genIB_
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) (x : X)
   (hgenDom : (genIB_rep_from_measurable B hB f hnn).MemAt x)
   (hgenabs : RSeq.SeriesSum fun n ↦ COF_core.abs ((genIB_rep_from_measurable B hB f hnn).valueAt x hgenDom n)) : ℕ → R
-⚠ [2484/2787] Replayed Mathdemo.Internal.Sec4.CoverFacts
+⚠ [2457/2548] Replayed Mathdemo.Internal.Sec4.CoverFacts
 info: Mathdemo/Internal/Sec4/CoverFacts.lean:30:0: BishopC.Sec4GenIBCanonicalCloseData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type
 info: Mathdemo/Internal/Sec4/CoverFacts.lean:31:0: BishopC.Sec4GenIBCanonicalCloseData.mk.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2929,7 +2864,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/CoverFacts.lean:114:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2485/2787] Replayed Mathdemo.Internal.Sec4.CoverChiTelescopeBridge
+⚠ [2458/2548] Replayed Mathdemo.Internal.Sec4.CoverChiTelescopeBridge
 info: Mathdemo/Internal/Sec4/CoverChiTelescopeBridge.lean:23:0: BishopC.Sec4CanonicalCoverFacts.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Prop
 info: Mathdemo/Internal/Sec4/CoverChiTelescopeBridge.lean:24:0: BishopC.sec4_canonicalCloseData_of_coverFacts.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2967,7 +2902,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/CoverChiTelescopeBridge.lean:193:8: unused variable `hfabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2486/2787] Replayed Mathdemo.Internal.Sec4.CoreData
+⚠ [2459/2548] Replayed Mathdemo.Internal.Sec4.CoreData
 info: Mathdemo/Internal/Sec4/CoreData.lean:27:0: BishopC.Sec4CanonicalCoverChiData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/CoreData.lean:28:0: BishopC.sec4_canonicalCoverFacts_of_chiData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -2998,7 +2933,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/CoreData.lean:152:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2487/2787] Replayed Mathdemo.Internal.Sec4.TelescopeData
+⚠ [2460/2548] Replayed Mathdemo.Internal.Sec4.TelescopeData
 info: Mathdemo/Internal/Sec4/TelescopeData.lean:25:0: BishopC.Sec4CanonicalCoverCoreData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/TelescopeData.lean:26:0: BishopC.sec4_genIBValueBridge_of_coreData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3026,7 +2961,7 @@ info: Mathdemo/Internal/Sec4/TelescopeData.lean:34:0: BishopC.RepNonneg.{u_1, u_
 warning: Mathdemo/Internal/Sec4/TelescopeData.lean:91:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2488/2787] Replayed Mathdemo.Internal.Sec4.LayerTelescope
+⚠ [2461/2548] Replayed Mathdemo.Internal.Sec4.LayerTelescope
 info: Mathdemo/Internal/Sec4/LayerTelescope.lean:23:0: BishopC.Sec4CanonicalCoverTelescopeData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (B : BSet X) (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/LayerTelescope.lean:24:0: BishopC.sec4_genIBValueBridge_of_telescopeData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3058,7 +2993,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/LayerTelescope.lean:131:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2489/2787] Replayed Mathdemo.Internal.Sec4.SuccLayerTelescope
+⚠ [2462/2548] Replayed Mathdemo.Internal.Sec4.SuccLayerTelescope
 info: Mathdemo/Internal/Sec4/SuccLayerTelescope.lean:36:0: BishopC.Sec4CanonicalCoverLayerTelescopeData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (B : BSet X) (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/SuccLayerTelescope.lean:37:0: BishopC.sec4_genIBValueBridge_of_telescopeData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3096,7 +3031,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/SuccLayerTelescope.lean:99:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2490/2787] Replayed Mathdemo.Internal.Sec4.ChiStep
+⚠ [2463/2548] Replayed Mathdemo.Internal.Sec4.ChiStep
 info: Mathdemo/Internal/Sec4/ChiStep.lean:24:0: BishopC.Sec4CanonicalCoverLayerTelescopeDataSucc.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (B : BSet X) (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/ChiStep.lean:25:0: BishopC.sec4_genIBValueBridge_of_succLayerData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3129,7 +3064,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/ChiStep.lean:228:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2491/2787] Replayed Mathdemo.Internal.Sec4.InternalTools
+⚠ [2464/2548] Replayed Mathdemo.Internal.Sec4.InternalTools
 info: Mathdemo/Internal/Sec4/InternalTools.lean:26:0: BishopC.Sec4CanonicalCoverLayerAtomDataSucc.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (B : BSet X) (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/InternalTools.lean:27:0: BishopC.sec4_genIBValueBridge_of_atomData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3171,7 +3106,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/InternalTools.lean:324:8: unused variable `hgenabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2492/2787] Replayed Mathdemo.Internal.Sec4.RowInternalTools
+⚠ [2465/2548] Replayed Mathdemo.Internal.Sec4.RowInternalTools
 info: Mathdemo/Internal/Sec4/RowInternalTools.lean:28:0: BishopC.Sec4ChiFInternalTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/RowInternalTools.lean:29:0: BishopC.Sec4CoverChiFAbsSucc.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -3215,7 +3150,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/RowInternalTools.lean:196:8: 'change (0 : R) = (PB.rowVal k).sum' tactic does nothing
 
 Note: This linter can be disabled with `set_option linter.unusedTactic false`
-ℹ [2493/2787] Replayed Mathdemo.Internal.Sec4.Min2RowInternals
+ℹ [2466/2548] Replayed Mathdemo.Internal.Sec4.Min2RowInternals
 info: Mathdemo/Internal/Sec4/Min2RowInternals.lean:28:0: BishopC.Sec4Prop42RowInternalTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/Min2RowInternals.lean:29:0: BishopC.Sec4CoverChiFAbsSucc.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -3256,7 +3191,7 @@ info: Mathdemo/Internal/Sec4/Min2RowInternals.lean:42:0: BishopC.prop_4_2_n_k.{u
   ℕ → ℕ
 info: Mathdemo/Internal/Sec4/Min2RowInternals.lean:43:0: BishopC.prop_4_2_lambda_k.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
   (hA : IntegrableSet1 S A) (f : IntegrableRep S) (n_k : ℕ → ℕ) : ℕ → IntegrableRep S
-⚠ [2494/2787] Replayed Mathdemo.Internal.Sec4.Row1Switch
+⚠ [2467/2548] Replayed Mathdemo.Internal.Sec4.Row1Switch
 info: Mathdemo/Internal/Sec4/Row1Switch.lean:35:0: BishopC.Sec4Prop42AlmostFinalTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/Row1Switch.lean:36:0: BishopC.Sec4Prop42RowInternalTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -3295,7 +3230,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/Row1Switch.lean:158:8: 'change (0 : R) = (PB.rowVal k).sum' tactic does nothing
 
 Note: This linter can be disabled with `set_option linter.unusedTactic false`
-ℹ [2495/2787] Replayed Mathdemo.Internal.Sec4.StepAbs
+ℹ [2468/2548] Replayed Mathdemo.Internal.Sec4.StepAbs
 info: Mathdemo/Internal/Sec4/StepAbs.lean:37:0: BishopC.Sec4Prop42FinalTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_2 u_1)
 info: Mathdemo/Internal/Sec4/StepAbs.lean:38:0: BishopC.Sec4CoverChiFAbsSucc.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -3330,7 +3265,7 @@ info: Mathdemo/Internal/Sec4/StepAbs.lean:47:0: BishopC.sec4CoverDiff_int.{u_1, 
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (k : ℕ) : IntegrableSet1 S (sec4CoverDiff B f k)
 info: Mathdemo/Internal/Sec4/StepAbs.lean:48:0: BishopC.prop_4_2_chi_f_rep.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
   (hA : IntegrableSet1 S A) (f : IntegrableRep S) (hnn : RepNonneg f) : IntegrableRep S
-ℹ [2496/2787] Replayed Mathdemo.Internal.Sec4.DataCases
+ℹ [2469/2548] Replayed Mathdemo.Internal.Sec4.DataCases
 info: Mathdemo/Internal/Sec4/DataCases.lean:32:0: BishopC.Sec4CoverChiFStepAbs.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/DataCases.lean:33:0: BishopC.sec4_prop42FinalTools_of_stepAbs.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3360,7 +3295,7 @@ info: Mathdemo/Internal/Sec4/DataCases.lean:42:0: BishopC.sec4CoverDiff_int.{u_1
   (hB : IsMeasurableSet B) (f : IntegrableRep S) (k : ℕ) : IntegrableSet1 S (sec4CoverDiff B f k)
 info: Mathdemo/Internal/Sec4/DataCases.lean:43:0: BishopC.prop_4_2_chi_f_rep.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
   (hA : IntegrableSet1 S A) (f : IntegrableRep S) (hnn : RepNonneg f) : IntegrableRep S
-ℹ [2497/2787] Replayed Mathdemo.Internal.Sec4.DichotomyData
+ℹ [2470/2548] Replayed Mathdemo.Internal.Sec4.DichotomyData
 info: Mathdemo/Internal/Sec4/DichotomyData.lean:34:0: BishopC.Sec4ChiFCaseToolsData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/DichotomyData.lean:35:0: BishopC.Sec4CoverDichotomyData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (B : BSet X)
@@ -3384,7 +3319,7 @@ info: Mathdemo/Internal/Sec4/DichotomyData.lean:41:0: BishopC.COF.lt_cotrans_dat
   COF_core.lt a b → (c : R) → COF_core.lt a c ⊕' COF_core.lt c b
 info: Mathdemo/Internal/Sec4/DichotomyData.lean:42:0: BishopC.COFO.half_pos.{u_1} {R : Type u_1} [self : COFO R] : COF_core.lt 0 COF_core.half
 info: Mathdemo/Internal/Sec4/DichotomyData.lean:43:0: BishopC.COF_core.half_add_half.{u_1} {R : Type u_1} [self : COF_core R] : COF_core.half + COF_core.half = 1
-⚠ [2498/2787] Replayed Mathdemo.Internal.Sec4.CaseRowTools
+⚠ [2471/2548] Replayed Mathdemo.Internal.Sec4.CaseRowTools
 info: Mathdemo/Internal/Sec4/CaseRowTools.lean:31:0: BishopC.Sec4ChiFCaseToolsData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/CaseRowTools.lean:32:0: BishopC.Sec4ChiFFAbsOfS1Data.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3419,7 +3354,7 @@ info: Mathdemo/Internal/Sec4/CaseRowTools.lean:42:0: BishopC.seriesSumRep_L1_row
 warning: Mathdemo/Internal/Sec4/CaseRowTools.lean:96:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2499/2787] Replayed Mathdemo.Internal.Sec4.AbsOuterPack
+⚠ [2472/2548] Replayed Mathdemo.Internal.Sec4.AbsOuterPack
 info: Mathdemo/Internal/Sec4/AbsOuterPack.lean:37:0: BishopC.Sec4ChiFCaseToolsData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/AbsOuterPack.lean:38:0: BishopC.Sec4ChiFFAbsOfS1Data.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3457,7 +3392,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/AbsOuterPack.lean:156:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2500/2787] Replayed Mathdemo.Internal.Sec4.RowToFlat
+⚠ [2473/2548] Replayed Mathdemo.Internal.Sec4.RowToFlat
 warning: Mathdemo/Internal/Sec4/RowToFlat.lean:59:0: Please, add a comment explaining the need for modifying the maxHeartbeat limit, as in
 set_option maxHeartbeats 500000 in
 -- reason for change
@@ -3476,7 +3411,7 @@ warning: Mathdemo/Internal/Sec4/RowToFlat.lean:126:8: The `show` tactic should o
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-ℹ [2501/2787] Replayed Mathdemo.Internal.Sec4.RemainingAtomsAssembly
+ℹ [2474/2548] Replayed Mathdemo.Internal.Sec4.RemainingAtomsAssembly
 info: Mathdemo/Internal/Sec4/RemainingAtomsAssembly.lean:30:0: BishopC.sec4_rowToFlat_source.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} :
   Sec4SeriesSumRepL1FlatAbsOfAbsRows
 info: Mathdemo/Internal/Sec4/RemainingAtomsAssembly.lean:31:0: BishopC.Sec4ChiFCaseAbsPackTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3501,7 +3436,7 @@ info: Mathdemo/Internal/Sec4/RemainingAtomsAssembly.lean:38:0: BishopC.sec4_genR
 info: Mathdemo/Internal/Sec4/RemainingAtomsAssembly.lean:39:0: BishopC.sec4_genIBConsistencyBridge_of_absPackTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R]
   {S : IntSpaceRC X R} (C : BSet X) (hC : IntegrableSet1 S C) (f : IntegrableRep S) (hnn : RepNonneg f)
   (T : Sec4ChiFCaseAbsPackTools f hnn) : Sec4GenIBConsistencyBridge C hC f hnn
-⚠ [2504/2787] Replayed Mathdemo.Internal.Sec4.PackTools
+⚠ [2475/2548] Replayed Mathdemo.Internal.Sec4.PackTools
 info: Mathdemo/Internal/Sec4/PackTools.lean:33:0: BishopC.Sec4ChiFCaseToolsData.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/PackTools.lean:34:0: BishopC.Sec4ChiFFAbsOfS1Data.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
@@ -3545,7 +3480,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/Internal/Sec4/PackTools.lean:132:27: unused variable `hnn`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-ℹ [2505/2787] Replayed Mathdemo.Internal.Sec4.PrimitivePackTools
+ℹ [2476/2548] Replayed Mathdemo.Internal.Sec4.PrimitivePackTools
 info: Mathdemo/Internal/Sec4/PrimitivePackTools.lean:31:0: BishopC.Sec4ChiFCasePackTools.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R}
   (f : IntegrableRep S) (hnn : RepNonneg f) : Type (max u_1 u_2)
 info: Mathdemo/Internal/Sec4/PrimitivePackTools.lean:32:0: BishopC.Sec4LambdaRowsPackAt.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (A : BSet X)
@@ -3573,92 +3508,7 @@ info: Mathdemo/Internal/Sec4/PrimitivePackTools.lean:41:0: BishopC.prop_4_2_lamb
   (hA : IntegrableSet1 S A) (f : IntegrableRep S) (n_k : ℕ → ℕ) : ℕ → IntegrableRep S
 info: Mathdemo/Internal/Sec4/PrimitivePackTools.lean:42:0: BishopC.prop_4_2_n_k.{u_1, u_2} {X : Type u_1} {R : Type u_2} [COFOC R] {S : IntSpaceRC X R} (f : IntegrableRep S) :
   ℕ → ℕ
-⚠ [2526/2870] Replayed Mathdemo.Internal.Real.COFOCAssemblyAfterPositiveOrderData
-warning: Mathdemo/Internal/Real/COFOCAssemblyAfterPositiveOrderData.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/COFOCAssemblyAfterPositiveOrderData.lean:8:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2527/2870] Replayed Mathdemo.Internal.Real.CauchySequenceRepresentativesAuditPositiveData
-warning: Mathdemo/Internal/Real/CauchySequenceRepresentativesAuditPositiveData.lean:7:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2528/2870] Replayed Mathdemo.Internal.Real.RepresentativeScopePositiveLtQuotData
-warning: Mathdemo/Internal/Real/RepresentativeScopePositiveLtQuotData.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2530/2870] Replayed Mathdemo.Internal.Real.COFOCAssemblyRepresentedPositiveShifts
-warning: Mathdemo/Internal/Real/COFOCAssemblyRepresentedPositiveShifts.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/COFOCAssemblyRepresentedPositiveShifts.lean:8:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2531/2870] Replayed Mathdemo.Internal.Real.RepresentedPositiveShiftsNotGenuineWeakening
-warning: Mathdemo/Internal/Real/RepresentedPositiveShiftsNotGenuineWeakening.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2532/2870] Replayed Mathdemo.Internal.Real.SplittingPropOrderDataOrderExtraction
-warning: Mathdemo/Internal/Real/SplittingPropOrderDataOrderExtraction.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2533/2870] Replayed Mathdemo.Internal.Real.PosEventuallyWitnessSelectorFrontier
-warning: Mathdemo/Internal/Real/PosEventuallyWitnessSelectorFrontier.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2534/2870] Replayed Mathdemo.Internal.Real.COFOCAssemblyGlobalRepsPosEventuallySelector
-warning: Mathdemo/Internal/Real/COFOCAssemblyGlobalRepsPosEventuallySelector.lean:8:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2535/2870] Replayed Mathdemo.Internal.Real.SplittingPositiveInverseDataTotalInverse
-warning: Mathdemo/Internal/Real/SplittingPositiveInverseDataTotalInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2538/2870] Replayed Mathdemo.Internal.Real.PositiveDataInverseConsumerTotalInverse
-warning: Mathdemo/Internal/Real/PositiveDataInverseConsumerTotalInverse.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2539/2870] Replayed Mathdemo.Internal.Real.FaithfulDataCarryingScalarPackageCReal
-warning: Mathdemo/Internal/Real/FaithfulDataCarryingScalarPackageCReal.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2543/2870] Replayed Mathdemo.Internal.Real.AlgebraLawLayerRegularSeqDataInterface
-warning: Mathdemo/Internal/Real/AlgebraLawLayerRegularSeqDataInterface.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2546/2870] Replayed Mathdemo.Internal.Real.DataValuedArchimedeanLayerCarriedRegularSeq
-warning: Mathdemo/Internal/Real/DataValuedArchimedeanLayerCarriedRegularSeq.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2548/2870] Replayed Mathdemo.Internal.Real.FinalSourceShapedRegularSeqCOFOCSurface
-warning: Mathdemo/Internal/Real/FinalSourceShapedRegularSeqCOFOCSurface.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2549/2870] Replayed Mathdemo.Internal.Real.DecisionReportRegularSeqSurfaceVersusPrevious
-warning: Mathdemo/Internal/Real/DecisionReportRegularSeqSurfaceVersusPrevious.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-warning: Mathdemo/Internal/Real/DecisionReportRegularSeqSurfaceVersusPrevious.lean:8:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2550/2870] Replayed Mathdemo.Internal.Real.AuditMapPreviousCOFCOFOCOFOC
-warning: Mathdemo/Internal/Real/AuditMapPreviousCOFCOFOCOFOC.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2553/2870] Replayed Mathdemo.Internal.Real.ContainQuotientSelectorsScalarInstanceBoundary
-warning: Mathdemo/Internal/Real/ContainQuotientSelectorsScalarInstanceBoundary.lean:6:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2554/2870] Replayed Mathdemo.Internal.Real.PosEventuallySelectorBoundaryScalarInstance
-warning: Mathdemo/Internal/Real/PosEventuallySelectorBoundaryScalarInstance.lean:16:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2557/2870] Replayed Mathdemo.Internal.Real.AlignCompletedBishopCheng1972Sections
-warning: Mathdemo/Internal/Real/AlignCompletedBishopCheng1972Sections.lean:15:100: This line exceeds the 100 character limit, please shorten it!
-
-Note: This linter can be disabled with `set_option linter.style.longLine false`
-⚠ [2559/2870] Replayed Mathdemo.Internal.Real.ScaleAndHalfReduction
+⚠ [2477/2548] Replayed Mathdemo.Internal.Real.ScaleAndHalfReduction
 warning: Mathdemo/Internal/Real/ScaleAndHalfReduction.lean:100:2: The `show` tactic should only be used to indicate intermediate goal states for readability.
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
@@ -3675,13 +3525,13 @@ warning: Mathdemo/Internal/Real/ScaleAndHalfReduction.lean:205:2: The `show` tac
 However, this tactic invocation changed the goal. Please use `change` instead for these purposes.
 
 Note: This linter can be disabled with `set_option linter.style.show false`
-⚠ [2560/2870] Replayed Mathdemo.ChoiceFreeDCTExamples
+⚠ [2478/2548] Replayed Mathdemo.ChoiceFreeDCTExamples
 warning: Mathdemo/ChoiceFreeDCTExamples.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-⚠ [2613/2870] Replayed Mathdemo.ChoiceFreeDCTConcreteExamples
+⚠ [2479/2548] Replayed Mathdemo.ChoiceFreeDCTConcreteExamples
 warning: Mathdemo/ChoiceFreeDCTConcreteExamples.lean:1:1: * '-/':
 Copyright too short!
 
@@ -3694,7 +3544,7 @@ info: Mathdemo/ChoiceFreeDCTConcreteExamples.lean:264:0: ChoiceFreeMeasureDCT.pu
   BishopSec1P.RepSeriesTendsto (fun n ↦ ((fun x ↦ zeroRepC PUnit.{u_1 + 1}) n).integral)
     (zeroRepC PUnit.{u_1 + 1}).integral
 info: Mathdemo/ChoiceFreeDCTConcreteExamples.lean:265:0: 'ChoiceFreeMeasureDCT.punit_zero_dct_application_autoC' depends on axioms: [propext, Quot.sound]
-⚠ [2614/2870] Replayed Mathdemo.CheckDCTV2Axioms
+⚠ [2480/2548] Replayed Mathdemo.CheckDCTV2Axioms
 warning: Mathdemo/CheckDCTV2Axioms.lean:1:1: * '-/':
 Copyright too short!
 
@@ -4018,13 +3868,32 @@ info: Mathdemo/CheckDCTV2Axioms.lean:125:0: BishopSec3P.thm36B1_leftSeq_absSub_l
 info: Mathdemo/CheckDCTV2Axioms.lean:127:0: 'BishopSec3P.thm36B1_leftSeq_le_rightSeqC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckDCTV2Axioms.lean:128:0: 'BishopSec3P.thm36B1_leftSeq_absSub_le_widthC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckDCTV2Axioms.lean:129:0: 'BishopSec3P.thm36B1_leftSeq_absSub_le_widthScaleC' depends on axioms: [propext, Quot.sound]
-⚠ [2856/2870] Replayed Mathdemo.CRealPresented
+⚠ [2482/2548] Replayed Mathdemo.Internal.Real.RepresentativeDiagonalLimitCloseData
+warning: Mathdemo/Internal/Real/RepresentativeDiagonalLimitCloseData.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+warning: Mathdemo/Internal/Real/RepresentativeDiagonalLimitCloseData.lean:113:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2483/2548] Replayed Mathdemo.Internal.Real.FaithfulDataCarryingScalarPackageCReal
+warning: Mathdemo/Internal/Real/FaithfulDataCarryingScalarPackageCReal.lean:5:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2486/2548] Replayed Mathdemo.Internal.Real.AlgebraLawLayerRegularSeqDataInterface
+warning: Mathdemo/Internal/Real/AlgebraLawLayerRegularSeqDataInterface.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2489/2548] Replayed Mathdemo.Internal.Real.DataValuedArchimedeanLayerCarriedRegularSeq
+warning: Mathdemo/Internal/Real/DataValuedArchimedeanLayerCarriedRegularSeq.lean:6:100: This line exceeds the 100 character limit, please shorten it!
+
+Note: This linter can be disabled with `set_option linter.style.longLine false`
+⚠ [2534/2548] Replayed Mathdemo.CRealPresented
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `namespace BishopCReal`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4033,7 +3902,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `open BishopC BishopCRat`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4042,7 +3911,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private def qHalfPow : Nat → BishopCRat.Q
   | 0 => BishopCRat.Q.one
   | Nat.succ n => BishopCRat.Q.mul BishopCRat.Q.half (qHalfPow n)`.
@@ -4053,7 +3922,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem qHalfPow_num (n : Nat) : (qHalfPow n).num = 1 := by
   induction n with
   | zero => rfl
@@ -4068,7 +3937,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem qHalfPow_den (n : Nat) : (qHalfPow n).den = (2 : Int) ^ n := by
   induction n with
   | zero => rfl
@@ -4082,7 +3951,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem crat_halfPow_mk (n : Nat) :
     COF.halfPow (R := Scalar) n = BishopCRat.CRat.mk (qHalfPow n) := by
   induction n with
@@ -4099,7 +3968,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem two_pow_pos_int (k : Nat) : (0 : Int) < (2 : Int) ^ k := by
   induction k with
   | zero => decide
@@ -4113,7 +3982,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem natCast_le_two_pow_int (k : Nat) : (k : Int) ≤ (2 : Int) ^ k :=
   by
   induction k with
@@ -4131,7 +4000,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem q_abs_num_le_two_pow (q : BishopCRat.Q) :
     (BishopCRat.Q.abs q).num ≤ (2 : Int) ^ q.num.natAbs :=
   by
@@ -4154,7 +4023,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `private theorem q_abs_mul_halfPow_not_gt_one (q : BishopCRat.Q) :
     Not (BishopCRat.Q.lt BishopCRat.Q.one (BishopCRat.Q.mul (BishopCRat.Q.abs q) (qHalfPow q.num.natAbs))) :=
   by
@@ -4185,7 +4054,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `instance scalarMulArchPredDecidable (x : Scalar) :
     DecidablePred (fun m : Nat => Le (COF.abs x * eps m) 1) := fun m =>
   by
@@ -4199,7 +4068,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `theorem scalar_mul_arch_exists (x : Scalar) :
     Exists (fun m : Nat => Le (COF.abs x * eps m) 1) := by
   induction x using Quotient.inductionOn with
@@ -4216,28 +4085,28 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `def cRatScalarMulArch : ScalarMulArchimedeanData where
   witness := fun x => ⟨Nat.find (scalar_mul_arch_exists x), Nat.find_spec (scalar_mul_arch_exists x)⟩`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:117:0: 'BishopCReal.cRatScalarMulArch' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:116:0: 'BishopCReal.cRatScalarMulArch' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.cRatScalarMulArch`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:118:0: 'BishopCReal.scalar_mul_arch_exists' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:117:0: 'BishopCReal.scalar_mul_arch_exists' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.scalar_mul_arch_exists`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4246,7 +4115,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `/-- Presented constructive reals are regular sequences, with Bishop equality
 provided separately by `cRealSetoid`. -/
 abbrev CReal : Type :=
@@ -4258,7 +4127,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `/-- Bishop equality for presented constructive reals. -/
 instance cRealSetoid : Setoid CReal :=
   eventualSetoid`.
@@ -4269,7 +4138,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `/-- A choice-free multiplicative Archimedean bound for a presented real. -/
 def CReal.mulArchBound (x : CReal) : Nat :=
   standardBoundWith cRatScalarMulArch x`.
@@ -4280,7 +4149,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `theorem CReal.mulArchBound_spec (x : CReal) :
     Le (COF.abs (COF.abs (x.val 1) + 1) * eps (CReal.mulArchBound x)) 1 :=
   standardBoundWith_spec cRatScalarMulArch x`.
@@ -4291,7 +4160,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `/-- Extract a positivity gauge from a raw positivity witness. -/
 def CReal.posGauge (x : CReal) (h : PosRaw x) : Nat :=
   by
@@ -4307,7 +4176,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `theorem CReal.posGauge_spec (x : CReal) (h : PosRaw x) :
     COF.lt (eps (CReal.posGauge x h)) (x.val (CReal.posGauge x h)) :=
   by
@@ -4324,78 +4193,78 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `theorem CReal.equiv_iff_rel (x y : CReal) : x ≈ y ↔ relEventually x y :=
   Iff.rfl`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:153:0: 'BishopCReal.CReal' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:152:0: 'BishopCReal.CReal' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:154:0: 'BishopCReal.cRealSetoid' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:153:0: 'BishopCReal.cRealSetoid' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.cRealSetoid`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:155:0: 'BishopCReal.CReal.mulArchBound' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:154:0: 'BishopCReal.CReal.mulArchBound' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal.mulArchBound`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:156:0: 'BishopCReal.CReal.mulArchBound_spec' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:155:0: 'BishopCReal.CReal.mulArchBound_spec' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal.mulArchBound_spec`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:157:0: 'BishopCReal.CReal.posGauge' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:156:0: 'BishopCReal.CReal.posGauge' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal.posGauge`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:158:0: 'BishopCReal.CReal.posGauge_spec' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:157:0: 'BishopCReal.CReal.posGauge_spec' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal.posGauge_spec`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:159:0: 'BishopCReal.CReal.equiv_iff_rel' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:158:0: 'BishopCReal.CReal.equiv_iff_rel' depends on axioms: [propext, Quot.sound]
 warning: Mathdemo/CRealPresented.lean:1:1: * '-/':
 Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `#print axioms BishopCReal.CReal.equiv_iff_rel`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4404,7 +4273,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `end BishopCReal`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4413,7 +4282,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `namespace BishopCReal`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4422,7 +4291,7 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `open BishopC BishopCRat`.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
@@ -4431,108 +4300,108 @@ Copyright too short!
 
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-warning: Mathdemo/CRealPresented.lean:3:0: The module doc-string for a file should be the first command after the imports.
+warning: Mathdemo/CRealPresented.lean:2:0: The module doc-string for a file should be the first command after the imports.
 Please, add a module doc-string before `/-!## Step C: presented-real ring operations over the implementation setoid -/
 `.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-info: Mathdemo/CRealPresented.lean:229:0: 'BishopCReal.CReal.zero' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:230:0: 'BishopCReal.CReal.one' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:231:0: 'BishopCReal.CReal.neg' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:232:0: 'BishopCReal.CReal.add' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:233:0: 'BishopCReal.CReal.sub' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:234:0: 'BishopCReal.CReal.mul' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:235:0: 'BishopCReal.CReal.neg_respects_rel' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:236:0: 'BishopCReal.CReal.add_respects_rel' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:237:0: 'BishopCReal.CReal.sub_respects_rel' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:238:0: 'BishopCReal.CReal.neg_respects_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:239:0: 'BishopCReal.CReal.add_respects_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:240:0: 'BishopCReal.CReal.sub_respects_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:241:0: 'BishopCReal.CReal.mul_respects_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:242:0: 'BishopCReal.CReal.mul_comm_rel' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:243:0: 'BishopCReal.CReal.mul_comm_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:366:0: 'BishopCReal.CReal.le' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:367:0: 'BishopCReal.CReal.lt' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:368:0: 'BishopCReal.CReal.le_refl' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:369:0: 'BishopCReal.CReal.le_trans' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:370:0: 'BishopCReal.CReal.le_respects_equiv' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:371:0: 'BishopCReal.CReal.add_comm' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:372:0: 'BishopCReal.CReal.add_assoc' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:373:0: 'BishopCReal.CReal.zero_add' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:374:0: 'BishopCReal.CReal.add_zero' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:375:0: 'BishopCReal.CReal.add_left_neg' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:376:0: 'BishopCReal.CReal.mul_comm' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:377:0: 'BishopCReal.CReal.mul_assoc' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:378:0: 'BishopCReal.CReal.one_mul' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:379:0: 'BishopCReal.CReal.mul_one' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:380:0: 'BishopCReal.CReal.left_distrib' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:381:0: 'BishopCReal.CReal.right_distrib' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:382:0: 'BishopCReal.CReal.eq_of_small' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:383:0: 'BishopCReal.CReal.complete_repCarrying' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:431:0: 'BishopCReal.CReal.invPos' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:432:0: 'BishopCReal.CReal.mul_invPos_eventually_one' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:433:0: 'BishopCReal.CReal.invPos_posData' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:434:0: 'BishopCReal.CReal.invPos_respects' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:858:0: 'BishopCReal.PresentedReducedCore' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:859:0: 'BishopCReal.PresentedReducedCore.add_comm' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:860:0: 'BishopCReal.PresentedReducedCore.mul_archimedean' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:861:0: 'BishopCReal.CReal.half' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:862:0: 'BishopCReal.CReal.abs' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:863:0: 'BishopCReal.CReal.max' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:864:0: 'BishopCReal.CReal.min' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:865:0: 'BishopCReal.CReal.epsSeq' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:866:0: 'BishopCReal.CReal.half_add_half' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:867:0: 'BishopCReal.CReal.max_halfsum' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:868:0: 'BishopCReal.CReal.min_halfsum' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:869:0: 'BishopCReal.CReal.abs_zero' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:870:0: 'BishopCReal.CReal.abs_neg' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:871:0: 'BishopCReal.CReal.abs_mul' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:872:0: 'BishopCReal.CReal.lt_irrefl' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:873:0: 'BishopCReal.CReal.one_pos' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:874:0: 'BishopCReal.CReal.half_pos' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:875:0: 'BishopCReal.CReal.not_posRaw_sub_neg_abs' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:876:0: 'BishopCReal.CReal.neg_le_abs' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:877:0: 'BishopCReal.CReal.not_posRaw_sub_self_abs' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:878:0: 'BishopCReal.CReal.le_abs_self' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:879:0: 'BishopCReal.CReal.not_posRaw_abs_add_reverse' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:880:0: 'BishopCReal.CReal.abs_add_le' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:881:0: 'BishopCReal.CReal.posEventually_to_posRaw' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:882:0: 'BishopCReal.CReal.eq_of_small_posRaw' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:883:0: 'BishopCReal.CReal.not_posRaw_abs_mul_standard_sub_one' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:884:0: 'BishopCReal.CReal.mul_archimedean' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:885:0: 'BishopCReal.instPresentedReducedCoreCReal' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1265:0: 'BishopCReal.CReal.ltE' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1266:0: 'BishopCReal.CReal.ltED' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1267:0: 'BishopCReal.CReal.ltE_irrefl' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1268:0: 'BishopCReal.CReal.ltE_cotrans' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1269:0: 'BishopCReal.CReal.ltE_add_left' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1270:0: 'BishopCReal.CReal.ltE_trans' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1271:0: 'BishopCReal.CReal.one_pos_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1272:0: 'BishopCReal.CReal.half_pos_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1273:0: 'BishopCReal.CReal.neg_le_abs_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1274:0: 'BishopCReal.CReal.le_abs_self_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1275:0: 'BishopCReal.CReal.abs_add_le_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1276:0: 'BishopCReal.CReal.eq_of_small_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1277:0: 'BishopCReal.CReal.mul_archimedean_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1278:0: 'BishopCReal.CReal.mul_pos_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1279:0: 'BishopCReal.CReal.archimedean_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1280:0: 'BishopCReal.CReal.archWitnessGauge' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:1281:0: 'BishopCReal.CReal.archPosWitness' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1282:0: 'BishopCReal.CReal.archPosWitness_exists' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1283:0: 'BishopCReal.CReal.archimedean_pos_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1284:0: 'BishopCReal.CReal.abs_of_nonneg_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1285:0: 'BishopCReal.CReal.abs_le_of_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1286:0: 'BishopCReal.CReal.max_zero_nonneg_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1287:0: 'BishopCReal.CReal.max_le_abs_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1288:0: 'BishopCReal.CReal.neg_min_zero_nonneg_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1289:0: 'BishopCReal.CReal.neg_min_le_abs_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1290:0: 'BishopCReal.CReal.lt_or_lt_of_abs_pos_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1291:0: 'BishopCReal.CReal.mul_nonneg_E' depends on axioms: [propext, Quot.sound]
-info: Mathdemo/CRealPresented.lean:1292:0: 'BishopCReal.PresentedCore' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:1293:0: 'BishopCReal.PresentedCore.lt_cotrans' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:1294:0: 'BishopCReal.PresentedCore.mul_nonneg' does not depend on any axioms
-info: Mathdemo/CRealPresented.lean:1295:0: 'BishopCReal.instPresentedCoreCReal' depends on axioms: [propext, Quot.sound]
-⚠ [2857/2870] Replayed Mathdemo.BishopSec1Presented
+info: Mathdemo/CRealPresented.lean:228:0: 'BishopCReal.CReal.zero' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:229:0: 'BishopCReal.CReal.one' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:230:0: 'BishopCReal.CReal.neg' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:231:0: 'BishopCReal.CReal.add' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:232:0: 'BishopCReal.CReal.sub' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:233:0: 'BishopCReal.CReal.mul' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:234:0: 'BishopCReal.CReal.neg_respects_rel' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:235:0: 'BishopCReal.CReal.add_respects_rel' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:236:0: 'BishopCReal.CReal.sub_respects_rel' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:237:0: 'BishopCReal.CReal.neg_respects_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:238:0: 'BishopCReal.CReal.add_respects_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:239:0: 'BishopCReal.CReal.sub_respects_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:240:0: 'BishopCReal.CReal.mul_respects_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:241:0: 'BishopCReal.CReal.mul_comm_rel' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:242:0: 'BishopCReal.CReal.mul_comm_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:365:0: 'BishopCReal.CReal.le' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:366:0: 'BishopCReal.CReal.lt' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:367:0: 'BishopCReal.CReal.le_refl' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:368:0: 'BishopCReal.CReal.le_trans' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:369:0: 'BishopCReal.CReal.le_respects_equiv' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:370:0: 'BishopCReal.CReal.add_comm' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:371:0: 'BishopCReal.CReal.add_assoc' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:372:0: 'BishopCReal.CReal.zero_add' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:373:0: 'BishopCReal.CReal.add_zero' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:374:0: 'BishopCReal.CReal.add_left_neg' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:375:0: 'BishopCReal.CReal.mul_comm' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:376:0: 'BishopCReal.CReal.mul_assoc' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:377:0: 'BishopCReal.CReal.one_mul' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:378:0: 'BishopCReal.CReal.mul_one' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:379:0: 'BishopCReal.CReal.left_distrib' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:380:0: 'BishopCReal.CReal.right_distrib' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:381:0: 'BishopCReal.CReal.eq_of_small' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:382:0: 'BishopCReal.CReal.complete_repCarrying' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:430:0: 'BishopCReal.CReal.invPos' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:431:0: 'BishopCReal.CReal.mul_invPos_eventually_one' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:432:0: 'BishopCReal.CReal.invPos_posData' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:433:0: 'BishopCReal.CReal.invPos_respects' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:857:0: 'BishopCReal.PresentedReducedCore' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:858:0: 'BishopCReal.PresentedReducedCore.add_comm' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:859:0: 'BishopCReal.PresentedReducedCore.mul_archimedean' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:860:0: 'BishopCReal.CReal.half' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:861:0: 'BishopCReal.CReal.abs' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:862:0: 'BishopCReal.CReal.max' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:863:0: 'BishopCReal.CReal.min' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:864:0: 'BishopCReal.CReal.epsSeq' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:865:0: 'BishopCReal.CReal.half_add_half' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:866:0: 'BishopCReal.CReal.max_halfsum' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:867:0: 'BishopCReal.CReal.min_halfsum' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:868:0: 'BishopCReal.CReal.abs_zero' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:869:0: 'BishopCReal.CReal.abs_neg' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:870:0: 'BishopCReal.CReal.abs_mul' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:871:0: 'BishopCReal.CReal.lt_irrefl' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:872:0: 'BishopCReal.CReal.one_pos' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:873:0: 'BishopCReal.CReal.half_pos' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:874:0: 'BishopCReal.CReal.not_posRaw_sub_neg_abs' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:875:0: 'BishopCReal.CReal.neg_le_abs' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:876:0: 'BishopCReal.CReal.not_posRaw_sub_self_abs' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:877:0: 'BishopCReal.CReal.le_abs_self' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:878:0: 'BishopCReal.CReal.not_posRaw_abs_add_reverse' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:879:0: 'BishopCReal.CReal.abs_add_le' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:880:0: 'BishopCReal.CReal.posEventually_to_posRaw' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:881:0: 'BishopCReal.CReal.eq_of_small_posRaw' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:882:0: 'BishopCReal.CReal.not_posRaw_abs_mul_standard_sub_one' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:883:0: 'BishopCReal.CReal.mul_archimedean' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:884:0: 'BishopCReal.instPresentedReducedCoreCReal' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1264:0: 'BishopCReal.CReal.ltE' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1265:0: 'BishopCReal.CReal.ltED' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1266:0: 'BishopCReal.CReal.ltE_irrefl' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1267:0: 'BishopCReal.CReal.ltE_cotrans' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1268:0: 'BishopCReal.CReal.ltE_add_left' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1269:0: 'BishopCReal.CReal.ltE_trans' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1270:0: 'BishopCReal.CReal.one_pos_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1271:0: 'BishopCReal.CReal.half_pos_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1272:0: 'BishopCReal.CReal.neg_le_abs_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1273:0: 'BishopCReal.CReal.le_abs_self_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1274:0: 'BishopCReal.CReal.abs_add_le_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1275:0: 'BishopCReal.CReal.eq_of_small_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1276:0: 'BishopCReal.CReal.mul_archimedean_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1277:0: 'BishopCReal.CReal.mul_pos_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1278:0: 'BishopCReal.CReal.archimedean_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1279:0: 'BishopCReal.CReal.archWitnessGauge' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:1280:0: 'BishopCReal.CReal.archPosWitness' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1281:0: 'BishopCReal.CReal.archPosWitness_exists' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1282:0: 'BishopCReal.CReal.archimedean_pos_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1283:0: 'BishopCReal.CReal.abs_of_nonneg_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1284:0: 'BishopCReal.CReal.abs_le_of_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1285:0: 'BishopCReal.CReal.max_zero_nonneg_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1286:0: 'BishopCReal.CReal.max_le_abs_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1287:0: 'BishopCReal.CReal.neg_min_zero_nonneg_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1288:0: 'BishopCReal.CReal.neg_min_le_abs_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1289:0: 'BishopCReal.CReal.lt_or_lt_of_abs_pos_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1290:0: 'BishopCReal.CReal.mul_nonneg_E' depends on axioms: [propext, Quot.sound]
+info: Mathdemo/CRealPresented.lean:1291:0: 'BishopCReal.PresentedCore' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:1292:0: 'BishopCReal.PresentedCore.lt_cotrans' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:1293:0: 'BishopCReal.PresentedCore.mul_nonneg' does not depend on any axioms
+info: Mathdemo/CRealPresented.lean:1294:0: 'BishopCReal.instPresentedCoreCReal' depends on axioms: [propext, Quot.sound]
+⚠ [2535/2548] Replayed Mathdemo.BishopSec1Presented
 warning: Mathdemo/BishopSec1Presented.lean:1:1: * '-/':
 Copyright too short!
 
@@ -6339,7 +6208,7 @@ info: Mathdemo/BishopSec1Presented.lean:13463:0: 'BishopSec1P.thm_4_15_integral_
 info: Mathdemo/BishopSec1Presented.lean:13471:0: 'BishopSec1P.thm_4_15_abs_errorC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/BishopSec1Presented.lean:13486:0: 'BishopSec1P.thm_4_15_integral_convergence_from_uniform_and_rep_convergeC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/BishopSec1Presented.lean:13501:0: 'BishopSec1P.thm_4_15_integral_convergence_from_uniform_and_measure_convergeC' depends on axioms: [propext, Quot.sound]
-⚠ [2858/2870] Replayed Mathdemo.BishopSec3Presented
+⚠ [2536/2548] Replayed Mathdemo.BishopSec3Presented
 warning: Mathdemo/BishopSec3Presented.lean:1:1: * '-/':
 Copyright too short!
 
@@ -6873,7 +6742,7 @@ Note: This linter can be disabled with `set_option linter.unusedVariables false`
 warning: Mathdemo/BishopSec3Presented.lean:22490:7: unused variable `gvabs`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2860/2870] Replayed Mathdemo.BishopSec3PresentedEnhancementsC
+⚠ [2538/2548] Replayed Mathdemo.BishopSec3PresentedEnhancementsC
 warning: Mathdemo/BishopSec3PresentedEnhancementsC.lean:1:1: * '-/':
 Copyright too short!
 
@@ -6882,7 +6751,7 @@ Note: This linter can be disabled with `set_option linter.style.header false`
 warning: Mathdemo/BishopSec3PresentedEnhancementsC.lean:637:9: unused variable `m`
 
 Note: This linter can be disabled with `set_option linter.unusedVariables false`
-⚠ [2861/2870] Replayed Mathdemo.BishopChengTheorem415Prop
+⚠ [2539/2548] Replayed Mathdemo.BishopChengTheorem415Prop
 warning: Mathdemo/BishopChengTheorem415Prop.lean:1:1: * '-/':
 Copyright too short!
 
@@ -6912,7 +6781,7 @@ set_option maxHeartbeats 1000000 in
 ...
 
 Note: This linter can be disabled with `set_option linter.style.maxHeartbeats false`
-⚠ [2862/2870] Replayed Mathdemo.BishopChengTheorem415FullSetData
+⚠ [2540/2548] Replayed Mathdemo.BishopChengTheorem415FullSetData
 warning: Mathdemo/BishopChengTheorem415FullSetData.lean:1:1: * '-/':
 Copyright too short!
 
@@ -7709,7 +7578,7 @@ warning: Mathdemo/BishopChengTheorem415FullSetData.lean:3:0: The module doc-stri
 Please, add a module doc-string before ``.
 
 Note: This linter can be disabled with `set_option linter.style.header false`
-⚠ [2863/2870] Replayed Mathdemo.CheckSec3PortAxioms
+⚠ [2541/2548] Replayed Mathdemo.CheckSec3PortAxioms
 warning: Mathdemo/CheckSec3PortAxioms.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8562,7 +8431,7 @@ info: Mathdemo/CheckSec3PortAxioms.lean:1047:0: 'BishopSec3P.lemma415_absError_c
 info: Mathdemo/CheckSec3PortAxioms.lean:1048:0: 'BishopSec3P.lemma415_absError_le_majorant_add_absLimitC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckSec3PortAxioms.lean:1049:0: 'BishopSec3P.goalB_dominated_convergence_dataWithAbsC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckSec3PortAxioms.lean:1050:0: 'BishopSec3P.goalB_classical_dominated_convergence_dataC' depends on axioms: [propext, Quot.sound]
-⚠ [2864/2870] Replayed Mathdemo.CheckBishopChengTheorem415PropAxioms
+⚠ [2542/2548] Replayed Mathdemo.CheckBishopChengTheorem415PropAxioms
 warning: Mathdemo/CheckBishopChengTheorem415PropAxioms.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8634,7 +8503,7 @@ info: Mathdemo/CheckBishopChengTheorem415PropAxioms.lean:33:0: 'BishopSec3P.regu
 info: Mathdemo/CheckBishopChengTheorem415PropAxioms.lean:34:0: 'BishopSec3P.repSeriesTendsto_to_epsPropC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckBishopChengTheorem415PropAxioms.lean:35:0: 'BishopSec3P.bishop_cheng_thm_4_15_propC_with_majorant' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/CheckBishopChengTheorem415PropAxioms.lean:36:0: 'BishopSec3P.bishop_cheng_thm_4_15_propC' depends on axioms: [propext, Quot.sound]
-⚠ [2865/2870] Replayed Mathdemo.MathematicalInterface
+⚠ [2543/2548] Replayed Mathdemo.MathematicalInterface
 warning: Mathdemo/MathematicalInterface.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8653,7 +8522,7 @@ info: Mathdemo/MathematicalInterface.lean:401:0: 'BishopCheng.Profile.partition'
 info: Mathdemo/MathematicalInterface.lean:402:0: 'BishopCheng.profile_isSmoothAt_of_apart' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/MathematicalInterface.lean:403:0: 'BishopCheng.levelSet_measure_eq' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/MathematicalInterface.lean:404:0: 'BishopCheng.profileOf' depends on axioms: [propext, Quot.sound]
-⚠ [2866/2870] Replayed Mathdemo.SourceIntegrationSpaceDef11
+⚠ [2544/2548] Replayed Mathdemo.SourceIntegrationSpaceDef11
 warning: Mathdemo/SourceIntegrationSpaceDef11.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8689,7 +8558,7 @@ info: Mathdemo/SourceIntegrationSpaceDef11.lean:713:0: 'BishopCheng.IntegrationS
 info: Mathdemo/SourceIntegrationSpaceDef11.lean:714:0: 'BishopCheng.IntegrationSpaceDef11.cutSmall_succ_le_cutSmallSrc' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/SourceIntegrationSpaceDef11.lean:715:0: 'BishopCheng.IntegrationSpaceDef11.cutSmall_tendsto_of_src' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/SourceIntegrationSpaceDef11.lean:716:0: 'BishopCheng.IntegrationSpaceDef11.toIntSpaceC' depends on axioms: [propext, Quot.sound]
-⚠ [2867/2870] Replayed Mathdemo.DiracIntegrationSpace
+⚠ [2545/2548] Replayed Mathdemo.DiracIntegrationSpace
 warning: Mathdemo/DiracIntegrationSpace.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8713,7 +8582,7 @@ info: Mathdemo/DiracIntegrationSpace.lean:243:0: 'BishopCheng.cutSmallSrc_tendst
 info: Mathdemo/DiracIntegrationSpace.lean:244:0: 'BishopCheng.diracDef11' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/DiracIntegrationSpace.lean:245:0: 'BishopCheng.diracIntSpaceC' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/DiracIntegrationSpace.lean:246:0: 'BishopCheng.diracCutConst' depends on axioms: [propext, Quot.sound]
-⚠ [2868/2870] Replayed Mathdemo.FiniteWeightedIntegrationSpace
+⚠ [2546/2548] Replayed Mathdemo.FiniteWeightedIntegrationSpace
 warning: Mathdemo/FiniteWeightedIntegrationSpace.lean:1:1: * '-/':
 Copyright too short!
 
@@ -8752,4 +8621,4 @@ info: Mathdemo/FiniteWeightedIntegrationSpace.lean:452:0: 'BishopCheng.boolTwoPo
 info: Mathdemo/FiniteWeightedIntegrationSpace.lean:453:0: 'BishopCheng.boolIndicator_integral' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/FiniteWeightedIntegrationSpace.lean:454:0: 'BishopCheng.boolIndicator_integral_pos' depends on axioms: [propext, Quot.sound]
 info: Mathdemo/FiniteWeightedIntegrationSpace.lean:455:0: 'BishopCheng.boolTwoPoint_not_concentrated' depends on axioms: [propext, Quot.sound]
-Build completed successfully (2870 jobs).
+Build completed successfully (2548 jobs).

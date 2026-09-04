@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.FullSetsLemma110Domain
-
+import Mathdemo.Internal.Real.Definition16WellDefinednessBridge
 /-!
 # G44: Proposition 1.11 monotonicity interface
 

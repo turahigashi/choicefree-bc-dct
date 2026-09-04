@@ -1,7 +1,7 @@
 % arXiv reads the first few lines to choose an engine; this asks for pdflatex,
 % which is what the paper is compiled and checked with.
 \pdfoutput=1
-\def\CFBDCTVersion{0.6.1}
+\def\CFBDCTVersion{0.7.0}
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -42,7 +42,7 @@
 {\normalsize Independent researcher}\\[1pt]
 {\normalsize\texttt{123026.urahigashi.toshihisa@gmail.com}}\\[1pt]
 {\normalsize ORCID \href{https://orcid.org/0009-0004-0460-6242}{\texttt{0009-0004-0460-6242}}}}
-\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22268374}}
+\date{Preprint\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22305303}}
 \begin{document}
 \maketitle
 
@@ -772,7 +772,7 @@ Comparison caveat & not strictly ordered & not strictly ordered \\
 
 The apparent asymmetry of the audit outputs---\texttt{[propext, Quot.sound]} on the Lean side against \texttt{Closed under the global context} on the Rocq side---should not be read as a comparison of axiom counts.  As Carneiro's axiomatization of Lean records~\cite{carneiro-2019}, Lean builds quotient types into the kernel, with definitional computation rules and the axiom \texttt{Quot.sound}, and derives function extensionality from quotients together with propositional extensionality; Coq does not build quotient types into the kernel with definitional computation rules, and its ecosystem compensates with setoids; Carneiro notes that quotients of sets can be constructed in Coq, but without computation rules.  At least one of the two Lean axioms thus pays, as an axiom, for what the Coq side obtains from setoid machinery and quantified interfaces.  The shape of the audit output reflects a difference in foundational design, not a difference in mathematical strength.
 
-Accordingly, we are not aware of another choice-free formalization of the Bishop--Cheng dominated convergence theorem in Lean~4; mathlib's dominated convergence theorem is classical.  This records what we looked for and did not find, and is not a claim of priority of any kind---not to the first proof-assistant formalization, the first constructive one, or the first choice-free one; the closest prior work we did find is set out above.  Nor is it based on a systematic literature search.  The two published surveys consulted above are consistent with it without establishing it: Miyamoto's list of Bishop-style formalizations records Nuprl, CoRN and Minlog and does not include Bishop--Cheng measure theory~\cite[\S27.3.4]{miyamoto-2023}, and Bickford, reporting one of the most substantial of those developments, states that the general definite integral was the one part of his programme not carried through~\cite[\S28.14]{bickford-2023}.  The contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
+Accordingly, we are not aware of another choice-free formalization of the Bishop--Cheng dominated convergence theorem in Lean~4; mathlib's dominated convergence theorem is classical.  This records what we looked for and did not find, and is not a claim of priority of any kind---not to the first proof-assistant formalization, the first constructive one, or the first choice-free one; the closest prior work we did find is set out above.  What was searched is stated rather than left implicit: the two published surveys below, the CoRN repository at the pinned commit, the constructive real-number modules of the Coq standard library that CoRN's interface is instantiated by~\cite{coq-constructive-reals}, and \texttt{mathlib}.  That is a bounded search, not an exhaustive one, and the surveys are consistent with the statement without establishing it: Miyamoto's list of Bishop-style formalizations records Nuprl, CoRN and Minlog and does not include Bishop--Cheng measure theory~\cite[\S27.3.4]{miyamoto-2023}, and Bickford, reporting one of the most substantial of those developments, states that the general definite integral was the one part of his programme not carried through~\cite[\S28.14]{bickford-2023}.  The contribution is a Lean~4 realization over presented reals, Type-valued global and full-set theorem routes, automatic smooth-data wrappers, a Prop-facing full-set theorem, a Lean implementation of countable avoidance via Bishop's nested-interval construction, and a reproducible Lean audit whose named public declarations have declaration-level axiom output confined to \texttt{[propext, Quot.sound]}.
 
 \subsection{What is different here, and what is not}
 \label{sec:differential}
@@ -806,9 +806,17 @@ results attach to this route is discharged here at the level of the reals themse
 where the presentations are, rather than at the level of a measure space built on top
 of them.  That is why the presented-real hypothesis does the work it does.
 
-\emph{Propositions and data are separated by design rather than by convention.}  CoRN
-states \texttt{CvMeasure} Type-valued.  The development here proves two routes with the
-same informal dominated-convergence assertion and keeps them apart: a Type-valued route in which the
+\emph{Propositions and data are separated by design rather than by convention.}  This
+is not what distinguishes the present development, and it is worth saying so plainly.
+CoRN states \texttt{CvMeasure} Type-valued, and the \texttt{ConstructiveReals}
+interface it quantifies over already draws the distinction at the level of the reals:
+its strict order \texttt{CRlt} is \texttt{Set}-valued, its linearity field returns a
+sum rather than a disjunction, and \texttt{CRltEpsilon} and \texttt{CRltForget} are
+fields naming the two directions of the passage between the propositional and the
+data form of that order~\cite{coq-constructive-reals}.  What is different here is
+where the separation is carried: the development proves two routes with the
+same informal dominated-convergence assertion and keeps them apart at the level of the
+theorem rather than only of the reals: a Type-valued route in which the
 carriers, the fullness proofs and the bounds are an explicit selector, and a
 Prop-facing theorem whose hypotheses are propositions and whose conclusion is the
 ordinary $\forall\varepsilon\,\exists N$ statement.  Section~\ref{sec:layers} sets out
@@ -866,7 +874,7 @@ The $104$ reading-layer declarations split $102/2$
  & \path{./build_audit.sh}
  & That the layer is complete: it is the layer this paper defines, not a
    canonical one.\\[3pt]
-No forbidden token occurs in the source closure of the six audit roots ($513$ files)
+No forbidden token occurs in the source closure of the six audit roots ($191$ files)
  & \path{logs/static_audit.txt}
  & \path{tools/static_no_choice_audit.py}
  & Anything about files outside that closure, and anything a token scan cannot
@@ -912,7 +920,7 @@ The audit is deliberately not based on a single text search.
 \begin{enumerate}[label=(\arabic*)]
 \item \textbf{Kernel dependency output.}  Dedicated Lean files invoke \texttt{\#print axioms} on the public aliases and the implementation declarations used by them.  The reported axiom names are confined to the set \(\{\texttt{propext},\texttt{Quot.sound}\}\), and the principal public DCT declarations report both.  In particular, the fact that an alias is marked \texttt{noncomputable} is not treated as evidence for or against choice; the criterion is the dependency output of its elaborated term.
 
-\item \textbf{Transitive source-closure scan.}  \path{tools/static_no_choice_audit.py} computes the import closure of six public roots, strips Lean comments, and rejects forbidden tokens in the resulting source: the selectors (\texttt{Classical.choice}, \texttt{Classical.choose}, any \texttt{Classical.}, \texttt{native\_decide}, \texttt{Quot.out}, \texttt{Quotient.out}, \texttt{open Classical} and the \texttt{classical} tactic), the placeholders (\texttt{sorry}, \texttt{admit}), the escapes from kernel checking (\texttt{unsafe}, a declaration-initial \texttt{axiom}, \texttt{partial def}, \texttt{implemented\_by}, \texttt{extern}, \texttt{debug.skipKernelTC}), and a conclusion of \texttt{True}.  Seven were added in v0.4.2---the declaration-initial \texttt{axiom}, \texttt{Quotient.out}, \texttt{partial def}, \texttt{implemented\_by}, \texttt{extern}, \texttt{debug.skipKernelTC}, and the \texttt{True} conclusion; \texttt{unsafe} was scanned from the outset.  Each reports zero on the closure.  The recorded run traverses $513$ Lean files and passes (\texttt{closure\_files: 513}, \texttt{tracked\_lean\_files: 513}, \texttt{STATIC AUDIT PASSED}).  The audited closure and the Lean paths recorded in \path{SHA256SUMS} are compared as sets in both directions---excluding the Lean files under \path{tools/}, which are audit instruments rather than part of the development and are therefore outside the closure---and the run fails if they differ, or if an import under a project-local prefix is absent from the tree, or if an import is neither project-local nor on the allowed-external list: a missing file is a packaging error and must not be read as an external dependency, which would silently shrink the closure being audited.  Because the audit roots include the aggregation module \path{Mathdemo}, this closure covers the four reading-layer modules: the mathematical reading interface \path{Mathdemo.MathematicalInterface}, the Definition~1.1 transcription \path{Mathdemo.SourceIntegrationSpaceDef11}, and the two concrete models \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}.  The scan complements the declaration-level check by detecting suspicious source in the public closure even when it is not reached by one selected theorem.
+\item \textbf{Transitive source-closure scan.}  \path{tools/static_no_choice_audit.py} computes the import closure of six public roots, strips Lean comments, and rejects forbidden tokens in the resulting source: the selectors (\texttt{Classical.choice}, \texttt{Classical.choose}, any \texttt{Classical.}, \texttt{native\_decide}, \texttt{Quot.out}, \texttt{Quotient.out}, \texttt{open Classical} and the \texttt{classical} tactic), the placeholders (\texttt{sorry}, \texttt{admit}), the escapes from kernel checking (\texttt{unsafe}, a declaration-initial \texttt{axiom}, \texttt{partial def}, \texttt{implemented\_by}, \texttt{extern}, \texttt{debug.skipKernelTC}), and a conclusion of \texttt{True}.  Seven were added in v0.4.2---the declaration-initial \texttt{axiom}, \texttt{Quotient.out}, \texttt{partial def}, \texttt{implemented\_by}, \texttt{extern}, \texttt{debug.skipKernelTC}, and the \texttt{True} conclusion; \texttt{unsafe} was scanned from the outset.  Each reports zero on the closure.  The recorded run traverses $191$ Lean files and passes (\texttt{closure\_files: 191}, \texttt{tracked\_lean\_files: 191}, \texttt{STATIC AUDIT PASSED}).  The audited closure and the Lean paths recorded in \path{SHA256SUMS} are compared as sets in both directions---excluding the Lean files under \path{tools/}, which are audit instruments rather than part of the development and are therefore outside the closure---and the run fails if they differ, or if an import under a project-local prefix is absent from the tree, or if an import is neither project-local nor on the allowed-external list: a missing file is a packaging error and must not be read as an external dependency, which would silently shrink the closure being audited.  Because the audit roots include the aggregation module \path{Mathdemo}, this closure covers the four reading-layer modules: the mathematical reading interface \path{Mathdemo.MathematicalInterface}, the Definition~1.1 transcription \path{Mathdemo.SourceIntegrationSpaceDef11}, and the two concrete models \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}.  The scan complements the declaration-level check by detecting suspicious source in the public closure even when it is not reached by one selected theorem.
 
 \item \textbf{Integrity and cross-system provenance.}  Root checksums cover the tracked artifact, while a separate checksum file protects the reproduced CoRN audit package.  The CoRN commands pin both the source commit and Rocq version.  Thus the Lean claim and the prior-work comparison can be reproduced independently rather than inferred from prose in this paper.
 \end{enumerate}
@@ -934,7 +942,19 @@ This remark is complementary to Section~\ref{sec:nogo}, and the final observatio
 \subsection{The size of the development}
 \label{sec:cost}
 
-The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $513$ development-source Lean files---to which three Lean audit tools under \path{tools/} are additional---with $100{,}070$ lines and $3{,}958$ declarations by the lexical count defined in Section~\ref{sec:cost-contents}.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $502$ of the $513$, the remaining eleven being the aggregation module \path{Mathdemo}, the supplement \path{SupplementChoiceFreeMeasureDCT}, the reading interface, the Definition~1.1 transcription with its adapter, the two concrete models, the two example modules, and the three axiom-check modules ($1+1+1+1+2+2+3=11$).  The bundle is to be read against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
+The artifact shipped with this paper is the audited source bundle: the union of the import closures of the six audit roots, $191$ development-source Lean files---to which three Lean audit tools under \path{tools/} are additional---with $83{,}477$ lines and $3{,}956$ declarations by the lexical count defined in Section~\ref{sec:cost-contents}.  That union is wider than the code the public theorems alone reach: the closure of the public theorem aliases by themselves is $180$ of the $191$, the remaining eleven being the aggregation module \path{Mathdemo}, the supplement \path{SupplementChoiceFreeMeasureDCT}, the reading interface, the Definition~1.1 transcription with its adapter, the two concrete models, the two example modules, and the three axiom-check modules ($1+1+1+1+2+2+3=11$).  The bundle is to be read against the $49$ numbered items (definitions, lemmas, propositions, corollaries, theorems) that the source states from Definition~1.1 through Theorem~4.15.
+
+One remark on the artifact's history belongs here, because the deposit of the
+previous version is public and the figures differ.  Version~0.6.1 carried $513$
+files; $322$ of them declared nothing at all, holding an import, a doc-comment
+recording a step of the development process, and empty \texttt{namespace} blocks.
+They were relay nodes in a chain up to $169$ modules deep, and they inflated every
+file count in this section while contributing no mathematics.  They have been
+removed and the imports through them rewired to their targets.  The effect on the
+figures is the measure of what they contained: $322$ files and $16{,}593$ lines
+disappear, and the declaration count falls by two---both of them lines inside block
+comments, which the lexical pattern below counts.  No theorem, definition or proof
+was removed, and the audit output is unchanged.
 
 Two remarks on the counting.  A declaration is a source line matching
 \begin{center}
@@ -951,32 +971,32 @@ visible once they are split by layer.
 \hline
 Layer & Files & Lines & \% & Declarations\\
 \hline
-repository root (public aliases, aggregation, supplement) & $3$ & $567$ & $0.6$ & $21$\\
-\path{Mathdemo/} named modules (the proof and the interfaces) & $16$ & $42{,}948$ & $42.9$ & $1{,}910$\\
-\path{Mathdemo/Internal/Rat} (the rationals) & $8$ & $1{,}158$ & $1.2$ & $130$\\
-\path{Mathdemo/Internal/Real} (the presented reals) & $373$ & $25{,}374$ & $25.4$ & $578$\\
-\path{Mathdemo/Internal/Measure} & $44$ & $3{,}380$ & $3.4$ & $1$\\
-Sec4 convergence layer (\path{Mathdemo/Internal/Sec4/} plus \path{Sec4GenIB.lean}) & $62$ & $11{,}274$ & $11.3$ & $443$\\
-\path{Mathdemo/Internal} (not yet grouped) & $7$ & $15{,}369$ & $15.4$ & $875$\\
+repository root (public aliases, aggregation, supplement) & $3$ & $567$ & $0.7$ & $21$\\
+\path{Mathdemo/} named modules (the proof and the interfaces) & $16$ & $42{,}947$ & $51.4$ & $1{,}910$\\
+\path{Mathdemo/Internal/Rat} (the rationals) & $8$ & $1{,}157$ & $1.4$ & $130$\\
+\path{Mathdemo/Internal/Real} (the presented reals) & $118$ & $13{,}610$ & $16.3$ & $576$\\
+\path{Mathdemo/Internal/Measure} & $1$ & $46$ & $0.1$ & $1$\\
+Sec4 convergence layer (\path{Mathdemo/Internal/Sec4/} plus \path{Sec4GenIB.lean}) & $40$ & $9{,}810$ & $11.8$ & $443$\\
+\path{Mathdemo/Internal} (not yet grouped) & $5$ & $15{,}340$ & $18.4$ & $875$\\
 \hline
-& $513$ & $100{,}070$ & $100$ & $3{,}958$\\
+& $191$ & $83{,}477$ & $100$ & $3{,}956$\\
 \hline
 \end{tabular}
 \end{center}
 
-\noindent Two figures in that table are the whole explanation.  The presented reals
-occupy $373$ files -- more than seven in ten -- for $578$ declarations, an average
-under two declarations per file: this is the arithmetic and order theory of regular
-sequences, developed inside the artifact because the reals here are a concrete type
-rather than an interface satisfied elsewhere (Section~\ref{sec:differential}).  A
+\noindent One figure in that table is the whole explanation.  The presented reals
+occupy $118$ files for $576$ declarations: this is the arithmetic and order theory of
+regular sequences, developed inside the artifact because the reals here are a concrete
+type rather than an interface satisfied elsewhere (Section~\ref{sec:differential}).  A
 development quantifying over an abstract real-number structure does not carry that
 layer; it refers to it.  Against it, the mathematics of the paper -- Sections~1--4 of
 the source, the profile theory, the avoidance, the convergence argument -- is the
 $42{,}948$ lines of the named modules together with the $11{,}274$ of \path{Sec4}.
 
-The \path{Measure} directory shows the same effect from the other side: $44$ files
-and one declaration by the lexical count, because what is in them is almost entirely
-proof script rather than new statements.  And the $15{,}369$ lines not yet grouped
+The \path{Measure} directory holds a single file and a single declaration; the
+measure-theoretic content of the argument is in the named modules and in the Sec4
+layer rather than under that path, and the directory name records where an earlier
+grouping put it rather than where the work is.  And the $15{,}369$ lines not yet grouped
 are the residue of the regrouping described above, which is a statement about the
 tidiness of the artifact and not about the mathematics.
 
@@ -992,7 +1012,7 @@ The contents were fixed by an explicit criterion rather than by a judgment of ma
 
 That closure is not by itself a tree that compiles, and the gap is not small.  The tree the stripping started from held $20{,}817$ declarations.  Reachability selects a minority of them, and more have to be added before the type checker accepts the result: material reached through elaboration rather than through a proof term---instances, \texttt{simp} lemmas, notation---and declarations that the audit modules name in \texttt{\#check} and \texttt{\#print axioms} commands, which are not proof terms at all.  The additions were identified by iterating: remove the complement, compile, and restore what the failure identifies---by name where a constant is unknown, and by locating the elaboration-time dependency where the message names only a class to synthesize or nothing at all.  The contents are a fixed point of that iteration: a set containing the closure on which the build succeeds, obtained by restoring on failure and nothing else.  No minimality among compiling supersets is claimed.  In the tree as shipped the split is $2{,}552$ declarations reachable from the claim-carrying modules against $2{,}879$ not reachable, $5{,}431$ in all; these three figures are produced by \path{tools/reachable_core.lean}, whose output is shipped as \path{logs/reachable_core.txt}.  The reachable ones are connected to a claim of this paper by construction.  For the rest, the description above is of the procedure the author followed, not of a property the shipped evidence certifies: the iteration logs are not shipped, and what the machine evidence checks is the final build and the final reachability counts.
 
-No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}958$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
+No formal-to-informal ratio is reported for the result; Wiedijk's de Bruijn factor is a ratio of file sizes measured on a finished formalization~\cite{wiedijk-2000}, and the counts here serve to say what the artifact contains, not what it cost.  The counts of the last paragraph are taken in the elaborated environment---constants carrying a source position, the unit the reachability tool works in---which is finer than the lexical pattern of the previous subsection: by it the shipped tree holds $5{,}431$ declarations, against the $3{,}956$ lines that the pattern matches.  The two units are not interchangeable, and no figure below mixes them.
 
 Being connected is weaker than being needed, so the result is not claimed to be minimal: a proof term can mention a lemma the proof would go through without, and reachability keeps it.  What is claimed is checked.  Two invariants are machine-checked and shipped: the elaborated type and the kernel axiom footprint of each of the $21$ public aliases (\path{tools/public_surface_check.lean}, recorded in \path{logs/public_surface.txt}), and the presence of every identifier this paper cites by name (\path{tools/check_frozen_names.sh}, against the $118$ entries of \path{tools/frozen_names.txt}, of which the $98$ that name declarations are checked by asking Lean to elaborate them, and the two that name hypothesis binders---\texttt{hconv} and \texttt{hdom} above---by locating them in the signature they belong to).  Both hold of the shipped tree, and both are the invariants any later reorganization of the artifact must preserve.
 
@@ -1023,11 +1043,11 @@ The result should be read with the following limitations in view.
 \item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A lexical scan of the closure finds no declaration whose conclusion is written, on one line, in the form \texttt{: True :=}.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level source-closure scan of Section~\ref{sec:audit}, item~(2), detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, escapes it.  The complete check is therefore carried out separately, by \path{tools/vacuous_statement_check.lean}: it enumerates the $5{,}431$ declarations the development writes in source, sets aside the $509$ that are not statements---inductive types, constructors, recursors and quotient primitives---and for each of the remaining $4{,}922$ strips the leading binders from the type, reduces the conclusion to weak head normal form, and reports it if that conclusion is \texttt{True}.  It finds eight, and they are of one shape: a membership lemma whose ambient set is \path{Set.univ}, so that $x\in S$ unfolds to \texttt{True} and the proof is \path{Set.mem_univ}.  None is a vestige---each is used, one to four times, to supply the membership proof term an interface demands, and the interface is the one a model with a smaller domain would have to satisfy non-trivially.  What is vacuous is the proof obligation in these particular constructions, not the role the statement plays.  The eight are recorded in \path{tools/vacuous_statements_known.txt} with that reason, and the check compares its findings against that list in both directions, so a new vacuous statement fails the audit and a name that stops being vacuous cannot leave the list stale.  The output is shipped as \path{logs/vacuous_statements.txt}.  Its range is the two library roots rather than the six roots of the source scan, because it reads an elaborated environment and \path{SupplementChoiceFreeMeasureDCT.lean} is not a library target: it is a file of \texttt{\#check} and \texttt{\#print axioms} commands, run by \texttt{lake env lean}, and it declares nothing for this check to examine.
 \end{enumerate}
 
-A complete \path{./build_audit.sh} run from the v0.6.1 tree finished on 2026-09-03 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.6.1} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
+A complete \path{./build_audit.sh} run from the v0.7.0 tree finished on 2026-09-04 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.7.0} and records the successful build stages ($2856$, $2857$, $2858$, $3$ and $2870$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  As of v0.4.1 this aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22268374}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22305303}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
@@ -1081,8 +1101,8 @@ for all of it.
 
 \paragraph{Data and code availability.}  There is no dataset.  The Lean~4 artifact,
 the audit apparatus and the shipped audit logs are archived and citable at
-\doi{10.5281/zenodo.22268374}, and are also at
-\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.6.1},
+\doi{10.5281/zenodo.22305303}, and are also at
+\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.7.0},
 which is the commit the deposit was cut from.  Every figure this paper states about
 the artifact is produced by a run recorded in the deposit, and the deposit contains
 the scripts that regenerate them: \path{./build_audit.sh} rebuilds the development
@@ -1587,7 +1607,7 @@ The rows labelled ``difficulty'' are difficulties of the \emph{formalization}, n
 \subsection{One-point certificates and strong gauge extraction: a choice-free round trip between propositions and data}
 \label{sec:b-onepoint}
 
-Section~\ref{sec:nogo}(i) said that the cotransitivity branch is returned as data from rational approximations; Section~\ref{sec:related} said that every passage from propositions to data in the audited chain proceeds by explicit supply of data or by decidable search.  This subsection writes out the decidable search.  As Section~\ref{sec:audit} noted, unconditional extraction of data from an existential proposition is, in Lean, the territory of the choice axiom.  Nevertheless, for the \emph{strong order} on presented reals, one can pass between proposition and data without choice.  This is a kind of statement for which classical published mathematics has no place---a conversion theorem between propositions and constructions---and which the formalization forced us to state explicitly; type-theoretic literature does have statements of the same kind (Appendix~\ref{sec:b-booij}).
+Section~\ref{sec:nogo}(i) said that the cotransitivity branch is returned as data from rational approximations; Section~\ref{sec:related} said that every passage from propositions to data in the audited chain proceeds by explicit supply of data or by decidable search.  This subsection writes out the decidable search.  As Section~\ref{sec:audit} noted, unconditional extraction of data from an existential proposition is, in Lean, the territory of the choice axiom.  Nevertheless, for the \emph{strong order} on presented reals, one can pass between proposition and data without choice.  This is a kind of statement for which classical published mathematics has no place---a conversion theorem between propositions and constructions---but it is not new to formalization, and the nearest instance lies in the library underneath the development compared with here: Coq's \texttt{ConstructiveReals} carries \texttt{CRltEpsilon} and \texttt{CRltForget} as fields, and its Cauchy-real instance discharges \texttt{CRltEpsilon} by decidable search over the rationals~\cite{coq-constructive-reals}.  What follows is the same conversion, reached independently and built here from Bishop's own diagonal condition rather than posited as an interface field; type-theoretic literature has statements of the same kind as well (Appendix~\ref{sec:b-booij}).
 
 The one-point condition itself is not an invention of this development.  Definition~3 in Chapter~2 of Bishop's \emph{Foundations} \emph{defines} positivity of a real by exactly a one-point diagonal condition, $x_n>n^{-1}$ for some $n$, and its Lemma~2 supplies the equivalence with the tail form; the margin $2N^{-1}$ appearing there corresponds to the $2\varepsilon_n$ below, which is the dyadic-gauge version.  What this subsection adds is the reading of that equivalence under the proposition/data distinction, and the verification that the round trip is executable, mechanically and without choice.
 
@@ -1640,7 +1660,7 @@ One reading is worth recording.  \emph{Foundations} states that an element of $\
 \label{rem:b-consequences}
 (i) \emph{Cotransitivity as data.}  Once evidence for $a<b$ is at hand---a witness index and its slack---comparison with any $c$ is decided by a single rational comparison at that index; this is the mechanism behind the branch of Appendix~\ref{sec:b-avoidance}, and behind Section~\ref{sec:nogo}(i).
 
-(ii) \emph{Reciprocals.}  The reciprocal of a presented real is a partial function taking positivity data as an argument.  Abstract constructive real-number interfaces \emph{posit} the reciprocal, with its positivity witness, as an axiomatic field; the presented side first computes the witness by the round trip and then builds the reciprocal.  This is the smallest unit of the ``abstract versus presented'' difference of Section~\ref{sec:domination-comparison}.
+(ii) \emph{Reciprocals.}  The reciprocal of a presented real is a partial function taking positivity data as an argument.  Abstract constructive real-number interfaces \emph{posit} the reciprocal, with its positivity witness, as an axiomatic field---Coq's \texttt{ConstructiveReals} has \texttt{CRinv} taking an apartness witness, itself a sum of the two \texttt{Set}-valued order cases~\cite{coq-constructive-reals}---and each instance then discharges that field, the Cauchy-real instance by the same kind of decidable search used here; the presented side has no field to discharge, and computes the witness by the round trip before building the reciprocal.  This is the smallest unit of the ``abstract versus presented'' difference of Section~\ref{sec:domination-comparison}.
 
 (iii) \emph{The dual: an upper one-point certificate.}  The same one-point-plus-regularity budget works upward: from the zeroth approximation alone,
 \[
@@ -1846,6 +1866,15 @@ Leonardo de Moura and Sebastian Ullrich.
 \newblock DOI:
 \href{https://doi.org/10.1007/978-3-030-79876-5_37}{\texttt{10.1007/978-3-030-79876-5\_37}}.
 
+\bibitem{coq-constructive-reals}
+The {Rocq}/{Coq} standard library.
+\newblock \emph{Constructive real numbers}: \path{Reals.Abstract.ConstructiveReals}
+  and \path{Reals.Cauchy.ConstructiveCauchyReals}.
+\newblock The abstract interface carries \texttt{CRlt} (\texttt{Set}-valued),
+  \texttt{CRltLinear}, \texttt{CRltEpsilon}, \texttt{CRltForget} and \texttt{CRinv}
+  as fields; the Cauchy instance represents a real as a rational sequence with a
+  modulus.
+
 \bibitem{carneiro-2024}
 Mario Carneiro.
 \newblock Lean4Lean: Verifying a typechecker for {Lean}, in {Lean}.
@@ -1888,7 +1917,7 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22268374}.
+\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22305303}.
 \newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  Version DOIs of earlier deposits: v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936}, v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}

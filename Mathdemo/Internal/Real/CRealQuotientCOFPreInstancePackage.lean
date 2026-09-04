@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.CRealQuotientClosedAlgebraPackage
-
+import Mathdemo.Internal.Real.CRealQuotientMultiplicationAssociativity
 /-!
 # CReal quotient COF pre-instance package
 

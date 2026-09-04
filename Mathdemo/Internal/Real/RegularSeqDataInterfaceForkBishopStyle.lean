@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.BishopSourceHintAuditRemainingCReal
-
+import Mathdemo.Internal.Real.FaithfulDataCarryingScalarPackageCReal
 /-!
 # RegularSeq data-interface fork for Bishop-style CReal
 

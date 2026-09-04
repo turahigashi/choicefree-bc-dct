@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.Theorem118Property4Estimate
-
+import Mathdemo.Internal.Real.Proposition111MonotonicityInterface
 /-!
 # G56: Theorem 1.18(4) estimate bridges from order bounds
 

@@ -1,14 +1,14 @@
 # Artifact manifest
 
 - Artifact name: `choicefree-bc-dct`
-- Version: `0.6.1`
+- Version: `0.7.0`
 - Date: 2026-09-02
-- DOI (software deposit, this version): `10.5281/zenodo.22268374`
+- DOI (software deposit, this version): `10.5281/zenodo.22305303`
 - DOI (previous version v0.4.1): `10.5281/zenodo.22137161`
 - DOI (previous version v0.4.0): `10.5281/zenodo.21854936`
 - DOI (all versions): `10.5281/zenodo.21850965`
-- Published: v0.6.1 on 2026-09-03 (Zenodo, https://zenodo.org/record/22268374); v0.6.0 on 2026-09-02 (https://zenodo.org/record/22257007); v0.4.1 on 2026-08-28 (https://zenodo.org/record/22137161); v0.4.2 was not deposited
-- Git tag: `v0.6.1`
+- Published: v0.7.0 on 2026-09-04 (Zenodo, https://zenodo.org/record/22305303); v0.6.1 on 2026-09-03 (https://zenodo.org/record/22268374); v0.6.0 on 2026-09-02 (https://zenodo.org/record/22257007); v0.4.1 on 2026-08-28 (https://zenodo.org/record/22137161); v0.4.2 was not deposited
+- Git tag: `v0.7.0`
 - Lean version: `leanprover/lean4:v4.30.0`
 - mathlib revision: `v4.30.0`
 
@@ -55,7 +55,7 @@ cd audits/corn && sha256sum -c SHA256SUMS
 
 `./build_audit.sh` runs the public theorem build, the public alias files, and the strengthened static no-choice audit. The script writes local rerun logs to `logs/build_audit.rerun.txt` and `logs/static_audit.rerun.txt`; shipped reference logs remain stable.
 
-Release status: on 2026-09-03 a complete `./build_audit.sh` run from the v0.6.1 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs in the shipped log; the 2870-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 513` — a closure set smaller than that of v0.3.0 and v0.4.0, since the artifact was cut down to the code the paper's theorems depend on (see `DEPENDENCY_CLOSURE.md`). The shipped logs `logs/build_audit.txt`, `logs/static_audit.txt`, `logs/mathdemo_build.txt` and `logs/reading_layer_axioms.txt` record that run (`artifact_version=0.6.1`), taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`; no shipped log names a path from before that regrouping.  Of those four, `logs/mathdemo_build.txt` is the aggregate build and `logs/reading_layer_axioms.txt` is the kernel axiom output of all 104 reading-layer declarations (102 report `[propext, Quot.sound]`, two report no axioms). Three further evidence logs are shipped: `logs/public_surface.txt`, the public surface of the development, and `logs/vacuous_statements.txt`, the complete vacuous-statement check, both produced by `build_audit.sh`, and `logs/reachable_core.txt`, the reachability report, produced by `tools/reachable_core.lean` in a separate run — seven reference logs in all, six of them from `build_audit.sh`. Each is archived from a run rather than written by the audit script, which writes to the matching `.rerun.txt`. The 513 development Lean files listed in `SHA256SUMS` coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no checksum-listed development Lean file outside what the audit traverses (the equality the checker tests is against the checksum list, not against a Git index); the closure of the public theorem aliases alone is 502 of them.
+Release status: on 2026-09-04 a complete `./build_audit.sh` run from the v0.7.0 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2856, 2857, 2858, 3 and 2870 jobs in the shipped log; the 2870-job aggregate build `lake build Mathdemo` is part of the script as of this version), and the static source-closure audit passed with `closure_files: 513` — a closure set smaller than that of v0.3.0 and v0.4.0, since the artifact was cut down to the code the paper's theorems depend on (see `DEPENDENCY_CLOSURE.md`). The shipped logs `logs/build_audit.txt`, `logs/static_audit.txt`, `logs/mathdemo_build.txt` and `logs/reading_layer_axioms.txt` record that run (`artifact_version=0.7.0`), taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`; no shipped log names a path from before that regrouping.  Of those four, `logs/mathdemo_build.txt` is the aggregate build and `logs/reading_layer_axioms.txt` is the kernel axiom output of all 104 reading-layer declarations (102 report `[propext, Quot.sound]`, two report no axioms). Three further evidence logs are shipped: `logs/public_surface.txt`, the public surface of the development, and `logs/vacuous_statements.txt`, the complete vacuous-statement check, both produced by `build_audit.sh`, and `logs/reachable_core.txt`, the reachability report, produced by `tools/reachable_core.lean` in a separate run — seven reference logs in all, six of them from `build_audit.sh`. Each is archived from a run rather than written by the audit script, which writes to the matching `.rerun.txt`. The 513 development Lean files listed in `SHA256SUMS` coincide exactly with the union of the transitive import closures of the six audit roots, so the artifact contains no checksum-listed development Lean file outside what the audit traverses (the equality the checker tests is against the checksum list, not against a Git index); the closure of the public theorem aliases alone is 502 of them.
 
 ## Expected result summary
 

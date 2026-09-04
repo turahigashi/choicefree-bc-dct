@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.CRealMultiplicationCompletionFrontier
-
+import Mathdemo.Internal.Real.CRealQuotientMultiplicationExplicitClosureData
 /-!
 # CReal multiplication Phase 10 support lemmas
 

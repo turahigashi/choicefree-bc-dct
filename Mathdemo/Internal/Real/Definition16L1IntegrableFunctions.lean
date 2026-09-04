@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.SourceShapedLemma12Bridge
-
+import Mathdemo.Internal.Real.Chapter1Lemma15Closure
 /-!
 # G38: Definition 1.6, `L1` integrable functions over Bishop RegularSeq reals
 

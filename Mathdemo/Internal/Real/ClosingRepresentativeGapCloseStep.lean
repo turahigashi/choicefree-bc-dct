@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.FromConcreteQuotientClosenessRepresentativeGap
-
+import Mathdemo.Internal.Real.CompletenessFrontierSplitConditionalQuotientBranch
 /-!
 # Closing the representative gap-to-close step
 

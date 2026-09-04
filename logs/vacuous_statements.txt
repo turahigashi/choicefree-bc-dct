@@ -10,7 +10,7 @@ Note: The updated constant has a different type:
   String → String.Slice
 instead of
   String → String
-modules of this development : 512
+modules of this development : 190
 declarations written in source : 5431
 not statements (inductives, constructors, recursors, quotients) : 509
 declarations examined : 4922

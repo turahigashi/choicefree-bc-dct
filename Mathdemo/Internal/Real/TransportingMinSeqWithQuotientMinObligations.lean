@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.ScalarHalfSumKernelMinMonotonicity
-
+import Mathdemo.Internal.Real.ClosingRegularSeqAbsoluteValueTwoSided
 set_option linter.style.longLine false
 
 /-!

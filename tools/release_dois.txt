@@ -8,7 +8,8 @@
 #
 # <role>  <doi>
 concept   10.5281/zenodo.21850965
-version   10.5281/zenodo.22268374
+version   10.5281/zenodo.22305303
+previous  10.5281/zenodo.22268374
 previous  10.5281/zenodo.22257007
 previous  10.5281/zenodo.22137161
 previous  10.5281/zenodo.21854936

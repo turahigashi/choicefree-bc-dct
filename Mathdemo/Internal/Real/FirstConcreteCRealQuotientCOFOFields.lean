@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.ConditionalCRealQuotientCOFOCOFOCAssembly
-
+import Mathdemo.Internal.Real.ConditionalCRealQuotientCOFRecord
 /-!
 # First concrete CReal quotient COFO fields
 

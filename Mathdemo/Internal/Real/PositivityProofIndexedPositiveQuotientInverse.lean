@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.CancellationConditionalTotalInverseSelector
-
+import Mathdemo.Internal.Real.QuotientCancellationProofIndexedPositiveInverse
 /-!
 # Positivity of the proof-indexed positive quotient inverse
 

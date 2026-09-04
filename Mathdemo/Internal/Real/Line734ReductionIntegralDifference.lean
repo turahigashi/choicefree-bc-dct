@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.IdentifyingLargeTruncationMiddleTerm
-
+import Mathdemo.Internal.Real.OrderChainingTheorem1184
 /-!
 # G60: line 734 reduction through the integral of the difference
 

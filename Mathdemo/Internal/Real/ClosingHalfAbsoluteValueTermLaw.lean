@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.ScalarMultiplicationTransportRepresentedSeries
-
+import Mathdemo.Internal.Real.ClosingCommonMaxHalfSumTransport
 set_option linter.style.longLine false
 
 /-!
@@ -21,9 +20,6 @@ variable {Arch : ScalarMulArchimedeanData} {X : Type}
 namespace BishopRegularSeqChapter2
 namespace Prop24HalfTermLaw
 
-open Prop24RefinedSeriesFrontier
-open Prop24ScalarRecover
-open Prop24HalfRecover
 
 /-- Representative-level absolute value distributes over concrete
 multiplication.  This is the non-quotient content used inside

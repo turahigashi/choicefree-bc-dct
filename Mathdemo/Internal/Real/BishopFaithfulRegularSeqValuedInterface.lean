@@ -1,5 +1,5 @@
-import Mathdemo.Internal.Real.PosEventuallySelectorBoundaryScalarInstance
-
+import Mathdemo.Internal.Real.DataValuedArchimedeanLayerCarriedRegularSeq
+import Mathdemo.Internal.BishopSec4_Convergence
 /-!
 # G28: Bishop-faithful RegularSeq-valued interface
 

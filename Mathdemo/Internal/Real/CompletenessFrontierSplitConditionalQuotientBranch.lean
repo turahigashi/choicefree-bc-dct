@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.FinalCompletenessInterfaceConditionalQuotientBranch
-
+import Mathdemo.Internal.Real.PositivityProofIndexedPositiveQuotientInverse
 /-!
 # Completeness frontier split for the conditional quotient branch
 

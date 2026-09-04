@@ -1,5 +1,4 @@
-import Mathdemo.Internal.Real.LocalNonnegativeSubseriesDataChapter2
-
+import Mathdemo.Internal.Real.ClosingHalfAbsoluteValueTermLaw
 set_option linter.style.longLine false
 
 /-!
@@ -76,11 +75,6 @@ theorem addSeq_sub_right_cancel_eventually
 namespace BishopRegularSeqChapter2
 namespace Prop24MeasureIdentityFromLocalNonnegative
 
-open CharacteristicFormula
-open CharacteristicValueTransport
-open CharacteristicFormulaValueTransport
-open Prop24FromAbsDecomposition
-open Prop24LocalNonnegativeSubseries
 
 variable {S : BishopRegularSeqIntegrationSpaceDef11 Arch X}
 
@@ -93,8 +87,6 @@ end Prop24MeasureIdentityFromLocalNonnegative
 end BishopRegularSeqChapter2
 
 open BishopRegularSeqChapter2
-open BishopRegularSeqChapter2.Prop24LocalNonnegativeSubseries
-open BishopRegularSeqChapter2.Prop24MeasureIdentityFromLocalNonnegative
 
 
 
