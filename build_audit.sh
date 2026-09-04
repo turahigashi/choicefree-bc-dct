@@ -8,7 +8,7 @@ rm -f "$RUN_LOG" "$STATIC_LOG"
   echo "== toolchain =="
   lean --version
   lake --version
-  echo "artifact_version=0.7.3"
+  echo "artifact_version=0.7.4"
   echo "== lake build Mathdemo.CheckSec3PortAxioms =="
   lake build Mathdemo.CheckSec3PortAxioms
   echo "== lake build public DCT implementation support modules =="
@@ -83,14 +83,6 @@ for bad in Classical. sorryAx native_decide Quot.out; do
 done
 echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
 
-# ★Runs after the success line, and outside the block that writes the run log.
-# It compares the stages this script announces against the reference log in `logs/`,
-# and the reference log is promoted from this run afterwards --- so if it ran inside
-# the block it would abort before `BUILD_AUDIT_EXIT=0` was ever written, and the
-# promoted log could never satisfy the very condition the check requires.  Its own
-# verdict is appended to the run log so a reader can see that it ran.
-python3 tools/check_log_generation.py 2>&1 | tee -a "$RUN_LOG"
-
 # ★Runs here for the same reason check_log_generation.py does: it reads the *promoted*
 # reference log `logs/build_audit.txt`, not this run's `.rerun.txt`.  Inside the block
 # it aborted the run before `BUILD_AUDIT_EXIT=0` was written, so the log promoted from
@@ -110,3 +102,13 @@ elif [ -f ../paper/paper.tex ]; then
 else
   echo "PAPER/LOG CONSISTENCY CHECK SKIPPED: no paper source in this deposit" | tee -a "$RUN_LOG"
 fi
+
+# ★Runs LAST, after every stage this script announces has been written to the run log.
+# It compares the stages the script announces against the *promoted* reference log in
+# `logs/`.  Two placements are wrong and both were tried: inside the block it aborts
+# before `BUILD_AUDIT_EXIT=0` is written, so the promoted log can never satisfy it;
+# immediately after the success line it demands a stage ('paper/log consistency') that
+# the script only announces later, so no promoted log can ever contain it and the check
+# never reaches a fixed point.  Running it last makes a completed run's log record all
+# of the stages, so promoting that log lets the next run pass.
+python3 tools/check_log_generation.py 2>&1 | tee -a "$RUN_LOG"

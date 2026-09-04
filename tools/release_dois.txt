@@ -6,14 +6,20 @@
 # changing one of the README's three occurrences of the version DOI left every check
 # passing: the other two kept the intersection alive.
 #
-# <role>  <doi>
-concept   10.5281/zenodo.21850965
-version   10.5281/zenodo.22310089
-previous  10.5281/zenodo.22309608
-previous  10.5281/zenodo.22307518
-previous  10.5281/zenodo.22305303
-previous  10.5281/zenodo.22268374
-previous  10.5281/zenodo.22257007
-previous  10.5281/zenodo.22137161
-previous  10.5281/zenodo.21854936
-previous  10.5281/zenodo.21850966
+# ★<role>  <version>  <doi>
+#
+# The version column was added because a checker that only asked whether a DOI
+# appeared in this file passed three releases in a row while the documents named
+# the *current* DOI as the *previous* version's.  Membership is not the property
+# that matters; the pairing is.
+concept   -        10.5281/zenodo.21850965
+version   v0.7.4   10.5281/zenodo.22311450
+previous  v0.7.3   10.5281/zenodo.22310089
+previous  v0.7.2   10.5281/zenodo.22309608
+previous  v0.7.1   10.5281/zenodo.22307518
+previous  v0.7.0   10.5281/zenodo.22305303
+previous  v0.6.1   10.5281/zenodo.22268374
+previous  v0.6.0   10.5281/zenodo.22257007
+previous  v0.4.1   10.5281/zenodo.22137161
+previous  v0.4.0   10.5281/zenodo.21854936
+previous  v0.3.0   10.5281/zenodo.21850966

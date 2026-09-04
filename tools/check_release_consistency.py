@@ -86,12 +86,19 @@ def main(argv):
         print(f"FAIL: missing DOI ledger {ledger_path}", file=sys.stderr); ok = False
     else:
         ledger = {}
+        ledger_ver = {}
         for line in read(ledger_path).splitlines():
             line = line.strip()
             if not line or line.startswith("#"):
                 continue
-            role, d = line.split()
+            parts = line.split()
+            if len(parts) == 3:
+                role, ver, d = parts
+            else:                       # ★the two-column form this file used to have
+                role, d = parts; ver = None
             ledger[d.split(".")[-1]] = role
+            if ver and ver != "-":
+                ledger_ver[ver] = d.split(".")[-1]
         release = [k for k, v in ledger.items() if v == "version"]
         if len(release) != 1:
             print(f"FAIL: the ledger must name exactly one version DOI, it names {len(release)}",
@@ -106,6 +113,40 @@ def main(argv):
             if release and release[0] not in found:
                 print(f"FAIL: {name} does not name the version DOI of this release",
                       file=sys.stderr); ok = False
+        # ★The check above asks only whether a DOI appears in the ledger.  That is not
+        # the property the documents assert: they assert that a *named version* has a
+        # *particular* DOI, and three releases in a row named the current DOI as the
+        # previous version's while every check passed, because both DOIs were in the
+        # ledger.  Membership is not the pairing.  So read the pairs out of each
+        # document and compare them with the ledger's.
+        # ★Both orders occur: "v0.7.3: 10.5281/zenodo.NNN" and "10.5281/zenodo.NNN
+        # (v0.7.3)".  A pattern for one order reads the other one off by one entry and
+        # reports every row of a correct list as wrong, which is how the first version
+        # of this check behaved.  Match both, and require the two to be adjacent --- no
+        # other DOI or version number between them.
+        fwd = re.compile(r"v(\d+\.\d+\.\d+)(?:[^0-9]|(?<=v)\d)"
+                         r"{0,40}?10\.5281/zenodo\.(\d+)")
+        bwd = re.compile(r"10\.5281/zenodo\.(\d+)[^0-9]{0,10}?\(v(\d+\.\d+\.\d+)\)")
+        for name, f in (("README", readme), ("manifest", manifest),
+                        *(( ("paper", paper), ) if paper is not None and paper.exists() else ())):
+            body = read(f)
+            pairs = [("v" + m.group(2), m.group(1)) for m in bwd.finditer(body)]
+            claimed = {v for v, _ in pairs}
+            pairs += [("v" + m.group(1), m.group(2)) for m in fwd.finditer(body)
+                      if "v" + m.group(1) not in claimed]
+            for ver, doi in pairs:
+                want = ledger_ver.get(ver)
+                if want and want != doi:
+                    print(f"FAIL: {name} pairs {ver} with 10.5281/zenodo.{doi}; the "
+                          f"ledger has 10.5281/zenodo.{want}", file=sys.stderr); ok = False
+        if release and ledger_ver:
+            prev = [d for v, d in ledger_ver.items()
+                    if ledger.get(d) == "previous"]
+            if release[0] in prev:
+                print("FAIL: the version DOI is also listed as a previous one",
+                      file=sys.stderr); ok = False
+            print(f"version_doi_pairs: {len(ledger_ver)} version-to-DOI pairs checked")
+
         if release:
             print(f"release_version_doi: 10.5281/zenodo.{release[0]} "
                   f"(ledger: {len(ledger)} known DOIs)")
