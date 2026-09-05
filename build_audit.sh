@@ -114,28 +114,20 @@ else
 fi
 
 # ★Runs LAST, after every stage this script announces has been written to the run log.
-# It compares the stages the script announces against the *promoted* reference log in
-# `logs/`.  Two placements are wrong and both were tried: inside the block it aborts
-# before `BUILD_AUDIT_EXIT=0` is written, so the promoted log can never satisfy it;
-# immediately after the success line it demands a stage ('paper/log consistency') that
-# the script only announces later, so no promoted log can ever contain it and the check
-# never reaches a fixed point.  Running it last makes a completed run's log record all
-# of the stages, so promoting that log lets the next run pass.
-# ★The overall verdict: written only after every stage above has succeeded, and it is
-# the last line of the run log.  A run that fails in any stage --- including the last
-# two, which used to sit after the old success line --- leaves a log without it, and
-# `check_log_generation.py` refuses such a log as the shipped reference.
-echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
-
-# ★Last, and reading the *promoted* reference log rather than this run's.  Its verdict
-# goes to its own file, never into "$RUN_LOG": writing it there would put the outcome
-# of checking the previous log inside the new one, and the next promotion would carry
-# that verdict forward as though it described the new run.
+# ★This run's own log is checked *before* the overall marker is written, so a run that
+# fails here leaves no marker at all.  The earlier arrangement wrote the marker and then
+# checked the *stored* log; a review showed the consequence --- that check could fail,
+# the shell exit non-zero, and the run log it had just written still end in success, so
+# promoting that log made the check pass.  The exit status and the log disagreed.
 #
-# The order matters and three arrangements are wrong.  Inside the block, it aborts
-# before any success line is written.  Immediately after a success line placed before
-# the last stages, it demands a stage the log cannot yet contain.  After the terminal
-# marker, no run can ever write that marker, because this check aborts first --- so no
-# promoted log has it and no later run can pass.  Placed here, a completed run's log
-# carries every stage and the terminal marker, and promoting it lets the next run pass.
-python3 tools/check_log_generation.py 2>&1 | tee "$LOGGEN_LOG"
+# Checking the stored reference log is a different operation and is no longer done here:
+# it is a release gate, run once when a deposit is cut, alongside
+# `tools/check_public_state.py`.  Keeping it in this script forced a choice between two
+# wrong things --- fail before the marker (and no promoted log can ever satisfy it, so
+# no release is reachable) or fail after it (and a failing run ships a success line).
+python3 tools/check_log_generation.py --pending "$RUN_LOG" 2>&1 | tee "$LOGGEN_LOG"
+
+# ★The overall verdict, and the last line of the run log: every stage above ran, and the
+# run log is fit to be promoted.  A run that fails anywhere --- including in the check
+# immediately above, or with any non-zero exit from it --- never reaches this line.
+echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"

@@ -1,8 +1,8 @@
 # choicefree-bc-dct
 
-Version: 0.7.6  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
+Version: 0.7.7  ·  Toshihisa Urahigashi ([ORCID 0009-0004-0460-6242](https://orcid.org/0009-0004-0460-6242))
 
-DOI (this version): [10.5281/zenodo.22313684](https://doi.org/10.5281/zenodo.22313684)  ·  previous version v0.7.5: [10.5281/zenodo.22312944](https://doi.org/10.5281/zenodo.22312944)  ·  earlier versions via the concept DOI
+DOI (this version): [10.5281/zenodo.22330020](https://doi.org/10.5281/zenodo.22330020)  ·  previous version v0.7.6: [10.5281/zenodo.22313684](https://doi.org/10.5281/zenodo.22313684)  ·  earlier versions via the concept DOI
 
 DOI (all versions, resolves to latest): [10.5281/zenodo.21850965](https://doi.org/10.5281/zenodo.21850965)
 
@@ -195,7 +195,7 @@ Add to your `lakefile.toml`:
 [[require]]
 name = "mathdemo"
 git = "<url of this repository>"
-rev = "v0.7.6"
+rev = "v0.7.7"
 ```
 
 and import the public surface:
@@ -250,11 +250,23 @@ line, the overall verdict:
 BUILD_AUDIT_EXIT=0
 ```
 
-The overall marker is written only after every stage, including the paper/log consistency
-check, has passed.  An earlier arrangement wrote it before those last stages, so a run that
-failed in one of them still left a log carrying a success line; a reviewer reproduced that,
-and `tools/check_log_generation.py` now requires the overall marker to be the final line and
-the log to contain no failure lines.
+The overall marker is written only after every stage has passed and after
+`tools/check_log_generation.py --pending` has inspected the log this run just wrote, so a
+run that fails anywhere leaves no marker at all.  Two earlier arrangements were wrong and a
+reviewer reproduced both: writing the marker before the last stages let a failing run ship a
+success line, and moving the check after the marker meant no run could ever write it.
+
+Checking the *stored* reference log is a separate operation and is not part of this script.
+It is a release gate, run once when a deposit is cut:
+
+```bash
+python3 tools/check_log_generation.py     # the stored logs/build_audit.txt
+python3 tools/check_public_state.py       # tag, deposit and working tree agree
+```
+
+Keeping the stored-log check inside `build_audit.sh` forced a choice between two wrong
+things: fail before the marker, and no promoted log can ever satisfy it, so no release is
+reachable; fail after it, and a failing run ships a log that says it succeeded.
 
 Reference logs shipped with the artifact are:
 
@@ -281,7 +293,7 @@ generated after that promotion.
 
 ### Current-worktree build status
 
-On 2026-09-05 a complete `./build_audit.sh` run from the v0.7.6 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2534, 2535, 2536, 3 and 2548 jobs), and the static source-closure audit passed with `closure_files: 191`, `tracked_lean_files: 191` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 180 of the 191.
+On 2026-09-05 a complete `./build_audit.sh` run from the v0.7.7 tree finished with `BUILD_AUDIT_EXIT=0` (build stages of 2534, 2535, 2536, 3 and 2548 jobs), and the static source-closure audit passed with `closure_files: 191`, `tracked_lean_files: 191` and `STATIC AUDIT PASSED`, comparing the audited closure and the tracked Lean paths as sets in both directions and failing if a project-local import is absent from the tree. All seven shipped reference logs are archived from that run — the script writes to the `.rerun.txt` files and the references are promoted from them at release time — taken from the tree in which the implementation modules are grouped into `Mathdemo/Internal/Rat`, `Real`, `Measure` and `Sec4`. The closure of the public theorem aliases alone is 180 of the 191.
 
 To verify file integrity after `SHA256SUMS` has been generated:
 
@@ -348,7 +360,7 @@ See `ARTIFACT_MANIFEST.md` for the top-level manifest and `DEPENDENCY_CLOSURE.md
 
 ## Citation metadata
 
-`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.6 deposit carries the version DOI `10.5281/zenodo.22313684`.
+`CITATION.cff` contains the author and DOI metadata for this release.  The concept DOI `10.5281/zenodo.21850965` resolves to the latest version; the v0.7.7 deposit carries the version DOI `10.5281/zenodo.22330020`.
 
 ## Note on Lean warnings
 

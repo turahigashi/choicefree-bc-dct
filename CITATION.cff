@@ -8,10 +8,10 @@ authors:
     email: "123026.urahigashi.toshihisa@gmail.com"
     affiliation: "Independent researcher"
     orcid: "https://orcid.org/0009-0004-0460-6242"
-version: "0.7.6"
+version: "0.7.7"
 # `doi` is the version DOI of this release.  The concept DOI
 # 10.5281/zenodo.21850965 resolves to whichever version is latest.
 date-released: "2026-09-05"
-doi: "10.5281/zenodo.22313684"
+doi: "10.5281/zenodo.22330020"
 license: MIT
 repository-code: "https://github.com/turahigashi/choicefree-bc-dct"
