@@ -32,7 +32,15 @@ def read(p):
     return p.read_text(encoding="utf-8", errors="replace")
 
 def main(argv):
+    # ★An explicitly named paper that is not there is an error, not a licence to skip:
+    # a review found that the deposit (which excludes `paper/` by `export-ignore`)
+    # made this checker raise, because the predecessor check added below took the
+    # paper unconditionally.  Absence must be handled once, here, and visibly.
     paper = Path(argv[1]) if len(argv) > 1 else None
+    if paper is not None and not paper.exists():
+        print(f"RELEASE CONSISTENCY CHECK FAILED: the paper was named explicitly as "
+              f"{paper}, and it is not there", file=sys.stderr)
+        return 1
     if paper is None:
         for c in (ROOT / "paper" / "paper.tex", ROOT.parent / "paper" / "paper.tex"):
             if c.exists():
@@ -130,10 +138,21 @@ def main(argv):
         for name, f in (("README", readme), ("manifest", manifest),
                         *(( ("paper", paper), ) if paper is not None and paper.exists() else ())):
             body = read(f)
-            pairs = [("v" + m.group(2), m.group(1)) for m in bwd.finditer(body)]
-            claimed = {v for v, _ in pairs}
-            pairs += [("v" + m.group(1), m.group(2)) for m in fwd.finditer(body)
-                      if "v" + m.group(1) not in claimed]
+            # ★The two orders overlap: inside "10.5281/zenodo.NNN (v0.7.2)" the forward
+            # pattern would read the version and then run on to the *next* DOI in the
+            # list.  The suppression must therefore be positional, not by version name.
+            # It used to be by name, and a review showed what that costs: one wrong
+            # forward pairing anywhere in the file was silenced by a *correct* reverse
+            # entry for the same version elsewhere, so the document could contradict
+            # the ledger and pass.  Reproduced, and fixed here.
+            pairs, bwd_spans = [], []
+            for m in bwd.finditer(body):
+                pairs.append(("v" + m.group(2), m.group(1)))
+                bwd_spans.append((m.start(), m.end()))
+            for m in fwd.finditer(body):
+                at = m.start(1)
+                if not any(a <= at < b for a, b in bwd_spans):
+                    pairs.append(("v" + m.group(1), m.group(2)))
             for ver, doi in pairs:
                 want = ledger_ver.get(ver)
                 if want and want != doi:
@@ -165,12 +184,17 @@ def main(argv):
                     print("FAIL: the ledger gives the previous version the current DOI",
                           file=sys.stderr); ok = False
                 print(f"previous_release: {pv} 10.5281/zenodo.{pd}")
+                # ★The paper enters this list only when it is present.  The software
+                # deposit ships without `paper/`, so an unconditional entry made the
+                # whole check raise there --- the audit's stage 16 aborted on every
+                # archive built from the tag, while the author's working tree passed.
                 PREV = [("README", readme,
                          r"previous version (v[\d.]+):\s*\[?10\.5281/zenodo\.(\d+)"),
                         ("manifest", manifest,
-                         r"DOI \(previous version (v[\d.]+)\):\s*`10\.5281/zenodo\.(\d+)`"),
-                        ("paper", paper,
-                         r"previous deposit is (v[\d.]+) .?doi\{10\.5281/zenodo\.(\d+)\}")]
+                         r"DOI \(previous version (v[\d.]+)\):\s*`10\.5281/zenodo\.(\d+)`")]
+                if paper is not None and paper.exists():
+                    PREV.append(("paper", paper,
+                                 r"previous deposit is (v[\d.]+) .?doi\{10\.5281/zenodo\.(\d+)\}"))
                 for name, f, pat in PREV:
                     m = re.search(pat, read(f))
                     if not m:

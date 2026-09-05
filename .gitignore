@@ -20,3 +20,12 @@ __pycache__/
 logs/vacuous_statements.rerun.txt
 logs/reachable_core.rerun.txt
 logs/vacuous.err
+
+# The log-generation check writes its verdict to its own file rather than into the
+# run log; it is a check *on* the shipped reference logs, not one of them.
+logs/log_generation.rerun.txt
+logs/log_generation.txt
+
+# The JAR pre-submission review bundle is kept here for convenience.  It carries the
+# paper PDFs and is not part of the software deposit.
+jar-submit-check.zip

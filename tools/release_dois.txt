@@ -13,7 +13,8 @@
 # the *current* DOI as the *previous* version's.  Membership is not the property
 # that matters; the pairing is.
 concept   -        10.5281/zenodo.21850965
-version   v0.7.5   10.5281/zenodo.22312944
+version   v0.7.6   10.5281/zenodo.22313684
+previous  v0.7.5   10.5281/zenodo.22312944
 previous  v0.7.4  10.5281/zenodo.22311450
 previous  v0.7.3   10.5281/zenodo.22310089
 previous  v0.7.2   10.5281/zenodo.22309608

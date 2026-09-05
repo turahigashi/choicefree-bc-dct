@@ -1,7 +1,7 @@
 % arXiv reads the first few lines to choose an engine; this asks for pdflatex,
 % which is what the paper is compiled and checked with.
 \pdfoutput=1
-\def\CFBDCTVersion{0.7.5}
+\def\CFBDCTVersion{0.7.6}
 
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
@@ -42,7 +42,7 @@
 {\normalsize Independent researcher}\\[1pt]
 {\normalsize\texttt{123026.urahigashi.toshihisa@gmail.com}}\\[1pt]
 {\normalsize ORCID \href{https://orcid.org/0009-0004-0460-6242}{\texttt{0009-0004-0460-6242}}}}
-\date{Submitted manuscript\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22312944}}
+\date{Submitted manuscript\\Artifact version \CFBDCTVersion, \doi{10.5281/zenodo.22313684}}
 \begin{document}
 \maketitle
 
@@ -136,9 +136,12 @@ The contributions of the artifact are as follows.
 \end{enumerate}
 
 \medskip
-\noindent Each principal claim is stated together with an explicit qualification.  The following table pairs them; every row is developed in the section cited.
+\noindent Table~\ref{tab:claims} states each principal claim together with an explicit qualification.  The following table pairs them; every row is developed in the section cited.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{Each principal claim with its direct evidence and the scope it is limited to.}
+\label{tab:claims}
 \begin{tabular}{p{0.31\textwidth}|p{0.28\textwidth}|p{0.31\textwidth}}
 \textbf{Claim} & \textbf{Direct evidence} & \textbf{Scope, and what is not claimed}\\\hline
 A profile-route Bishop--Cheng dominated convergence theorem over presented reals (Theorem~\ref{thm:prop-dct}) & \path{bishop_cheng_dominated_convergence_propC} and the separately proved Type-valued route (Section~\ref{sec:formalization}) & relative to Definition~\ref{def:intspace} and to the presented reals of Section~\ref{sec:setting}\\\hline
@@ -149,7 +152,7 @@ The named public declarations report \texttt{[propext, Quot.sound]} (Section~\re
 The countable-avoidance step is discharged constructively (Section~\ref{sec:nogo}) & the explicit exception sequence and the nested-interval construction (Appendix~\ref{sec:appendix-b}) & the no-go results are not overturned; the claim is presented-reals-relative\\\hline
 The axioms admit a model not concentrated at a single point (Section~\ref{sec:formalization}) & \texttt{bool\allowbreak Indicator\allowbreak\_integral\allowbreak\_pos}: both singletons of the two-point model on \texttt{Bool} carry positive measure & the integral is the unscaled sum, so only integer multiplicities are realized; no model over a continuum is constructed\\\hline
 \end{tabular}
-\end{center}
+\end{table}
 
 \section{The setting}
 \label{sec:setting}
@@ -757,9 +760,12 @@ The Lean artifact exposes the full-set hypothesis in two forms.  The Prop-facing
 
 We do not claim a formal strict generalization of the CoRN theorem, because the ambient real-number and integration-space interfaces differ.  CoRN's \texttt{CR\_cv} and the Lean Type-valued full-set conclusion are both data-valued, but the two complete theorem statements are not ordered solely by logical strength.  Across the Lean pointwise-majorant wrappers, the verified error majorant is \(g+|f|\) or \(|g|+|f|\), depending on the route, not \(2g\), unless a separate proof of \(|f|\le g\) is supplied.
 
-A summary comparison:
+Table~\ref{tab:corn} is a summary comparison.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{Summary comparison with the CoRN development.}
+\label{tab:corn}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{lll}
 \hline
@@ -774,7 +780,7 @@ Audit output & \texttt{[propext, Quot.sound]} & \texttt{Closed under the global 
 Comparison caveat & not strictly ordered & not strictly ordered \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 The apparent asymmetry of the audit outputs---\texttt{[propext, Quot.sound]} on the Lean side against \texttt{Closed under the global context} on the Rocq side---should not be read as a comparison of axiom counts.  As Carneiro's axiomatization of Lean records~\cite{carneiro-2019}, Lean builds quotient types into the kernel, with definitional computation rules and the axiom \texttt{Quot.sound}, and derives function extensionality from quotients together with propositional extensionality; Coq does not build quotient types into the kernel with definitional computation rules, and its ecosystem compensates with setoids; Carneiro notes that quotients of sets can be constructed in Coq, but without computation rules.  At least one of the two Lean axioms thus pays, as an axiom, for what the Coq side obtains from setoid machinery and quantified interfaces.  The shape of the audit output reflects a difference in foundational design, not a difference in mathematical strength.
 
@@ -890,9 +896,12 @@ The table below is the single place where the figures of this section are stated
 together with what produces them and, in the last column, what they leave open.  The
 last column is the point of the table: each row is evidence for something narrower
 than the sentence it supports, and the difference is where a reader should look for
-what is still taken on trust.
+what is still taken on trust.  Table~\ref{tab:declmap} gives that correspondence.
 
-\begin{center}\footnotesize
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{Each sentence of the paper's account against the declaration that carries it.}
+\label{tab:declmap}
 \begin{tabular}{@{}p{3.05cm}p{2.5cm}p{3.1cm}p{5.0cm}@{}}
 \hline
 What is claimed & Evidence & Regenerated by & What it does \emph{not} establish\\
@@ -935,7 +944,7 @@ CoRN reports \texttt{Closed under the global context}
    \S\ref{sec:related}.\\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 \subsection{Choice-free audit}
 \label{sec:audit}
@@ -998,9 +1007,12 @@ so declarations carrying other modifiers, or not starting at the beginning of a 
 
 Where the lines are matters more than how many there are, and eighty thousand of
 them for one theorem invites the question of what they are doing.  The answer is
-visible once they are split by layer.
+visible once they are split by layer, as Table~\ref{tab:axioms} does.
 
-\begin{center}\footnotesize
+\begin{table}[htbp]
+\centering\footnotesize
+\caption{What each axiom of the integration-space interface is used for.}
+\label{tab:axioms}
 \begin{tabular}{@{}lrrrr@{}}
 \hline
 Layer & Files & Lines & \% & Declarations\\
@@ -1016,7 +1028,7 @@ Sec4 convergence layer (\path{Mathdemo/Internal/Sec4/} plus \path{Sec4GenIB.lean
 & $191$ & $83{,}477$ & $100$ & $3{,}956$\\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 \noindent One figure in that table is the whole explanation.  The presented reals
 occupy $118$ files for $576$ declarations: this is the arithmetic and order theory of
@@ -1077,11 +1089,11 @@ The result should be read with the following limitations in view.
 \item \textbf{Implementation maturity.}  The artifact is fixed by reachability from the public claims (Section~\ref{sec:cost-contents}), and its modules are grouped by layer (\path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure}, \path{Sec4}).  That criterion keeps what the theorems depend on; it does not produce a library with a designed interface, and the implementation modules beneath the public surface are not a public API.  The public aliases and principal proof route have been reviewed and audited, while detailed manual review of every low-level internal declaration remains ongoing.  A lexical scan of the closure finds no declaration whose conclusion is written, on one line, in the form \texttt{: True :=}.  The scan is lexical and reaches declarations, not the fields of a structure instance: one field assignment of the form \texttt{f := True} survives, at \path{Mathdemo/Internal/Real/ClosingStrictUpperTransferBridge.lean}, in a structure whose substantive field is genuinely proved and whose \texttt{True}-valued field no declaration reads.  Five were present through v0.4.1 and were removed in v0.4.2: \path{ContinuousOn}, \path{lemma33_lt_of_not_le}, \path{lemma34_out_exists_cell}, \path{fatou_type_stub_not_source_4_14}, and---the one whose name most invites misreading---\path{thm_4_15_dominated_convergence}, a \texttt{def} carrying the hypotheses of dominated convergence and concluding \texttt{True}.  All five were vestiges of earlier generic routes, none was referenced anywhere in the closure, and a declaration whose conclusion is \texttt{True} carries no information, so none could contribute to any proof; the theorem of this paper is \path{bishop_cheng_thm_4_15_propC}, which is unrelated to that vestige and is stated and proved in full.  They are recorded here because at the time they were present the token-level source-closure scan of Section~\ref{sec:audit}, item~(2), detected vacuous \emph{proofs} (\texttt{sorry}, \texttt{admit}) and not vacuous \emph{statements}.  That scan now also rejects a conclusion of \texttt{True}, which is the form all five took.  It is a lexical guard: it matches the pattern \texttt{: True :=} on a single line, so a vacuous statement whose type is written across lines, or whose conclusion merely reduces to \texttt{True}, escapes it.  The complete check is therefore carried out separately, by \path{tools/vacuous_statement_check.lean}: it enumerates the $5{,}431$ declarations the development writes in source, sets aside the $509$ that are not statements---inductive types, constructors, recursors and quotient primitives---and for each of the remaining $4{,}922$ strips the leading binders from the type, reduces the conclusion to weak head normal form, and reports it if that conclusion is \texttt{True}.  It finds eight, and they are of one shape: a membership lemma whose ambient set is \path{Set.univ}, so that $x\in S$ unfolds to \texttt{True} and the proof is \path{Set.mem_univ}.  None is a vestige---each is used, one to four times, to supply the membership proof term an interface demands, and the interface is the one a model with a smaller domain would have to satisfy non-trivially.  What is vacuous is the proof obligation in these particular constructions, not the role the statement plays.  The eight are recorded in \path{tools/vacuous_statements_known.txt} with that reason, and the check compares its findings against that list in both directions, so a new vacuous statement fails the audit and a name that stops being vacuous cannot leave the list stale.  The output is shipped as \path{logs/vacuous_statements.txt}.  Its range is the two library roots rather than the six roots of the source scan, because it reads an elaborated environment and \path{SupplementChoiceFreeMeasureDCT.lean} is not a library target: it is a file of \texttt{\#check} and \texttt{\#print axioms} commands, run by \texttt{lake env lean}, and it declares nothing for this check to examine.
 \end{enumerate}
 
-A complete \path{./build_audit.sh} run from the v0.7.5 tree finished on 2026-09-05 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.7.5} and records the successful build stages ($2534$, $2535$, $2536$, $3$ and $2548$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
+A complete \path{./build_audit.sh} run from the v0.7.6 tree finished on 2026-09-05 with \texttt{BUILD\_AUDIT\_EXIT=0}.  The shipped log carries the banner \texttt{artifact\_version=0.7.6} and records the successful build stages ($2534$, $2535$, $2536$, $3$ and $2548$ jobs), the declaration-level axiom checks reporting \texttt{[propext, Quot.sound]}, the reading-layer axiom check over $104$ declarations, and the static audit traversing its closure within the same run.  Seven reference logs are shipped, archived from that run rather than written by it: the script itself writes to the \texttt{.rerun.txt} files, and the references are promoted from them once, when a release is cut.  Six come from \path{build_audit.sh}---\path{logs/build_audit.txt}, \path{logs/static_audit.txt}, \path{logs/mathdemo_build.txt}, \path{logs/reading_layer_axioms.txt}, \path{logs/public_surface.txt} and \path{logs/vacuous_statements.txt}---and the seventh, \path{logs/reachable_core.txt}, is the output of \path{tools/reachable_core.lean}, which is run separately.  None of them names a path from before the implementation modules were regrouped into \path{Mathdemo/Internal/Rat}, \path{Real}, \path{Measure} and \path{Sec4}.
 
 The scope of the build audit should be delimited.  The four reading-layer modules---\path{Mathdemo.MathematicalInterface}, \path{Mathdemo.SourceIntegrationSpaceDef11}, \path{Mathdemo.DiracIntegrationSpace} and \path{Mathdemo.FiniteWeightedIntegrationSpace}---are not in the dependency cone of \path{Mathdemo.CheckSec3PortAxioms}: they are a layer for \emph{reading} the development, not a layer the development \emph{depends on}, so they are not built in the initial theorem-root stages; they are built by the later aggregate stage.  They are audited by two other routes.  First, the static source closure of Section~\ref{sec:audit} covers them, since the audit roots include the aggregation module.  Second, a separate aggregated build, \texttt{lake build Mathdemo}, completes, and a dedicated reading-layer audit covers the reading-layer declarations, which are outside the dependency cone of the main theorem and are therefore not reached by the first route; the full inventory and its split are given in Section~\ref{sec:reproducibility}, item~(3).  The aggregate build is part of \path{build_audit.sh}; the reading-layer axiom audit is run from a check file outside the tracked closure, so that the audited closure is unchanged by the check itself, and its output is shipped (Section~\ref{sec:reproducibility}).
 
-This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22312944}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
+This tree is \texttt{v\CFBDCTVersion}, tagged in the public repository and deposited with the version DOI \doi{10.5281/zenodo.22313684}.  Both were made from the exact tree audited above, after the checksums were regenerated on it.  The requirement that the released tree receive a complete \path{./build_audit.sh} run is met by the run just described.  The software deposit~\cite{artifact}, concept DOI \doi{10.5281/zenodo.21850965}, which resolves to the latest version, carries the Lean code and the audit apparatus only; the paper source is excluded from it by \path{.gitattributes} and is not part of the deposit.
 
 \subsection{Artifact interface and reproducibility}
 \label{sec:reproducibility}
@@ -1116,7 +1128,7 @@ sha256sum -c SHA256SUMS
 \end{quote}
 These checks do not rebuild Lean but verify the public source closure and the integrity of the shipped evidence.
 
-\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}.  The script also performs the aggregate \texttt{lake build Mathdemo}, the second of the two audit routes described in Section~\ref{sec:limitations}, whose record is shipped as \path{logs/mathdemo_build.txt}; it then generates a temporary reading-layer check file outside the tracked closure, runs \texttt{lake env lean} on it to print the axiom footprint of all $104$ reading-layer declarations---the facade's $36$, the transcription's $27$ including the hypothesis-free adapter and the gauge bridge, the point-evaluation model's $10$ and the finitely supported model's $31$---and verifies that $102$ report \texttt{[propext, Quot.sound]} and that the two which report no axioms at all are \path{BishopCheng.ComplementedSet} and \path{BishopCheng.boolPts}, shipping the output as \path{logs/reading_layer_axioms.txt}.
+\item \textbf{Complete Lean verification.}  Run \path{./build_audit.sh}.  The script builds the principal theorem root, public support modules, the concrete example, and the public alias files; invokes the dedicated axiom checks; and finishes with the strengthened static audit.  A successful run ends with \texttt{BUILD\_AUDIT\_EXIT=0}, which is the log's last line and is written only after every stage has passed.  An earlier marker, \texttt{CORE\_AUDIT\_EXIT=0}, records that the build and the checks inside the main block succeeded; it says nothing about the two stages that follow it.  The distinction was introduced after a reviewer showed that a single marker placed before those stages left a failing run's log carrying a success line.  The script also performs the aggregate \texttt{lake build Mathdemo}, the second of the two audit routes described in Section~\ref{sec:limitations}, whose record is shipped as \path{logs/mathdemo_build.txt}; it then generates a temporary reading-layer check file outside the tracked closure, runs \texttt{lake env lean} on it to print the axiom footprint of all $104$ reading-layer declarations---the facade's $36$, the transcription's $27$ including the hypothesis-free adapter and the gauge bridge, the point-evaluation model's $10$ and the finitely supported model's $31$---and verifies that $102$ report \texttt{[propext, Quot.sound]} and that the two which report no axioms at all are \path{BishopCheng.ComplementedSet} and \path{BishopCheng.boolPts}, shipping the output as \path{logs/reading_layer_axioms.txt}.
 \end{enumerate}
 
 Local reruns are written to:
@@ -1142,8 +1154,8 @@ for all of it.
 
 \paragraph{Data and code availability.}  There is no dataset.  The Lean~4 artifact,
 the audit apparatus and the shipped audit logs are archived and citable at
-\doi{10.5281/zenodo.22312944}, and are also at
-\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.7.5},
+\doi{10.5281/zenodo.22313684}, and are also at
+\url{https://github.com/turahigashi/choicefree-bc-dct} under tag \texttt{v0.7.6},
 an annotated tag pointing at the commit the deposit was cut from.  Every figure this paper states about
 the artifact is produced by a run recorded in the deposit, and the deposit contains
 the scripts that regenerate them: \path{./build_audit.sh} rebuilds the development
@@ -1180,9 +1192,13 @@ The tables in this appendix let a reader move between Part~I, the source, and th
 
 This paper numbers items by section, so its numbers do not coincide with those of Bishop and Cheng's memoir; since both schemes contain items numbered ``3.$\,x$'' and ``4.$\,x$'', the correspondence is collected here.  The headings in Part~I also carry the source numbers.
 
-Notes in the last column assert agreement of mathematical content with the memoir; they do not assert word-for-word agreement with its English text.
+Table~\ref{tab:memoir} records the correspondence.  Notes in its last column assert agreement of mathematical content with the memoir; they do not assert word-for-word agreement with its English text.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{Correspondence with the memoir, with notes on agreement of content.}
+\label{tab:memoir}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{p{0.16\textwidth}p{0.24\textwidth}p{0.17\textwidth}p{0.33\textwidth}}
 \hline
 This paper & Content & Source & Note \\
@@ -1203,12 +1219,17 @@ Proof step (4), Section~\ref{sec:proof} & two-part estimate & Lemma~4.14 & same 
 Appendix~\ref{sec:appendix-b} & Lemma~1.2, Corollary~1.3, Definition~7.1, and others & same numbers & the appendix retraces the source's arguments and cites the source's numbers directly \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 \subsection{From mathematical objects to Lean declarations}
 \label{sec:objmap}
+Table~\ref{tab:objmap} names the declaration that carries each object.
 
-\begin{center}\small
+
+\begin{table}[htbp]
+\centering\small
+\caption{From mathematical objects to Lean declarations.}
+\label{tab:objmap}
 \begin{tabular}{ll}
 \hline
 Axiom of Definition~\ref{def:intspace} & \texttt{IntSpaceC} field \\
@@ -1221,11 +1242,16 @@ Axiom of Definition~\ref{def:intspace} & \texttt{IntSpaceC} field \\
 (A6) constructive continuity & \texttt{continuity} \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
+
+Table~\ref{tab:routes} sets out the routes and the data each one carries.
 
 \medskip
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{The theorem routes and the data each one carries.}
+\label{tab:routes}
 \setlength{\tabcolsep}{4pt}
 \begin{tabular}{@{}p{0.20\textwidth}p{0.37\textwidth}p{0.38\textwidth}@{}}
 \hline
@@ -1248,7 +1274,7 @@ Proof step~(4) & --- & \path{lemma_4_14_local_two_epsilonC} \\
 Proof step~(5) & --- & \path{integral_diff_lt_of_abs_error_integral_ltC} \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 \noindent Public aliases are in the namespace \path{ChoiceFreeMeasureDCT}; implementation declarations are in \path{BishopSec1P} or \path{BishopSec3P}.  The complete list of public aliases, including the Type-valued route and the automatic wrappers of Section~\ref{sec:formalization}, is in \path{ChoiceFreeMeasureDCTPublic.lean}.
 
@@ -1522,7 +1548,16 @@ That $A$ is complemented---elements of $A^1$ and $A^2$ are distinct---follows be
 
 \begin{remark}[Why $B$ is not a corollary of $A$]
 \label{rem:b-nocorollary}
-Classically the two components of $B$ are ordinary complements, as are the two components of $A$; but $B$ is not obtained from $A$ by swapping components. At a continuity level the difference between $\{h\ge t\}$ and $\{h>t\}$ is the null boundary $\{h=t\}$, and the integrability of $B$ follows from that of $A$ by that classical null-boundary argument.  Constructively $\le$ is the \emph{negation} of $<$, and $\{h\ge t\}$ and $\{h>t\}$ are not each other's negations; passing between them is a double-negation elimination.  The classical complement route is therefore closed; and on the data route, the public data of the $A$ pair does not directly yield the data of the $B$ pair either.  The $B$ pair was accordingly constructed independently.  (Formal non-derivability---that no construction could exist---is not claimed.)
+Classically the two components of $B$ are ordinary complements, as are the two components
+of $A$; but $B$ is not obtained from $A$ by swapping components.  The predicates
+$h\ge t$ and $h>t$ differ at equality even classically, so passing between them is not an
+application of double-negation elimination.  What the classical argument uses is that the
+boundary $\{h=t\}$ is null, which lets it identify the two characteristic functions almost
+everywhere; the integrability of $B$ follows from that of $A$ by that route.  The public
+data of the $A$ pair supplies neither that boundary identification nor the data the $B$ pair
+requires.  The $B$ pair was accordingly constructed independently, using ramps that approach
+the level from the opposite side.  (Formal non-derivability---that no construction could
+exist---is not claimed.)
 \end{remark}
 
 \begin{remark}[Why the mirror is not a copy: approximation from opposite sides]
@@ -1591,9 +1626,13 @@ In order of application, the chain is: explicit exception sequence (Appendix~\re
 \subsection{Routine, known, and difficult: a classification}
 \label{sec:b-triage}
 
-What was received, and what is routine:
+Table~\ref{tab:received} sets out what was received and what is routine.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{What was received from the source, and what is routine transcription.}
+\label{tab:received}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
 \hline
 Item & Status & Ground \\
@@ -1605,11 +1644,15 @@ $\min\{f,0\}=\tfrac12(f-|f|)$; derivability of the positivity of $I$ & routine t
 Respect lemmas for Bishop equality; reading $\exists$ as data; convergence with moduli & formalization routine & not new mathematics, but obligatory \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
-The difficulties:
+Table~\ref{tab:hard} sets out the difficulties.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{The difficulties, and where each one is resolved.}
+\label{tab:hard}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
 \hline
 Item & Status & Ground \\
@@ -1623,11 +1666,15 @@ Uniform complement estimate as data (Appendix~\ref{sec:b-uniform}) & difficulty 
 One-point certificates and strong gauge extraction (Appendix~\ref{sec:b-onepoint}) & known (Bishop) $+$ difficulty, reusable & the one-point diagonal condition and its tail equivalence are Definition~3 and Lemma~2 of \emph{Foundations}, Chapter~2; the difficulty is executing the round trip, under the proposition/data distinction, without choice \\
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
-The observations recorded by this development:
+Table~\ref{tab:observed} lists the observations recorded by this development.
 
-\begin{center}\small
+\begin{table}[htbp]
+\centering\small
+\caption{The observations recorded by this development.}
+\label{tab:observed}
+\setlength{\tabcolsep}{3pt}
 \begin{tabular}{p{0.40\textwidth}p{0.17\textwidth}p{0.36\textwidth}}
 \hline
 Item & Status & Ground \\
@@ -1638,7 +1685,7 @@ The proposition/data gap surfacing as work (Remark~\ref{rem:b-propdata}) & metho
 
 \hline
 \end{tabular}
-\end{center}
+\end{table}
 
 The rows labelled ``difficulty'' are difficulties of the \emph{formalization}, not claims of mathematical novelty.  The constructions of Appendices~\ref{sec:b-avoidance}, \ref{sec:b-coded}, and \ref{sec:b-exception} rewrite, into constructively executable form, operations that the source's proofs perform implicitly; none is a new theorem.  What this formalization adds is that carrying them out determined \emph{what is needed} to perform them---margins, codes, explicit sequences, positivity witnesses, one-point certificates.  Those five items are what this appendix hopes to communicate to a mathematician.
 
@@ -1952,8 +1999,8 @@ Vincent S\'em\'eria and the CoRN contributors.
 \bibitem{artifact}
 Toshihisa Urahigashi.
 \newblock \texttt{choicefree-bc-dct}: a Lean~4 artifact for choice-free Bishop--Cheng dominated convergence.
-\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22312944}.
-\newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  The version DOI of the previous deposit is v0.7.4 \doi{10.5281/zenodo.22311450}; earlier ones are v0.7.3 \doi{10.5281/zenodo.22310089}, v0.7.2 \doi{10.5281/zenodo.22309608}, v0.7.1 \doi{10.5281/zenodo.22307518}, v0.7.0 \doi{10.5281/zenodo.22305303}, v0.6.1 \doi{10.5281/zenodo.22268374}, v0.6.0 \doi{10.5281/zenodo.22257007}, v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936} and v0.3.0 \doi{10.5281/zenodo.21850966}.
+\newblock Version \CFBDCTVersion.  Software deposit, Zenodo, \doi{10.5281/zenodo.22313684}.
+\newblock Concept DOI (resolves to the latest version): \doi{10.5281/zenodo.21850965}.  The version DOI of the previous deposit is v0.7.5 \doi{10.5281/zenodo.22312944}; earlier ones are v0.7.4 \doi{10.5281/zenodo.22311450}, v0.7.3 \doi{10.5281/zenodo.22310089}, v0.7.2 \doi{10.5281/zenodo.22309608}, v0.7.1 \doi{10.5281/zenodo.22307518}, v0.7.0 \doi{10.5281/zenodo.22305303}, v0.6.1 \doi{10.5281/zenodo.22268374}, v0.6.0 \doi{10.5281/zenodo.22257007}, v0.4.1 \doi{10.5281/zenodo.22137161}, v0.4.0 \doi{10.5281/zenodo.21854936} and v0.3.0 \doi{10.5281/zenodo.21850966}.
 
 \end{thebibliography}
 

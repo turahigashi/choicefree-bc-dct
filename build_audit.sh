@@ -3,6 +3,7 @@ set -euo pipefail
 mkdir -p logs
 RUN_LOG=logs/build_audit.rerun.txt
 STATIC_LOG=logs/static_audit.rerun.txt
+LOGGEN_LOG=logs/log_generation.rerun.txt
 rm -f "$RUN_LOG" "$STATIC_LOG"
 {
   echo "== toolchain =="
@@ -85,7 +86,12 @@ for bad in Classical. sorryAx native_decide Quot.out; do
     exit 1
   fi
 done
-echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
+# ★This marks the build and the in-block checks, and nothing after them.  It used
+# to be called BUILD_AUDIT_EXIT=0 and to sit here, before two further stages ---
+# so a run that failed at stage 17 still left a log carrying an overall success
+# line, and a review reproduced exactly that.  The overall verdict is now the
+# last line of the run log, and this one says only how far the block got.
+echo "CORE_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
 
 # ★Runs here for the same reason check_log_generation.py does: it reads the *promoted*
 # reference log `logs/build_audit.txt`, not this run's `.rerun.txt`.  Inside the block
@@ -115,4 +121,21 @@ fi
 # the script only announces later, so no promoted log can ever contain it and the check
 # never reaches a fixed point.  Running it last makes a completed run's log record all
 # of the stages, so promoting that log lets the next run pass.
-python3 tools/check_log_generation.py 2>&1 | tee -a "$RUN_LOG"
+# ★The overall verdict: written only after every stage above has succeeded, and it is
+# the last line of the run log.  A run that fails in any stage --- including the last
+# two, which used to sit after the old success line --- leaves a log without it, and
+# `check_log_generation.py` refuses such a log as the shipped reference.
+echo "BUILD_AUDIT_EXIT=0" | tee -a "$RUN_LOG"
+
+# ★Last, and reading the *promoted* reference log rather than this run's.  Its verdict
+# goes to its own file, never into "$RUN_LOG": writing it there would put the outcome
+# of checking the previous log inside the new one, and the next promotion would carry
+# that verdict forward as though it described the new run.
+#
+# The order matters and three arrangements are wrong.  Inside the block, it aborts
+# before any success line is written.  Immediately after a success line placed before
+# the last stages, it demands a stage the log cannot yet contain.  After the terminal
+# marker, no run can ever write that marker, because this check aborts first --- so no
+# promoted log has it and no later run can pass.  Placed here, a completed run's log
+# carries every stage and the terminal marker, and promoting it lets the next run pass.
+python3 tools/check_log_generation.py 2>&1 | tee "$LOGGEN_LOG"
